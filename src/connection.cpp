@@ -1,7 +1,5 @@
 #include <planet/connection.hpp>
 
-#include <iostream>
-
 
 felspar::coro::stream<planet::client::message> planet::client::connection(
         felspar::coro::stream<felspar::coro::generator<std::string_view>>
@@ -16,9 +14,9 @@ felspar::coro::stream<planet::client::message> planet::client::connection(
                 if (not expr.empty()) { expr += ' '; }
                 expr += part;
             }
-            co_yield std::move(message{expr});
+            co_yield message{std::move(expr)};
         } else {
-            std::cout << "Unknown command '" << *first << "' -- ignoring\n";
+            co_yield message{error{"Unknown command", std::string{*first}}};
         }
     }
 }
