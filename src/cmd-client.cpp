@@ -1,14 +1,16 @@
-#include <felspar/coro/task.hpp>
+#include <planet/connection.hpp>
 #include <planet/stdin.hpp>
+
+#include <felspar/coro/task.hpp>
+
 #include <iostream>
 
 
 namespace {
     felspar::coro::task<int> co_main() {
-        auto commands = planet::io::commands();
+        auto commands = planet::io::connection(planet::io::commands());
         while (auto command = co_await commands.next()) {
-            for (auto part : *command) { std::cout << part << ' '; }
-            std::cout << '\n';
+            std::cout << *command << '\n';
         }
         co_return 0;
     }
