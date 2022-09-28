@@ -20,5 +20,5 @@ time (
         ninja -C ./build.tmp/clang-release-pmr-asan all felspar-check &&
         true
     ) && (
-        find ./libs/ -name \*.\?pp -print | xargs clang-format -i
+        find ./include/ ./libs/ ./src/ ./test/ -name \*.\?pp -print | xargs clang-format -i
     )
