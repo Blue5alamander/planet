@@ -1,3 +1,5 @@
+#include <planet/message.hpp>
+
 #include <felspar/coro/generator.hpp>
 #include <felspar/coro/stream.hpp>
 
@@ -5,10 +7,10 @@
 #include <string_view>
 
 
-namespace planet::io {
+namespace planet::client {
 
 
-    felspar::coro::stream<std::string> connection(
+    felspar::coro::stream<message> connection(
             felspar::coro::stream<felspar::coro::generator<std::string_view>>);
 
 

@@ -8,9 +8,9 @@
 
 namespace {
     felspar::coro::task<int> co_main() {
-        auto commands = planet::io::connection(planet::io::commands());
-        while (auto command = co_await commands.next()) {
-            std::cout << *command << '\n';
+        auto responses = planet::client::connection(planet::io::commands());
+        while (auto message = co_await responses.next()) {
+            std::cout << std::get<std::string>(message->payload) << '\n';
         }
         co_return 0;
     }
