@@ -4,20 +4,20 @@ time (
         # User specified targets
         ninja -C ./build.tmp/clang-debug $* &&
         # Debug builds
-        ninja -C ./build.tmp/clang-debug all felspar-check &&
-        ninja -C ./build.tmp/gcc-debug all felspar-check &&
+        ninja -C ./build.tmp/clang-debug all check felspar-check &&
+        ninja -C ./build.tmp/gcc-debug all check felspar-check &&
         # Release builds
-        ninja -C ./build.tmp/clang-release all felspar-check &&
-        ninja -C ./build.tmp/gcc-release all felspar-check &&
+        ninja -C ./build.tmp/clang-release all check felspar-check &&
+        ninja -C ./build.tmp/gcc-release all check felspar-check &&
         # stdlib=libc++
-        ninja -C ./build.tmp/clang-debug-libc++ all felspar-check &&
-        ninja -C ./build.tmp/clang-release-libc++ all felspar-check &&
+        ninja -C ./build.tmp/clang-debug-libc++ all check felspar-check &&
+        ninja -C ./build.tmp/clang-release-libc++ all check felspar-check &&
         # stdlib=libc++ asan
-        ninja -C ./build.tmp/clang-debug-asan all felspar-check &&
-        ninja -C ./build.tmp/clang-release-asan all felspar-check &&
+        ninja -C ./build.tmp/clang-debug-asan all check felspar-check &&
+        ninja -C ./build.tmp/clang-release-asan all check felspar-check &&
         # stdlib=libc++ asan force PMR
-        ninja -C ./build.tmp/clang-debug-pmr-asan all felspar-check &&
-        ninja -C ./build.tmp/clang-release-pmr-asan all felspar-check &&
+        ninja -C ./build.tmp/clang-debug-pmr-asan all check felspar-check &&
+        ninja -C ./build.tmp/clang-release-pmr-asan all check felspar-check &&
         true
     ) && (
         find ./include/ ./libs/ ./src/ ./test/ -name \*.\?pp -print | xargs clang-format -i
