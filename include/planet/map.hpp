@@ -30,19 +30,21 @@ namespace planet::map {
         long x = {}, y = {};
 
       public:
-        coordinate() noexcept {}
-        coordinate(long x, long y) noexcept : x{x}, y{y} {}
+        constexpr coordinate() noexcept {}
+        constexpr coordinate(long x, long y) noexcept : x{x}, y{y} {}
 
-        auto row() const noexcept { return y; }
-        auto column() const noexcept { return x; }
+        constexpr auto row() const noexcept { return y; }
+        constexpr auto column() const noexcept { return x; }
 
-        coordinate e() const noexcept { return {x + 2, y}; }
-        coordinate ne() const noexcept { return {x + 1, y + 1}; }
-        coordinate nw() const noexcept { return {x - 1, y + 1}; }
-        coordinate w() const noexcept { return {x - 2, y}; }
-        coordinate sw() const noexcept { return {x - 1, y - 1}; }
-        coordinate se() const noexcept { return {x + 1, y - 1}; }
+        constexpr coordinate operator+(coordinate const r) const noexcept {
+            return {x + r.x, y + r.y};
+        }
+
+        constexpr auto operator<=>(coordinate const &) const noexcept = default;
     };
+
+    constexpr coordinate east{2, 0}, north_east{1, 1}, north_west{-1, 1},
+            west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
 
 
     template<typename Cell>

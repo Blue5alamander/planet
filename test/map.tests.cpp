@@ -10,18 +10,46 @@ namespace {
         check(loc.row()) == 0;
         check(loc.column()) == 0;
 
-        check(loc.e().column()) == 2;
-        check(loc.e().row()) == 0;
-        check(loc.ne().column()) == 1;
-        check(loc.ne().row()) == 1;
-        check(loc.nw().column()) == -1;
-        check(loc.nw().row()) == 1;
-        check(loc.w().column()) == -2;
-        check(loc.w().row()) == 0;
-        check(loc.sw().column()) == -1;
-        check(loc.sw().row()) == -1;
-        check(loc.se().column()) == 1;
-        check(loc.se().row()) == -1;
+        check((loc + planet::map::east).column()) == 2;
+        check((loc + planet::map::east).row()) == 0;
+
+        check((loc + planet::map::east + planet::map::north_east).column())
+                == 3;
+        check((loc + planet::map::east + planet::map::north_east).row()) == 1;
+
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west)
+                      .column())
+                == 2;
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west)
+                      .row())
+                == 2;
+
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west + planet::map::west)
+                      .column())
+                == 0;
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west + planet::map::west)
+                      .row())
+                == 2;
+
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west + planet::map::west
+               + planet::map::south_west)
+                      .column())
+                == -1;
+        check((loc + planet::map::east + planet::map::north_east
+               + planet::map::north_west + planet::map::west
+               + planet::map::south_west)
+                      .row())
+                == 1;
+
+        check(loc + planet::map::east + planet::map::north_east
+              + planet::map::north_west + planet::map::west
+              + planet::map::south_west + planet::map::south_east)
+                == loc;
     });
 
 
