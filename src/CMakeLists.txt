@@ -1,5 +1,6 @@
 add_library(planet
         connection.cpp
+        map.cpp
         stdin.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
