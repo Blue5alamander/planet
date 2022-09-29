@@ -15,9 +15,14 @@ namespace planet::map {
     };
 
 
-    template<typename Chunk>
-    class supercell {};
+    template<typename Chunk, std::size_t Dim>
+    class supercell {
+        std::array<Chunk, Dim * Dim> storage;
 
+      public:
+        static constexpr std::size_t width = Dim * Chunk::width,
+                                     height = Dim * Chunk::height;
+    };
 
 
     /// ## Cell & Super-cell Co-ordinates
