@@ -18,6 +18,35 @@ namespace {
     });
 
 
+    auto const supercell = felspar::testsuite("map/supercell", [](auto check) {
+        planet::map::supercell<
+                planet::map::chunk<std::pair<std::size_t, std::size_t>, 2>, 2>
+                c{[](auto x, auto y) {
+                    return std::pair{x, y};
+                }};
+
+        check(c[{0, 0}]) == std::pair{0UL, 0UL};
+        check(c[{1, 0}]) == std::pair{1UL, 0UL};
+        check(c[{2, 0}]) == std::pair{2UL, 0UL};
+        check(c[{3, 0}]) == std::pair{3UL, 0UL};
+
+        check(c[{0, 1}]) == std::pair{0UL, 1UL};
+        check(c[{1, 1}]) == std::pair{1UL, 1UL};
+        check(c[{2, 1}]) == std::pair{2UL, 1UL};
+        check(c[{3, 1}]) == std::pair{3UL, 1UL};
+
+        check(c[{0, 2}]) == std::pair{0UL, 2UL};
+        check(c[{1, 2}]) == std::pair{1UL, 2UL};
+        check(c[{2, 2}]) == std::pair{2UL, 2UL};
+        check(c[{3, 2}]) == std::pair{3UL, 2UL};
+
+        check(c[{0, 3}]) == std::pair{0UL, 3UL};
+        check(c[{1, 3}]) == std::pair{1UL, 3UL};
+        check(c[{2, 3}]) == std::pair{2UL, 3UL};
+        check(c[{3, 3}]) == std::pair{3UL, 3UL};
+    });
+
+
     auto const coords = felspar::testsuite("map/coordinate", [](auto check) {
         planet::map::coordinate loc{};
         check(loc.row()) == 0;
