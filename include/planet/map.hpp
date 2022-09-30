@@ -12,6 +12,19 @@ namespace planet::map {
 
       public:
         static constexpr std::size_t width = Dim, height = Dim;
+
+        template<typename Init>
+        constexpr chunk(Init cell) {
+            for (std::size_t x{}; x < width; ++x) {
+                for (std::size_t y{}; y < height; ++y) {
+                    (*this)[{x, y}] = cell(x, y);
+                }
+            }
+        }
+
+        constexpr Cell &operator[](std::pair<std::size_t, std::size_t> p) {
+            return storage[p.first * width + p.second];
+        }
     };
 
 
