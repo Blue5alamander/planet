@@ -31,32 +31,6 @@ namespace planet::map {
     };
 
 
-    template<typename Chunk, std::size_t Dim>
-    class supercell {
-        std::array<Chunk, Dim * Dim> storage;
-
-      public:
-        static constexpr std::size_t width = Dim * Chunk::width,
-                                     height = Dim * Chunk::height;
-
-        template<typename Init>
-        constexpr supercell(Init cell) {
-            for (std::size_t x{}; x < width; ++x) {
-                for (std::size_t y{}; y < height; ++y) {
-                    (*this)[{x, y}] = cell(x, y);
-                }
-            }
-        }
-
-        constexpr auto &operator[](std::pair<std::size_t, std::size_t> const p) {
-            auto const cx = p.first / Chunk::width, ix = p.first % Chunk::width;
-            auto const cy = p.second / Chunk::height,
-                       iy = p.second % Chunk::height;
-            return storage[cx * Dim + cy][{ix, iy}];
-        }
-    };
-
-
     /// ## Cell & Super-cell Co-ordinates
     /**
      * Directions when looking at the map
