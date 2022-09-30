@@ -1,4 +1,5 @@
 #include <array>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -58,11 +59,27 @@ namespace planet::map {
             east, north_east, north_west, west, south_west, south_east};
 
 
-    template<typename Cell>
+    /// ## The world map
+    template<typename Chunk>
     class world {
-        std::vector<std::unique_ptr<Cell>> chunks;
+        struct row {
+            long left_edge;
+            std::vector<std::unique_ptr<Chunk>> cells();
+        };
+
+        long bottom_edge;
+        std::vector<row> columns;
 
       public:
+        using chunk_type = Chunk;
+        using cell_type = typename chunk_type::cell_type;
+        using init_function_type = std::function<cell_type(coordinate)>;
+
+        world(coordinate const start, init_function_type const ift)
+        : bottom_edge{start.row()}, columns{row{start.column()}}, init{ift} {}
+
+      private:
+        init_function_type init;
     };
 
 

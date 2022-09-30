@@ -66,4 +66,17 @@ namespace {
     });
 
 
+    auto const world = felspar::testsuite("map/world", [](auto check) {
+        std::size_t calls{};
+        planet::map::world<planet::map::chunk<std::pair<long, long>, 4>> w{
+                {0, 0}, [&calls](auto const p) mutable {
+                    ++calls;
+                    return std::pair{p.row(), p.column()};
+                }};
+        check(calls) == 0;
+
+        // check(w[{0, 0}]) == std::pair{0, 0};
+    });
+
+
 }
