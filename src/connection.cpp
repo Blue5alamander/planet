@@ -3,18 +3,18 @@
 
 felspar::coro::stream<planet::client::message> planet::client::connection(
         felspar::coro::stream<felspar::coro::generator<std::string_view>>
-                commands) {
+                commands,
+        command_mapping builtins) {
     while (auto command = co_await commands.next()) {
-        std::string expr;
         auto const first = command->next();
         if (not first || first->empty()) {
             // blank line
-        } else if (first == "print") {
-            for (auto part : *command) {
-                if (not expr.empty()) { expr += ' '; }
-                expr += part;
+        } else if (auto function = builtins.find(*first);
+                   function != builtins.end()) {
+            for (auto messages = function->second(std::move(*command));
+                 auto msg = co_await messages.next();) {
+                co_yield std::move(*msg);
             }
-            co_yield message{std::move(expr)};
         } else {
             co_yield message{error{"Unknown command", std::string{*first}}};
         }
