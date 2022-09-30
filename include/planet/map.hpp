@@ -54,6 +54,8 @@ namespace planet::map {
 
     constexpr coordinate east{2, 0}, north_east{1, 1}, north_west{-1, 1},
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
+    constexpr std::array<coordinate, 6> directions{
+            east, north_east, north_west, west, south_west, south_east};
 
 
     template<typename Cell>
