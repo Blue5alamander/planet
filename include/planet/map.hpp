@@ -14,8 +14,6 @@ namespace planet::map {
         using cell_type = Cell;
         static constexpr std::size_t width = Dim, height = Dim;
 
-        constexpr chunk() {}
-
         template<typename Init>
         constexpr chunk(Init cell) {
             for (std::size_t x{}; x < width; ++x) {
