@@ -45,6 +45,10 @@ namespace planet::hexmap {
         constexpr auto operator<=>(coordinate const &) const noexcept = default;
     };
 
+    inline std::string to_string(coordinate p) {
+        return planet::to_string(std::pair{p.column(), p.row()});
+    }
+
     constexpr coordinate east{2, 0}, north_east{1, 1}, north_west{-1, 1},
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
     constexpr std::array<coordinate, 6> directions{
