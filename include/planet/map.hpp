@@ -52,34 +52,29 @@ namespace planet::map {
 
         constexpr auto operator<=>(coordinate const &) const noexcept = default;
 
-        static std::size_t insert_count(
+        static constexpr std::size_t insert_count(
                 long const lowest,
                 long const position,
-                std::size_t const width) {
+                std::size_t const width) noexcept {
             if (position < lowest) {
                 return (lowest - position) / width + 1;
             } else {
                 return {};
             }
         }
-        static std::size_t chunk_number(
+        static constexpr std::size_t chunk_number(
                 long const lowest,
                 long const position,
-                std::size_t const width) {
+                std::size_t const width) noexcept {
             return (position - lowest) / width;
         }
-        static std::size_t inside_chunk(
+        static constexpr std::size_t inside_chunk(
                 long const lowest,
                 long const position,
-                std::size_t const width) {
+                std::size_t const width) noexcept {
             return (position - lowest) % width;
         }
     };
-
-    constexpr coordinate east{2, 0}, north_east{1, 1}, north_west{-1, 1},
-            west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
-    constexpr std::array<coordinate, 6> directions{
-            east, north_east, north_west, west, south_west, south_east};
 
 
     /// ## The world map
