@@ -83,12 +83,11 @@ namespace {
     auto const world =
             felspar::testsuite("hexmap/world", [](auto check, auto &log) {
                 std::size_t calls{};
-                planet::hexmap::world<
-                        planet::hexmap::chunk<std::pair<long, long>, 4>>
-                        w{{0, 0}, [&calls](auto const p) mutable {
-                              ++calls;
-                              return std::pair{p.column(), p.row()};
-                          }};
+                planet::hexmap::world_type<std::pair<long, long>, 4> w{
+                        {0, 0}, [&calls](auto const p) mutable {
+                            ++calls;
+                            return std::pair{p.column(), p.row()};
+                        }};
                 check(calls) == 0;
 
                 check(w[{0, 0}]) == std::pair{0L, 0L};

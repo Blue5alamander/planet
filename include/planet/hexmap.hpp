@@ -82,4 +82,8 @@ namespace planet::hexmap {
     };
 
 
+    template<typename C, std::size_t X, std::size_t Y = X / 2>
+    using world_type = world<chunk<C, X, Y>>;
+
+
 }
