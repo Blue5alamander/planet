@@ -22,6 +22,7 @@ namespace {
         }
     }
     felspar::coro::task<felspar::coro::generator<std::string_view>> readline() {
+        std::cout << "> " << std::flush;
         std::string line;
         std::getline(std::cin, line);
         co_return lex(std::move(line));
