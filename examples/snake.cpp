@@ -13,7 +13,7 @@ namespace {
     struct snake;
 
 
-    enum class feature { rock = 1, food = 2 };
+    enum class feature { none = 0, rock = 1, food = 2 };
 
 
     struct hex {
@@ -38,8 +38,21 @@ namespace {
                 occupies.back()->player = this;
             } else {
                 position = position + by;
-                occupies.front()->player = nullptr;
-                occupies.erase(occupies.begin());
+                auto &h = world[position];
+                if (h.player) {
+                    co_yield {planet::client::error{
+                            "You tried to eat yourself, and so died", {}}};
+                } else if (h.features == feature::food) {
+                    co_yield planet::client::message{
+                            "You have eaten some food"};
+                    h.features = {};
+                } else if (h.features == feature::rock) {
+                    co_yield {planet::client::error{
+                            "You hit a rock and died", {}}};
+                } else {
+                    occupies.front()->player = nullptr;
+                    occupies.erase(occupies.begin());
+                }
                 occupies.push_back(&world[position]);
                 occupies.back()->player = this;
             }
@@ -68,9 +81,13 @@ namespace {
     };
 
 
-    inline std::string to_string(hex const &h) {
+    std::string to_string(hex const &h) {
         if (h.player) {
             return h.player->name;
+        } else if (h.features == feature::rock) {
+            return "has a rock";
+        } else if (h.features == feature::food) {
+            return "has food";
         } else {
             return "is empty";
         }
@@ -78,12 +95,24 @@ namespace {
 
 
     felspar::coro::task<int> co_main() {
-        hex::world_type world{{}, [](auto p) { return hex{}; }};
+        hex::world_type world{{}, [](auto const p) {
+                                  if (std::abs(p.column()) % 8 == 4
+                                      and std::abs(p.row()) % 4 == 2) {
+                                      return hex{feature::food};
+                                  } else if (
+                                          std::abs(p.column()) % 4 == 3
+                                          and std::abs(p.row()) % 8 == 5) {
+                                      return hex{feature::rock};
+                                  } else {
+                                      return hex{};
+                                  }
+                              }};
         snake player;
 
-        std::cout << "Welcome to snake. Your current situation is:\n";
+        std::cout << "Welcome to snake\n\n";
         std::cout << "Type one of ne, nw, w, e, se, sw followed by enter to "
                      "move in that direction\n\n";
+        std::cout << "Your current situation is:\n";
 
         for (auto start = player.move(world, {});
              auto message = co_await start.next();) {
