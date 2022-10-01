@@ -91,7 +91,7 @@ namespace {
             });
 
 
-    auto const world = felspar::testsuite("map/world", [](auto check) {
+    auto const world = felspar::testsuite("map/world", [](auto check, auto &log) {
         std::size_t calls{};
         planet::map::world<planet::map::chunk<std::pair<long, long>, 4>> w{
                 {0, 0}, [&calls](auto const p) mutable {
@@ -111,6 +111,21 @@ namespace {
 
         check(w[{345, 127}]) == std::pair(345L, 127L);
         check(calls) == 48;
+
+        auto pos = w.begin();
+        check(pos) != w.end();
+        check(pos->first) == planet::map::coordinate{0, 0};
+
+        ++pos;
+        check(pos) != w.end();
+        check(pos->first) == planet::map::coordinate{4, 4};
+
+        ++pos;
+        check(pos) != w.end();
+        check(pos->first) == planet::map::coordinate{344, 124};
+
+        ++pos;
+        check(pos) == w.end();
     });
 
 

@@ -93,7 +93,7 @@ namespace planet::map {
         long bottom_edge;
         std::vector<row> rows;
 
-        std::vector<std::unique_ptr<Chunk>> storage;
+        std::vector<std::pair<coordinate, std::unique_ptr<Chunk>>> storage;
 
       public:
         using chunk_type = Chunk;
@@ -102,6 +102,9 @@ namespace planet::map {
 
         world(coordinate const start, init_function_type const ift)
         : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
+
+        auto begin() noexcept { return storage.begin(); }
+        auto end() noexcept { return storage.end(); }
 
         cell_type &operator[](std::pair<long, long> const p) {
             auto const rows_inserted = coordinate::insert_count(
@@ -112,7 +115,7 @@ namespace planet::map {
             std::size_t const row_number = coordinate::chunk_number(
                     bottom_edge, p.second, chunk_type::height);
             if (rows.size() <= row_number) {
-                rows.resize(row_number + 1, row{p.first});
+                rows.resize(row_number + 1, row{});
             }
             auto &row = rows[row_number];
 
@@ -128,24 +131,28 @@ namespace planet::map {
             }
             auto &chunk = row.chunks[cell_number];
 
-            if (chunk == nullptr) {
-                storage.emplace_back(std::make_unique<chunk_type>(
-                        [&](auto const x, auto const y) {
-                            auto const relx =
-                                    cell_number * chunk_type::width + x;
-                            auto const rely =
-                                    row_number * chunk_type::height + y;
-                            return init(
-                                    {row.left_edge + long(relx),
-                                     bottom_edge + long(rely)});
-                        }));
-                chunk = storage.back().get();
-            }
-
             auto const inx = coordinate::inside_chunk(
                     row.left_edge, p.first, chunk_type::width);
             auto const iny = coordinate::inside_chunk(
                     bottom_edge, p.second, chunk_type::height);
+
+            if (chunk == nullptr) {
+                auto const offx = cell_number * chunk_type::width;
+                auto const offy = row_number * chunk_type::height;
+                storage.emplace_back(std::pair{
+                        coordinate{
+                                row.left_edge + long(offx),
+                                bottom_edge + long(offy)},
+                        std::make_unique<chunk_type>(
+                                [&](auto const x, auto const y) {
+                                    auto const relx = offx + x;
+                                    auto const rely = offy + y;
+                                    return init(
+                                            {row.left_edge + long(relx),
+                                             bottom_edge + long(rely)});
+                                })});
+                chunk = storage.back().second.get();
+            }
 
             return (*chunk)[{inx, iny}];
         }
