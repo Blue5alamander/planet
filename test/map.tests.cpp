@@ -69,20 +69,11 @@ namespace {
         check(w[{345, 127}]) == std::pair(345L, 127L);
         check(calls) == 48;
 
-        auto pos = w.begin();
-        check(pos) != w.end();
-        check(pos->first) == planet::map::coordinate{0, 0};
-
-        ++pos;
-        check(pos) != w.end();
-        check(pos->first) == planet::map::coordinate{4, 4};
-
-        ++pos;
-        check(pos) != w.end();
-        check(pos->first) == planet::map::coordinate{344, 124};
-
-        ++pos;
-        check(pos) == w.end();
+        auto pos = w.chunks();
+        check(pos.next()->first) == planet::map::coordinate{0, 0};
+        check(pos.next()->first) == planet::map::coordinate{4, 4};
+        check(pos.next()->first) == planet::map::coordinate{344, 124};
+        check(pos.next()).is_falsey();
     });
 
 

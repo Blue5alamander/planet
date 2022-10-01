@@ -1,3 +1,5 @@
+#include <felspar/coro/generator.hpp>
+
 #include <array>
 #include <functional>
 #include <memory>
@@ -7,13 +9,13 @@
 namespace planet::map {
 
 
-    template<typename Cell, std::size_t Dim>
+    template<typename Cell, std::size_t DimX, std::size_t DimY = DimX>
     class chunk {
-        std::array<Cell, Dim * Dim> storage;
+        std::array<Cell, DimX * DimY> storage;
 
       public:
         using cell_type = Cell;
-        static constexpr std::size_t width = Dim, height = Dim;
+        static constexpr std::size_t width = DimX, height = DimY;
 
         template<typename Init>
         constexpr chunk(Init cell) {
@@ -25,7 +27,7 @@ namespace planet::map {
         }
 
         constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
-            return storage[p.first * width + p.second];
+            return storage.at(p.first * height + p.second);
         }
     };
 
@@ -98,38 +100,39 @@ namespace planet::map {
         world(coordinate const start, init_function_type const ift)
         : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
 
-        auto begin() noexcept { return storage.begin(); }
-        auto end() noexcept { return storage.end(); }
+        felspar::coro::generator<std::pair<coordinate, chunk_type *>> chunks() {
+            for (auto &c : storage) { co_yield {c.first, c.second.get()}; }
+        }
 
-        cell_type &operator[](std::pair<long, long> const p) {
+        cell_type &operator[](coordinate const p) {
             auto const rows_inserted = coordinate::insert_count(
-                    bottom_edge, p.second, chunk_type::height);
+                    bottom_edge, p.row(), chunk_type::height);
             rows.insert(rows.begin(), rows_inserted, row{});
             bottom_edge -= chunk_type::height * rows_inserted;
 
             std::size_t const row_number = coordinate::chunk_number(
-                    bottom_edge, p.second, chunk_type::height);
+                    bottom_edge, p.row(), chunk_type::height);
             if (rows.size() <= row_number) {
                 rows.resize(row_number + 1, row{});
             }
             auto &row = rows[row_number];
 
             auto const cols_inserted = coordinate::insert_count(
-                    row.left_edge, p.first, chunk_type::width);
+                    row.left_edge, p.column(), chunk_type::width);
             row.chunks.insert(row.chunks.begin(), cols_inserted, nullptr);
             row.left_edge -= cols_inserted * chunk_type::width;
 
             std::size_t const cell_number = coordinate::chunk_number(
-                    row.left_edge, p.first, chunk_type::width);
+                    row.left_edge, p.column(), chunk_type::width);
             if (row.chunks.size() <= cell_number) {
                 row.chunks.resize(cell_number + 1, nullptr);
             }
             auto &chunk = row.chunks[cell_number];
 
             auto const inx = coordinate::inside_chunk(
-                    row.left_edge, p.first, chunk_type::width);
+                    row.left_edge, p.column(), chunk_type::width);
             auto const iny = coordinate::inside_chunk(
-                    bottom_edge, p.second, chunk_type::height);
+                    bottom_edge, p.row(), chunk_type::height);
 
             if (chunk == nullptr) {
                 auto const offx = cell_number * chunk_type::width;
@@ -139,7 +142,7 @@ namespace planet::map {
                                 row.left_edge + long(offx),
                                 bottom_edge + long(offy)},
                         std::make_unique<chunk_type>(
-                                [&](auto const x, auto const y) {
+                                [=, this](auto const x, auto const y) {
                                     auto const relx = offx + x;
                                     auto const rely = offy + y;
                                     return init(

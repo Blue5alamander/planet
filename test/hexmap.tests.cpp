@@ -80,4 +80,32 @@ namespace {
             });
 
 
+    auto const world =
+            felspar::testsuite("hexmap/world", [](auto check, auto &log) {
+                std::size_t calls{};
+                planet::hexmap::world<
+                        planet::hexmap::chunk<std::pair<long, long>, 4>>
+                        w{{0, 0}, [&calls](auto const p) mutable {
+                              ++calls;
+                              return std::pair{p.column(), p.row()};
+                          }};
+                check(calls) == 0;
+
+                check(w[{0, 0}]) == std::pair{0L, 0L};
+                check(calls) == 8;
+
+                check(w[{5, 7}]) == std::pair{5L, 7L};
+                check(calls) == 16;
+
+                auto pos = w.chunks();
+                auto p1 = pos.next()->first;
+                log << "p1 " << p1.column() << ", " << p1.row() << '\n';
+                check(p1) == planet::hexmap::coordinate{0, 0};
+                auto p2 = pos.next()->first;
+                log << "p2 " << p2.column() << ", " << p2.row() << '\n';
+                check(p2) == planet::hexmap::coordinate{4, 4};
+                check(pos.next()).is_falsey();
+            });
+
+
 }
