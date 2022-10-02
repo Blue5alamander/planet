@@ -5,6 +5,7 @@
 #include <felspar/coro/task.hpp>
 
 #include <iostream>
+#include <random>
 
 
 namespace {
@@ -95,14 +96,20 @@ namespace {
 
 
     felspar::coro::task<int> co_main() {
-        hex::world_type world{{}, [](auto const p) {
-                                  if (std::abs(p.column()) % 8 == 4
-                                      and std::abs(p.row()) % 4 == 2) {
-                                      return hex{feature::food};
-                                  } else if (
-                                          std::abs(p.column()) % 4 == 3
-                                          and std::abs(p.row()) % 8 == 5) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> probability(0.0f, 1.0f);
+
+        hex::world_type world{{}, [&gen, probability](auto const p) mutable {
+                                  auto const dist = std::sqrt(p.mag2());
+                                  auto const p_rock = dist / (dist + 15.8f);
+                                  auto const p_food = dist / (dist + 0.6f);
+                                  if (not dist) {
+                                      return hex{};
+                                  } else if (probability(gen) < p_rock) {
                                       return hex{feature::rock};
+                                  } else if (probability(gen) > p_food) {
+                                      return hex{feature::food};
                                   } else {
                                       return hex{};
                                   }
