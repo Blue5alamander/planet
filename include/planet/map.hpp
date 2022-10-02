@@ -56,6 +56,9 @@ namespace planet::map {
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
+        /// The square of the magnitude of the location from the origin
+        long mag2() const noexcept { return x * x + y * y; }
+
         static constexpr std::size_t insert_count(
                 long const lowest,
                 long const position,

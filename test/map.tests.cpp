@@ -46,6 +46,9 @@ namespace {
                 check(planet::map::coordinates::inside_chunk(-8, -1, 8)) == 7UL;
                 check(planet::map::coordinates::inside_chunk(-16, -1, 8))
                         == 7UL;
+            },
+            [](auto check) {
+                check(planet::map::coordinates{3, 4}.mag2()) == 25;
             });
 
 
