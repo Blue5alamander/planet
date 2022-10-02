@@ -92,7 +92,7 @@ namespace planet::map {
             std::vector<Chunk *> chunks;
         };
 
-        long bottom_edge;
+        long bottom_edge = {};
         std::vector<row> rows;
 
         std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> storage;
