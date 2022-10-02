@@ -95,6 +95,25 @@ namespace {
     }
 
 
+    felspar::coro::task<int>
+            print(felspar::coro::stream<planet::client::message> messages) {
+        while (auto message = co_await messages.next()) {
+            if (int exit = (*message)(
+                        [](std::string m) {
+                            std::cout << m << '\n';
+                            return 0;
+                        },
+                        [](planet::client::error e) {
+                            std::cerr << "Error: " << e.message << '\n';
+                            return 1;
+                        });
+                exit) {
+                co_return exit;
+            }
+        }
+        co_return 0;
+    }
+
     felspar::coro::task<int> co_main() {
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -119,12 +138,9 @@ namespace {
         std::cout << "Welcome to snake\n\n";
         std::cout << "Type one of ne, nw, w, e, se, sw followed by enter to "
                      "move in that direction\n\n";
-        std::cout << "Your current situation is:\n";
 
-        for (auto start = player.move(world, {});
-             auto message = co_await start.next();) {
-            std::cout << std::get<std::string>(message->payload) << '\n';
-        }
+        std::cout << "Your current situation is:\n";
+        co_await print(player.move(world, {}));
 
         planet::client::command_mapping commands;
         commands["e"] = [&world, &player](auto args) {
@@ -180,13 +196,8 @@ namespace {
         };
 #endif
 
-        auto responses =
-                planet::client::connection(planet::io::commands(), commands);
-        while (auto message = co_await responses.next()) {
-            std::cout << std::get<std::string>(message->payload) << '\n';
-        }
-
-        co_return 0;
+        co_return co_await print(
+                planet::client::connection(planet::io::commands(), commands));
     }
 
 
