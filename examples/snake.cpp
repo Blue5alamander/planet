@@ -27,11 +27,11 @@ namespace {
 
     struct snake {
         std::string name = "you";
-        planet::hexmap::coordinate position = {};
+        planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
 
         felspar::coro::stream<planet::client::message>
-                move(hex::world_type &world, planet::hexmap::coordinate by) {
+                move(hex::world_type &world, planet::hexmap::coordinates by) {
             if (occupies.empty()) {
                 position = by;
                 occupies.push_back(&world[position]);

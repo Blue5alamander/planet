@@ -6,7 +6,7 @@ namespace {
 
 
     auto const coords = felspar::testsuite(
-            "hexmap/coordinate",
+            "hexmap/coordinates",
             [](auto check) {
                 check(planet::hexmap::east.column()) == 2;
                 check(planet::hexmap::east.row()) == 0;
@@ -21,16 +21,16 @@ namespace {
                 check(planet::hexmap::south_east.column()) == 1;
                 check(planet::hexmap::south_east.row()) == -1;
 
-                check(planet::hexmap::coordinate{4, 2}.column()) == 4;
-                check(planet::hexmap::coordinate{4, 2}.row()) == 2;
-                check(planet::hexmap::coordinate{5, 3}.column()) == 5;
-                check(planet::hexmap::coordinate{5, 3}.row()) == 3;
+                check(planet::hexmap::coordinates{4, 2}.column()) == 4;
+                check(planet::hexmap::coordinates{4, 2}.row()) == 2;
+                check(planet::hexmap::coordinates{5, 3}.column()) == 5;
+                check(planet::hexmap::coordinates{5, 3}.row()) == 3;
                 /// We move an illegal location to a legal one
-                check(planet::hexmap::coordinate{5, 2}.column()) == 5;
-                check(planet::hexmap::coordinate{5, 2}.row()) == 3;
+                check(planet::hexmap::coordinates{5, 2}.column()) == 5;
+                check(planet::hexmap::coordinates{5, 2}.row()) == 3;
             },
             [](auto check) {
-                planet::hexmap::coordinate loc{};
+                planet::hexmap::coordinates loc{};
                 check(loc.column()) == 0;
                 check(loc.row()) == 0;
 
@@ -99,10 +99,10 @@ namespace {
                 auto pos = w.chunks();
                 auto p1 = pos.next()->first;
                 log << "p1 " << p1.column() << ", " << p1.row() << '\n';
-                check(p1) == planet::hexmap::coordinate{0, 0};
+                check(p1) == planet::hexmap::coordinates{0, 0};
                 auto p2 = pos.next()->first;
                 log << "p2 " << p2.column() << ", " << p2.row() << '\n';
-                check(p2) == planet::hexmap::coordinate{4, 4};
+                check(p2) == planet::hexmap::coordinates{4, 4};
                 check(pos.next()).is_falsey();
             });
 

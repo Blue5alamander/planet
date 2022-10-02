@@ -17,41 +17,41 @@ namespace planet::hexmap {
      * into a single row of the rectilinear grid. As a consequence both
      * co-ordinate axes must be either odd or even.
      */
-    class coordinate {
-        map::coordinate pos;
-        constexpr coordinate(map::coordinate p) : pos{p} {}
+    class coordinates {
+        map::coordinates pos;
+        constexpr coordinates(map::coordinates p) : pos{p} {}
 
       public:
-        constexpr coordinate() noexcept {}
-        constexpr coordinate(long x, long y) noexcept
+        constexpr coordinates() noexcept {}
+        constexpr coordinates(long x, long y) noexcept
         : pos{x, (y < 0 ? y - 1 : y) / 2} {}
         /// Create a hex co-ordinate from the compressed co-ordinates
-        static constexpr coordinate from_compressed(map::coordinate const p) {
+        static constexpr coordinates from_compressed(map::coordinates const p) {
             return {p};
         }
 
         /// Return the compressed co-ordinates
-        constexpr map::coordinate compressed() const noexcept { return pos; }
+        constexpr map::coordinates compressed() const noexcept { return pos; }
 
         constexpr long row() const noexcept {
             return (pos.row() * 2) + (pos.column() bitand 1);
         }
         constexpr long column() const noexcept { return pos.column(); }
 
-        constexpr coordinate operator+(coordinate const r) const noexcept {
+        constexpr coordinates operator+(coordinates const r) const noexcept {
             return {column() + r.column(), row() + r.row()};
         }
 
-        constexpr auto operator<=>(coordinate const &) const noexcept = default;
+        constexpr auto operator<=>(coordinates const &) const noexcept = default;
     };
 
-    inline std::string to_string(coordinate p) {
+    inline std::string to_string(coordinates p) {
         return planet::to_string(std::pair{p.column(), p.row()});
     }
 
-    constexpr coordinate east{2, 0}, north_east{1, 1}, north_west{-1, 1},
+    constexpr coordinates east{2, 0}, north_east{1, 1}, north_west{-1, 1},
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
-    constexpr std::array<coordinate, 6> directions{
+    constexpr std::array<coordinates, 6> directions{
             east, north_east, north_west, west, south_west, south_east};
 
 
@@ -65,20 +65,20 @@ namespace planet::hexmap {
       public:
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
-        using init_function_type = std::function<cell_type(coordinate)>;
+        using init_function_type = std::function<cell_type(coordinates)>;
 
-        felspar::coro::generator<std::pair<coordinate, chunk_type *>> chunks() {
+        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
             for (auto c : grid.chunks()) {
-                co_yield {coordinate::from_compressed(c.first), c.second};
+                co_yield {coordinates::from_compressed(c.first), c.second};
             }
         }
 
-        world(coordinate const start, init_function_type const ift)
-        : grid{start.compressed(), [f = std::move(ift)](map::coordinate p) {
-                   return f(coordinate::from_compressed(p));
+        world(coordinates const start, init_function_type const ift)
+        : grid{start.compressed(), [f = std::move(ift)](map::coordinates p) {
+                   return f(coordinates::from_compressed(p));
                }} {}
 
-        cell_type &operator[](coordinate p) { return grid[p.compressed()]; }
+        cell_type &operator[](coordinates p) { return grid[p.compressed()]; }
     };
 
 

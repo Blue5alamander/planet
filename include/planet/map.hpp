@@ -40,21 +40,21 @@ namespace planet::map {
      * x-axis is right to left -- increases left
      * y-axis is bottom to top -- increases up
      */
-    class coordinate {
+    class coordinates {
         long x = {}, y = {};
 
       public:
-        constexpr coordinate() noexcept {}
-        constexpr coordinate(long x, long y) noexcept : x{x}, y{y} {}
+        constexpr coordinates() noexcept {}
+        constexpr coordinates(long x, long y) noexcept : x{x}, y{y} {}
 
         constexpr auto row() const noexcept { return y; }
         constexpr auto column() const noexcept { return x; }
 
-        constexpr coordinate operator+(coordinate const r) const noexcept {
+        constexpr coordinates operator+(coordinates const r) const noexcept {
             return {x + r.x, y + r.y};
         }
 
-        constexpr auto operator<=>(coordinate const &) const noexcept = default;
+        constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
         static constexpr std::size_t insert_count(
                 long const lowest,
@@ -92,55 +92,55 @@ namespace planet::map {
         long bottom_edge;
         std::vector<row> rows;
 
-        std::vector<std::pair<coordinate, std::unique_ptr<Chunk>>> storage;
+        std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> storage;
 
       public:
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
-        using init_function_type = std::function<cell_type(coordinate)>;
+        using init_function_type = std::function<cell_type(coordinates)>;
 
-        world(coordinate const start, init_function_type const ift)
+        world(coordinates const start, init_function_type const ift)
         : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
 
-        felspar::coro::generator<std::pair<coordinate, chunk_type *>> chunks() {
+        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
             for (auto &c : storage) { co_yield {c.first, c.second.get()}; }
         }
 
-        cell_type &operator[](coordinate const p) {
-            auto const rows_inserted = coordinate::insert_count(
+        cell_type &operator[](coordinates const p) {
+            auto const rows_inserted = coordinates::insert_count(
                     bottom_edge, p.row(), chunk_type::height);
             rows.insert(rows.begin(), rows_inserted, row{});
             bottom_edge -= chunk_type::height * rows_inserted;
 
-            std::size_t const row_number = coordinate::chunk_number(
+            std::size_t const row_number = coordinates::chunk_number(
                     bottom_edge, p.row(), chunk_type::height);
             if (rows.size() <= row_number) {
                 rows.resize(row_number + 1, row{});
             }
             auto &row = rows[row_number];
 
-            auto const cols_inserted = coordinate::insert_count(
+            auto const cols_inserted = coordinates::insert_count(
                     row.left_edge, p.column(), chunk_type::width);
             row.chunks.insert(row.chunks.begin(), cols_inserted, nullptr);
             row.left_edge -= cols_inserted * chunk_type::width;
 
-            std::size_t const cell_number = coordinate::chunk_number(
+            std::size_t const cell_number = coordinates::chunk_number(
                     row.left_edge, p.column(), chunk_type::width);
             if (row.chunks.size() <= cell_number) {
                 row.chunks.resize(cell_number + 1, nullptr);
             }
             auto &chunk = row.chunks[cell_number];
 
-            auto const inx = coordinate::inside_chunk(
+            auto const inx = coordinates::inside_chunk(
                     row.left_edge, p.column(), chunk_type::width);
-            auto const iny = coordinate::inside_chunk(
+            auto const iny = coordinates::inside_chunk(
                     bottom_edge, p.row(), chunk_type::height);
 
             if (chunk == nullptr) {
                 auto const offx = cell_number * chunk_type::width;
                 auto const offy = row_number * chunk_type::height;
                 storage.emplace_back(std::pair{
-                        coordinate{
+                        coordinates{
                                 row.left_edge + long(offx),
                                 bottom_edge + long(offy)},
                         std::make_unique<chunk_type>(
