@@ -145,6 +145,40 @@ namespace {
         commands["se"] = [&world, &player](auto args) {
             return player.move(world, planet::hexmap::south_east);
         };
+#ifndef NDEBUG
+        commands["draw"] = [&world, &player](auto args)
+                -> felspar::coro::stream<planet::client::message> {
+            auto const distance = 8 - (player.position.row() bitand 1);
+            auto const top_left = player.position
+                    + planet::hexmap::coordinates{-distance, distance};
+            auto const bottom_right = player.position
+                    + planet::hexmap::coordinates{distance, -distance};
+            for (auto row{top_left.row()}; row >= bottom_right.row(); --row) {
+                bool const row_odd = row bitand 1;
+                bool const col_odd = top_left.column() bitand 1;
+                if (row_odd) { std::cout << "  "; }
+                for (auto col{top_left.column() + (row_odd != col_odd)};
+                     col <= bottom_right.column(); col += 2) {
+                    planet::hexmap::coordinates const loc{col, row};
+                    auto &cell = world[loc];
+                    if (player.position == loc) {
+                        std::cout << 'h';
+                    } else if (cell.player) {
+                        std::cout << 's';
+                    } else if (cell.features == feature::rock) {
+                        std::cout << 'o';
+                    } else if (cell.features == feature::food) {
+                        std::cout << '+';
+                    } else {
+                        std::cout << '.';
+                    }
+                    std::cout << "   ";
+                }
+                std::cout << '\n';
+            }
+            co_return;
+        };
+#endif
 
         auto responses =
                 planet::client::connection(planet::io::commands(), commands);
