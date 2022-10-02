@@ -1,5 +1,7 @@
 #include <planet/map.hpp>
 
+#include <numbers>
+
 
 namespace planet::hexmap {
 
@@ -38,8 +40,33 @@ namespace planet::hexmap {
         }
         constexpr long column() const noexcept { return pos.column(); }
 
+        /// Magnitude squared of the location from the origin
+        constexpr float mag2() const noexcept {
+            /**
+             * Given a hexagon point up, with an inner radius r and and outer
+             * radius R then:
+             *
+             *     r = √3R/2
+             *
+             * This make the height between successive rows of the hexagon
+             * tessellation:
+             *
+             *     h = 2r/√3 + ½r
+             *
+             * As r in the x direction is a 1 then we need to multiply the
+             * height difference by 2/√3 + ½ to get the true distance.
+             */
+            constexpr float h = 2.0f / std::numbers::sqrt3_v<float> + 0.5f;
+            auto const x = column();
+            auto const y = row() * h;
+            return x * x + y * y;
+        }
+
         constexpr coordinates operator+(coordinates const r) const noexcept {
             return {column() + r.column(), row() + r.row()};
+        }
+        constexpr coordinates operator-(coordinates const r) const noexcept {
+            return {column() - r.column(), row() - r.row()};
         }
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
