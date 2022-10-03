@@ -6,3 +6,16 @@ It contains implementations for both square and hex grids. Both make use of a ch
 
 There is also some help for implementing the control mechanism between a player or AI and the actual game.
 
+
+## Building and running the library and examples
+
+
+```bash
+git clone --recursive git@github.com:KayEss/planet.git
+cd planet
+mkdir build.tmp
+cd build.tmp
+cmake ..
+make
+./examples/snake
+```
