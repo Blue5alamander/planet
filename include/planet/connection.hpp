@@ -20,7 +20,7 @@ namespace planet::client {
 
     felspar::coro::stream<message> connection(
             felspar::coro::stream<felspar::coro::generator<std::string_view>>,
-            command_mapping);
+            command_mapping const &);
 
 
 }
