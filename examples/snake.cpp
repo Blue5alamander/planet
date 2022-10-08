@@ -31,7 +31,7 @@ namespace {
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
 
-        felspar::coro::stream<planet::client::message>
+        felspar::coro::stream<std::string>
                 move(hex::world_type &world, planet::hexmap::coordinates by) {
             if (occupies.empty()) {
                 position = by;
@@ -41,15 +41,12 @@ namespace {
                 position = position + by;
                 auto &h = world[position];
                 if (h.player) {
-                    co_yield {planet::client::error{
-                            "You tried to eat yourself, and so died", {}}};
+                    co_yield "You tried to eat yourself, and so died";
                 } else if (h.features == feature::food) {
-                    co_yield planet::client::message{
-                            "You have eaten some food"};
+                    co_yield "You have eaten some food";
                     h.features = {};
                 } else if (h.features == feature::rock) {
-                    co_yield {planet::client::error{
-                            "You hit a rock and died", {}}};
+                    co_yield "You hit a rock and died";
                 } else {
                     occupies.front()->player = nullptr;
                     occupies.erase(occupies.begin());
@@ -58,26 +55,20 @@ namespace {
                 occupies.back()->player = this;
             }
 #ifndef NDEBUG
-            co_yield planet::client::message{"Location " + to_string(position)};
+            co_yield "Location " + to_string(position);
 #endif
-            co_yield planet::client::message{
-                    "East "
-                    + to_string(world[position + planet::hexmap::east])};
-            co_yield planet::client::message{
-                    "North east "
-                    + to_string(world[position + planet::hexmap::north_east])};
-            co_yield planet::client::message{
-                    "North west "
-                    + to_string(world[position + planet::hexmap::north_west])};
-            co_yield planet::client::message{
-                    "West "
-                    + to_string(world[position + planet::hexmap::west])};
-            co_yield planet::client::message{
-                    "South west "
-                    + to_string(world[position + planet::hexmap::south_west])};
-            co_yield planet::client::message{
-                    "South east "
-                    + to_string(world[position + planet::hexmap::south_east])};
+            co_yield "East "
+                    + to_string(world[position + planet::hexmap::east]);
+            co_yield "North east "
+                    + to_string(world[position + planet::hexmap::north_east]);
+            co_yield "North west "
+                    + to_string(world[position + planet::hexmap::north_west]);
+            co_yield "West "
+                    + to_string(world[position + planet::hexmap::west]);
+            co_yield "South west "
+                    + to_string(world[position + planet::hexmap::south_west]);
+            co_yield "South east "
+                    + to_string(world[position + planet::hexmap::south_east]);
         }
     };
 
@@ -95,21 +86,9 @@ namespace {
     }
 
 
-    felspar::coro::task<int>
-            print(felspar::coro::stream<planet::client::message> messages) {
+    felspar::coro::task<int> print(felspar::coro::stream<std::string> messages) {
         while (auto message = co_await messages.next()) {
-            if (int exit = (*message)(
-                        [](std::string m) {
-                            std::cout << m << '\n';
-                            return 0;
-                        },
-                        [](planet::client::error e) {
-                            std::cerr << "Error: " << e.message << '\n';
-                            return 1;
-                        });
-                exit) {
-                co_return exit;
-            }
+            std::cout << *message << '\n';
         }
         co_return 0;
     }
@@ -142,7 +121,7 @@ namespace {
         std::cout << "Your current situation is:\n";
         co_await print(player.move(world, {}));
 
-        planet::client::command_mapping commands;
+        planet::client::command_mapping<std::string> commands;
         commands["e"] = [&world, &player](auto args) {
             return player.move(world, planet::hexmap::east);
         };
@@ -162,8 +141,9 @@ namespace {
             return player.move(world, planet::hexmap::south_east);
         };
 #ifndef NDEBUG
-        commands["draw"] = [&world, &player](auto args)
-                -> felspar::coro::stream<planet::client::message> {
+        commands["draw"] =
+                [&world,
+                 &player](auto args) -> felspar::coro::stream<std::string> {
             auto const distance = 8 - (player.position.row() bitand 1);
             auto const top_left = player.position
                     + planet::hexmap::coordinates{-distance, distance};

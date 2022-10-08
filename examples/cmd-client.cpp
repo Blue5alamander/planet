@@ -9,15 +9,14 @@
 namespace {
 
     auto command_map = []() {
-        planet::client::command_mapping c;
-        c["print"] =
-                [](auto args) -> felspar::coro::stream<planet::client::message> {
+        planet::client::command_mapping<std::string> c;
+        c["print"] = [](auto args) -> felspar::coro::stream<std::string> {
             std::string expr;
             for (auto part : args) {
                 if (not expr.empty()) { expr += ' '; }
                 expr += part;
             }
-            co_yield planet::client::message{std::move(expr)};
+            co_yield std::move(expr);
         };
         return c;
     }();
@@ -26,14 +25,7 @@ namespace {
         auto responses =
                 planet::client::connection(planet::io::commands(), command_map);
         while (auto message = co_await responses.next()) {
-            if (auto const m =
-                        std::get_if<planet::client::error>(&message->payload);
-                m) {
-                std::cerr << "Error: '" << m->message << "' for '" << m->context
-                          << "'\n";
-            } else {
-                std::cout << std::get<std::string>(message->payload) << '\n';
-            }
+            std::cout << *message << '\n';
         }
         co_return 0;
     }
