@@ -47,10 +47,10 @@ $CMAKE -B build.tmp/clang-release-asan \
 
 
 $CMAKE -B build.tmp/clang-debug-pmr-asan \
-    -DCMAKE_INSTALL_PREFIX=dist/clang-debug-asan \
+    -DCMAKE_INSTALL_PREFIX=dist/clang-debug-pmr-asan \
     -DFELSPAR_FORCE_PMR=YES
 
 $CMAKE -B build.tmp/clang-release-pmr-asan \
-    -DCMAKE_INSTALL_PREFIX=dist/clang-release-asan \
+    -DCMAKE_INSTALL_PREFIX=dist/clang-release-pmr-asan \
     -DCMAKE_BUILD_TYPE=Release \
     -DFELSPAR_FORCE_PMR=YES
