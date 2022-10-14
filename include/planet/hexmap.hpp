@@ -43,17 +43,17 @@ namespace planet::hexmap {
         /// Magnitude squared of the location from the origin
         constexpr float mag2() const noexcept {
             /**
-             * Given a hexagon point up, with an inner radius r and and outer
-             * radius R then:
+             * Given a hexagon which is point up, with an inner radius `r` and
+             * and outer radius `R` then:
              *
              *     r = √3R/2
              *
-             * This make the height between successive rows of the hexagon
-             * tessellation:
+             * This make the height above the centre line of the hex row below
+             * in the tessellation:
              *
              *     h = 2r/√3 + ½r
              *
-             * As r in the x direction is a 1 then we need to multiply the
+             * As `r` in the x direction is a 1 then we need to multiply the
              * height difference by 2/√3 + ½ to get the true distance.
              */
             constexpr float h = 2.0f / std::numbers::sqrt3_v<float> + 0.5f;
