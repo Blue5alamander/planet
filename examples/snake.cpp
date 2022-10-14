@@ -72,11 +72,13 @@ namespace {
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
 
-        snake(hex::world_type &world) {
+        /// Initialise the snake position on the world
+        explicit snake(hex::world_type &world) {
             occupies.push_back(&world[position]);
             occupies.back()->player = this;
         }
 
+        /// The snake has moved
         felspar::coro::stream<message>
                 move(hex::world_type &world, planet::hexmap::coordinates by) {
             position = position + by;
@@ -91,6 +93,7 @@ namespace {
             } else {
                 occupies.front()->player = nullptr;
                 occupies.erase(occupies.begin());
+                co_yield {};
             }
             occupies.push_back(&world[position]);
             occupies.back()->player = this;
@@ -98,13 +101,50 @@ namespace {
     };
 
 
-    felspar::coro::task<int> print(felspar::coro::stream<message> messages) {
+    void draw(hex::world_type const &world, snake const &player, long range) {
+        auto const distance = range - (player.position.row() bitand 1);
+        auto const top_left = player.position
+                + planet::hexmap::coordinates{-distance, distance};
+        auto const bottom_right = player.position
+                + planet::hexmap::coordinates{distance, -distance};
+        for (auto row{top_left.row()}; row >= bottom_right.row(); --row) {
+            bool const row_odd = row bitand 1;
+            bool const col_odd = top_left.column() bitand 1;
+            if (row_odd) { std::cout << "  "; }
+            for (auto col{top_left.column() + (row_odd != col_odd)};
+                 col <= bottom_right.column(); col += 2) {
+                planet::hexmap::coordinates const loc{col, row};
+                auto const &cell = world[loc];
+                if (player.position == loc) {
+                    std::cout << 'h';
+                } else if (cell.player) {
+                    std::cout << 's';
+                } else if (cell.features == feature::rock) {
+                    std::cout << 'o';
+                } else if (cell.features == feature::food) {
+                    std::cout << '+';
+                } else {
+                    std::cout << '.';
+                }
+                std::cout << "   ";
+            }
+            std::cout << '\n';
+        }
+    }
+
+
+    felspar::coro::task<int>
+            print(hex::world_type &world,
+                  snake &player,
+                  felspar::coro::stream<message> messages) {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
             if (message->state == player::dead) { co_return 1; }
+            draw(world, player, 4);
         }
         co_return 0;
     }
+
 
     felspar::coro::task<int> co_main() {
         std::random_device rd;
@@ -130,6 +170,7 @@ namespace {
         std::cout << "Welcome to snake\n\n";
         std::cout << "Type one of ne, nw, w, e, se, sw followed by enter to "
                      "move in that direction\n\n";
+        draw(world, player, 4);
 
         planet::client::command_mapping<message> commands;
         commands["e"] = [&world, &player](auto args) {
@@ -153,39 +194,13 @@ namespace {
 #ifndef NDEBUG
         commands["draw"] =
                 [&world, &player](auto args) -> felspar::coro::stream<message> {
-            auto const distance = 8 - (player.position.row() bitand 1);
-            auto const top_left = player.position
-                    + planet::hexmap::coordinates{-distance, distance};
-            auto const bottom_right = player.position
-                    + planet::hexmap::coordinates{distance, -distance};
-            for (auto row{top_left.row()}; row >= bottom_right.row(); --row) {
-                bool const row_odd = row bitand 1;
-                bool const col_odd = top_left.column() bitand 1;
-                if (row_odd) { std::cout << "  "; }
-                for (auto col{top_left.column() + (row_odd != col_odd)};
-                     col <= bottom_right.column(); col += 2) {
-                    planet::hexmap::coordinates const loc{col, row};
-                    auto &cell = world[loc];
-                    if (player.position == loc) {
-                        std::cout << 'h';
-                    } else if (cell.player) {
-                        std::cout << 's';
-                    } else if (cell.features == feature::rock) {
-                        std::cout << 'o';
-                    } else if (cell.features == feature::food) {
-                        std::cout << '+';
-                    } else {
-                        std::cout << '.';
-                    }
-                    std::cout << "   ";
-                }
-                std::cout << '\n';
-            }
+            draw(world, player, 8);
             co_return;
         };
 #endif
 
         co_return co_await print(
+                world, player,
                 planet::client::connection(planet::io::commands(), commands));
     }
 
