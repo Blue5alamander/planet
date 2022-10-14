@@ -87,7 +87,7 @@ namespace planet::hexmap {
         static_assert(
                 (Chunk::width bitand 1) == 0,
                 "Width of chunks storage must be even");
-        map::world<Chunk> grid;
+        mutable map::world<Chunk> grid;
 
       public:
         using chunk_type = Chunk;
@@ -106,6 +106,9 @@ namespace planet::hexmap {
                }} {}
 
         cell_type &operator[](coordinates p) { return grid[p.compressed()]; }
+        cell_type const &operator[](coordinates p) const {
+            return grid[p.compressed()];
+        }
     };
 
 
