@@ -108,30 +108,36 @@ namespace {
                 + planet::hexmap::coordinates{range + 1, -range - 1};
         bool spaces = true;
         std::optional<long> current_row;
+        std::string line;
         for (auto const loc :
              planet::hexmap::coordinates::by_column(top_left, bottom_right)) {
             if (loc.row() != current_row) {
+                if (line.find_first_not_of(' ') != std::string::npos) {
+                    std::cout << line << "\n\n";
+                }
+                line.clear();
                 current_row = loc.row();
-                std::cout << '\n';
-                if (spaces = not spaces; spaces) { std::cout << "  "; }
+                if (spaces = not spaces; spaces) { line += "  "; }
             }
             auto const &cell = world[loc];
             if ((player.position - loc).mag2() > range * range) {
-                std::cout << ' ';
+                line += ' ';
             } else if (player.position == loc) {
-                std::cout << 'h';
+                line += 'h';
             } else if (cell.player) {
-                std::cout << 's';
+                line += 's';
             } else if (cell.features == feature::rock) {
-                std::cout << 'o';
+                line += 'o';
             } else if (cell.features == feature::food) {
-                std::cout << '+';
+                line += '+';
             } else {
-                std::cout << '.';
+                line += '.';
             }
-            std::cout << "   ";
+            line += "   ";
         }
-        std::cout << '\n';
+        if (line.find_first_not_of(' ') != std::string::npos) {
+            std::cout << line << '\n';
+        }
     }
 
 
