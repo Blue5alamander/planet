@@ -102,34 +102,36 @@ namespace {
 
 
     void draw(hex::world_type const &world, snake const &player, long range) {
-        auto const distance = range - (player.position.row() bitand 1);
-        auto const top_left = player.position
-                + planet::hexmap::coordinates{-distance, distance};
+        auto const top_left =
+                player.position + planet::hexmap::coordinates{-range, range};
         auto const bottom_right = player.position
-                + planet::hexmap::coordinates{distance, -distance};
-        for (auto row{top_left.row()}; row >= bottom_right.row(); --row) {
-            bool const row_odd = row bitand 1;
-            bool const col_odd = top_left.column() bitand 1;
-            if (row_odd) { std::cout << "  "; }
-            for (auto col{top_left.column() + (row_odd != col_odd)};
-                 col <= bottom_right.column(); col += 2) {
-                planet::hexmap::coordinates const loc{col, row};
-                auto const &cell = world[loc];
-                if (player.position == loc) {
-                    std::cout << 'h';
-                } else if (cell.player) {
-                    std::cout << 's';
-                } else if (cell.features == feature::rock) {
-                    std::cout << 'o';
-                } else if (cell.features == feature::food) {
-                    std::cout << '+';
-                } else {
-                    std::cout << '.';
-                }
-                std::cout << "   ";
+                + planet::hexmap::coordinates{range + 1, -range - 1};
+        bool spaces = true;
+        std::optional<long> current_row;
+        for (auto const loc :
+             planet::hexmap::coordinates::by_column(top_left, bottom_right)) {
+            if (loc.row() != current_row) {
+                current_row = loc.row();
+                std::cout << '\n';
+                if (spaces = not spaces; spaces) { std::cout << "  "; }
             }
-            std::cout << '\n';
+            auto const &cell = world[loc];
+            if ((player.position - loc).mag2() > range * range) {
+                std::cout << ' ';
+            } else if (player.position == loc) {
+                std::cout << 'h';
+            } else if (cell.player) {
+                std::cout << 's';
+            } else if (cell.features == feature::rock) {
+                std::cout << 'o';
+            } else if (cell.features == feature::food) {
+                std::cout << '+';
+            } else {
+                std::cout << '.';
+            }
+            std::cout << "   ";
         }
+        std::cout << '\n';
     }
 
 
@@ -140,7 +142,7 @@ namespace {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
             if (message->state == player::dead) { co_return 1; }
-            draw(world, player, 4);
+            draw(world, player, message->view_distance);
         }
         co_return 0;
     }
