@@ -1,4 +1,4 @@
-#include <planet/hexmap.hpp>
+#include <planet/ostream.hpp>
 #include <felspar/test.hpp>
 
 
