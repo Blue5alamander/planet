@@ -78,6 +78,74 @@ namespace {
                       + planet::hexmap::south_west + planet::hexmap::south_east)
                         == loc;
             });
+    auto const col_iter = felspar::testsuite(
+            "hexmap/coordinates/by_columns",
+            [](auto check) {
+                auto even =
+                        planet::hexmap::coordinates::by_column({0, 0}, {0, 0});
+                check(even.next()).is_falsey();
+
+                auto odd =
+                        planet::hexmap::coordinates::by_column({1, 1}, {1, 1});
+                check(odd.next()).is_falsey();
+            },
+            [](auto check) {
+                auto even =
+                        planet::hexmap::coordinates::by_column({0, 2}, {2, 0});
+                check(even.next().value()) == planet::hexmap::coordinates{0, 2};
+                check(even.next().value()) == planet::hexmap::coordinates{1, 1};
+                check(even.next()).is_falsey();
+
+                auto odd =
+                        planet::hexmap::coordinates::by_column({1, 3}, {3, 1});
+                check(odd.next().value()) == planet::hexmap::coordinates{1, 3};
+                check(odd.next().value()) == planet::hexmap::coordinates{2, 2};
+                check(odd.next()).is_falsey();
+            },
+            [](auto check) {
+                auto even = planet::hexmap::coordinates::by_column(
+                        {-2, 2}, {3, -3});
+                check(even.next().value())
+                        == planet::hexmap::coordinates{-2, 2};
+                check(even.next().value()) == planet::hexmap::coordinates{0, 2};
+                check(even.next().value()) == planet::hexmap::coordinates{2, 2};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{-1, 1};
+                check(even.next().value()) == planet::hexmap::coordinates{1, 1};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{-2, 0};
+                check(even.next().value()) == planet::hexmap::coordinates{0, 0};
+                check(even.next().value()) == planet::hexmap::coordinates{2, 0};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{-1, -1};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{1, -1};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{-2, -2};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{0, -2};
+                check(even.next().value())
+                        == planet::hexmap::coordinates{2, -2};
+                check(even.next()).is_falsey();
+
+                auto odd = planet::hexmap::coordinates::by_column(
+                        {-1, 3}, {4, -2});
+                check(odd.next().value()) == planet::hexmap::coordinates{-1, 3};
+                check(odd.next().value()) == planet::hexmap::coordinates{1, 3};
+                check(odd.next().value()) == planet::hexmap::coordinates{3, 3};
+                check(odd.next().value()) == planet::hexmap::coordinates{0, 2};
+                check(odd.next().value()) == planet::hexmap::coordinates{2, 2};
+                check(odd.next().value()) == planet::hexmap::coordinates{-1, 1};
+                check(odd.next().value()) == planet::hexmap::coordinates{1, 1};
+                check(odd.next().value()) == planet::hexmap::coordinates{3, 1};
+                check(odd.next().value()) == planet::hexmap::coordinates{0, 0};
+                check(odd.next().value()) == planet::hexmap::coordinates{2, 0};
+                check(odd.next().value())
+                        == planet::hexmap::coordinates{-1, -1};
+                check(odd.next().value()) == planet::hexmap::coordinates{1, -1};
+                check(odd.next().value()) == planet::hexmap::coordinates{3, -1};
+                check(odd.next()).is_falsey();
+            });
 
 
     auto const world =

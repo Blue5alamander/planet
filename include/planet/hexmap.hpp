@@ -70,6 +70,19 @@ namespace planet::hexmap {
         }
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
+
+        /// Produce the co-ordinates iterating through columns first
+        static felspar::coro::generator<coordinates>
+                by_column(coordinates top_left, coordinates bottom_right) {
+            auto const start_odd = top_left.row() bitand 1;
+            for (auto row{top_left.row()}; row > bottom_right.row(); --row) {
+                auto const row_odd = row bitand 1;
+                for (auto col{top_left.column() + (start_odd xor row_odd)};
+                     col < bottom_right.column(); col += 2) {
+                    co_yield {col, row};
+                }
+            }
+        }
     };
 
     inline std::string to_string(coordinates p) {
