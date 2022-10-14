@@ -14,9 +14,9 @@ namespace {
     struct snake;
 
 
-    enum class feature { none = 0, rock = 1, food = 2 };
-
-
+    /// Feature within the hex
+    enum class feature { none, rock, food, player };
+    /// Data structure describing a single hex
     struct hex {
         feature features = {};
         snake *player = nullptr;
@@ -26,69 +26,82 @@ namespace {
     std::string to_string(hex const &);
 
 
+    /// Player state
+    enum class player { alive, dead };
+
+    /// Message from game engine to UI
+    struct message {
+        player state = player::alive;
+        /// The view distance from the head of the snake
+        long view_distance = 2;
+        /// Difference in length between this turn and the last
+        long length_delta = 0;
+        message &operator+=(long d) {
+            length_delta += d;
+            return *this;
+        }
+        /// Error message
+        std::string error = {};
+
+        message() {}
+        message(player s) : state{s} {}
+        message(std::string e) : error{std::move(e)} {}
+    };
+    std::ostream &operator<<(std::ostream &os, message const &m) {
+        if (not m.error.empty()) { return os << m.error << '\n'; }
+        if (m.length_delta < 0) {
+            if (m.state == player::dead) {
+                return os << "Uh oh, you got shorter and died :-(\n";
+            } else {
+                os << "Uh oh, you got shorter. ";
+            }
+        }
+        if (m.state == player::dead) {
+            return os << "Oh no, you died :-(\n";
+        } else if (m.length_delta > 0) {
+            os << "You grew in length!";
+        } else {
+            os << "Nothing special happened";
+        }
+        return os << '\n';
+    }
+
+
     struct snake {
         std::string name = "you";
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
 
-        felspar::coro::stream<std::string>
+        snake(hex::world_type &world) {
+            occupies.push_back(&world[position]);
+            occupies.back()->player = this;
+        }
+
+        felspar::coro::stream<message>
                 move(hex::world_type &world, planet::hexmap::coordinates by) {
-            if (occupies.empty()) {
-                position = by;
-                occupies.push_back(&world[position]);
-                occupies.back()->player = this;
+            position = position + by;
+            auto &h = world[position];
+            if (h.player) {
+                co_yield {player::dead};
+            } else if (h.features == feature::food) {
+                co_yield message{} += 1;
+                h.features = {};
+            } else if (h.features == feature::rock) {
+                co_yield {player::dead};
             } else {
-                position = position + by;
-                auto &h = world[position];
-                if (h.player) {
-                    co_yield "You tried to eat yourself, and so died";
-                } else if (h.features == feature::food) {
-                    co_yield "You have eaten some food";
-                    h.features = {};
-                } else if (h.features == feature::rock) {
-                    co_yield "You hit a rock and died";
-                } else {
-                    occupies.front()->player = nullptr;
-                    occupies.erase(occupies.begin());
-                }
-                occupies.push_back(&world[position]);
-                occupies.back()->player = this;
+                occupies.front()->player = nullptr;
+                occupies.erase(occupies.begin());
             }
-#ifndef NDEBUG
-            co_yield "Location " + to_string(position);
-#endif
-            co_yield "East "
-                    + to_string(world[position + planet::hexmap::east]);
-            co_yield "North east "
-                    + to_string(world[position + planet::hexmap::north_east]);
-            co_yield "North west "
-                    + to_string(world[position + planet::hexmap::north_west]);
-            co_yield "West "
-                    + to_string(world[position + planet::hexmap::west]);
-            co_yield "South west "
-                    + to_string(world[position + planet::hexmap::south_west]);
-            co_yield "South east "
-                    + to_string(world[position + planet::hexmap::south_east]);
+            occupies.push_back(&world[position]);
+            occupies.back()->player = this;
         }
     };
 
 
-    std::string to_string(hex const &h) {
-        if (h.player) {
-            return h.player->name;
-        } else if (h.features == feature::rock) {
-            return "has a rock";
-        } else if (h.features == feature::food) {
-            return "has food";
-        } else {
-            return "is empty";
-        }
-    }
-
-
-    felspar::coro::task<int> print(felspar::coro::stream<std::string> messages) {
+    felspar::coro::task<int> print(felspar::coro::stream<message> messages) {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
+            if (message->state == player::dead) { co_return 1; }
         }
         co_return 0;
     }
@@ -112,16 +125,13 @@ namespace {
                                       return hex{};
                                   }
                               }};
-        snake player;
+        snake player{world};
 
         std::cout << "Welcome to snake\n\n";
         std::cout << "Type one of ne, nw, w, e, se, sw followed by enter to "
                      "move in that direction\n\n";
 
-        std::cout << "Your current situation is:\n";
-        co_await print(player.move(world, {}));
-
-        planet::client::command_mapping<std::string> commands;
+        planet::client::command_mapping<message> commands;
         commands["e"] = [&world, &player](auto args) {
             return player.move(world, planet::hexmap::east);
         };
@@ -142,8 +152,7 @@ namespace {
         };
 #ifndef NDEBUG
         commands["draw"] =
-                [&world,
-                 &player](auto args) -> felspar::coro::stream<std::string> {
+                [&world, &player](auto args) -> felspar::coro::stream<message> {
             auto const distance = 8 - (player.position.row() bitand 1);
             auto const top_left = player.position
                     + planet::hexmap::coordinates{-distance, distance};
