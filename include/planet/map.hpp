@@ -134,11 +134,6 @@ namespace planet::map {
             }
             auto &chunk = row.chunks[cell_number];
 
-            auto const inx = coordinates::inside_chunk(
-                    row.left_edge, p.column(), chunk_type::width);
-            auto const iny = coordinates::inside_chunk(
-                    bottom_edge, p.row(), chunk_type::height);
-
             if (chunk == nullptr) {
                 auto const offx = cell_number * chunk_type::width;
                 auto const offy = row_number * chunk_type::height;
@@ -156,6 +151,11 @@ namespace planet::map {
                                 })});
                 chunk = storage.back().second.get();
             }
+
+            auto const inx = coordinates::inside_chunk(
+                    row.left_edge, p.column(), chunk_type::width);
+            auto const iny = coordinates::inside_chunk(
+                    bottom_edge, p.row(), chunk_type::height);
 
             return (*chunk)[{inx, iny}];
         }
