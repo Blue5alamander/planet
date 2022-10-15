@@ -37,7 +37,7 @@ namespace {
 
 
     /// Feature within the hex -- keep `player` last when adding new ones
-    enum class feature { none, rock, food, food_plus, player };
+    enum class feature { none, rock, food, food_plus };
     /// Determine how a feature is generated.
     struct generate_feature {
         feature creates;
@@ -51,16 +51,15 @@ namespace {
 
     /// Functions for creating each type of feature in precedence order. The
     /// first to return true will determine the feature in that hex tile.
-    std::array<generate_feature, static_cast<std::size_t>(feature::player)> const
-            map_options = {
-                    generate_feature{
-                            feature::none,
-                            [](auto &, auto &, float const distance) {
-                                return distance <= 1.0f;
-                            }},
-                    generate_feature{feature::rock, increasing(16.0f)},
-                    generate_feature{feature::food, decreasing(0.6f)},
-                    generate_feature{feature::food_plus, increasing(100.0f)}};
+    std::array<generate_feature, 4> const map_options = {
+            generate_feature{
+                    feature::none,
+                    [](auto &, auto &, float const distance) {
+                        return distance <= 1.0f;
+                    }},
+            generate_feature{feature::rock, increasing(16.0f)},
+            generate_feature{feature::food, decreasing(0.6f)},
+            generate_feature{feature::food_plus, increasing(100.0f)}};
 
 
     /// Data structure describing a single hex tile
@@ -71,7 +70,6 @@ namespace {
 
         using world_type = planet::hexmap::world_type<hex, 32>;
     };
-    std::string to_string(hex const &);
 
 
     /// Player state
@@ -85,10 +83,6 @@ namespace {
         long view_distance = 2;
         /// Difference in length between this turn and the last
         long length_delta = 0;
-        message &operator+=(long d) {
-            length_delta += d;
-            return *this;
-        }
         /// Error message
         std::string error = {};
 
@@ -132,23 +126,23 @@ namespace {
                 move(hex::world_type &world, planet::hexmap::coordinates by) {
             position = position + by;
             auto &h = world[position];
+            message outcome{};
             if (h.player) {
-                co_yield {player::dead};
-            } else if (h.features == feature::food) {
-                co_yield message{} += 1;
-                h.features = {};
-            } else if (h.features == feature::food_plus) {
-                co_yield message() += 1;
-                h.features = {};
-            } else if (h.features == feature::rock) {
-                co_yield {player::dead};
+                outcome.state = player::dead;
             } else {
-                occupies.front()->player = nullptr;
-                occupies.erase(occupies.begin());
-                co_yield {};
+                occupies.push_back(&world[position]);
+                occupies.back()->player = this;
+                switch (h.features) {
+                case feature::none:
+                    occupies.front()->player = nullptr;
+                    occupies.erase(occupies.begin());
+                    break;
+                case feature::food: outcome.length_delta += 1; break;
+                case feature::food_plus: outcome.length_delta += 1; break;
+                case feature::rock: outcome.state = player::dead; break;
+                }
             }
-            occupies.push_back(&world[position]);
-            occupies.back()->player = this;
+            co_yield outcome;
         }
     };
 
