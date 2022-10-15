@@ -12,14 +12,61 @@
 namespace {
 
 
+    /// Some configuration
+    using prng_type = std::mt19937;
+    using distribution_type = std::uniform_real_distribution<float>;
+
+
+    /// The probability increases with distance
+    inline auto increasing(float control) {
+        return [control](
+                       auto &generator, auto &distribution,
+                       float const distance) -> bool {
+            auto const probability = distance / (distance + control);
+            return distribution(generator) < probability;
+        };
+    }
+    inline auto decreasing(float control) {
+        return [control](
+                       auto &generator, auto &distribution,
+                       float const distance) -> bool {
+            auto const probability = distance / (distance + control);
+            return distribution(generator) > probability;
+        };
+    }
+
+
+    /// Feature within the hex -- keep `player` last when adding new ones
+    enum class feature { none, rock, food, food_plus, player };
+    /// Determine how a feature is generated.
+    struct generate_feature {
+        feature creates;
+        std::function<auto(std::mt19937 &,
+                           std::uniform_real_distribution<float> &,
+                           float)
+                              ->bool>
+                determine;
+    };
+
+
+    /// Functions for creating each type of feature in precedence order. The
+    /// first to return true will determine the feature in that hex tile.
+    std::array<generate_feature, static_cast<std::size_t>(feature::player)> const
+            map_options = {
+                    generate_feature{
+                            feature::none,
+                            [](auto &, auto &, float const distance) {
+                                return distance <= 1.0f;
+                            }},
+                    generate_feature{feature::rock, increasing(16.0f)},
+                    generate_feature{feature::food, decreasing(0.6f)},
+                    generate_feature{feature::food_plus, increasing(100.0f)}};
+
+
+    /// Data structure describing a single hex tile
     struct snake;
-
-
-    /// Feature within the hex
-    enum class feature { none, rock, food, player };
-    /// Data structure describing a single hex
     struct hex {
-        feature features = {};
+        feature features = feature::none;
         snake *player = nullptr;
 
         using world_type = planet::hexmap::world_type<hex, 32>;
@@ -29,6 +76,7 @@ namespace {
 
     /// Player state
     enum class player { alive, dead };
+
 
     /// Message from game engine to UI
     struct message {
@@ -89,6 +137,9 @@ namespace {
             } else if (h.features == feature::food) {
                 co_yield message{} += 1;
                 h.features = {};
+            } else if (h.features == feature::food_plus) {
+                co_yield message() += 1;
+                h.features = {};
             } else if (h.features == feature::rock) {
                 co_yield {player::dead};
             } else {
@@ -130,7 +181,9 @@ namespace {
             } else if (cell.features == feature::rock) {
                 line += 'o';
             } else if (cell.features == feature::food) {
-                line += '+';
+                line += 'f';
+            } else if (cell.features == feature::food_plus) {
+                line += 'F';
             } else {
                 line += '.';
             }
@@ -160,22 +213,18 @@ namespace {
     felspar::coro::task<int> co_main() {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> probability(0.0f, 1.0f);
+        std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
-        hex::world_type world{{}, [&gen, probability](auto const p) mutable {
-                                  auto const dist = std::sqrt(p.mag2());
-                                  auto const p_rock = dist / (dist + 15.8f);
-                                  auto const p_food = dist / (dist + 0.6f);
-                                  if (not dist) {
-                                      return hex{};
-                                  } else if (probability(gen) < p_rock) {
-                                      return hex{feature::rock};
-                                  } else if (probability(gen) > p_food) {
-                                      return hex{feature::food};
-                                  } else {
-                                      return hex{};
-                                  }
-                              }};
+        hex::world_type world{
+                {}, [&gen, distribution](auto const p) mutable {
+                    auto const dist = std::sqrt(p.mag2());
+                    for (auto const &f : map_options) {
+                        if (f.determine(gen, distribution, dist)) {
+                            return hex{f.creates};
+                        }
+                    }
+                    return hex{};
+                }};
         snake player{world};
 
         std::cout << "Welcome to snake\n\n";
