@@ -37,7 +37,7 @@ namespace {
 
 
     /// Feature within the hex -- keep `player` last when adding new ones
-    enum class feature { none, rock, food, food_plus };
+    enum class feature { none, rock, food, food_plus, vision_plus };
     /// Determine how a feature is generated.
     struct generate_feature {
         feature creates;
@@ -51,7 +51,7 @@ namespace {
 
     /// Functions for creating each type of feature in precedence order. The
     /// first to return true will determine the feature in that hex tile.
-    std::array<generate_feature, 4> const map_options = {
+    std::array<generate_feature, 5> const map_options = {
             generate_feature{
                     feature::none,
                     [](auto &, auto &, float const distance) {
@@ -59,7 +59,8 @@ namespace {
                     }},
             generate_feature{feature::rock, increasing(16.0f)},
             generate_feature{feature::food, decreasing(0.6f)},
-            generate_feature{feature::food_plus, increasing(100.0f)}};
+            generate_feature{feature::food_plus, increasing(100.0f)},
+            generate_feature{feature::vision_plus, increasing(200.0f)}};
 
 
     /// Data structure describing a single hex tile
@@ -80,8 +81,8 @@ namespace {
     struct message {
         player state = player::alive;
         feature consumed = feature::none;
-        /// The view distance from the head of the snake
-        long view_distance = 2;
+        /// The view distance from the head of the snake for this move
+        long view_distance = 0;
         /// Difference in length between this turn and the last
         long length_delta = 0;
         /// Change in health
@@ -92,7 +93,7 @@ namespace {
         std::string error = {};
 
         message() {}
-        message(player s) : state{s} {}
+        message(long vd) : view_distance{vd} {}
         message(std::string e) : error{std::move(e)} {}
     };
     std::ostream &operator<<(std::ostream &os, message const &m) {
@@ -106,6 +107,9 @@ namespace {
         case feature::food: os << "You ate some food. "; break;
         case feature::food_plus:
             os << "You ate some really tasty food! ";
+            break;
+        case feature::vision_plus:
+            os << "Ooh, that carrot made your eyesight better. ";
             break;
         case feature::rock:
             if (m.state == player::dead) {
@@ -136,6 +140,7 @@ namespace {
     struct snake {
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
+        long vision_distance = 2;
         long health = 8;
         long score = {};
 
@@ -150,7 +155,7 @@ namespace {
                 move(hex::world_type &world, planet::hexmap::coordinates by) {
             position = position + by;
             auto &h = world[position];
-            message outcome{};
+            message outcome{vision_distance};
             if (h.player) {
                 outcome.state = player::dead;
             } else {
@@ -168,6 +173,11 @@ namespace {
                 case feature::food_plus:
                     outcome.health_delta += 14;
                     outcome.score_delta += 6;
+                    break;
+                case feature::vision_plus:
+                    outcome.view_distance = (vision_distance += 2);
+                    outcome.health_delta += 6;
+                    outcome.score_delta += 9;
                     break;
                 case feature::rock: outcome.health_delta -= 12; break;
                 }
@@ -225,6 +235,7 @@ namespace {
                 case feature::rock: line += 'o'; break;
                 case feature::food: line += 'f'; break;
                 case feature::food_plus: line += 'F'; break;
+                case feature::vision_plus: line += 'v'; break;
                 }
             }
             line += "   ";
