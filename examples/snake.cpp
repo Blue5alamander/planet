@@ -83,6 +83,10 @@ namespace {
         long view_distance = 2;
         /// Difference in length between this turn and the last
         long length_delta = 0;
+        /// Change in health
+        long health_delta = 0;
+        /// Change in score
+        long score_delta = {};
         /// Error message
         std::string error = {};
 
@@ -98,8 +102,7 @@ namespace {
             } else {
                 os << "Uh oh, you got shorter. ";
             }
-        }
-        if (m.state == player::dead) {
+        } else if (m.state == player::dead) {
             return os << "Oh no, you died :-(\n";
         } else if (m.length_delta > 0) {
             os << "You grew in length!";
@@ -114,6 +117,8 @@ namespace {
         std::string name = "you";
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
+        long health = 5;
+        long score = {};
 
         /// Initialise the snake position on the world
         explicit snake(hex::world_type &world) {
@@ -132,17 +137,39 @@ namespace {
             } else {
                 occupies.push_back(&world[position]);
                 occupies.back()->player = this;
+                outcome.length_delta += 1;
+                outcome.health_delta -= 2;
+
                 switch (h.features) {
-                case feature::none:
-                    occupies.front()->player = nullptr;
-                    occupies.erase(occupies.begin());
+                case feature::none: break;
+                case feature::food:
+                    outcome.health_delta += 9;
+                    outcome.score_delta += 5;
                     break;
-                case feature::food: outcome.length_delta += 1; break;
-                case feature::food_plus: outcome.length_delta += 1; break;
-                case feature::rock: outcome.state = player::dead; break;
+                case feature::food_plus:
+                    outcome.health_delta += 14;
+                    outcome.score_delta += 6;
+                    break;
+                case feature::rock: outcome.health_delta -= 12; break;
                 }
             }
             co_yield outcome;
+        }
+
+        felspar::coro::stream<message>
+                process_outcome(felspar::coro::stream<message> stream) {
+            while (auto outcome = co_await stream.next()) {
+                health += outcome->health_delta;
+                score += outcome->score_delta;
+                if (health < 0) { outcome->state = player::dead; }
+                auto const length = health / 8;
+                while (occupies.size() > length) {
+                    occupies.front()->player = nullptr;
+                    occupies.erase(occupies.begin());
+                    outcome->length_delta = -1;
+                }
+                co_yield *outcome;
+            }
         }
     };
 
@@ -195,7 +222,10 @@ namespace {
                   felspar::coro::stream<message> messages) {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
-            if (message->state == player::dead) { co_return 1; }
+            if (message->state == player::dead) {
+                std::cout << "Your final score was " << player.score << '\n';
+                co_return 1;
+            }
             if (message->error.empty()) {
                 draw(world, player, message->view_distance);
             }
@@ -253,15 +283,18 @@ namespace {
             auto const [_, ec] = std::from_chars(
                     sv.data(), sv.data() + sv.size(), distance.view_distance);
             if (ec != std::errc{}) {
-                co_yield message{"Sorry, I could not understand the distance"};
+                co_yield message{
+                        "Sorry, I could not understand the distance, using 8"};
                 distance.view_distance = 8;
             }
+            distance.health_delta -= distance.view_distance;
             co_yield distance;
         };
 
         co_return co_await print(
                 world, player,
-                planet::client::connection(planet::io::commands(), commands));
+                player.process_outcome(planet::client::connection(
+                        planet::io::commands(), commands)));
     }
 
 
