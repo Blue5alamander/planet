@@ -19,7 +19,7 @@ You can also ask to 'draw' the map
   .   .
 
 > ne
-You ate some food. Uh oh, you got shorter
+You ate some food.
 
   .   .
 
