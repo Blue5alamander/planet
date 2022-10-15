@@ -4,6 +4,7 @@
 
 #include <felspar/coro/task.hpp>
 
+#include <charconv>
 #include <iostream>
 #include <random>
 
@@ -176,8 +177,9 @@ namespace {
         snake player{world};
 
         std::cout << "Welcome to snake\n\n";
-        std::cout << "Type one of ne, nw, w, e, se, sw followed by enter to "
-                     "move in that direction\n\n";
+        std::cout << "Type one of 'ne', 'nw', 'w', 'e', 'se', 'sw' followed by "
+                     "enter to move in that direction\n";
+        std::cout << "You can also ask to 'draw' the map\n\n";
         draw(world, player, 4);
 
         planet::client::command_mapping<message> commands;
@@ -199,13 +201,19 @@ namespace {
         commands["se"] = [&world, &player](auto args) {
             return player.move(world, planet::hexmap::south_east);
         };
-#ifndef NDEBUG
         commands["draw"] =
                 [&world, &player](auto args) -> felspar::coro::stream<message> {
-            draw(world, player, 8);
+            std::string_view const sv = args.next().value_or("8");
+            long distance{};
+            auto const [_, ec] =
+                    std::from_chars(sv.data(), sv.data() + sv.size(), distance);
+            if (ec != std::errc{}) {
+                co_yield message{"Sorry, I could not understand the distance"};
+                distance = 8;
+            }
+            draw(world, player, distance);
             co_return;
         };
-#endif
 
         co_return co_await print(
                 world, player,
