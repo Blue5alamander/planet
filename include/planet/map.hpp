@@ -92,24 +92,13 @@ namespace planet::map {
             std::vector<Chunk *> chunks;
         };
 
-        long bottom_edge = {};
-        std::vector<row> rows;
+        mutable long bottom_edge = {};
+        mutable std::vector<row> rows;
 
-        std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> storage;
+        mutable std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>>
+                storage;
 
-      public:
-        using chunk_type = Chunk;
-        using cell_type = typename chunk_type::cell_type;
-        using init_function_type = std::function<cell_type(coordinates)>;
-
-        world(coordinates const start, init_function_type const ift)
-        : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
-
-        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
-            for (auto &c : storage) { co_yield {c.first, c.second.get()}; }
-        }
-
-        cell_type &operator[](coordinates const p) {
+        auto *cell_at(coordinates const p) const {
             auto const rows_inserted = coordinates::insert_count(
                     bottom_edge, p.row(), chunk_type::height);
             rows.insert(rows.begin(), rows_inserted, row{});
@@ -157,7 +146,24 @@ namespace planet::map {
             auto const iny = coordinates::inside_chunk(
                     bottom_edge, p.row(), chunk_type::height);
 
-            return (*chunk)[{inx, iny}];
+            return &(*chunk)[{inx, iny}];
+        }
+
+      public:
+        using chunk_type = Chunk;
+        using cell_type = typename chunk_type::cell_type;
+        using init_function_type = std::function<cell_type(coordinates)>;
+
+        world(coordinates const start, init_function_type const ift)
+        : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
+
+        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
+            for (auto &c : storage) { co_yield {c.first, c.second.get()}; }
+        }
+
+        cell_type &operator[](coordinates const p) { return *cell_at(p); }
+        cell_type const &operator[](coordinates const p) const {
+            return *cell_at(p);
         }
 
       private:

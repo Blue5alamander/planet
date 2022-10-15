@@ -100,7 +100,7 @@ namespace planet::hexmap {
         static_assert(
                 (Chunk::width bitand 1) == 0,
                 "Width of chunks storage must be even");
-        mutable map::world<Chunk> grid;
+        map::world<Chunk> grid;
 
       public:
         using chunk_type = Chunk;
