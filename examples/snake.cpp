@@ -289,7 +289,7 @@ namespace {
         std::cout << "Type one of 'ne', 'nw', 'w', 'e', 'se', 'sw' followed by "
                      "enter to move in that direction\n";
         std::cout << "You can also ask to 'draw' the map\n\n";
-        draw(world, player, 4);
+        draw(world, player, player.vision_distance);
 
         planet::client::command_mapping<message> commands;
         commands["e"] = [&world, &player](auto args) {
