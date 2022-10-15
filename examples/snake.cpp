@@ -95,21 +95,17 @@ namespace {
         message(std::string e) : error{std::move(e)} {}
     };
     std::ostream &operator<<(std::ostream &os, message const &m) {
-        if (not m.error.empty()) { return os << m.error << '\n'; }
-        if (m.length_delta < 0) {
-            if (m.state == player::dead) {
-                return os << "Uh oh, you got shorter and died :-(\n";
-            } else {
-                os << "Uh oh, you got shorter. ";
-            }
+        if (not m.error.empty()) {
+            return os << m.error << '\n';
         } else if (m.state == player::dead) {
             return os << "Oh no, you died :-(\n";
+        } else if (m.length_delta < 0) {
+            return os << "Uh oh, you got shorter\n";
         } else if (m.length_delta > 0) {
-            os << "You grew in length!";
+            return os << "You grew in length!\n";
         } else {
-            os << "Nothing special happened";
+            return os << "Nothing special happened\n";
         }
-        return os << '\n';
     }
 
 
@@ -229,6 +225,10 @@ namespace {
             if (message->error.empty()) {
                 draw(world, player, message->view_distance);
             }
+#ifndef NDEBUG
+            std::cout << "Score: " << player.score
+                      << " health: " << player.health << '\n';
+#endif
         }
         co_return 0;
     }
