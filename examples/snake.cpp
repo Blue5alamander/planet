@@ -259,10 +259,6 @@ namespace {
             if (message->error.empty()) {
                 draw(world, player, message->view_distance);
             }
-#ifndef NDEBUG
-            std::cout << "Score: " << player.score
-                      << " health: " << player.health << '\n';
-#endif
         }
         co_return 0;
     }
