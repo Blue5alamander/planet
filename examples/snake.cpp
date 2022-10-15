@@ -74,7 +74,7 @@ namespace {
 
 
     /// Player state
-    enum class player { alive, dead };
+    enum class player { alive, dead_self, dead_health };
 
 
     /// Message from game engine to UI
@@ -112,7 +112,7 @@ namespace {
             os << "Ooh, that carrot made your eyesight better. ";
             break;
         case feature::rock:
-            if (m.state == player::dead) {
+            if (m.state == player::dead_health) {
                 return os << "You ate a rock which disagreed with you, and now "
                              "you're dead :-(\n";
             } else {
@@ -121,8 +121,11 @@ namespace {
         }
         if (not m.error.empty()) {
             return os << m.error << '\n';
-        } else if (m.state == player::dead) {
-            return os << "Oh no, you died :-(\n";
+        } else if (m.state == player::dead_health) {
+            return os << "Oh no, you died from exhaustion :-( You need to eat "
+                         "more\n";
+        } else if (m.state == player::dead_self) {
+            return os << "You tried to eat yourself? Eeeewwww, you dead....\n";
         } else if (m.length_delta < -2) {
             return os << "Uh oh, you got a lot shorter!\n";
         } else if (m.length_delta < 0) {
@@ -157,7 +160,7 @@ namespace {
             auto &h = world[position];
             message outcome{vision_distance};
             if (h.player) {
-                outcome.state = player::dead;
+                outcome.state = player::dead_self;
             } else {
                 occupies.push_back(&world[position]);
                 occupies.back()->player = this;
@@ -191,7 +194,7 @@ namespace {
             while (auto outcome = co_await stream.next()) {
                 health += outcome->health_delta;
                 score += outcome->score_delta;
-                if (health < 0) { outcome->state = player::dead; }
+                if (health < 0) { outcome->state = player::dead_health; }
                 auto const length = health / 8;
                 while (occupies.size() > length) {
                     occupies.front()->player = nullptr;
@@ -252,7 +255,8 @@ namespace {
                   felspar::coro::stream<message> messages) {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
-            if (message->state == player::dead) {
+            if (message->state == player::dead_health
+                or message->state == player::dead_self) {
                 std::cout << "Your final score was " << player.score << '\n';
                 co_return 1;
             }
