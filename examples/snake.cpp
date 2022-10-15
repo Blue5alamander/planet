@@ -149,7 +149,9 @@ namespace {
         while (auto message = co_await messages.next()) {
             std::cout << *message << '\n';
             if (message->state == player::dead) { co_return 1; }
-            draw(world, player, message->view_distance);
+            if (message->error.empty()) {
+                draw(world, player, message->view_distance);
+            }
         }
         co_return 0;
     }
@@ -204,15 +206,14 @@ namespace {
         commands["draw"] =
                 [&world, &player](auto args) -> felspar::coro::stream<message> {
             std::string_view const sv = args.next().value_or("8");
-            long distance{};
-            auto const [_, ec] =
-                    std::from_chars(sv.data(), sv.data() + sv.size(), distance);
+            message distance{};
+            auto const [_, ec] = std::from_chars(
+                    sv.data(), sv.data() + sv.size(), distance.view_distance);
             if (ec != std::errc{}) {
                 co_yield message{"Sorry, I could not understand the distance"};
-                distance = 8;
+                distance.view_distance = 8;
             }
-            draw(world, player, distance);
-            co_return;
+            co_yield distance;
         };
 
         co_return co_await print(
