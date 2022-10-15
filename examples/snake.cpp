@@ -79,6 +79,7 @@ namespace {
     /// Message from game engine to UI
     struct message {
         player state = player::alive;
+        feature consumed = feature::none;
         /// The view distance from the head of the snake
         long view_distance = 2;
         /// Difference in length between this turn and the last
@@ -95,25 +96,47 @@ namespace {
         message(std::string e) : error{std::move(e)} {}
     };
     std::ostream &operator<<(std::ostream &os, message const &m) {
+        if (m.health_delta < -2) {
+            os << "Ouch. ";
+        } else if (m.health_delta < -10) {
+            os << "OUCH!!! ";
+        }
+        switch (m.consumed) {
+        case feature::none: break;
+        case feature::food: os << "You ate some food. "; break;
+        case feature::food_plus:
+            os << "You ate some really tasty food! ";
+            break;
+        case feature::rock:
+            if (m.state == player::dead) {
+                return os << "You ate a rock which disagreed with you, and now "
+                             "you're dead :-(\n";
+            } else {
+                os << "You ate a rock? Not good for you. ";
+            }
+        }
         if (not m.error.empty()) {
             return os << m.error << '\n';
         } else if (m.state == player::dead) {
             return os << "Oh no, you died :-(\n";
+        } else if (m.length_delta < -2) {
+            return os << "Uh oh, you got a lot shorter!\n";
         } else if (m.length_delta < 0) {
             return os << "Uh oh, you got shorter\n";
         } else if (m.length_delta > 0) {
             return os << "You grew in length!\n";
-        } else {
+        } else if (m.health_delta >= -2) {
             return os << "Nothing special happened\n";
+        } else {
+            return os;
         }
     }
 
 
     struct snake {
-        std::string name = "you";
         planet::hexmap::coordinates position = {};
         std::vector<hex *> occupies;
-        long health = 5;
+        long health = 8;
         long score = {};
 
         /// Initialise the snake position on the world
@@ -148,6 +171,7 @@ namespace {
                     break;
                 case feature::rock: outcome.health_delta -= 12; break;
                 }
+                outcome.consumed = std::exchange(h.features, feature::none);
             }
             co_yield outcome;
         }
@@ -195,14 +219,13 @@ namespace {
                 line += 'h';
             } else if (cell.player) {
                 line += 's';
-            } else if (cell.features == feature::rock) {
-                line += 'o';
-            } else if (cell.features == feature::food) {
-                line += 'f';
-            } else if (cell.features == feature::food_plus) {
-                line += 'F';
             } else {
-                line += '.';
+                switch (cell.features) {
+                case feature::none: line += '.'; break;
+                case feature::rock: line += 'o'; break;
+                case feature::food: line += 'f'; break;
+                case feature::food_plus: line += 'F'; break;
+                }
             }
             line += "   ";
         }
