@@ -41,23 +41,16 @@ namespace planet::hexmap {
         constexpr long column() const noexcept { return pos.column(); }
 
         /// Magnitude squared of the location from the origin
-        constexpr float mag2() const noexcept {
+        constexpr float mag2(const float r = 1.0f) const noexcept {
             /**
-             * Given a hexagon which is point up, with an inner radius `r` and
-             * and outer radius `R` then:
-             *
-             *     r = √3R/2
-             *
-             * This make the height above the centre line of the hex row below
-             * in the tessellation:
-             *
-             *     h = 2r/√3 + ½r
-             *
-             * As `r` in the x direction is a 1 then we need to multiply the
-             * height difference by 2/√3 + ½ to get the true distance.
+             * Given a hexagon, which is point up, with an inner radius `r`,
+             * then the centre of the hex to the north-east of one centred on
+             * the origin is at location `(r, h)`. We now that the two centres
+             * are `2r` from each other, so by Pythagoras we can work out that
+             * `h` must be `√3r`.
              */
-            constexpr float h = 2.0f / std::numbers::sqrt3_v<float> + 0.5f;
-            auto const x = column();
+            auto const h = std::numbers::sqrt3_v<float> * r;
+            auto const x = column() * r;
             auto const y = row() * h;
             return x * x + y * y;
         }
