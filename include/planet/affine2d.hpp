@@ -31,6 +31,9 @@ namespace planet {
         friend constexpr point2d operator-(point2d const p) {
             return {p.xh, p.yh, -p.h};
         }
+        friend constexpr point2d operator+(point2d const l, point2d const r) {
+            return {l.x() + r.x(), l.y() + r.y()};
+        }
     };
 
 

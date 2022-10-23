@@ -1,3 +1,4 @@
+#include <planet/affine2d.hpp>
 #include <planet/map.hpp>
 
 #include <numbers>
@@ -13,7 +14,7 @@ namespace planet::hexmap {
     /// ## Hex co-ordinates
     /**
      * These are stored with 2 hex rows occupying a single row in the
-     * rectilinear co-ordinate space. The hex grid is aligned with points up.
+     * rectilinear co-ordinate space. The hex grid is aligned with points up ⬡.
      * The hex row on odd rows is aligned one unit to the side of the even rows.
      * This allows us to interleave the rows on odd/even pairs of the hex grid
      * into a single row of the rectilinear grid. As a consequence both
@@ -40,8 +41,8 @@ namespace planet::hexmap {
         }
         constexpr long column() const noexcept { return pos.column(); }
 
-        /// Magnitude squared of the location from the origin
-        constexpr float mag2(const float r = 1.0f) const noexcept {
+        /// Return the centre position of the hex
+        constexpr point2d centre(float const r = 1.0f) const noexcept {
             /**
              * Given a hexagon, which is point up, with an inner radius `r`,
              * then the centre of the hex to the north-east of one centred on
@@ -50,9 +51,31 @@ namespace planet::hexmap {
              * `h` must be `√3r`.
              */
             auto const h = std::numbers::sqrt3_v<float> * r;
-            auto const x = column() * r;
-            auto const y = row() * h;
+            return {column() * r, row() * h};
+        }
+        /// Magnitude squared of the location from the origin
+        constexpr float mag2(float const r = 1.0f) const noexcept {
+            auto const p = centre(r);
+            auto const x = p.x();
+            auto const y = p.y();
             return x * x + y * y;
+        }
+        /// Return the 6 vertices for the hex, starting at the top going
+        /// clockwise. The parameter `r` is used for the hex spacing, and `ir`
+        /// is used as the radius for the vertices. If these values are
+        /// different then the vertices will be either inside or outside of the
+        /// vertex locations for a true tessellation.
+        constexpr std::array<point2d, 6>
+                vertices(float const r, float const ir) const noexcept {
+            auto const c = centre(r);
+            auto const h = std::numbers::sqrt3_v<float> * ir;
+            return {
+                    {c + point2d{0.0f, h}, c + point2d{ir, ir / 2},
+                     c + point2d{ir, -ir / 2}, c + point2d{0.0f, -h},
+                     c + point2d{-ir, -ir / 2}, c + point2d{-ir, ir / 2}}};
+        }
+        constexpr auto vertices(float const r = 1.0f) const noexcept {
+            return vertices(r, r);
         }
 
         constexpr coordinates operator+(coordinates const r) const noexcept {
