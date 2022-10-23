@@ -7,9 +7,6 @@
 namespace {
 
 
-    auto const suite = felspar::testsuite("affine2d");
-
-
     inline std::uint32_t bitpattern(float const x) {
         std::uint32_t u;
         std::memcpy(&u, &x, sizeof(x));
@@ -31,17 +28,31 @@ namespace {
     }
 
 
-    auto const transform = suite.test("transform", [](auto check, auto &log) {
-        planet::transform t;
-        t.rotate(0.25f);
-        auto const i = t.into({4, 5});
-        check(ulps(i.x(), -5.0f)) < 2;
-        check(ulps(i.y(), 4.0f)) < 2;
+    auto const transform = felspar::testsuite(
+            "affine2d/transform",
+            [](auto check) {
+                planet::transform t;
+                t.rotate(0.25f);
+                auto const i = t.into({4, 5});
+                check(ulps(i.x(), -5.0f)) < 2;
+                check(ulps(i.y(), 4.0f)) < 2;
 
-        auto const o = t.outof({-5, 4});
-        check(ulps(o.x(), 4)) < 2;
-        check(ulps(o.y(), 5)) < 2;
-    });
+                auto const o = t.outof({-5, 4});
+                check(ulps(o.x(), 4)) < 2;
+                check(ulps(o.y(), 5)) < 2;
+            },
+            [](auto check) {
+                planet::transform t;
+                t.reflect_y().scale(0.5f).translate({3, 7});
+
+                auto const i = t.into({4, 5});
+                check(ulps(i.x(), 5)) < 2;
+                check(ulps(i.y(), 4.5f)) < 2;
+
+                auto const o = t.outof({5, 4.5f});
+                check(ulps(o.x(), 4)) < 2;
+                check(ulps(o.y(), 5)) < 2;
+            });
 
 
 }

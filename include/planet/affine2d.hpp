@@ -17,42 +17,43 @@ namespace planet {
     struct point2d final {
         float xh = {}, yh = {}, h = {1.0f};
 
-        point2d(float const x, float const y) : xh{x}, yh{y} {}
-        point2d(float const x, float const y, float const h)
+        constexpr point2d(float const x, float const y) : xh{x}, yh{y} {}
+        constexpr point2d(float const x, float const y, float const h)
         : xh{x}, yh{y}, h{h} {}
 
-        float x() const noexcept { return xh / h; }
-        float y() const noexcept { return yh / h; }
+        constexpr float x() const noexcept { return xh / h; }
+        constexpr float y() const noexcept { return yh / h; }
 
-        friend bool operator==(point2d l, point2d r) {
+        friend constexpr bool operator==(point2d l, point2d r) {
             return l.x() == r.x() and l.y() == r.y();
+        }
+
+        friend constexpr point2d operator-(point2d const p) {
+            return {p.xh, p.yh, -p.h};
         }
     };
 
 
     /// 2D matrix used for affine transformations
     class matrix final {
-        std::array<float, 9> m = {1, 0, 0,
+        std::array<float, 9> m = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
-                                  0, 1, 0,
-
-                                  0, 0, 1};
-
-        matrix(float a,
-               float b,
-               float c,
-               float d,
-               float e,
-               float f,
-               float g,
-               float h,
-               float i)
+        constexpr matrix(
+                float a,
+                float b,
+                float c,
+                float d,
+                float e,
+                float f,
+                float g,
+                float h,
+                float i)
         : m{a, b, c, d, e, f, g, h, i} {}
 
       public:
-        matrix() {}
+        constexpr matrix() {}
 
-        friend matrix operator*(matrix const &a, matrix const &b) {
+        friend constexpr matrix operator*(matrix const &a, matrix const &b) {
             return matrix{
                     a.m[0] * b.m[0] + a.m[1] * b.m[3] + a.m[2] * b.m[6],
                     a.m[0] * b.m[1] + a.m[1] * b.m[4] + a.m[2] * b.m[7],
@@ -66,15 +67,26 @@ namespace planet {
                     a.m[6] * b.m[1] + a.m[7] * b.m[4] + a.m[8] * b.m[7],
                     a.m[6] * b.m[2] + a.m[7] * b.m[5] + a.m[8] * b.m[8]};
         }
-        friend point2d operator*(matrix const &a, point2d const p) {
+        friend constexpr point2d operator*(matrix const &a, point2d const p) {
             return {a.m[0] * p.xh + a.m[1] * p.yh + a.m[2] * p.h,
                     a.m[3] * p.xh + a.m[4] * p.yh + a.m[5] * p.h,
                     a.m[6] * p.xh + a.m[7] * p.yh + a.m[8] * p.h};
         }
 
-        friend bool operator==(matrix const &, matrix const &) = default;
+        friend constexpr bool
+                operator==(matrix const &, matrix const &) = default;
 
-        static matrix rotate(float const turns) {
+        /// Reflect the y axis (about the x axis)
+        static constexpr matrix reflect_y() {
+            return matrix{1, 0, 0, 0, -1, 0, 0, 0, 1};
+        }
+        static constexpr matrix translate(point2d const by) {
+            return matrix{1, 0, by.x(), 0, 1, by.y(), 0, 0, 1};
+        }
+        static constexpr matrix scale(float const factor) {
+            return matrix{factor, 0, 0, 0, factor, 0, 0, 0, 1};
+        }
+        static constexpr matrix rotate(float const turns) {
             float const r = turns * τ;
             return matrix{
                     std::cos(r),
@@ -97,10 +109,28 @@ namespace planet {
         matrix in, out;
 
       public:
+        /// Reflect the y-axis, so up is down
+        transform &reflect_y() {
+            in = matrix::reflect_y() * in;
+            out = out * matrix::reflect_y();
+            return *this;
+        }
+        /// Scale up by the provided factor
+        transform &scale(float const factor) {
+            in = matrix::scale(factor) * in;
+            out = out * matrix::scale(1.0f / factor);
+            return *this;
+        }
+        /// Translate by the provided amount
+        transform &translate(point2d const by) {
+            in = matrix::translate(by) * in;
+            out = out * matrix::translate(-by);
+            return *this;
+        }
         /// Rotate by the requested number of turns. One turn is τ radians
         transform &rotate(float const turns) {
-            in = in * matrix::rotate(turns);
-            out = matrix::rotate(-turns) * out;
+            in = matrix::rotate(turns) * in;
+            out = out * matrix::rotate(-turns);
             return *this;
         }
 
