@@ -6,7 +6,10 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set_property(TARGET felspar-check PROPERTY EXCLUDE_FROM_ALL TRUE)
     include(requirements.cmake)
 endif()
-add_custom_target(check)
+
+if(NOT TARGET check)
+    add_custom_target(check)
+endif()
 
 add_subdirectory(examples)
 add_subdirectory(src)
