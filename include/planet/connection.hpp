@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include <felspar/coro/generator.hpp>
 #include <felspar/coro/stream.hpp>
 

@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include <planet/affine2d.hpp>
 #include <planet/hexmap.hpp>
 

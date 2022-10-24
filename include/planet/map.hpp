@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include <planet/to_string.hpp>
 
 #include <felspar/coro/generator.hpp>
