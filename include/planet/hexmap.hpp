@@ -71,10 +71,10 @@ namespace planet::hexmap {
         constexpr std::array<point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
             auto const c = centre(r);
-            auto const h = std::numbers::sqrt3_v<float> * ir;
+            auto const iR = 2.0f * ir / std::numbers::sqrt3_v<float>;
             return {
-                    {c + point2d{0.0f, h}, c + point2d{ir, ir / 2},
-                     c + point2d{ir, -ir / 2}, c + point2d{0.0f, -h},
+                    {c + point2d{0.0f, iR}, c + point2d{ir, ir / 2},
+                     c + point2d{ir, -ir / 2}, c + point2d{0.0f, -iR},
                      c + point2d{-ir, -ir / 2}, c + point2d{-ir, ir / 2}}};
         }
         constexpr auto vertices(float const r = 1.0f) const noexcept {
