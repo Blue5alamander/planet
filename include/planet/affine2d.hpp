@@ -28,11 +28,35 @@ namespace planet {
             return l.x() == r.x() and l.y() == r.y();
         }
 
+        friend constexpr point2d operator+(point2d const l, point2d const r) {
+            return {l.x() + r.x(), l.y() + r.y()};
+        }
         friend constexpr point2d operator-(point2d const p) {
             return {p.xh, p.yh, -p.h};
         }
-        friend constexpr point2d operator+(point2d const l, point2d const r) {
-            return {l.x() + r.x(), l.y() + r.y()};
+        friend constexpr point2d operator-(point2d const l, point2d const r) {
+            return {l.x() - r.x(), l.y() - r.y()};
+        }
+
+        constexpr float mag2() const noexcept {
+            auto const xp = x();
+            auto const yp = y();
+            return xp * xp + yp * yp;
+        }
+
+        /// Return theta as a proportion of a total revolution
+        constexpr float theta() const noexcept {
+            auto const xp = x();
+            auto const yp = y();
+            if (xp > 0) {
+                if (yp > 0) {
+                    return std::atan(yp / xp) / τ;
+                } else {
+                    return std::atan(yp / xp) / τ + 1.0f;
+                }
+            } else {
+                return std::atan(yp / xp) / τ + 0.5f;
+            }
         }
     };
 
