@@ -22,7 +22,9 @@ namespace planet {
         : xh{x}, yh{y}, h{h} {}
 
         constexpr float x() const noexcept { return xh / h; }
+        constexpr float x(float const n) noexcept { return xh = n * h; }
         constexpr float y() const noexcept { return yh / h; }
+        constexpr float y(float const n) noexcept { return yh = n * h; }
 
         friend constexpr bool operator==(point2d l, point2d r) {
             return l.x() == r.x() and l.y() == r.y();
