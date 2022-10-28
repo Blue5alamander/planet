@@ -45,7 +45,7 @@ namespace planet::hexmap {
         constexpr long column() const noexcept { return pos.column(); }
 
         /// Return the centre position of the hex
-        constexpr point2d centre(float const r = 1.0f) const noexcept {
+        constexpr affine::point2d centre(float const r = 1.0f) const noexcept {
             /**
              * Given a hexagon, which is point up, with an inner radius `r`,
              * then the centre of the hex to the north-east of one centred on
@@ -68,14 +68,17 @@ namespace planet::hexmap {
         /// is used as the radius for the vertices. If these values are
         /// different then the vertices will be either inside or outside of the
         /// vertex locations for a true tessellation.
-        constexpr std::array<point2d, 6>
+        constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
             auto const c = centre(r);
             auto const iR = 2.0f * ir / std::numbers::sqrt3_v<float>;
             return {
-                    {c + point2d{0.0f, iR}, c + point2d{ir, ir / 2},
-                     c + point2d{ir, -ir / 2}, c + point2d{0.0f, -iR},
-                     c + point2d{-ir, -ir / 2}, c + point2d{-ir, ir / 2}}};
+                    {c + affine::point2d{0.0f, iR},
+                     c + affine::point2d{ir, ir / 2},
+                     c + affine::point2d{ir, -ir / 2},
+                     c + affine::point2d{0.0f, -iR},
+                     c + affine::point2d{-ir, -ir / 2},
+                     c + affine::point2d{-ir, ir / 2}}};
         }
         constexpr auto vertices(float const r = 1.0f) const noexcept {
             return vertices(r, r);

@@ -10,8 +10,10 @@
 namespace planet {
 
 
-    inline std::ostream &operator<<(std::ostream &os, point2d const p) {
-        return os << '(' << p.x() << ", " << p.y() << ')';
+    namespace affine {
+        inline std::ostream &operator<<(std::ostream &os, point2d const p) {
+            return os << '(' << p.x() << ", " << p.y() << ')';
+        }
     }
 
 

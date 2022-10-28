@@ -31,7 +31,7 @@ namespace {
     auto const transform = felspar::testsuite(
             "affine2d/transform",
             [](auto check) {
-                planet::transform t;
+                planet::affine::transform t;
                 t.rotate(0.25f);
                 auto const i = t.into({4, 5});
                 check(ulps(i.x(), -5.0f)) < 2;
@@ -42,7 +42,7 @@ namespace {
                 check(ulps(o.y(), 5)) < 2;
             },
             [](auto check) {
-                planet::transform t;
+                planet::affine::transform t;
                 t.reflect_y().scale(0.5f).translate({3, 7});
 
                 auto const i = t.into({4, 5});

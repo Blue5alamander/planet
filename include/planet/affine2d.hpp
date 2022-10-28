@@ -6,7 +6,7 @@
 #include <numbers>
 
 
-namespace planet {
+namespace planet::affine {
 
 
     /// Constant for radian conversions
