@@ -21,6 +21,13 @@ namespace planet {
         constexpr point2d(float const x, float const y, float const h)
         : xh{x}, yh{y}, h{h} {}
 
+        constexpr static point2d from_polar(float mag, float turns) {
+            float const r = turns * τ;
+            float const x = std::cos(r);
+            float const y = std::sin(r);
+            return {x, y, 1.0f / mag};
+        }
+
         constexpr float x() const noexcept { return xh / h; }
         constexpr float x(float const n) noexcept { return xh = n * h; }
         constexpr float y() const noexcept { return yh / h; }
