@@ -35,6 +35,17 @@ if(NOT felspar-exceptions_POPULATED)
 endif()
 
 FetchContent_Declare(
+        felspar-io
+        GIT_REPOSITORY https://github.com/Felspar/io.git
+        GIT_TAG main
+    )
+FetchContent_GetProperties(felspar-io)
+if(NOT felspar-io_POPULATED)
+    FetchContent_Populate(felspar-io)
+    add_subdirectory(${felspar-io_SOURCE_DIR} ${felspar-io_BINARY_DIR})
+endif()
+
+FetchContent_Declare(
         felspar-memory
         GIT_REPOSITORY https://github.com/Felspar/memory.git
         GIT_TAG main
