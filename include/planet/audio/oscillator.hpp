@@ -25,7 +25,7 @@ namespace planet::audio {
         for (auto samples : sample_generator) {
             buffer_storage<Clock, 1> buffer{samples.size()};
             for (std::size_t index{}; auto const sample : samples) {
-                buffer[index][0] = sample;
+                buffer[index++][0] = sample;
             }
             co_yield std::move(buffer);
         }
