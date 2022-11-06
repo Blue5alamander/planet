@@ -2,8 +2,10 @@
 
 
 #include <felspar/coro/generator.hpp>
+#include <felspar/test/source.hpp>
 
 #include <filesystem>
+#include <optional>
 
 
 namespace planet {
@@ -18,7 +20,13 @@ namespace planet {
         asset_manager(std::filesystem::path exe);
 
         /// The paths that are to be searched for assets
-        felspar::coro::generator<std::filesystem::path> search_paths();
+        felspar::coro::generator<std::filesystem::path> search_paths() const;
+
+        /// Return the full path name for the asset, if it can be found
+        std::filesystem::path find_path(
+                std::filesystem::path const &,
+                felspar::source_location const & =
+                        felspar::source_location::current()) const;
     };
 
 
