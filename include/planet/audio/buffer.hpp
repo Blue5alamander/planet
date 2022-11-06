@@ -1,23 +1,55 @@
 #pragma once
 
 
-#include <chrono>
+#include <span>
+#include <vector>
 
 
 namespace planet::audio {
 
 
-    /// Audio duration in samples compatible with std::chrono durations
-    using duration = std::chrono::duration<std::int64_t, std::ratio<1, 48'000>>;
+    template<typename Clock, std::size_t Channels>
+    class buffer_view;
+    template<typename Clock, std::size_t Channels>
+    class buffer_storage;
 
 
     /// Audio buffer
     /**
-     * * 48KHz
-     * * Stereo
-     * * Interleaved
+     * The `Clock` is the audio clock that is used to determine the sample
+     * frequency. For example, `planet::audio::sample_clock` will give a
+     * standard 48KHz sample frequency.
      */
-    class buffer {};
+    template<typename Clock, std::size_t Channels>
+    class buffer_storage {
+        std::vector<float> storage;
+
+      public:
+        using clock_type = Clock;
+        static constexpr std::size_t channels = Channels;
+
+        buffer_storage(std::size_t sample_count)
+        : storage(sample_count * channels) {}
+
+        float const *data() const { return storage.data(); }
+        std::size_t samples() const { return storage.size() / channels; }
+
+        auto operator[](std::size_t index) {
+            return std::span<float, channels>{
+                    storage.data() + (index * channels), channels};
+        }
+    };
+
+
+    /**
+     * A view onto a buffer
+     */
+    template<typename Clock, std::size_t Channels>
+    class buffer_view {
+      public:
+        using clock_type = Clock;
+        static constexpr std::size_t channels = Channels;
+    };
 
 
 }
