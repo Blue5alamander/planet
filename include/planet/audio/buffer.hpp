@@ -36,7 +36,7 @@ namespace planet::audio {
 
         auto operator[](std::size_t index) {
             return std::span<float, channels>{
-                    storage.data() + (index * channels), channels};
+                    storage.data() + index * channels, channels};
         }
     };
 
