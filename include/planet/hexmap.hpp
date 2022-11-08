@@ -3,8 +3,18 @@
 
 #include <planet/affine2d.hpp>
 #include <planet/map.hpp>
-
+#if __has_include(<numbers>)
 #include <numbers>
+namespace planet::hexmap {
+    /// Constant for radian conversions
+    constexpr float sqrt3 = std::numbers::sqrt3_v<float>;
+}
+#else
+namespace planet::hexmap {
+    /// Constant for radian conversions
+    constexpr float sqrt3 = 1.7320508075688772f;
+}
+#endif
 
 
 namespace planet::hexmap {
@@ -53,7 +63,7 @@ namespace planet::hexmap {
              * are `2r` from each other, so by Pythagoras we can work out that
              * `h` must be `√3r`.
              */
-            auto const h = std::numbers::sqrt3_v<float> * r;
+            auto const h = sqrt3 * r;
             return {column() * r, row() * h};
         }
         /// Magnitude squared of the location from the origin
@@ -71,7 +81,7 @@ namespace planet::hexmap {
         constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
             auto const c = centre(r);
-            auto const iR = 2.0f * ir / std::numbers::sqrt3_v<float>;
+            auto const iR = 2.0f * ir / sqrt3;
             return {
                     {c + affine::point2d{0.0f, iR},
                      c + affine::point2d{ir, ir / 2},
