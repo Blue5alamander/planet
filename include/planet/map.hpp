@@ -6,6 +6,7 @@
 #include <felspar/coro/generator.hpp>
 
 #include <array>
+#include <compare>
 #include <functional>
 #include <memory>
 #include <vector>
