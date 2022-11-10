@@ -4,6 +4,8 @@
 #include <planet/audio/buffer.hpp>
 #include <planet/audio/clocks.hpp>
 
+#include <felspar/coro/generator.hpp>
+
 #include <thread>
 
 
@@ -12,7 +14,36 @@ namespace planet::audio {
 
     /// Can be given arbitrary input streams and produces output of the same format
     template<typename Buffer>
-    class mixer final {};
+    class mixer final {
+      public:
+        using io_type = felspar::coro::generator<Buffer>;
+
+        void add_track(io_type track) {
+            generators.push_back(std::move(track));
+        }
+
+        io_type output() {
+            while (true) {
+                Buffer output{default_buffer_samples};
+                for (auto &g : generators) {
+                    auto next = g.next();
+                    if (next) {
+                        for (std::size_t index{}; index < next->samples();
+                             ++index) {
+                            for (std::size_t ch{}; ch < Buffer::channels;
+                                 ++ch) {
+                                output[index][ch] = (*next)[index][ch];
+                            }
+                        }
+                    }
+                }
+                co_yield std::move(output);
+            }
+        }
+
+      private:
+        std::vector<io_type> generators;
+    };
 
 
     /// mix2pipe controls a thread that can be given audio inputs and produces

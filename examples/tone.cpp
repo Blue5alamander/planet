@@ -20,12 +20,23 @@ int main() {
             pcm, hw, planet::audio::sample_clock::period::den, 0);
     snd_pcm_hw_params(pcm, hw);
 
-    auto generator = planet::audio::stereobuffer(
+    planet::audio::mixer<
+            planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+            desk;
+
+
+    desk.add_track(planet::audio::stereobuffer(
             planet::audio::monobuffer<planet::audio::sample_clock>(
                     planet::audio::oscillator(
-                            440.0f / planet::audio::sample_clock::period::den)));
+                            440.0f
+                            / planet::audio::sample_clock::period::den))));
+    desk.add_track(planet::audio::stereobuffer(
+            planet::audio::monobuffer<planet::audio::sample_clock>(
+                    planet::audio::oscillator(
+                            660.0f
+                            / planet::audio::sample_clock::period::den))));
 
-    for (auto block : generator) {
+    for (auto block : desk.output()) {
         snd_pcm_writei(pcm, block.data(), block.samples());
     }
 
