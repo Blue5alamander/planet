@@ -29,7 +29,7 @@ namespace planet::audio {
         static constexpr std::size_t samples_per_second = Clock::period::den;
         static constexpr std::size_t channels = Channels;
 
-        buffer_storage(std::size_t sample_count)
+        buffer_storage(std::size_t const sample_count)
         : storage(sample_count * channels) {}
 
         float const *data() const { return storage.data(); }

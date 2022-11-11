@@ -18,6 +18,12 @@ namespace planet::audio {
       public:
         using io_type = felspar::coro::generator<Buffer>;
 
+        mixer() {}
+        mixer(mixer const &) = delete;
+        mixer(mixer &&) = delete;
+        mixer &operator=(mixer const &) = delete;
+        mixer &operator=(mixer &&) = delete;
+
         void add_track(io_type track) {
             generators.push_back(std::move(track));
         }
@@ -25,7 +31,7 @@ namespace planet::audio {
         io_type output() {
             while (true) {
                 Buffer output{default_buffer_samples};
-                for (auto &g : generators) {
+                std::erase_if(generators, [&output](auto &g) {
                     auto next = g.next();
                     if (next) {
                         for (std::size_t index{}; index < next->samples();
@@ -35,8 +41,11 @@ namespace planet::audio {
                                 output[index][ch] = (*next)[index][ch];
                             }
                         }
+                        return false;
+                    } else {
+                        return true;
                     }
-                }
+                });
                 co_yield std::move(output);
             }
         }
