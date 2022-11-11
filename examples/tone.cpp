@@ -5,6 +5,9 @@ extern "C" {
 #include <alsa/pcm.h>
 }
 
+using namespace std::literals;
+using namespace planet::audio::literals;
+
 
 int main() {
     snd_pcm_t *pcm = nullptr;
@@ -25,16 +28,20 @@ int main() {
             desk;
 
 
-    desk.add_track(planet::audio::stereobuffer(
-            planet::audio::monobuffer<planet::audio::sample_clock>(
+    desk.add_track(planet::audio::gain(
+            -6_dB,
+            planet::audio::stereobuffer(planet::audio::monobuffer<
+                                        planet::audio::sample_clock>(
                     planet::audio::oscillator(
                             440.0f
-                            / planet::audio::sample_clock::period::den))));
-    desk.add_track(planet::audio::stereobuffer(
-            planet::audio::monobuffer<planet::audio::sample_clock>(
+                            / planet::audio::sample_clock::period::den)))));
+    desk.add_track(planet::audio::gain(
+            -6_dB,
+            planet::audio::stereobuffer(planet::audio::monobuffer<
+                                        planet::audio::sample_clock>(
                     planet::audio::oscillator(
                             660.0f
-                            / planet::audio::sample_clock::period::den))));
+                            / planet::audio::sample_clock::period::den)))));
 
     for (auto block : desk.output()) {
         snd_pcm_writei(pcm, block.data(), block.samples());

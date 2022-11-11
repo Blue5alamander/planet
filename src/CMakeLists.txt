@@ -1,4 +1,5 @@
 add_library(planet-audio
+        gain.cpp
         mixer.cpp
         oscillator.cpp
     )
