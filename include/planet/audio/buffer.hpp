@@ -26,6 +26,7 @@ namespace planet::audio {
 
       public:
         using clock_type = Clock;
+        static constexpr std::size_t samples_per_second = Clock::period::den;
         static constexpr std::size_t channels = Channels;
 
         buffer_storage(std::size_t sample_count)
