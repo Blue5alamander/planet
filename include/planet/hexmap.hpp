@@ -81,14 +81,14 @@ namespace planet::hexmap {
         constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
             auto const c = centre(r);
-            auto const iR = 2.0f * ir / sqrt3;
+            auto const oR = 2.0f * ir / sqrt3;
             return {
-                    {c + affine::point2d{0.0f, iR},
-                     c + affine::point2d{ir, ir / 2},
-                     c + affine::point2d{ir, -ir / 2},
-                     c + affine::point2d{0.0f, -iR},
-                     c + affine::point2d{-ir, -ir / 2},
-                     c + affine::point2d{-ir, ir / 2}}};
+                    {c + affine::point2d{0.0f, oR},
+                     c + affine::point2d{ir, oR / 2.0f},
+                     c + affine::point2d{ir, -oR / 2.0f},
+                     c + affine::point2d{0.0f, -oR},
+                     c + affine::point2d{-ir, -oR / 2.0f},
+                     c + affine::point2d{-ir, oR / 2.0f}}};
         }
         constexpr auto vertices(float const r = 1.0f) const noexcept {
             return vertices(r, r);
