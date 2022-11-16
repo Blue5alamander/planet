@@ -9,6 +9,7 @@
 #include <compare>
 #include <functional>
 #include <memory>
+#include <span>
 #include <vector>
 
 
@@ -32,9 +33,11 @@ namespace planet::map {
             }
         }
 
+        /// Access into the cells within the chunk
         constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
             return storage.at(p.first * height + p.second);
         }
+        std::span<Cell, DimX * DimY> cells() { return storage; }
     };
 
 
