@@ -5,7 +5,7 @@
 #include <felspar/test/source.hpp>
 
 #include <filesystem>
-#include <optional>
+#include <vector>
 
 
 namespace planet {
@@ -24,6 +24,12 @@ namespace planet {
 
         /// Return the full path name for the asset, if it can be found
         std::filesystem::path find_path(
+                std::filesystem::path const &,
+                felspar::source_location const & =
+                        felspar::source_location::current()) const;
+
+        /// Return the file contents
+        std::vector<std::byte> file_data(
                 std::filesystem::path const &,
                 felspar::source_location const & =
                         felspar::source_location::current()) const;
