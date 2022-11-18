@@ -9,22 +9,22 @@
 
 planet::audio::wav::wav(asset_manager const &am, char const *filename)
 : samples{[&]() -> buffer_storage<sample_clock, 2> {
-      std::array<std::uint8_t, 88> header = {};
-      auto const pathname = am.find_path(filename);
-      std::ifstream file{pathname};
-      file.read(reinterpret_cast<char *>(header.data()), header.size());
+      auto filedata = am.file_data(filename);
+      auto const header = std::span<std::uint8_t>{
+              reinterpret_cast<std::uint8_t *>(filedata.data()), 88};
 
       std::size_t const file_size = header[4] + (header[5] << 8)
               + (header[6] << 16) + (header[7] << 24);
       std::size_t const data_size = header[84] + (header[85] << 8)
               + (header[86] << 16) + (header[87] << 24);
 
-      std::cout << pathname << ": file size " << file_size << " data size "
+      std::cout << filename << ": file size " << file_size << " data size "
                 << data_size
                 << " bytes. header: " << felspar::memory::hexdump(header);
 
-      std::vector<float> samples(data_size / sizeof(float));
-      file.read(reinterpret_cast<char *>(samples.data()), data_size);
+      std::span<float> samples(
+              reinterpret_cast<float *>(filedata.data() + 88),
+              data_size / sizeof(float));
 
       buffer_storage<sample_clock, 2> audio{samples.size() / 2};
       for (std::size_t index{}; index < audio.samples(); ++index) {
