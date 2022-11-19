@@ -7,5 +7,5 @@ add_library(planet-audio
 target_include_directories(planet-audio PUBLIC ../include)
 target_link_libraries(planet-audio PUBLIC
         felspar-io
-        planet
+        planet-sdl
     )
