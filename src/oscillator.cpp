@@ -2,12 +2,16 @@
 #include <planet/audio/oscillator.hpp>
 
 #include <complex>
+#if __has_include(<numbers>)
 #include <numbers>
-
-
 namespace {
     constexpr auto tau = std::numbers::pi_v<float> * 2.0f;
 }
+#else
+namespace {
+    constexpr auto tau = 6.283185307179586f;
+}
+#endif
 
 
 felspar::coro::generator<std::span<float>> silence() {
