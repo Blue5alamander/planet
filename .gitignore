@@ -1,2 +1,4 @@
 /build.tmp/
-
+/tooling/linux-builder/build.tmp/
+/tooling/linux-builder/container/dist/
+/tooling/linux-builder/llvm-project/
