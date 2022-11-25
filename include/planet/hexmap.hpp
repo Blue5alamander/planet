@@ -100,6 +100,9 @@ namespace planet::hexmap {
         constexpr coordinates operator-(coordinates const r) const noexcept {
             return {column() - r.column(), row() - r.row()};
         }
+        constexpr coordinates operator*(long const s) const noexcept {
+            return {column() * s, row() * s};
+        }
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
