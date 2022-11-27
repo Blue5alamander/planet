@@ -83,6 +83,11 @@ namespace planet::affine {
 
         constexpr extent2d(point2d const tl, point2d const br)
         : top_left{tl}, bottom_right{br} {}
+
+        float width() const { return bottom_right.x() - top_left.x(); }
+        std::size_t zwidth() const { return std::size_t(width()); }
+        float height() const { return bottom_right.y() - top_left.y(); }
+        std::size_t zheight() const { return std::size_t(height()); }
     };
 
 
