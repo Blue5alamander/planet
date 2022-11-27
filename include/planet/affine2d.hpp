@@ -78,16 +78,33 @@ namespace planet::affine {
 
 
     /// Extents of a rectangular area
-    struct extent2d {
-        point2d top_left, bottom_right;
+    struct extents2d {
+        float width, height;
 
-        constexpr extent2d(point2d const tl, point2d const br)
-        : top_left{tl}, bottom_right{br} {}
+        constexpr extents2d(float const w, float const h)
+        : width{w}, height{h} {}
+        explicit constexpr extents2d(point2d const p)
+        : width{p.x()}, height{p.y()} {}
 
-        float width() const { return bottom_right.x() - top_left.x(); }
-        std::size_t zwidth() const { return std::size_t(width()); }
-        float height() const { return bottom_right.y() - top_left.y(); }
-        std::size_t zheight() const { return std::size_t(height()); }
+        std::size_t zwidth() const { return std::size_t(width); }
+        std::size_t zheight() const { return std::size_t(height); }
+    };
+
+
+    /// Axis aligned rectangle
+    struct rectangle {
+        point2d top_left;
+        extents2d extents;
+
+        constexpr rectangle(point2d const tl, extents2d const ex)
+        : top_left{tl}, extents{ex} {}
+        constexpr rectangle(point2d const tl, point2d const br)
+        : top_left{tl}, extents{br - tl} {}
+
+        float top() const noexcept { return top_left.y(); }
+        float left() const noexcept { return top_left.x(); }
+        float bottom() const noexcept { return top() + extents.height; }
+        float right() const noexcept { return left() + extents.width; }
     };
 
 
