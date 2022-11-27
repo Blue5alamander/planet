@@ -14,6 +14,9 @@ namespace planet {
         inline std::ostream &operator<<(std::ostream &os, point2d const p) {
             return os << '(' << p.x() << ", " << p.y() << ')';
         }
+        inline std::ostream &operator<<(std::ostream &os, extent2d const e) {
+            return os << '{' << e.top_left << " -> " << e.bottom_right << '}';
+        }
     }
 
 
