@@ -17,6 +17,9 @@ namespace planet {
         inline std::ostream &operator<<(std::ostream &os, extents2d const e) {
             return os << e.width << "×" << e.height;
         }
+        inline std::ostream &operator<<(std::ostream &os, rectangle const r) {
+            return os << r.extents << '@' << r.top_left;
+        }
     }
 
 
