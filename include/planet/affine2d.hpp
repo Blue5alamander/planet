@@ -77,6 +77,15 @@ namespace planet::affine {
     };
 
 
+    /// Extents of a rectangular area
+    struct extent2d {
+        point2d top_left, bottom_right;
+
+        constexpr extent2d(point2d const tl, point2d const br)
+        : top_left{tl}, bottom_right{br} {}
+    };
+
+
     /// 2D matrix used for affine transformations
     class matrix final {
         std::array<float, 9> m = {1, 0, 0, 0, 1, 0, 0, 0, 1};
