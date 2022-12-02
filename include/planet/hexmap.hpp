@@ -3,18 +3,7 @@
 
 #include <planet/affine2d.hpp>
 #include <planet/map.hpp>
-#if __has_include(<numbers>)
-#include <numbers>
-namespace planet::hexmap {
-    /// Constant for radian conversions
-    constexpr float sqrt3 = std::numbers::sqrt3_v<float>;
-}
-#else
-namespace planet::hexmap {
-    /// Constant for radian conversions
-    constexpr float sqrt3 = 1.7320508075688772f;
-}
-#endif
+#include <planet/numbers.hpp>
 
 
 namespace planet::hexmap {
