@@ -18,6 +18,10 @@ namespace planet::affine {
 
         std::size_t zwidth() const { return std::size_t(width); }
         std::size_t zheight() const { return std::size_t(height); }
+
+        friend point2d operator+(point2d const p, extents2d const e) {
+            return {p.x() + e.width, p.y() + e.height};
+        }
     };
 
 
