@@ -53,6 +53,12 @@ namespace planet::affine {
         friend constexpr point2d operator-(point2d const l, point2d const r) {
             return {l.x() - r.x(), l.y() - r.y()};
         }
+        friend constexpr point2d operator*(point2d const p, float const s) {
+            return {p.xh, p.yh, p.h / s};
+        }
+        friend constexpr point2d operator/(point2d const p, float const s) {
+            return {p.xh, p.yh, p.h * s};
+        }
 
         constexpr float mag2() const noexcept {
             auto const xp = x();
