@@ -25,6 +25,13 @@ namespace planet::hexmap {
                  c + affine::point2d{-ir, -oR / 2.0f},
                  c + affine::point2d{-ir, oR / 2.0f}}};
     }
+    /// Return the bounding box for a hex of a given size at a given position
+    inline constexpr affine::rectangle
+            bounds(affine::point2d const c, float const ir) noexcept {
+        auto const oR = 2.0f * ir / sqrt3;
+        return {c + affine::point2d{-ir, -oR},
+                affine::extents2d{2 * ir, 2 * oR}};
+    }
 
 
     /// ## Hex co-ordinates
