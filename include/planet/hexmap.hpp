@@ -13,6 +13,20 @@ namespace planet::hexmap {
     using chunk = map::chunk<Cell, DimX, DimY>;
 
 
+    /// Generate the 6 vertices for a hex at the specified location
+    inline constexpr std::array<affine::point2d, 6>
+            vertices(affine::point2d const c, float const ir) noexcept {
+        auto const oR = 2.0f * ir / sqrt3;
+        return {
+                {c + affine::point2d{0.0f, oR},
+                 c + affine::point2d{ir, oR / 2.0f},
+                 c + affine::point2d{ir, -oR / 2.0f},
+                 c + affine::point2d{0.0f, -oR},
+                 c + affine::point2d{-ir, -oR / 2.0f},
+                 c + affine::point2d{-ir, oR / 2.0f}}};
+    }
+
+
     /// ## Hex co-ordinates
     /**
      * These are stored with 2 hex rows occupying a single row in the
@@ -69,15 +83,7 @@ namespace planet::hexmap {
         /// vertex locations for a true tessellation.
         constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
-            auto const c = centre(r);
-            auto const oR = 2.0f * ir / sqrt3;
-            return {
-                    {c + affine::point2d{0.0f, oR},
-                     c + affine::point2d{ir, oR / 2.0f},
-                     c + affine::point2d{ir, -oR / 2.0f},
-                     c + affine::point2d{0.0f, -oR},
-                     c + affine::point2d{-ir, -oR / 2.0f},
-                     c + affine::point2d{-ir, oR / 2.0f}}};
+            return hexmap::vertices(centre(r), ir);
         }
         constexpr auto vertices(float const r = 1.0f) const noexcept {
             return vertices(r, r);
