@@ -1,6 +1,6 @@
 #include <planet/ui/scale.hpp>
 
-#include <iostream>
+#include <algorithm>
 
 
 namespace {
@@ -9,13 +9,9 @@ namespace {
             float const bound,
             bool const shrink,
             bool const expand) {
-        std::cout << "d " << distance << " b " << bound
-                  << (shrink ? " shrink" : "") << (expand ? " expand" : "");
         if (distance > bound and shrink or distance < bound and expand) {
-            std::cout << " b/d " << (bound / distance) << '\n';
             return bound / distance;
         } else {
-            std::cout << " 1.0f\n";
             return 1.0f;
         }
     }
@@ -32,5 +28,10 @@ planet::affine::extents2d planet::ui::scaling(
     auto const yf = scale_factor(
             size.height, bounds.height, fit bitand scale::shrink_y,
             fit bitand scale::expand_y);
-    return {size.width * xf, size.height * yf};
+    if (xf != yf and fit bitand 128) {
+        auto const sf = std::min(xf, yf);
+        return {size.width * sf, size.height * sf};
+    } else {
+        return {size.width * xf, size.height * yf};
+    }
 }

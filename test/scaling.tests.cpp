@@ -248,4 +248,56 @@ namespace {
     });
 
 
+    auto const la = suite.test("lock aspect ratio", [](auto check) {
+        check(planet::ui::scaling(
+                      unit, landscape, planet::ui::scale::lock_aspect)
+                      .width)
+                == 2.0f;
+        check(planet::ui::scaling(
+                      unit, landscape, planet::ui::scale::lock_aspect)
+                      .height)
+                == 2.0f;
+        check(planet::ui::scaling(unit, portrait, planet::ui::scale::lock_aspect)
+                      .width)
+                == 2.0f;
+        check(planet::ui::scaling(unit, portrait, planet::ui::scale::lock_aspect)
+                      .height)
+                == 2.0f;
+
+
+        check(planet::ui::scaling(
+                      landscape, unit, planet::ui::scale::lock_aspect)
+                      .width)
+                == 1.0f;
+        check(planet::ui::scaling(
+                      landscape, unit, planet::ui::scale::lock_aspect)
+                      .height)
+                == 0.5f;
+        check(planet::ui::scaling(
+                      landscape, portrait, planet::ui::scale::lock_aspect)
+                      .width)
+                == 2.0;
+        check(planet::ui::scaling(
+                      landscape, portrait, planet::ui::scale::lock_aspect)
+                      .height)
+                == 1.0f;
+
+
+        check(planet::ui::scaling(portrait, unit, planet::ui::scale::lock_aspect)
+                      .width)
+                == 0.5f;
+        check(planet::ui::scaling(portrait, unit, planet::ui::scale::lock_aspect)
+                      .height)
+                == 1.0f;
+        check(planet::ui::scaling(
+                      portrait, landscape, planet::ui::scale::lock_aspect)
+                      .width)
+                == 1.0f;
+        check(planet::ui::scaling(
+                      portrait, landscape, planet::ui::scale::lock_aspect)
+                      .height)
+                == 2.0f;
+    });
+
+
 }
