@@ -54,8 +54,7 @@ namespace planet::ui {
 
         /// Calculate the extents of the box
         affine::extents2d extents(affine::extents2d const &ex) const {
-            auto const inner = content.extents(
-                    {ex.width - 2 * hpadding, ex.height - 2 * vpadding});
+            auto const inner = content.extents(remove_padding(ex));
             return {inner.width + 2 * hpadding, inner.height + 2 * vpadding};
         }
 
@@ -64,8 +63,22 @@ namespace planet::ui {
         /// space co-ordinate system
         template<typename Target>
         void draw_within(Target &t, affine::rectangle const outer) {
-            auto const area = within(inner, outer, extents(outer.extents));
+            auto const area = within(
+                    inner,
+                    {outer.top_left + affine::point2d{hpadding, vpadding},
+                     remove_padding(outer.extents)},
+                    extents(outer.extents));
             content.draw_within(t, area);
+        }
+
+      private:
+        affine::extents2d
+                remove_padding(affine::extents2d const ex) const noexcept {
+            return {ex.width - 2 * hpadding, ex.height - 2 * vpadding};
+        }
+        affine::extents2d
+                add_padding(affine::extents2d const ex) const noexcept {
+            return {ex.width + 2 * hpadding, ex.height + 2 * vpadding};
         }
     };
 
