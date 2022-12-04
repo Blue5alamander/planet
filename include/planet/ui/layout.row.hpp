@@ -2,6 +2,9 @@
 
 
 #include <planet/affine2d.hpp>
+#include <planet/ui/helpers.hpp>
+
+#include <felspar/memory/small_vector.hpp>
 
 
 namespace planet::ui {
@@ -52,7 +55,6 @@ namespace planet::ui {
     template<typename C>
     struct breakable_row {
         using collection_type = C;
-        using box_type = typename collection_type::value_type;
         collection_type items;
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
@@ -100,6 +102,60 @@ namespace planet::ui {
                 row_height = std::max(row_height, ex.height);
                 x += ex.width;
             }
+        }
+    };
+    template<typename... Pack>
+    struct breakable_row<std::tuple<Pack...>> {
+        using collection_type = std::tuple<Pack...>;
+        collection_type items;
+        /// Padding between items in the row
+        float hpadding = {}, vpadding = {};
+
+        breakable_row(collection_type c, float const hp, float const vp)
+        : items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        breakable_row(collection_type c, float const p)
+        : breakable_row{std::move(c), p, p} {}
+
+        affine::extents2d extents(affine::extents2d const outer) const {
+            float max_width = {}, row_height = {}, total_height = {}, left{};
+            for (auto const &item_ex : item_sizes(items, outer)) {
+                if (left + item_ex.width > outer.width) {
+                    max_width = std::max(max_width, left);
+                    if (total_height) { total_height += vpadding; }
+                    total_height += row_height;
+                    left = {};
+                    row_height = {};
+                } else {
+                    if (left) { left += hpadding; }
+                    left += item_ex.width;
+                }
+            }
+            max_width = std::max(max_width, left);
+            total_height += row_height;
+            return {max_width, total_height};
+        }
+
+        template<typename Target>
+        void draw_within(Target &t, affine::rectangle const border) {
+            float row_height = {}, x = {}, y = {};
+            felspar::memory::small_vector<affine::rectangle, sizeof...(Pack)>
+                    locations;
+            for (auto &ex : item_sizes(items, border.extents)) {
+                if (x + ex.width > border.extents.width) {
+                    x = {};
+                    if (y) { y += vpadding; }
+                    y += row_height;
+                    row_height = {};
+                }
+                if (x) { x += hpadding; }
+                locations.emplace_back(
+                        border.top_left + affine::point2d{x, y}, ex);
+                row_height = std::max(row_height, ex.height);
+                x += ex.width;
+            }
+            draw_items_within(
+                    t, items, locations,
+                    std::make_index_sequence<sizeof...(Pack)>{});
         }
     };
 

@@ -2,6 +2,7 @@
 
 
 #include <planet/affine2d.hpp>
+#include <planet/ui/helpers.hpp>
 
 
 namespace planet::ui {
@@ -31,8 +32,7 @@ namespace planet::ui {
         : items{std::move(i)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) const {
-            auto const sizes = item_sizes(
-                    outer, std::make_index_sequence<sizeof...(Pack)>{});
+            auto const sizes = item_sizes(items, outer);
             affine::extents2d r{{}, {}};
             for (auto const e : sizes) {
                 r.width = std::max(r.width, e.width);
@@ -49,15 +49,6 @@ namespace planet::ui {
         }
 
       private:
-        template<std::size_t... I>
-        auto item_sizes(
-                affine::extents2d const outer,
-                std::index_sequence<I...>) const {
-            return std::array<affine::extents2d, sizeof...(Pack)>{
-                    std::get<I>(items).extents(outer)...,
-            };
-        }
-
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
