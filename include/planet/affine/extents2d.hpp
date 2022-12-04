@@ -16,10 +16,26 @@ namespace planet::affine {
         explicit constexpr extents2d(point2d const p)
         : width{p.x()}, height{p.y()} {}
 
-        std::size_t zwidth() const { return std::size_t(width); }
-        std::size_t zheight() const { return std::size_t(height); }
+        constexpr std::size_t zwidth() const noexcept {
+            return std::size_t(width);
+        }
+        constexpr std::size_t zheight() const noexcept {
+            return std::size_t(height);
+        }
 
-        friend point2d operator+(point2d const p, extents2d const e) {
+        /// An extents is smaller only if both axes are
+        constexpr bool fits_within(extents2d const r) const noexcept {
+            return width <= r.width and height <= r.height;
+        }
+
+        /// Scaling with a scalar
+        friend constexpr extents2d
+                operator*(extents2d const e, float const f) noexcept {
+            return {e.width * f, e.height * f};
+        }
+        /// Addition of points
+        friend constexpr point2d
+                operator+(point2d const p, extents2d const e) noexcept {
             return {p.x() + e.width, p.y() + e.height};
         }
     };

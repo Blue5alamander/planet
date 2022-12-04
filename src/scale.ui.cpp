@@ -30,7 +30,7 @@ planet::affine::extents2d planet::ui::scaling(
             fit bitand scale::expand_y);
     if (xf != yf and fit bitand 128) {
         auto const sf = std::min(xf, yf);
-        return {size.width * sf, size.height * sf};
+        return size * sf;
     } else {
         return {size.width * xf, size.height * yf};
     }
