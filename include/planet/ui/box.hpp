@@ -67,7 +67,7 @@ namespace planet::ui {
                     inner,
                     {outer.top_left + affine::point2d{hpadding, vpadding},
                      remove_padding(outer.extents)},
-                    extents(outer.extents));
+                    content.extents(remove_padding(outer.extents)));
             content.draw_within(t, area);
         }
 
