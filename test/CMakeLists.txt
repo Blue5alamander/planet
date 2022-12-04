@@ -3,4 +3,5 @@ add_test_run(check planet TESTS
         gravity.tests.cpp
         hexmap.tests.cpp
         map.tests.cpp
+        scaling.tests.cpp
     )
