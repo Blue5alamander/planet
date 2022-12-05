@@ -17,8 +17,35 @@ namespace planet::ui {
         /// Padding between items in the column
         float padding = {};
 
-        column(collection_type c, float const p)
+        explicit column(collection_type c, float const p = {})
         : items{std::move(c)}, padding{p} {}
+
+        affine::extents2d extents(affine::extents2d const outer) const {
+            float max_width = {}, height = {};
+            for (auto const &item : items) {
+                auto const ex = item.extents(outer);
+                max_width = std::max(max_width, ex.width);
+                if (height) { height += padding; }
+                height += ex.height;
+            }
+            return {max_width, height};
+        }
+
+        template<typename Target>
+        auto draw_within(Target &t, affine::rectangle const outer) {
+            auto const width = extents(outer.extents).width;
+            float top = {};
+            for (auto &item : items) {
+                affine::extents2d const remaining = {
+                        width, outer.bottom() - top};
+                auto const ex = item.extents(remaining);
+                item.draw_within(
+                        t,
+                        {outer.top_left + affine::point2d{0, top}, remaining});
+                if (top) { top += padding; }
+                top += ex.height;
+            }
+        }
     };
 
 
