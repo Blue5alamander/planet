@@ -68,8 +68,8 @@ namespace planet::ui {
             float max_width = {}, row_height = {}, total_height = {}, left{};
             for (auto const &item : items) {
                 auto const item_ex = item.extents(outer);
-                if (left + item_ex.width > outer.width) {
-                    max_width = std::max(max_width, left);
+                if (left and left + item_ex.width > outer.width) {
+                    max_width = std::max(max_width, left - hpadding);
                     if (total_height) { total_height += vpadding; }
                     total_height += row_height;
                     left = {};
@@ -89,18 +89,18 @@ namespace planet::ui {
             float row_height = {}, x = {}, y = {};
             for (auto &item : items) {
                 auto const ex = item.extents(border.extents);
-                if (x + ex.width > border.extents.width) {
+                if (x and x + ex.width > border.extents.width) {
                     x = {};
                     if (y) { y += vpadding; }
                     y += row_height;
                     row_height = {};
                 }
-                if (x) { x += hpadding; }
                 planet::affine::rectangle const location = {
                         border.top_left + affine::point2d{x, y}, ex};
                 item.draw_within(t, location);
                 row_height = std::max(row_height, ex.height);
                 x += ex.width;
+                if (x) { x += hpadding; }
             }
         }
     };
