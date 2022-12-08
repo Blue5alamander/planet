@@ -22,9 +22,11 @@ namespace planet::ui {
 
         affine::extents2d extents(affine::extents2d const outer) const {
             auto const cell = cell_size(outer);
-            auto const w = std::floor(
-                    (outer.width + hpadding) / (cell.width + hpadding));
-            auto const h = std::floor(items.size() / w);
+            auto const w = std::min(
+                    float(items.size()),
+                    std::floor(
+                            (outer.width + hpadding) / (cell.width + hpadding)));
+            auto const h = std::floor((items.size() + w - 1) / w);
             return {w * cell.width + (w - 1) * hpadding,
                     h * cell.height + (h - 1) * vpadding};
         }
