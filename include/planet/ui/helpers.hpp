@@ -1,6 +1,11 @@
 #pragma once
 
 
+#include <array>
+#include <span>
+#include <tuple>
+
+
 namespace planet::ui {
 
 
