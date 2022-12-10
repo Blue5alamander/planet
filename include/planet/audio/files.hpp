@@ -1,9 +1,10 @@
 #pragma once
 
 
-#include <planet/asset_manager.hpp>
 #include <planet/audio/buffer.hpp>
 #include <planet/audio/clocks.hpp>
+
+#include <felspar/coro/generator.hpp>
 
 
 namespace planet::audio {
@@ -14,7 +15,7 @@ namespace planet::audio {
         buffer_storage<sample_clock, 2> samples;
 
       public:
-        wav(asset_manager const &, char const *filename);
+        wav(std::span<std::byte>);
         wav(wav const &) = delete;
         wav(wav &&) = delete;
         wav &operator=(wav const &) = delete;
