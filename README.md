@@ -7,6 +7,11 @@ It contains implementations for both square and hex grids. Both make use of a ch
 There is also some help for implementing the control mechanism between a player or AI and the actual game.
 
 
+## Audio
+
+Simple audio mixer and playback with real-time triggering and sequencing
+
+
 ## Building and running the library and examples
 
 
