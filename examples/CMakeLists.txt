@@ -6,5 +6,5 @@ if(TARGET planet-examples)
     target_link_libraries(snake planet)
 
     add_executable(tone tone.cpp)
-    target_link_libraries(tone PUBLIC asound planet-audio)
+    target_link_libraries(tone PUBLIC asound planet)
 endif()
