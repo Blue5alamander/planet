@@ -1,5 +1,6 @@
 add_library(planet
         files-audio.cpp
+        files-drawing.cpp
         gain.cpp
         gravity.ui.cpp
         image.cpp

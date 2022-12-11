@@ -2,5 +2,15 @@
 
 
 planet::drawing::image::image(
-        std::size_t const width, std::size_t const height, rgba8bpc const c)
-: pixels(width * height, c) {}
+        std::size_t const w, std::size_t const h, rgba8bpc const c)
+: pixels(w * h, c), width{w} {}
+
+
+std::span<planet::drawing::rgba8bpc>
+        planet::drawing::image::operator[](std::size_t row) {
+    return {pixels.data() + width * row, width};
+}
+std::span<planet::drawing::rgba8bpc const>
+        planet::drawing::image::operator[](std::size_t row) const {
+    return {pixels.data() + width * row, width};
+}
