@@ -1,5 +1,5 @@
 add_library(planet
-        files.cpp
+        files-audio.cpp
         gain.cpp
         gravity.ui.cpp
         mixer.cpp
