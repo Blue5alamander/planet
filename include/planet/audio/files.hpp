@@ -15,7 +15,9 @@ namespace planet::audio {
         buffer_storage<sample_clock, 2> samples;
 
       public:
-        wav(std::span<std::byte>);
+        explicit wav(std::span<std::byte const>);
+        explicit wav(std::vector<std::byte> const &v)
+        : wav{std::span{v.data(), v.size()}} {}
         wav(wav const &) = delete;
         wav(wav &&) = delete;
         wav &operator=(wav const &) = delete;
