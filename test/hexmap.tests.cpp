@@ -78,6 +78,8 @@ namespace {
                       + planet::hexmap::south_west + planet::hexmap::south_east)
                         == loc;
             });
+
+
     auto const col_iter = felspar::testsuite(
             "hexmap/coordinates/by_columns",
             [](auto check) {
@@ -173,6 +175,14 @@ namespace {
                 check(p2) == planet::hexmap::coordinates{4, 4};
                 check(pos.next()).is_falsey();
             });
+
+
+    auto const distances = felspar::testsuite("hexmap/distances", [](auto check) {
+        check(planet::hexmap::offset_of({0, 0})) == -1.0f;
+        check(planet::hexmap::offset_of({0.5f, 0})) == -0.5f;
+        check(std::abs(planet::hexmap::offset_of({1.0f, 0}))) <= 0.0e-5f;
+        check(planet::hexmap::offset_of({1.5f, 0})) == 0.5f;
+    });
 
 
 }
