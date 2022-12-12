@@ -1,5 +1,5 @@
 #include <planet/connection.hpp>
-#include <planet/hexmap.hpp>
+#include <planet/map/hex.hpp>
 #include <planet/stdin.hpp>
 
 #include <felspar/coro/task.hpp>
