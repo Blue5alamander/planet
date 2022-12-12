@@ -2,7 +2,7 @@
 
 
 #include <planet/affine2d.hpp>
-#include <planet/map.hpp>
+#include <planet/map/square.hpp>
 #include <planet/numbers.hpp>
 
 

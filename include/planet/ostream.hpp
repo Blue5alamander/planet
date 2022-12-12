@@ -2,7 +2,7 @@
 
 
 #include <planet/affine2d.hpp>
-#include <planet/hexmap.hpp>
+#include <planet/map/hex.hpp>
 
 #include <ostream>
 
