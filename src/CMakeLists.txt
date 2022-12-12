@@ -1,11 +1,11 @@
 add_library(planet
-        files-audio.cpp
-        files-drawing.cpp
-        gain.cpp
+        files.audio.cpp
+        files.drawing.cpp
+        gain.audio.cpp
         gravity.ui.cpp
-        image.cpp
-        mixer.cpp
-        oscillator.cpp
+        image.drawing.cpp
+        mixer.audio.cpp
+        oscillator.audio.cpp
         scale.ui.cpp
         stdin.cpp
     )
