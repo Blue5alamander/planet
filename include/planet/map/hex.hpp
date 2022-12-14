@@ -18,12 +18,12 @@ namespace planet::hexmap {
             vertices(affine::point2d const c, float const ir) noexcept {
         auto const oR = 2.0f * ir / sqrt3;
         return {
-                {c + affine::point2d{0.0f, oR},
-                 c + affine::point2d{ir, oR / 2.0f},
-                 c + affine::point2d{ir, -oR / 2.0f},
-                 c + affine::point2d{0.0f, -oR},
+                {c + affine::point2d{ir, oR / 2.0f},
+                 c + affine::point2d{0.0f, oR},
+                 c + affine::point2d{-ir, oR / 2.0f},
                  c + affine::point2d{-ir, -oR / 2.0f},
-                 c + affine::point2d{-ir, oR / 2.0f}}};
+                 c + affine::point2d{0.0f, -oR},
+                 c + affine::point2d{ir, -oR / 2.0f}}};
     }
     /// Return the bounding box for a hex of a given size at a given position
     inline constexpr affine::rectangle
