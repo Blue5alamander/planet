@@ -59,9 +59,19 @@ namespace planet::affine {
         constexpr float theta() const noexcept {
             auto const xp = x();
             auto const yp = y();
-            if (xp > 0) {
+            if (xp == 0) {
+                if (yp > 0) {
+                    return 0.25f;
+                } else if (yp < 0) {
+                    return 0.75f;
+                } else {
+                    return 0.0f;
+                }
+            } else if (xp > 0) {
                 if (yp > 0) {
                     return std::atan(yp / xp) / τ;
+                } else if (yp == 0) {
+                    return 0.0f;
                 } else {
                     return std::atan(yp / xp) / τ + 1.0f;
                 }

@@ -55,4 +55,46 @@ namespace {
             });
 
 
+    auto const theta = felspar::testsuite("affine2d/point2d/theta", [](auto check) {
+        check(planet::affine::point2d::from_polar(10, 0).x()) == 10.0f;
+        check(planet::affine::point2d::from_polar(10, 0).y()) == 0.0f;
+        check(planet::affine::point2d::from_polar(10, 0).theta()) == 0.0f;
+
+        check(std::fabs(
+                planet::affine::point2d::from_polar(10, 0.125f).x()
+                - 10.0f * std::sqrt(2) / 2.0f))
+                < 1.0e-5f;
+        check(std::fabs(
+                planet::affine::point2d::from_polar(10, 0.125f).y()
+                - 10.0f * std::sqrt(2) / 2.0f))
+                < 1.0e-5f;
+        check(planet::affine::point2d::from_polar(10, 0.125).theta()) == 0.125f;
+
+        check(std::fabs(planet::affine::point2d::from_polar(10, 0.25f).x()))
+                < 1.0e-5f;
+        check(planet::affine::point2d::from_polar(10, 0.25f).y()) == 10.0f;
+        check(planet::affine::point2d::from_polar(10, 0.25f).theta()) == 0.25f;
+
+        check(std::fabs(
+                planet::affine::point2d::from_polar(10, 0.375f).x()
+                + 10.0f * std::sqrt(2) / 2.0f))
+                < 1.0e-5f;
+        check(std::fabs(
+                planet::affine::point2d::from_polar(10, 0.375f).y()
+                - 10.0f * std::sqrt(2) / 2.0f))
+                < 1.0e-5f;
+        check(planet::affine::point2d::from_polar(10, 0.375).theta()) == 0.375f;
+
+        check(planet::affine::point2d::from_polar(10, 0.5f).x()) == -10.0f;
+        check(std::fabs(planet::affine::point2d::from_polar(10, 0.5f).y()))
+                < 1.0e-5f;
+        check(planet::affine::point2d::from_polar(10, 0.5f).theta()) == 0.5f;
+
+        check(std::fabs(planet::affine::point2d::from_polar(10, 0.75f).x()))
+                < 1.0e-5f;
+        check(planet::affine::point2d::from_polar(10, 0.75f).y()) == -10.0f;
+        check(planet::affine::point2d::from_polar(10, 0.75f).theta()) == 0.75f;
+    });
+
+
 }
