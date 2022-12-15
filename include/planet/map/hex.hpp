@@ -36,7 +36,7 @@ namespace planet::hexmap {
     /// with the given inner radius. Adapted from
     /// <https://iquilezles.org/articles/distfunctions2d/>
     inline constexpr float
-            offset_of(affine::point2d const c, float const ir = 1.0f) {
+            signed_distance(affine::point2d const c, float const ir = 1.0f) {
         /// kx is `-cos(pi/6)` and ky is `sin(pi/6)`. kr describes the out radius
         constexpr float kx{-0.8660254037844387f}, ky{0.5f}, kr{1.0f / sqrt3};
 

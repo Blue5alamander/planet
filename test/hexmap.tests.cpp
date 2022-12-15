@@ -177,11 +177,11 @@ namespace {
             });
 
 
-    auto const distances = felspar::testsuite("hexmap/distances", [](auto check) {
-        check(planet::hexmap::offset_of({0, 0})) == -1.0f;
-        check(planet::hexmap::offset_of({0.5f, 0})) == -0.5f;
-        check(std::abs(planet::hexmap::offset_of({1.0f, 0}))) <= 0.0e-5f;
-        check(planet::hexmap::offset_of({1.5f, 0})) == 0.5f;
+    auto const distances = felspar::testsuite("hexmap/signed_distance", [](auto check) {
+        check(planet::hexmap::signed_distance({0, 0})) == -1.0f;
+        check(planet::hexmap::signed_distance({0.5f, 0})) == -0.5f;
+        check(std::abs(planet::hexmap::signed_distance({1.0f, 0}))) <= 0.0e-5f;
+        check(planet::hexmap::signed_distance({1.5f, 0})) == 0.5f;
     });
 
 
