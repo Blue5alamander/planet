@@ -29,14 +29,15 @@ namespace planet::drawing {
             void extents(std::size_t w, std::size_t h);
         } bitmap_info_header;
 
-        std::vector<std::vector<std::uint8_t>> pixels;
+        std::size_t header_size() const noexcept;
+        std::size_t pixels_size() const;
 
       public:
         bmp(std::size_t width, std::size_t height);
 
+        std::vector<std::vector<std::uint8_t>> pixels;
+
         /// Sizes
-        std::size_t header_size() const noexcept;
-        std::size_t pixels_size() const;
         std::size_t width() const;
         std::size_t height() const;
 
