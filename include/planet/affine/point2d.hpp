@@ -4,6 +4,7 @@
 #include <planet/numbers.hpp>
 
 #include <cmath>
+#include <complex>
 
 
 namespace planet::affine {
@@ -78,6 +79,13 @@ namespace planet::affine {
             } else {
                 return std::atan(yp / xp) / τ + 0.5f;
             }
+        }
+        /// Rotate a point about the origin
+        point2d rotate(float const theta) {
+            std::complex const rotate{std::cos(theta * τ), std::sin(theta * τ)};
+            std::complex const value{xh, yh};
+            auto const result = value * rotate;
+            return {result.real(), result.imag(), h};
         }
     };
 

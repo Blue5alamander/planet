@@ -83,7 +83,8 @@ namespace {
                 planet::affine::point2d::from_polar(10, 0.375f).y()
                 - 10.0f * std::sqrt(2) / 2.0f))
                 < 1.0e-5f;
-        check(planet::affine::point2d::from_polar(10, 0.375).theta()) == 0.375f;
+        check(planet::affine::point2d::from_polar(10, 0.375f).theta())
+                == 0.375f;
 
         check(planet::affine::point2d::from_polar(10, 0.5f).x()) == -10.0f;
         check(std::fabs(planet::affine::point2d::from_polar(10, 0.5f).y()))
@@ -95,6 +96,45 @@ namespace {
         check(planet::affine::point2d::from_polar(10, 0.75f).y()) == -10.0f;
         check(planet::affine::point2d::from_polar(10, 0.75f).theta()) == 0.75f;
     });
+
+
+    auto const rotate =
+            felspar::testsuite("affine2d/point2d/rotate", [](auto check) {
+                planet::affine::point2d p{10, 0};
+                check(p.x()) == 10.0f;
+                check(p.y()) == 0.0f;
+                check(p.theta()) == 0.0f;
+
+                p = p.rotate(0.125f);
+                check(std::fabs(p.x() - 10.0f * std::sqrt(2) / 2.0f)) < 1.0e-5f;
+                check(std::fabs(p.y() - 10.0f * std::sqrt(2) / 2.0f)) < 1.0e-5f;
+                check(p.theta()) == 0.125f;
+
+                p = p.rotate(0.125f);
+                check(std::fabs(p.x())) < 1.0e-5f;
+                check(p.y()) == 10.0f;
+                check(p.theta()) == 0.25f;
+
+                p = p.rotate(0.125f);
+                check(std::fabs(p.x() + 10.0f * std::sqrt(2) / 2.0f)) < 1.0e-5f;
+                check(std::fabs(p.y() - 10.0f * std::sqrt(2) / 2.0f)) < 1.0e-5f;
+                check(p.theta()) == 0.375f;
+
+                p = p.rotate(0.125f);
+                check(p.x()) == -10.0f;
+                check(std::fabs(p.y())) < 1.0e-5f;
+                check(p.theta()) == 0.5f;
+
+                p = p.rotate(0.25f);
+                check(std::fabs(p.x())) < 1.0e-5f;
+                check(p.y()) == -10.0f;
+                check(p.theta()) == 0.75f;
+
+                p = p.rotate(0.25f);
+                check(p.x()) == 10.0f;
+                check(std::fabs(p.y())) < 1.0e-5f;
+                check(std::fabs(p.theta())) < 1.0e07f;
+            });
 
 
 }
