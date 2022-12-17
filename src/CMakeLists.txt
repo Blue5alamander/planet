@@ -1,4 +1,5 @@
 add_library(planet
+        asset_manager.cpp
         files.audio.cpp
         files.drawing.cpp
         gain.audio.cpp
