@@ -6,6 +6,7 @@ add_library(planet
         gravity.ui.cpp
         image.drawing.cpp
         mixer.audio.cpp
+        mouse.events.cpp
         oscillator.audio.cpp
         scale.ui.cpp
         stdin.cpp
