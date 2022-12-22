@@ -16,13 +16,13 @@ namespace {
         planet::events::mouse e1{}, e2{};
         check(planet::events::is_click(config, e1, e2)) == false;
 
-        e1.which = planet::events::mouse::button::left;
+        e1.button = planet::events::mouse::press::left;
         e1.pressed = planet::events::mouse::state::down;
-        e2.which = planet::events::mouse::button::right;
+        e2.button = planet::events::mouse::press::right;
         e2.pressed = planet::events::mouse::state::up;
         check(planet::events::is_click(config, e1, e2)) == false;
 
-        e2.which = planet::events::mouse::button::left;
+        e2.button = planet::events::mouse::press::left;
         check(planet::events::is_click(config, e1, e2)) == true;
 
         e1.timestamp -= std::chrono::milliseconds{102};

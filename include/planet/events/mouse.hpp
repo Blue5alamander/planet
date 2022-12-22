@@ -20,24 +20,25 @@ namespace planet::events {
     /// Low-level mouse clicks and movement
     class mouse final {
       public:
-        enum class button { none, left, right, middle, x1, x2 };
+        enum class press { none, left, right, middle, x1, x2 };
         enum class state { released, down, held, up };
 
-        button which = button::none;
+        press button = press::none;
         state pressed = state::released;
+        affine::point2d location{{}, {}}, scroll{{}, {}};
         std::chrono::steady_clock::time_point timestamp =
                 std::chrono::steady_clock::now();
-        affine::point2d location{{}, {}}, scroll{{}, {}};
     };
 
 
     /// Higher level events
     class click final {
       public:
-        mouse::button pressed;
-        std::chrono::steady_clock::time_point timestamp;
-        affine::point2d location;
-        std::size_t count;
+        mouse::press button = mouse::press::none;
+        affine::point2d location = {{}, {}};
+        std::size_t count = {};
+        std::chrono::steady_clock::time_point timestamp =
+                std::chrono::steady_clock::now();
     };
 
 
