@@ -13,7 +13,7 @@ namespace planet::events {
 
     /// Configuration for timing and movements metrics
     struct mouse_settings {
-        std::chrono::milliseconds click_time{100};
+        std::chrono::milliseconds click_time{200};
     };
 
 

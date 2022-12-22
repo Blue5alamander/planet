@@ -25,7 +25,7 @@ namespace {
         e2.button = planet::events::mouse::press::left;
         check(planet::events::is_click(config, e1, e2)) == true;
 
-        e1.timestamp -= std::chrono::milliseconds{102};
+        e1.timestamp -= std::chrono::milliseconds{202};
         check(planet::events::is_click(config, e1, e2)) == false;
     });
 
