@@ -6,8 +6,8 @@ planet::audio::wav::wav(std::span<std::byte const> filedata)
       auto const header = std::span<std::uint8_t const>{
               reinterpret_cast<std::uint8_t const *>(filedata.data()), 88};
 
-      std::size_t const file_size = header[4] + (header[5] << 8)
-              + (header[6] << 16) + (header[7] << 24);
+      [[maybe_unused]] std::size_t const file_size = header[4]
+              + (header[5] << 8) + (header[6] << 16) + (header[7] << 24);
       std::size_t const data_size = header[84] + (header[85] << 8)
               + (header[86] << 16) + (header[87] << 24);
 
