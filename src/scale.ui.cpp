@@ -9,7 +9,7 @@ namespace {
             float const bound,
             bool const shrink,
             bool const expand) {
-        if (distance > bound and shrink or distance < bound and expand) {
+        if ((distance > bound and shrink) or (distance < bound and expand)) {
             return bound / distance;
         } else {
             return 1.0f;
