@@ -87,7 +87,7 @@ felspar::coro::generator<std::filesystem::path>
 std::optional<std::vector<std::byte>> planet::file_loader::try_load(
         std::ostream &log,
         std::filesystem::path const &fn,
-        felspar::source_location const &loc) const {
+        felspar::source_location const &) const {
     for (auto path : search_paths()) {
         auto pn = path / fn;
         log << "Looked for " << pn << '\n';
