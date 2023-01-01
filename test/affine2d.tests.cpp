@@ -34,24 +34,24 @@ namespace {
                 planet::affine::transform t;
                 t.rotate(0.25f);
                 auto const i = t.into({4, 5});
-                check(ulps(i.x(), -5.0f)) < 2;
-                check(ulps(i.y(), 4.0f)) < 2;
+                check(ulps(i.x(), -5.0f)) < 2u;
+                check(ulps(i.y(), 4.0f)) < 2u;
 
                 auto const o = t.outof({-5, 4});
-                check(ulps(o.x(), 4)) < 2;
-                check(ulps(o.y(), 5)) < 2;
+                check(ulps(o.x(), 4)) < 2u;
+                check(ulps(o.y(), 5)) < 2u;
             },
             [](auto check) {
                 planet::affine::transform t;
                 t.reflect_y().scale(0.5f).translate({3, 7});
 
                 auto const i = t.into({4, 5});
-                check(ulps(i.x(), 5)) < 2;
-                check(ulps(i.y(), 4.5f)) < 2;
+                check(ulps(i.x(), 5)) < 2u;
+                check(ulps(i.y(), 4.5f)) < 2u;
 
                 auto const o = t.outof({5, 4.5f});
-                check(ulps(o.x(), 4)) < 2;
-                check(ulps(o.y(), 5)) < 2;
+                check(ulps(o.x(), 4)) < 2u;
+                check(ulps(o.y(), 5)) < 2u;
             });
 
 

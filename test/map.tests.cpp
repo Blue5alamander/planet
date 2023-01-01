@@ -26,11 +26,11 @@ namespace {
                 check(loc.column()) == 0;
             },
             [](auto check) {
-                check(planet::map::coordinates::insert_count(0, 4, 8)) == 0;
-                check(planet::map::coordinates::insert_count(4, 0, 8)) == 1;
-                check(planet::map::coordinates::insert_count(0, -4, 8)) == 1;
-                check(planet::map::coordinates::insert_count(0, -7, 8)) == 1;
-                check(planet::map::coordinates::insert_count(0, -8, 8)) == 2;
+                check(planet::map::coordinates::insert_count(0, 4, 8)) == 0u;
+                check(planet::map::coordinates::insert_count(4, 0, 8)) == 1u;
+                check(planet::map::coordinates::insert_count(0, -4, 8)) == 1u;
+                check(planet::map::coordinates::insert_count(0, -7, 8)) == 1u;
+                check(planet::map::coordinates::insert_count(0, -8, 8)) == 2u;
             },
             [](auto check) {
                 check(planet::map::coordinates::chunk_number(0, 0, 8)) == 0UL;
@@ -59,19 +59,19 @@ namespace {
                     ++calls;
                     return std::pair{p.column(), p.row()};
                 }};
-        check(calls) == 0;
+        check(calls) == 0u;
 
         check(w[{0, 0}]) == std::pair{0L, 0L};
-        check(calls) == 16;
+        check(calls) == 16u;
 
         check(w[{0, 3}]) == std::pair{0L, 3L};
-        check(calls) == 16;
+        check(calls) == 16u;
 
         check(w[{5, 7}]) == std::pair(5L, 7L);
-        check(calls) == 32;
+        check(calls) == 32u;
 
         check(w[{345, 127}]) == std::pair(345L, 127L);
-        check(calls) == 48;
+        check(calls) == 48u;
 
         auto pos = w.chunks();
         check(pos.next()->first) == planet::map::coordinates{0, 0};

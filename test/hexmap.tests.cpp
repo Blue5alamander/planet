@@ -158,13 +158,13 @@ namespace {
                             ++calls;
                             return std::pair{p.column(), p.row()};
                         }};
-                check(calls) == 0;
+                check(calls) == 0u;
 
                 check(w[{0, 0}]) == std::pair{0L, 0L};
-                check(calls) == 8;
+                check(calls) == 8u;
 
                 check(w[{5, 7}]) == std::pair{5L, 7L};
-                check(calls) == 16;
+                check(calls) == 16u;
 
                 auto pos = w.chunks();
                 auto p1 = pos.next()->first;
