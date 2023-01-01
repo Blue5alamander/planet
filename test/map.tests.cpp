@@ -52,7 +52,7 @@ namespace {
             });
 
 
-    auto const world = felspar::testsuite("map/world", [](auto check, auto &log) {
+    auto const world = felspar::testsuite("map/world", [](auto check) {
         std::size_t calls{};
         planet::map::world<planet::map::chunk<std::pair<long, long>, 4>> w{
                 {0, 0}, [&calls](auto const p) mutable {

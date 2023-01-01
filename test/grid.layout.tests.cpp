@@ -9,7 +9,7 @@ namespace {
     auto const suite = felspar::testsuite("grid.layout");
 
 
-    auto const rows1a = suite.test("one row/array", [](auto check, auto &log) {
+    auto const rows1a = suite.test("one row/array", [](auto check) {
         auto r1 = planet::ui::grid{
                 std::array{planet::debug::ui_element{{3, 4}}}, {}};
         check(r1.extents({10, 10}).width) == 3.0f;
@@ -49,7 +49,7 @@ namespace {
     });
 
 
-    auto const rows1t = suite.test("one row/tuple", [](auto check, auto &log) {
+    auto const rows1t = suite.test("one row/tuple", [](auto check) {
         auto r1 = planet::ui::grid{
                 std::tuple{planet::debug::ui_element{{3, 4}}}, {}};
         check(r1.extents({10, 10}).width) == 3.0f;
