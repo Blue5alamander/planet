@@ -96,7 +96,7 @@ namespace planet::map {
     class world {
         struct row {
             long left_edge = {};
-            std::vector<Chunk *> chunks;
+            std::vector<Chunk *> chunks = {};
         };
 
         mutable long bottom_edge = {};
