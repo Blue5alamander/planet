@@ -14,15 +14,15 @@ namespace planet::affine {
         std::array<float, 9> m = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
         constexpr matrix(
-                float a,
-                float b,
-                float c,
-                float d,
-                float e,
-                float f,
-                float g,
-                float h,
-                float i)
+                float const a,
+                float const b,
+                float const c,
+                float const d,
+                float const e,
+                float const f,
+                float const g,
+                float const h,
+                float const i)
         : m{a, b, c, d, e, f, g, h, i} {}
 
       public:
