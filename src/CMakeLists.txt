@@ -4,6 +4,7 @@ add_library(planet
         files.drawing.cpp
         gain.audio.cpp
         gravity.ui.cpp
+        hex.map.cpp
         image.drawing.cpp
         mixer.audio.cpp
         mouse.events.cpp

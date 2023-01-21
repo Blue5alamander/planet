@@ -32,15 +32,18 @@ namespace planet::hexmap {
         return {c + affine::point2d{-ir, -oR},
                 affine::extents2d{2 * ir, 2 * oR}};
     }
+    /// Return true if the point is within the hex centred at the origin
+    bool is_within(affine::point2d, float ir = 1.0f);
+
     /// Return the distance a point is from the edges of a hex at the origin
     /// with the given inner radius. Adapted from
     /// <https://iquilezles.org/articles/distfunctions2d/>
     inline constexpr float
             signed_distance(affine::point2d const c, float const ir = 1.0f) {
-        /// kx is `-cos(pi/6)` and ky is `sin(pi/6)`. kr describes the outer radius
+        // kx is `-cos(pi/6)` and ky is `sin(pi/6)`. kr describes the outer radius
         constexpr float kx{-0.8660254037844387f}, ky{0.5f}, kr{1.0f / sqrt3};
 
-        /// Our hex is point up, so swap x & y
+        // Our hex is point up, so swap x & y
         float px{std::abs(c.y())}, py{std::abs(c.x())};
 
         auto const min_dot = std::min(0.0f, kx * px + ky * py);
@@ -75,6 +78,8 @@ namespace planet::hexmap {
         static constexpr coordinates from_compressed(map::coordinates const p) {
             return {p};
         }
+        /// Create a hex co-ordinate from any (x, y) location within it
+        static coordinates from_position(affine::point2d, float r = 1.0f);
 
         /// Return the compressed co-ordinates
         constexpr map::coordinates compressed() const noexcept { return pos; }
