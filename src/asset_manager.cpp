@@ -7,9 +7,7 @@
 #include <sstream>
 
 
-/**
- * planet::asset_loader
- */
+/// ## `planet::asset_loader`
 
 
 namespace {
@@ -36,9 +34,7 @@ planet::asset_loader::~asset_loader() {
 }
 
 
-/**
- * planet::asset_manager
- */
+/// ## `planet::asset_manager`
 
 
 planet::asset_manager::asset_manager(std::filesystem::path p)
@@ -60,9 +56,7 @@ std::vector<std::byte> planet::asset_manager::file_data(
 }
 
 
-/**
- * planet::file_loader
- */
+/// ## `planet::file_loader`
 
 
 planet::file_loader::file_loader(std::filesystem::path b)

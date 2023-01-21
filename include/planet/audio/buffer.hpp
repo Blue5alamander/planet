@@ -42,9 +42,7 @@ namespace planet::audio {
     };
 
 
-    /**
-     * A view onto a buffer
-     */
+    /// A view onto a buffer
     template<typename Clock, std::size_t Channels>
     class buffer_view {
       public:

@@ -3,17 +3,13 @@
 #include <cmath>
 
 
-/**
- * `planet::audio::linear_gain`
- */
+/// ## `planet::audio::linear_gain`
 
 
 planet::audio::linear_gain::linear_gain(float const g) : multiplier{g} {}
 
 
-/**
- * `planet::audio::dB_gain`
- */
+/// ## `planet::audio::dB_gain`
 
 
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
