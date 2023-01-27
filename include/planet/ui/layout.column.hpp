@@ -8,15 +8,16 @@
 namespace planet::ui {
 
 
-    /// A single wide column
+    /// ## A single wide column
     template<typename C>
     struct column {
         using collection_type = C;
         using box_type = typename collection_type::value_type;
         collection_type items;
-        /// Padding between items in the column
+        /// ### Padding between items in the column
         float padding = {};
 
+        column() {}
         explicit column(collection_type c, float const p = {})
         : items{std::move(c)}, padding{p} {}
 
@@ -49,6 +50,7 @@ namespace planet::ui {
     };
 
 
+    /// ## Specialisation for tuple
     template<typename... Pack>
     struct column<std::tuple<Pack...>> {
         using collection_type = std::tuple<Pack...>;
