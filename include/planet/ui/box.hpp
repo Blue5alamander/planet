@@ -7,8 +7,11 @@
 namespace planet::ui {
 
 
-    /// Combine these to determine how an element fits inside the given space
+    /// ## Gravity direction
     /**
+     * Combine these flags to determine how an element fits inside the given
+     * space
+     *
      * When none are specified then the content is stretched to fill the space.
      * Individual flags represent a pull in that direction and will turn
      * stretching off. Two opposing flags will causing centring along that axis.
@@ -26,41 +29,53 @@ namespace planet::ui {
                 bitor static_cast<unsigned char>(r));
     }
 
-    /// Calculate the extent within the outer extent that the inner will have
-    /// based on the gravity passed in
+    /// ## Rectangle positioning
+    /**
+     * Calculate the extent within the outer extent that the inner will have
+     * based on the gravity passed in
+     */
     affine::rectangle
             within(gravity,
                    affine::rectangle const &outer,
                    affine::extents2d const &inner);
 
-    /// A container for another element
+    /// ## Box wrapper
+    /**
+     * A container for another element. The box itself is not drawn. The
+     * `gravity` can be used to control how the content is positioned within the
+     * box.
+     */
     template<typename C>
     struct box {
         /// What is inside the box
         using content_type = C;
         content_type content;
         /// The size of the box in its container's coordinate system
-        gravity inner;
+        gravity inner = {
+                gravity::left | gravity::right | gravity::top
+                | gravity::bottom};
         /// The amount of padding to be added around the content.
         float hpadding = {}, vpadding = {};
 
-        explicit box(
-                content_type c,
-                gravity const g = gravity::left | gravity::right | gravity::top
-                        | gravity::bottom,
-                float const hp = {},
-                float const vp = {})
+        box() {}
+        explicit box(content_type c) : content{std::move(c)} {}
+        box(content_type c,
+            gravity const g,
+            float const hp = {},
+            float const vp = {})
         : content{std::move(c)}, inner{g}, hpadding{hp}, vpadding{vp} {}
 
-        /// Calculate the extents of the box
+        /// ### Calculate the extents of the box
         affine::extents2d extents(affine::extents2d const &ex) const {
-            auto const inner = content.extents(remove_padding(ex));
-            return {inner.width + 2 * hpadding, inner.height + 2 * vpadding};
+            return add_padding(content.extents(remove_padding(ex)));
         }
 
-        /// Draw the content within the area outlined by the top left and bottom
-        /// right corners passed in. All calculations are done in the screen
-        /// space co-ordinate system
+        /// ### Drawing the box content
+        /**
+         * Draw the content within the area outlined by the top left and bottom
+         * right corners passed in. All calculations are done in the screen
+         * space co-ordinate system
+         */
         template<typename Target>
         void draw_within(Target &t, affine::rectangle const outer) {
             auto const area = within(
