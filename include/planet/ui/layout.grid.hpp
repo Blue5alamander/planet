@@ -33,7 +33,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const within) {
+        void draw_within(Target &t, affine::rectangle2d const within) {
             auto const cell = cell_size(within.extents);
             float x = {}, y = {};
             for (auto &item : items) {
@@ -82,10 +82,10 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const within) {
+        void draw_within(Target &t, affine::rectangle2d const within) {
             auto const cell = cell_size(within.extents);
             float x = {}, y = {};
-            felspar::memory::small_vector<affine::rectangle, sizeof...(Pack)>
+            felspar::memory::small_vector<affine::rectangle2d, sizeof...(Pack)>
                     locations;
             for (std::size_t index{}; index < sizeof...(Pack); ++index) {
                 if (x > 0 and x + cell.width > within.extents.width) {

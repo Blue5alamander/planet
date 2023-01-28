@@ -6,8 +6,8 @@ namespace {
 
 
     constexpr planet::affine::extents2d unit{1, 1};
-    constexpr planet::affine::rectangle unitbox{{0, 0}, unit};
-    constexpr planet::affine::rectangle testbox{
+    constexpr planet::affine::rectangle2d unitbox{{0, 0}, unit};
+    constexpr planet::affine::rectangle2d testbox{
             {2, 3}, planet::affine::point2d{6, 8}};
 
     auto const gh = felspar::testsuite(

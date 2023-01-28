@@ -22,13 +22,13 @@ namespace planet::ui {
         using bottom_left_type = BL;
         using bottom_right_type = BR;
 
-        affine::rectangle within;
+        affine::rectangle2d within;
         top_left_type top_left;
         top_right_type top_right;
         bottom_left_type bottom_left;
         bottom_right_type bottom_right;
 
-        corners(affine::rectangle const &w,
+        corners(affine::rectangle2d const &w,
                 top_left_type tl,
                 top_right_type tr,
                 bottom_left_type bl,
@@ -54,7 +54,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const bounds) {
+        void draw_within(Target &t, affine::rectangle2d const bounds) {
             auto const tl_size = top_left.extents(bounds.extents);
             top_left.draw_within(t, {bounds.top_left, tl_size});
 

@@ -24,9 +24,9 @@ namespace {
 }
 
 
-planet::affine::rectangle planet::ui::within(
+planet::affine::rectangle2d planet::ui::within(
         gravity const g,
-        affine::rectangle const &o,
+        affine::rectangle2d const &o,
         affine::extents2d const &i) {
     auto [left, right] =
             spacing(o.top_left.x(), o.top_left.x() + o.extents.width, i.width,

@@ -34,9 +34,9 @@ namespace planet::ui {
      * Calculate the extent within the outer extent that the inner will have
      * based on the gravity passed in
      */
-    affine::rectangle
+    affine::rectangle2d
             within(gravity,
-                   affine::rectangle const &outer,
+                   affine::rectangle2d const &outer,
                    affine::extents2d const &inner);
 
     /// ## Box wrapper
@@ -77,7 +77,7 @@ namespace planet::ui {
          * space co-ordinate system
          */
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const outer) {
+        void draw_within(Target &t, affine::rectangle2d const outer) {
             auto const area = within(
                     inner,
                     {outer.top_left + affine::point2d{hpadding, vpadding},

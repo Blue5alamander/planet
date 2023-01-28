@@ -36,7 +36,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const outer) {
+        void draw_within(Target &t, affine::rectangle2d const outer) {
             auto left = outer.left();
             auto const top = outer.top(), bottom = outer.bottom();
             for (auto const &item : items) {
@@ -85,7 +85,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const border) {
+        void draw_within(Target &t, affine::rectangle2d const border) {
             float row_height = {}, x = {}, y = {};
             for (auto &item : items) {
                 auto const ex = item.extents(border.extents);
@@ -95,7 +95,7 @@ namespace planet::ui {
                     y += row_height;
                     row_height = {};
                 }
-                planet::affine::rectangle const location = {
+                planet::affine::rectangle2d const location = {
                         border.top_left + affine::point2d{x, y}, ex};
                 item.draw_within(t, location);
                 row_height = std::max(row_height, ex.height);
@@ -136,9 +136,9 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const border) {
+        void draw_within(Target &t, affine::rectangle2d const border) {
             float row_height = {}, x = {}, y = {};
-            felspar::memory::small_vector<affine::rectangle, sizeof...(Pack)>
+            felspar::memory::small_vector<affine::rectangle2d, sizeof...(Pack)>
                     locations;
             for (auto &ex : item_sizes(items, border.extents)) {
                 if (x + ex.width > border.extents.width) {

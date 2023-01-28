@@ -33,7 +33,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        auto draw_within(Target &t, affine::rectangle const outer) {
+        auto draw_within(Target &t, affine::rectangle2d const outer) {
             auto const width = extents(outer.extents).width;
             float top = {};
             for (auto &item : items) {
@@ -72,7 +72,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        auto draw_within(Target &t, affine::rectangle const outer) {
+        auto draw_within(Target &t, affine::rectangle2d const outer) {
             return draw_within(
                     t, outer, std::make_index_sequence<sizeof...(Pack)>{});
         }
@@ -81,7 +81,7 @@ namespace planet::ui {
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
-                affine::rectangle const outer,
+                affine::rectangle2d const outer,
                 std::index_sequence<I...>) {
             float top = outer.top();
             ((top += draw_item(t, std::get<I>(items), outer, top) + padding),
@@ -91,7 +91,7 @@ namespace planet::ui {
         float draw_item(
                 Target &t,
                 Item &item,
-                affine::rectangle const within,
+                affine::rectangle2d const within,
                 float const top) {
             auto const ex = item.extents(within.extents);
             auto const height = ex.height;

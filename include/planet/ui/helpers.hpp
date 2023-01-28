@@ -32,7 +32,7 @@ namespace planet::ui {
     void draw_items_within(
             Target &t,
             std::tuple<Pack...> &items,
-            std::span<affine::rectangle> const locations,
+            std::span<affine::rectangle2d> const locations,
             std::index_sequence<I...>) {
         (std::get<I>(items).draw_within(t, locations[I]), ...);
     }

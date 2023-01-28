@@ -17,7 +17,7 @@ namespace planet::debug {
             return size;
         }
 
-        void draw_within(std::ostream &, affine::rectangle);
+        void draw_within(std::ostream &, affine::rectangle2d);
     };
 
 

@@ -22,7 +22,7 @@ namespace planet::ui {
         }
 
         template<typename Target>
-        void draw_within(Target &t, affine::rectangle const bounds) {
+        void draw_within(Target &t, affine::rectangle2d const bounds) {
             content.draw_within(t, {bounds.top_left, size});
         }
     };
