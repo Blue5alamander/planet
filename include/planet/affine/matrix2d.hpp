@@ -52,20 +52,19 @@ namespace planet::affine {
         friend constexpr bool
                 operator==(matrix2d const &, matrix2d const &) = default;
 
-        /// Reflect the y axis (about the x axis)
+        /// ### Named constructors
         static constexpr matrix2d reflect_y() {
-            return matrix2d{1, 0, 0, 0, -1, 0, 0, 0, 1};
+            return {1, 0, 0, 0, -1, 0, 0, 0, 1};
         }
         static constexpr matrix2d translate(point2d const by) {
-            return matrix2d{1, 0, by.x(), 0, 1, by.y(), 0, 0, 1};
+            return {1, 0, by.x(), 0, 1, by.y(), 0, 0, 1};
         }
         static constexpr matrix2d scale(float const factor) {
-            return matrix2d{factor, 0, 0, 0, factor, 0, 0, 0, 1};
+            return {factor, 0, 0, 0, factor, 0, 0, 0, 1};
         }
         static constexpr matrix2d rotate(float const turns) {
             float const r = turns * τ;
-            return matrix2d{
-                    std::cos(r),
+            return {std::cos(r),
                     -std::sin(r),
                     0,
 
