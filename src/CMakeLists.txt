@@ -9,6 +9,7 @@ add_library(planet
         mixer.audio.cpp
         mouse.events.cpp
         oscillator.audio.cpp
+        panel.ui.cpp
         scale.ui.cpp
         stdin.cpp
     )

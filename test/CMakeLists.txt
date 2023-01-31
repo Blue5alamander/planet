@@ -6,5 +6,6 @@ add_test_run(check planet TESTS
         hexmap.tests.cpp
         map.tests.cpp
         mouse.tests.cpp
+        panel.tests.cpp
         scaling.tests.cpp
     )
