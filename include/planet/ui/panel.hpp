@@ -133,21 +133,21 @@ namespace planet {
                      affine::point2d const cp2) const {
             auto const p1 = viewport.into(cp1);
             auto const p2 = viewport.into(cp2);
-            renderer->line(p1.x(), p1.y(), p2.x(), p2.y());
+            renderer.line(p1.x(), p1.y(), p2.x(), p2.y());
         }
         /// Draw the texture at native size with its top left corder at the
         /// location specified
         template<typename R, typename T>
         void copy(R &renderer, T const &tex, affine::point2d const l) const {
             auto const p = viewport.into(l);
-            renderer->copy(tex, p.x(), p.y());
+            renderer.copy(tex, p.x(), p.y());
         }
         /// Scale the texture, drawing it to fill the rectangle
         template<typename R, typename T>
         void copy(R &renderer, T const &tex, affine::rectangle2d const r) const {
             auto const tl = viewport.into(r.top_left);
             auto const br = viewport.into(r.bottom_right());
-            renderer->copy(
+            renderer.copy(
                     tex, tl.x(), tl.y(), br.x() - tl.x(), br.y() - tl.y());
         }
     };
