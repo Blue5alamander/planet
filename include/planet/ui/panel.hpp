@@ -30,9 +30,6 @@ namespace planet {
 
         // Swap out the current parent with a new one
         void reparent_children(panel *);
-        // Feed children events
-        felspar::coro::eager<> feeder;
-        felspar::coro::task<void> feed_children();
 
       public:
         panel();
@@ -150,6 +147,12 @@ namespace planet {
             renderer.copy(
                     tex, tl.x(), tl.y(), br.x() - tl.x(), br.y() - tl.y());
         }
+
+      private:
+        // Feed children events. For safety it's important that this is
+        // destructed first
+        felspar::coro::eager<> feeder;
+        felspar::coro::task<void> feed_children();
     };
 
 
