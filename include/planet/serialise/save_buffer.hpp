@@ -32,7 +32,7 @@ namespace planet::serialise {
         }
 
         void append(std::string_view);
-        void append(felspar::parse::detail::integral auto v) {
+        void append(felspar::parse::concepts::integral auto v) {
             felspar::parse::binary::unchecked_insert(allocate_for(v), v);
         }
 

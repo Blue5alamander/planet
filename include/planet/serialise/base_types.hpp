@@ -14,12 +14,12 @@ namespace planet::serialise {
     S load_type(std::span<std::byte const> &);
 
 
-    template<felspar::parse::detail::integral T>
+    template<felspar::parse::concepts::integral T>
     inline save_buffer &save(save_buffer &ab, T const t) {
         ab.append(t);
         return ab;
     }
-    template<felspar::parse::detail::integral T>
+    template<felspar::parse::concepts::integral T>
     inline void load(std::span<std::byte const> &l, T &s) {
         s = felspar::parse::binary::extract<T>(l);
     }
