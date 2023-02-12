@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise.hpp>
 #include <planet/to_string.hpp>
 
 #include <felspar/coro/generator.hpp>
@@ -33,11 +34,17 @@ namespace planet::map {
             }
         }
 
-        /// Access into the cells within the chunk
+        /// ### Access into the cells within the chunk
         constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
             return storage.at(p.first * height + p.second);
         }
         std::span<Cell, DimX * DimY> cells() { return storage; }
+
+        /// ### Serialise
+        friend serialise::save_buffer &
+                save(serialise::save_buffer &ab, chunk const &c) {
+            return ab.save_box("_p:m:chunk", c.storage);
+        }
     };
 
 
@@ -87,6 +94,12 @@ namespace planet::map {
                 long const position,
                 std::size_t const width) noexcept {
             return (position - lowest) % width;
+        }
+
+        /// ### Serialisation
+        friend serialise::save_buffer &
+                save(serialise::save_buffer &ab, coordinates const c) {
+            return ab.save_box("_p:m:coord", c.x, c.y);
         }
     };
 
@@ -171,6 +184,12 @@ namespace planet::map {
         cell_type &operator[](coordinates const p) { return *cell_at(p); }
         cell_type const &operator[](coordinates const p) const {
             return *cell_at(p);
+        }
+
+        /// ### Serialise
+        friend serialise::save_buffer &
+                save(serialise::save_buffer &ab, world const &w) {
+            return ab.save_box("_p:m:world", w.storage);
         }
 
       private:

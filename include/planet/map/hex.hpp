@@ -145,6 +145,12 @@ namespace planet::hexmap {
                 }
             }
         }
+
+        /// ### Serialise
+        friend serialise::save_buffer &
+                save(serialise::save_buffer &ab, coordinates const c) {
+            return ab.save_box("_p:h:coord", c.pos);
+        }
     };
 
     inline std::string to_string(coordinates p) {
@@ -183,6 +189,12 @@ namespace planet::hexmap {
         cell_type &operator[](coordinates p) { return grid[p.compressed()]; }
         cell_type const &operator[](coordinates p) const {
             return grid[p.compressed()];
+        }
+
+        /// ### Serialise
+        friend serialise::save_buffer &
+                save(serialise::save_buffer &ab, world const &w) {
+            return ab.save_box("_p:h:world", w.grid);
         }
     };
 
