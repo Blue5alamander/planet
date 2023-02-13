@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/load.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
 #include <array>
@@ -8,10 +9,6 @@
 
 
 namespace planet::serialise {
-
-
-    template<typename S>
-    S load_type(std::span<std::byte const> &);
 
 
     template<felspar::parse::concepts::integral T>

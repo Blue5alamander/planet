@@ -12,6 +12,7 @@ add_library(planet
         panel.ui.cpp
         serialise.cpp
         scale.ui.cpp
+        square.map.cpp
         stdin.cpp
     )
 target_include_directories(planet PUBLIC ../include/)

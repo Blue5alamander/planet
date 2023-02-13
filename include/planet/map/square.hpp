@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/serialise.hpp>
+#include <planet/serialise/forward.hpp>
 #include <planet/to_string.hpp>
 
 #include <felspar/coro/generator.hpp>
@@ -41,10 +41,9 @@ namespace planet::map {
         std::span<Cell, DimX * DimY> cells() { return storage; }
 
         /// ### Serialise
+        template<typename C, std::size_t X, std::size_t Y>
         friend serialise::save_buffer &
-                save(serialise::save_buffer &ab, chunk const &c) {
-            return ab.save_box("_p:m:chunk", c.storage);
-        }
+                save(serialise::save_buffer &, chunk<C, X, Y> const &);
     };
 
 
@@ -98,10 +97,9 @@ namespace planet::map {
 
         /// ### Serialisation
         friend serialise::save_buffer &
-                save(serialise::save_buffer &ab, coordinates const c) {
-            return ab.save_box("_p:m:coord", c.x, c.y);
-        }
+                save(serialise::save_buffer &, coordinates);
     };
+    serialise::save_buffer &save(serialise::save_buffer &, coordinates);
 
 
     /// ## The world map
@@ -187,10 +185,9 @@ namespace planet::map {
         }
 
         /// ### Serialise
+        template<typename C>
         friend serialise::save_buffer &
-                save(serialise::save_buffer &ab, world const &w) {
-            return ab.save_box("_p:m:world", w.storage);
-        }
+                save(serialise::save_buffer &, world<C> const &);
 
       private:
         init_function_type init;

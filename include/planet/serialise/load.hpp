@@ -1,7 +1,10 @@
 #pragma once
 
 
-#include <planet/serialise/base_types.hpp>
+#include <planet/serialise/forward.hpp>
+
+#include <felspar/memory/shared_vector.hpp>
+#include <felspar/parse/extract.hpp>
 
 
 namespace planet::serialise {
