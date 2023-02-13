@@ -54,11 +54,12 @@ namespace planet::map {
      * y-axis is bottom to top -- increases up
      */
     class coordinates {
-        long x = {}, y = {};
-
       public:
+        using value_type = std::int32_t;
+
         constexpr coordinates() noexcept {}
-        constexpr coordinates(long x, long y) noexcept : x{x}, y{y} {}
+        constexpr coordinates(value_type x, value_type y) noexcept
+        : x{x}, y{y} {}
 
         constexpr auto row() const noexcept { return y; }
         constexpr auto column() const noexcept { return x; }
@@ -70,11 +71,11 @@ namespace planet::map {
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
         /// The square of the magnitude of the location from the origin
-        long mag2() const noexcept { return x * x + y * y; }
+        value_type mag2() const noexcept { return x * x + y * y; }
 
         static constexpr std::size_t insert_count(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             if (position < lowest) {
                 return (lowest - position) / width + 1;
@@ -83,14 +84,14 @@ namespace planet::map {
             }
         }
         static constexpr std::size_t chunk_number(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             return (position - lowest) / width;
         }
         static constexpr std::size_t inside_chunk(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             return (position - lowest) % width;
         }
@@ -98,6 +99,9 @@ namespace planet::map {
         /// ### Serialisation
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, coordinates);
+
+      private:
+        value_type x = {}, y = {};
     };
     serialise::save_buffer &save(serialise::save_buffer &, coordinates);
 
@@ -106,11 +110,11 @@ namespace planet::map {
     template<typename Chunk>
     class world {
         struct row {
-            long left_edge = {};
+            coordinates::value_type left_edge = {};
             std::vector<Chunk *> chunks = {};
         };
 
-        mutable long bottom_edge = {};
+        mutable coordinates::value_type bottom_edge = {};
         mutable std::vector<row> rows;
 
         mutable std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>>
@@ -146,16 +150,19 @@ namespace planet::map {
                 auto const offy = row_number * chunk_type::height;
                 storage.emplace_back(std::pair{
                         coordinates{
-                                row.left_edge + long(offx),
-                                bottom_edge + long(offy)},
-                        std::make_unique<chunk_type>(
-                                [=, this](auto const x, auto const y) {
-                                    auto const relx = offx + x;
-                                    auto const rely = offy + y;
-                                    return init(
-                                            {row.left_edge + long(relx),
-                                             bottom_edge + long(rely)});
-                                })});
+                                row.left_edge + coordinates::value_type(offx),
+                                bottom_edge + coordinates::value_type(offy)},
+                        std::make_unique<chunk_type>([=,
+                                                      this](auto const x,
+                                                            auto const y) {
+                            auto const relx = offx + x;
+                            auto const rely = offy + y;
+                            return init(
+                                    {row.left_edge
+                                             + coordinates::value_type(relx),
+                                     bottom_edge
+                                             + coordinates::value_type(rely)});
+                        })});
                 chunk = storage.back().second.get();
             }
 

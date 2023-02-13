@@ -71,8 +71,10 @@ namespace planet::hexmap {
         constexpr coordinates(map::coordinates p) : pos{p} {}
 
       public:
+        using value_type = map::coordinates::value_type;
+
         constexpr coordinates() noexcept {}
-        constexpr coordinates(long x, long y) noexcept
+        constexpr coordinates(value_type x, value_type y) noexcept
         : pos{x, (y < 0 ? y - 1 : y) / 2} {}
         /// Create a hex co-ordinate from the compressed co-ordinates
         static constexpr coordinates from_compressed(map::coordinates const p) {
@@ -84,10 +86,10 @@ namespace planet::hexmap {
         /// Return the compressed co-ordinates
         constexpr map::coordinates compressed() const noexcept { return pos; }
 
-        constexpr long row() const noexcept {
+        constexpr value_type row() const noexcept {
             return (pos.row() * 2) + (pos.column() bitand 1);
         }
-        constexpr long column() const noexcept { return pos.column(); }
+        constexpr value_type column() const noexcept { return pos.column(); }
 
         /// Return the centre position of the hex
         constexpr affine::point2d centre(float const r = 1.0f) const noexcept {
@@ -129,7 +131,7 @@ namespace planet::hexmap {
         constexpr coordinates operator-(coordinates const r) const noexcept {
             return {column() - r.column(), row() - r.row()};
         }
-        constexpr coordinates operator*(long const s) const noexcept {
+        constexpr coordinates operator*(value_type const s) const noexcept {
             return {column() * s, row() * s};
         }
 
