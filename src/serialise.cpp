@@ -1,7 +1,26 @@
+#include <planet/serialise/exceptions.hpp>
+#include <planet/serialise/load.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
 #include <cstring>
 #include <ostream>
+
+
+/// ## `planet::serialise::box`
+
+
+void planet::serialise::box::check_name_or_throw(
+        std::string_view expected) const {
+    if (name != expected) {
+        throw felspar::stdexcept::runtime_error{"Unexpected box name"};
+    }
+}
+
+
+void planet::serialise::box::check_empty_or_throw(
+        felspar::source_location const &loc) const {
+    if (not content.empty()) { throw box_not_empty{loc}; }
+}
 
 
 /// ## `planet::serialise::save_buffer`
@@ -37,3 +56,17 @@ void planet::serialise::save_buffer::append(std::string_view const sv) {
     auto const s = allocate(sv.size());
     std::memcpy(s.data(), sv.data(), sv.size());
 }
+
+
+/// ## `planet::serialise::serialisation_error` and related sub-classes
+
+
+planet::serialise::serialisation_error::serialisation_error(
+        std::string m, felspar::source_location const &loc)
+: felspar::stdexcept::runtime_error{std::move(m), loc} {}
+
+
+planet::serialise::box_not_empty::box_not_empty(
+        felspar::source_location const &loc)
+: serialisation_error{
+        "The box was not empty after loading all data from it", loc} {}

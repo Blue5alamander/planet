@@ -39,17 +39,10 @@ namespace planet::serialise {
         std::string_view name;
         load_buffer content;
 
-        void check_name_or_throw(std::string_view expected) const {
-            if (name != expected) {
-                throw felspar::stdexcept::runtime_error{"Unexpected box name"};
-            }
-        }
-        void check_empty_or_throw() const {
-            if (not content.empty()) {
-                throw felspar::stdexcept::runtime_error{
-                        "Box was not empty after loading"};
-            }
-        }
+        void check_name_or_throw(std::string_view expected) const;
+        void check_empty_or_throw(
+                felspar::source_location const & =
+                        felspar::source_location::current()) const;
 
         friend void load(load_buffer &, box &);
     };
