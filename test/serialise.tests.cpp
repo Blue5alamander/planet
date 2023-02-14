@@ -36,8 +36,8 @@ namespace {
             save(planet::serialise::save_buffer &ab, small const &s) {
         return ab.save_box("small", s.field1);
     }
-    void load(planet::serialise::load_buffer &b, small &s) {
-        planet::serialise::load_box(b, "small", s.field1);
+    void load(planet::serialise::load_buffer &lb, small &s) {
+        lb.load_box("small", s.field1);
     }
     auto const s = suite.test("small", [](auto check, auto &log) {
         small const s{1234};
@@ -74,9 +74,8 @@ namespace {
             save(planet::serialise::save_buffer &ab, larger const &l) {
         return ab.save_box("larger", l.field1, l.field2, l.field3, l.field4);
     }
-    void load(planet::serialise::load_buffer &b, larger &l) {
-        planet::serialise::load_box(
-                b, "larger", l.field1, l.field2, l.field3, l.field4);
+    void load(planet::serialise::load_buffer &lb, larger &l) {
+        lb.load_box("larger", l.field1, l.field2, l.field3, l.field4);
     }
     auto const l = suite.test("larger", [](auto check, auto &log) {
         larger const l{true, -0x12345678, 0x1234, 0x12345678'90987654};
@@ -120,8 +119,8 @@ namespace {
             save(planet::serialise::save_buffer &ab, nested const &n) {
         return ab.save_box("nested", n.s, n.l);
     }
-    void load(planet::serialise::load_buffer &b, nested &n) {
-        planet::serialise::load_box(b, "nested", n.s, n.l);
+    void load(planet::serialise::load_buffer &lb, nested &n) {
+        lb.load_box("nested", n.s, n.l);
     }
     auto const n = suite.test("nested", [](auto check, auto &log) {
         nested const n{

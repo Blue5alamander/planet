@@ -29,6 +29,9 @@ namespace planet::serialise {
         T extract() {
             return felspar::parse::binary::extract<T>(buffer);
         }
+
+        template<typename... Args>
+        void load_box(std::string_view, Args &...);
     };
 
 
@@ -48,18 +51,14 @@ namespace planet::serialise {
             }
         }
 
-        friend void load(load_buffer &l, box &b) {
-            b.name = load_type<std::string_view>(l);
-            [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
-            auto const bytes = load_type<std::size_t>(l);
-            b.content = load_buffer{l.split(bytes)};
-        }
+        friend void load(load_buffer &, box &);
     };
+    void load(load_buffer &, box &);
 
 
     template<typename... Args>
-    inline void load_box(load_buffer &l, std::string_view name, Args &...args) {
-        auto b = load_type<box>(l);
+    inline void load_buffer::load_box(std::string_view name, Args &...args) {
+        auto b = load_type<box>(*this);
         b.check_name_or_throw(name);
         (load(b.content, args), ...);
         b.check_empty_or_throw();

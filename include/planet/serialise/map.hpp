@@ -17,8 +17,8 @@ namespace planet::map {
         return ab.save_box("_p:m:chunk", c.storage);
     }
     template<typename Cell, std::size_t DimX, std::size_t DimY>
-    inline void load(serialise::load_buffer &s, chunk<Cell, DimX, DimY> &c) {
-        return serialise::load_box(s, "_p:m:chunk", c.storage);
+    inline void load(serialise::load_buffer &lb, chunk<Cell, DimX, DimY> &c) {
+        return lb.load_box("_p:m:chunk", c.storage);
     }
 
     /// ### `planet::map::world`
@@ -47,17 +47,17 @@ namespace planet::map {
         return ab.save_box("_p:m:world", w.storage);
     }
     template<typename Chunk>
-    inline void load(serialise::load_buffer &l, world<Chunk> &w) {
+    inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
         /**
          * Because we don't have a default constructor for the chunk, and the
          * internal bookkeeping that we need in the world is a bit complicated
          * we have to load in a different way as well.
          */
-        auto box = serialise::load_type<serialise::box>(l);
+        auto box = serialise::load_type<serialise::box>(lb);
         box.check_name_or_throw("_p:m:world");
-        auto const items = serialise::load_type<std::size_t>(l);
+        auto const items = serialise::load_type<std::size_t>(lb);
         for (std::size_t index{}; index < items; ++index) {
-            auto const pos = serialise::load_type<coordinates>(l);
+            auto const pos = serialise::load_type<coordinates>(lb);
             auto &chunk = w[pos];
             load(box.content, chunk);
         }
@@ -80,8 +80,8 @@ namespace planet::hexmap {
         return ab.save_box("_p:h:world", w.grid);
     }
     template<typename Chunk>
-    inline void load(serialise::load_buffer &s, world<Chunk> &w) {
-        return serialise::load_box(s, "_p:h:world", w.grid);
+    inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
+        return lb.load_box("_p:h:world", w.grid);
     }
 
 

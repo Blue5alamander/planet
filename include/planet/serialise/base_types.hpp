@@ -11,6 +11,14 @@
 namespace planet::serialise {
 
 
+    inline void load(load_buffer &l, box &b) {
+        b.name = load_type<std::string_view>(l);
+        [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
+        auto const bytes = load_type<std::size_t>(l);
+        b.content = load_buffer{l.split(bytes)};
+    }
+
+
     template<felspar::parse::concepts::integral T>
     inline save_buffer &save(save_buffer &ab, T const t) {
         ab.append(t);

@@ -10,7 +10,9 @@
 namespace planet::serialise {
 
 
+    struct box;
     class load_buffer;
+    class save_buffer;
 
 
     template<felspar::parse::concepts::integral T>
@@ -20,9 +22,6 @@ namespace planet::serialise {
 
     template<typename S>
     S load_type(load_buffer &);
-
-
-    class save_buffer;
 
 
 }
