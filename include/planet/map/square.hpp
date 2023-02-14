@@ -45,7 +45,7 @@ namespace planet::map {
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, chunk<C, X, Y> const &);
         template<typename C, std::size_t X, std::size_t Y>
-        friend void load(std::span<std::byte const> &, chunk<C, X, Y> &);
+        friend void load(serialise::load_buffer &, chunk<C, X, Y> &);
     };
 
 
@@ -101,13 +101,13 @@ namespace planet::map {
         /// ### Serialisation
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, coordinates);
-        friend void load(std::span<std::byte const> &, coordinates &);
+        friend void load(serialise::load_buffer &, coordinates &);
 
       private:
         value_type x = {}, y = {};
     };
     serialise::save_buffer &save(serialise::save_buffer &, coordinates);
-    void load(std::span<std::byte const> &, coordinates &);
+    void load(serialise::load_buffer &, coordinates &);
 
 
     /// ## The world map
@@ -200,7 +200,7 @@ namespace planet::map {
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, world<C> const &);
         template<typename C>
-        friend void load(std::span<std::byte const> &, world<C> &);
+        friend void load(serialise::load_buffer &, world<C> &);
 
       private:
         init_function_type init;

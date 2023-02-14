@@ -17,8 +17,8 @@ namespace planet::serialise {
         return ab;
     }
     template<felspar::parse::concepts::integral T>
-    inline void load(std::span<std::byte const> &l, T &s) {
-        s = felspar::parse::binary::extract<T>(l);
+    inline void load(load_buffer &l, T &s) {
+        s = l.extract<T>();
     }
 
 
@@ -26,10 +26,9 @@ namespace planet::serialise {
         ab.append(sv);
         return ab;
     }
-    inline void load(std::span<std::byte const> &l, std::string_view &sv) {
+    inline void load(load_buffer &l, std::string_view &sv) {
         auto bytes = load_type<std::size_t>(l);
-        sv = {reinterpret_cast<char const *>(l.data()), bytes};
-        l = l.subspan(bytes);
+        sv = {reinterpret_cast<char const *>(l.split(bytes).data()), bytes};
     }
 
 
@@ -42,7 +41,7 @@ namespace planet::serialise {
         }
     }
     template<typename P>
-    inline void load(std::span<std::byte const> &l, std::unique_ptr<P> &p) {
+    inline void load(load_buffer &l, std::unique_ptr<P> &p) {
         auto b = load_type<box>(l);
         if (b.name == "_s:uqp:v") {
             p = std::make_unique<P>(load_type<P>(b.content));
@@ -61,7 +60,7 @@ namespace planet::serialise {
         return ab;
     }
     template<typename F, typename S>
-    inline void load(std::span<std::byte const> &l, std::pair<F, S> &p) {
+    inline void load(load_buffer &l, std::pair<F, S> &p) {
         load(l, p.first);
         load(l, p.second);
     }
@@ -84,7 +83,7 @@ namespace planet::serialise {
         return save(ab, std::span<T const>{v.data(), v.size()});
     }
     template<typename T>
-    inline void load(std::span<std::byte const> &l, std::vector<T> &v) {
+    inline void load(load_buffer &l, std::vector<T> &v) {
         auto const items = load_type<std::size_t>(l);
         v = std::vector<T>(items);
         for (auto &item : v) { load(l, item); }

@@ -10,9 +10,31 @@
 namespace planet::serialise {
 
 
+    class load_buffer {
+        std::span<std::byte const> buffer;
+
+      public:
+        load_buffer() {}
+        explicit load_buffer(std::span<std::byte const> b) : buffer{b} {}
+
+        bool empty() const noexcept { return buffer.empty(); }
+
+        auto split(std::size_t const bytecount) {
+            auto const r = buffer.first(bytecount);
+            buffer = buffer.subspan(bytecount);
+            return r;
+        }
+
+        template<typename T>
+        T extract() {
+            return felspar::parse::binary::extract<T>(buffer);
+        }
+    };
+
+
     struct box {
         std::string_view name;
-        std::span<std::byte const> content;
+        load_buffer content;
 
         void check_name_or_throw(std::string_view expected) const {
             if (name != expected) {
@@ -26,21 +48,17 @@ namespace planet::serialise {
             }
         }
 
-        friend void load(std::span<std::byte const> &l, box &b) {
+        friend void load(load_buffer &l, box &b) {
             b.name = load_type<std::string_view>(l);
             [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
             auto const bytes = load_type<std::size_t>(l);
-            b.content = {l.data(), bytes};
-            l = l.subspan(bytes);
+            b.content = load_buffer{l.split(bytes)};
         }
     };
 
 
     template<typename... Args>
-    inline void load_box(
-            std::span<std::byte const> &l,
-            std::string_view name,
-            Args &...args) {
+    inline void load_box(load_buffer &l, std::string_view name, Args &...args) {
         auto b = load_type<box>(l);
         b.check_name_or_throw(name);
         (load(b.content, args), ...);
@@ -49,14 +67,14 @@ namespace planet::serialise {
 
 
     template<typename S>
-    inline S load_type(std::span<std::byte const> &v) {
+    inline S load_type(load_buffer &v) {
         S s;
         load(v, s);
         return s;
     }
     template<typename S>
     inline S load_type(felspar::memory::shared_byte_view v) {
-        auto b = v.cmemory();
+        auto b = load_buffer{v.cmemory()};
         auto s{load_type<S>(b)};
         if (not b.empty()) {
             throw felspar::stdexcept::runtime_error{
