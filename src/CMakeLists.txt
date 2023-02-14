@@ -6,13 +6,13 @@ add_library(planet
         gravity.ui.cpp
         hex.map.cpp
         image.drawing.cpp
+        map.cpp
         mixer.audio.cpp
         mouse.events.cpp
         oscillator.audio.cpp
         panel.ui.cpp
         serialise.cpp
         scale.ui.cpp
-        square.map.cpp
         stdin.cpp
     )
 target_include_directories(planet PUBLIC ../include/)

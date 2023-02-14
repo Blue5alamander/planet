@@ -153,8 +153,10 @@ namespace planet::hexmap {
         /// ### Serialise
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, coordinates);
+        friend void load(std::span<std::byte const> &, coordinates &);
     };
     serialise::save_buffer &save(serialise::save_buffer &, coordinates);
+    void load(std::span<std::byte const> &, coordinates &);
 
 
     inline std::string to_string(coordinates p) {
@@ -201,6 +203,8 @@ namespace planet::hexmap {
         template<typename C>
         friend serialise::save_buffer &
                 save(serialise::save_buffer &, world<C> const &);
+        template<typename C>
+        friend void load(std::span<std::byte const> &, world<C> &);
     };
 
 

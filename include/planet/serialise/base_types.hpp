@@ -41,6 +41,17 @@ namespace planet::serialise {
             return ab.save_box("_s:uqp:e");
         }
     }
+    template<typename P>
+    inline void load(std::span<std::byte const> &l, std::unique_ptr<P> &p) {
+        auto b = load_type<box>(l);
+        if (b.name == "_s:uqp:v") {
+            p = std::make_unique<P>(load_type<P>(b.content));
+        } else if (b.name == "_s:uqp:e") {
+            p.reset();
+        } else {
+            throw felspar::stdexcept::runtime_error{"Unexpected box name"};
+        }
+    }
 
 
     template<typename F, typename S>
@@ -48,6 +59,11 @@ namespace planet::serialise {
         save(ab, p.first);
         save(ab, p.second);
         return ab;
+    }
+    template<typename F, typename S>
+    inline void load(std::span<std::byte const> &l, std::pair<F, S> &p) {
+        load(l, p.first);
+        load(l, p.second);
     }
 
 
@@ -66,6 +82,12 @@ namespace planet::serialise {
     template<typename T>
     inline save_buffer &save(save_buffer &ab, std::vector<T> const &v) {
         return save(ab, std::span<T const>{v.data(), v.size()});
+    }
+    template<typename T>
+    inline void load(std::span<std::byte const> &l, std::vector<T> &v) {
+        auto const items = load_type<std::size_t>(l);
+        v = std::vector<T>(items);
+        for (auto &item : v) { load(l, item); }
     }
 
 
