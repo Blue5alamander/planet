@@ -14,9 +14,19 @@
 #include <vector>
 
 
+namespace planet::hexmap {
+    class coordinates;
+}
+
+
 namespace planet::map {
 
 
+    /// ### Chunk
+    /**
+     * The map is split up into rectangular chunks. The `Cell` type is what is
+     * stored at each location on the map.
+     */
     template<typename Cell, std::size_t DimX, std::size_t DimY = DimX>
     class chunk {
         std::array<Cell, DimX * DimY> storage;
@@ -56,6 +66,8 @@ namespace planet::map {
      * y-axis is bottom to top -- increases up
      */
     class coordinates {
+        friend class hexmap::coordinates;
+
       public:
         using value_type = std::int32_t;
 
