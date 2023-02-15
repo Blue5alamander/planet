@@ -20,14 +20,13 @@ namespace planet::serialise {
 
         bool empty() const noexcept { return buffer.empty(); }
 
-        auto next_marker() { return marker{extract<std::uint8_t>()}; }
-
         auto split(std::size_t const bytecount) {
             auto const r = buffer.first(bytecount);
             buffer = buffer.subspan(bytecount);
             return r;
         }
 
+        auto extract_marker() { return marker{extract<std::uint8_t>()}; }
         std::size_t extract_size_t();
         template<felspar::parse::concepts::integral T>
         T extract() {
@@ -62,7 +61,7 @@ namespace planet::serialise {
     }
 
     inline void load(load_buffer &l, box &b) {
-        auto const mark = l.next_marker();
+        auto const mark = l.extract_marker();
         if (not is_box_marker(mark)) {
             throw felspar::stdexcept::runtime_error{"Wasn't a box marker"};
         } else {
@@ -70,7 +69,7 @@ namespace planet::serialise {
             b.name = {
                     reinterpret_cast<char const *>(name_bytes.data()),
                     name_bytes.size()};
-            [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
+            [[maybe_unused]] auto const version = l.extract<std::uint8_t>();
             auto const bytes = l.extract_size_t();
             b.content = load_buffer{l.split(bytes)};
         }

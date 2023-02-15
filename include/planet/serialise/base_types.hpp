@@ -13,12 +13,23 @@ namespace planet::serialise {
 
     template<felspar::parse::concepts::integral T>
     inline save_buffer &save(save_buffer &ab, T const t) {
+        ab.append(static_cast<std::uint8_t>(marker_for<T>()));
         ab.append(t);
         return ab;
     }
     template<felspar::parse::concepts::integral T>
     inline void load(load_buffer &l, T &s) {
-        s = l.extract<T>();
+        auto const m = l.extract_marker();
+        if (m != marker_for<T>()) {
+            throw felspar::stdexcept::runtime_error{
+                    std::string{"The wrong type marker is in the save file. "
+                                "Expected "}
+                    + std::string{to_string(marker_for<T>())} + " and got "
+                    + std::string{to_string(m)} + " ("
+                    + std::to_string(static_cast<std::uint8_t>(m)) + ")"};
+        } else {
+            s = l.extract<T>();
+        }
     }
 
 
