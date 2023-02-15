@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <planet/serialise/marker.hpp>
+
 #include <felspar/exceptions.hpp>
 
 
@@ -31,6 +33,24 @@ namespace planet::serialise {
     class box_not_empty : public serialisation_error {
       public:
         box_not_empty(
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
+
+
+    /// ### Marker errors
+    class wanted_boolean : public serialisation_error {
+      public:
+        wanted_boolean(
+                marker got,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
+    class wrong_marker : public serialisation_error {
+      public:
+        wrong_marker(
+                marker exected,
+                marker got,
                 felspar::source_location const & =
                         felspar::source_location::current());
     };

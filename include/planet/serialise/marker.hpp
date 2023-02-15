@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <felspar/parse/concepts.hpp>
+
 #include <string_view>
 
 

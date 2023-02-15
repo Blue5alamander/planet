@@ -137,3 +137,25 @@ planet::serialise::box_not_empty::box_not_empty(
         felspar::source_location const &loc)
 : serialisation_error{
         "The box was not empty after loading all data from it", loc} {}
+
+
+planet::serialise::wanted_boolean::wanted_boolean(
+        marker const m, felspar::source_location const &loc)
+: serialisation_error{
+        std::string{"Expected b_true or b_false for a boolean, but "
+                    "got "}
+                + std::string{to_string(m)},
+        loc} {}
+
+
+planet::serialise::wrong_marker::wrong_marker(
+        marker const expected,
+        marker const got,
+        felspar::source_location const &loc)
+: serialisation_error{
+        std::string{"The wrong type marker is in the save file. "
+                    "Expected "}
+                + std::string{to_string(expected)} + " and got "
+                + std::string{to_string(got)} + " ("
+                + std::to_string(static_cast<std::uint8_t>(got)) + ")",
+        loc} {}

@@ -23,10 +23,7 @@ namespace planet::serialise {
         } else if (m == marker::b_false) {
             b = false;
         } else {
-            throw felspar::stdexcept::runtime_error{
-                    std::string{"Expected b_true or b_false for a boolean, but "
-                                "got "}
-                    + std::string{to_string(m)}};
+            throw wanted_boolean(m);
         }
     }
 
@@ -40,13 +37,8 @@ namespace planet::serialise {
     template<felspar::parse::concepts::integral T>
     inline void load(load_buffer &l, T &s) {
         auto const m = l.extract_marker();
-        if (m != marker_for<T>()) {
-            throw felspar::stdexcept::runtime_error{
-                    std::string{"The wrong type marker is in the save file. "
-                                "Expected "}
-                    + std::string{to_string(marker_for<T>())} + " and got "
-                    + std::string{to_string(m)} + " ("
-                    + std::to_string(static_cast<std::uint8_t>(m)) + ")"};
+        if (auto const want = marker_for<T>(); m != want) {
+            throw wrong_marker(want, m);
         } else {
             s = l.extract<T>();
         }
