@@ -28,6 +28,7 @@ namespace planet::serialise {
             return r;
         }
 
+        std::size_t extract_size_t();
         template<felspar::parse::concepts::integral T>
         T extract() {
             return felspar::parse::binary::extract<T>(buffer);
@@ -70,7 +71,7 @@ namespace planet::serialise {
                     reinterpret_cast<char const *>(name_bytes.data()),
                     name_bytes.size()};
             [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
-            auto const bytes = load_type<std::size_t>(l);
+            auto const bytes = l.extract_size_t();
             b.content = load_buffer{l.split(bytes)};
         }
     }

@@ -31,7 +31,7 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 't';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'y';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 0u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 0u;
         check(span.empty()) == true;
     });
 
@@ -62,7 +62,7 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 4u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 4u;
         check(felspar::parse::binary::extract<std::uint32_t>(span)) == 1234u;
         check(span.empty()) == true;
 
@@ -101,7 +101,7 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 15u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 15u;
         check(felspar::parse::binary::extract<bool>(span)) == true;
         check(felspar::parse::binary::extract<std::int32_t>(span))
                 == -0x12345678;
@@ -147,7 +147,7 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 50u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 50u;
         check(span.size()) == 50u;
 
         auto const nn = planet::serialise::load_type<nested>(bytes);

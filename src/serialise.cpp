@@ -24,6 +24,24 @@ void planet::serialise::box::check_empty_or_throw(
 }
 
 
+/// ## `planet::serialise::load_buffer`
+
+
+std::size_t planet::serialise::load_buffer::extract_size_t() {
+    auto const bytes = extract<std::uint64_t>();
+    if constexpr (sizeof(std::size_t) < sizeof(std::uint64_t)) {
+        if (not std::in_range<std::size_t>(bytes)) {
+            throw felspar::stdexcept::runtime_error{
+                    "This save file is too large to load on this machine"};
+        } else {
+            return std::size_t(bytes);
+        }
+    } else {
+        return bytes;
+    }
+}
+
+
 /// ## `planet::serialise::save_buffer`
 
 
@@ -52,6 +70,9 @@ felspar::memory::shared_bytes planet::serialise::save_buffer::complete() {
 }
 
 
+void planet::serialise::save_buffer::append_size_t(std::size_t const ss) {
+    append(std::uint64_t{ss});
+}
 void planet::serialise::save_buffer::append(std::span<std::byte const> sv) {
     auto const s = allocate(sv.size());
     std::memcpy(s.data(), sv.data(), sv.size());

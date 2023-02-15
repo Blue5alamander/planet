@@ -30,15 +30,17 @@ namespace planet::serialise {
             append(static_cast<std::uint8_t>(name.size()));
             append(std::as_bytes(std::span{name.data(), name.size()}));
             append(std::uint8_t(1));
-            auto const size_offset = allocate_offset(sizeof(std::size_t));
+            auto const size_offset = allocate_offset(sizeof(std::uint64_t));
             (save(*this, std::forward<Args>(args)), ...);
+            auto const length = written - size_offset - sizeof(std::uint64_t);
             felspar::parse::binary::unchecked_insert(
-                    std::span<std::byte, sizeof(std::size_t)>{
-                            buffer.data() + size_offset, sizeof(std::size_t)},
-                    written - size_offset - sizeof(std::size_t));
+                    std::span<std::byte, sizeof(std::uint64_t)>{
+                            buffer.data() + size_offset, sizeof(std::uint64_t)},
+                    std::uint64_t(length));
             return *this;
         }
 
+        void append_size_t(std::size_t);
         void append(std::string_view);
         void append(std::span<std::byte const>);
         void append(felspar::parse::concepts::integral auto v) {
