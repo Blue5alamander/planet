@@ -17,6 +17,16 @@ namespace planet::serialise {
     };
 
 
+    /// ### Box name too long
+    class box_name_length : public serialisation_error {
+      public:
+        box_name_length(
+                std::string_view name,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
+
+
     /// ### A box still has data after reading
     class box_not_empty : public serialisation_error {
       public:

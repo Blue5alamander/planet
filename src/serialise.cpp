@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <ostream>
+#include <string>
 
 
 /// ## `planet::serialise::box`
@@ -51,8 +52,7 @@ felspar::memory::shared_bytes planet::serialise::save_buffer::complete() {
 }
 
 
-void planet::serialise::save_buffer::append(std::string_view const sv) {
-    append(sv.size());
+void planet::serialise::save_buffer::append(std::span<std::byte const> sv) {
     auto const s = allocate(sv.size());
     std::memcpy(s.data(), sv.data(), sv.size());
 }
@@ -101,6 +101,14 @@ std::string_view planet::serialise::to_string(marker const m) {
 planet::serialise::serialisation_error::serialisation_error(
         std::string m, felspar::source_location const &loc)
 : felspar::stdexcept::runtime_error{std::move(m), loc} {}
+
+
+planet::serialise::box_name_length::box_name_length(
+        std::string_view box_name, felspar::source_location const &loc)
+: serialisation_error{
+        std::string{"The box name must be between 1 and 127 bytes long '"}
+                + std::string{box_name} + '\'',
+        loc} {}
 
 
 planet::serialise::box_not_empty::box_not_empty(

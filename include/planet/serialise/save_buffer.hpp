@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/exceptions.hpp>
 #include <planet/serialise/forward.hpp>
 #include <planet/serialise/marker.hpp>
 
@@ -23,7 +24,11 @@ namespace planet::serialise {
 
         template<typename... Args>
         save_buffer &save_box(std::string_view name, Args &&...args) {
-            append(name);
+            if (name.empty() or name.size() >= 0x80) {
+                throw box_name_length(std::string{name});
+            }
+            append(static_cast<std::uint8_t>(name.size()));
+            append(std::as_bytes(std::span{name.data(), name.size()}));
             append(std::uint8_t(1));
             auto const size_offset = allocate_offset(sizeof(std::size_t));
             (save(*this, std::forward<Args>(args)), ...);
@@ -35,6 +40,7 @@ namespace planet::serialise {
         }
 
         void append(std::string_view);
+        void append(std::span<std::byte const>);
         void append(felspar::parse::concepts::integral auto v) {
             felspar::parse::binary::unchecked_insert(allocate_for(v), v);
         }

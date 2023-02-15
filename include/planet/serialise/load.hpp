@@ -20,6 +20,8 @@ namespace planet::serialise {
 
         bool empty() const noexcept { return buffer.empty(); }
 
+        auto next_marker() { return marker{extract<std::uint8_t>()}; }
+
         auto split(std::size_t const bytecount) {
             auto const r = buffer.first(bytecount);
             buffer = buffer.subspan(bytecount);
@@ -56,6 +58,21 @@ namespace planet::serialise {
         b.check_name_or_throw(name);
         (load(b.content, args), ...);
         b.check_empty_or_throw();
+    }
+
+    inline void load(load_buffer &l, box &b) {
+        auto const mark = l.next_marker();
+        if (not is_box_marker(mark)) {
+            throw felspar::stdexcept::runtime_error{"Wasn't a box marker"};
+        } else {
+            auto const name_bytes = l.split(static_cast<std::uint8_t>(mark));
+            b.name = {
+                    reinterpret_cast<char const *>(name_bytes.data()),
+                    name_bytes.size()};
+            [[maybe_unused]] auto const version = load_type<std::uint8_t>(l);
+            auto const bytes = load_type<std::size_t>(l);
+            b.content = load_buffer{l.split(bytes)};
+        }
     }
 
 

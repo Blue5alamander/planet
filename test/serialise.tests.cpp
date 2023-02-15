@@ -21,10 +21,10 @@ namespace {
         planet::serialise::save_buffer ab;
         auto const bytes{ab.save_box("empty").complete()};
         felspar::memory::hexdump(log, bytes.memory());
-        check(bytes.size()) == 22u;
+        check(bytes.size()) == 15u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 5u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
@@ -52,10 +52,10 @@ namespace {
 
         auto bytes{save(ab, s).complete()};
         felspar::memory::hexdump(log, bytes.memory());
-        check(bytes.size()) == 26u;
+        check(bytes.size()) == 19u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 5u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
@@ -90,10 +90,10 @@ namespace {
 
         auto bytes{save(ab, l).complete()};
         felspar::memory::hexdump(log, bytes.memory());
-        check(bytes.size()) == 38u;
+        check(bytes.size()) == 31u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 6u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
@@ -136,10 +136,10 @@ namespace {
 
         auto bytes{save(ab, n).complete()};
         felspar::memory::hexdump(log, bytes.memory());
-        check(bytes.size()) == 87u;
+        check(bytes.size()) == 66u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 6u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
@@ -147,8 +147,8 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::size_t>(span)) == 64u;
-        check(span.size()) == 64u;
+        check(felspar::parse::binary::extract<std::size_t>(span)) == 50u;
+        check(span.size()) == 50u;
 
         auto const nn = planet::serialise::load_type<nested>(bytes);
         check(nn.s.field1) == 0x1234u;

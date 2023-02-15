@@ -74,4 +74,10 @@ namespace planet::serialise {
     }
 
 
+    constexpr bool is_box_marker(marker const m) {
+        auto const mm = static_cast<std::uint8_t>(m);
+        return mm > 1 and mm < 0x80;
+    }
+
+
 }
