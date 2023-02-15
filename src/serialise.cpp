@@ -101,7 +101,8 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::i64: return "i64";
         case marker::u128: return "u128";
         case marker::i128: return "i128";
-        case marker::size_t: return "size_t";
+        case marker::b_false: return "b_false";
+        case marker::b_true: return "b_true";
 
         case marker::f16: return "f16";
         case marker::f32: return "f32";

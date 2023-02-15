@@ -26,7 +26,8 @@ namespace planet::serialise {
         i64,
         u128,
         i128,
-        size_t,
+        b_true,
+        b_false,
 
         f16 = 0x91,
         f32,

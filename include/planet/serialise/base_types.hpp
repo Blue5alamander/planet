@@ -11,6 +11,26 @@
 namespace planet::serialise {
 
 
+    inline save_buffer &save(save_buffer &ab, bool const b) {
+        ab.append(static_cast<std::uint8_t>(
+                b ? marker::b_true : marker::b_false));
+        return ab;
+    }
+    inline void load(load_buffer &l, bool &b) {
+        auto const m = l.extract_marker();
+        if (m == marker::b_true) {
+            b = true;
+        } else if (m == marker::b_false) {
+            b = false;
+        } else {
+            throw felspar::stdexcept::runtime_error{
+                    std::string{"Expected b_true or b_false for a boolean, but "
+                                "got "}
+                    + std::string{to_string(m)}};
+        }
+    }
+
+
     template<felspar::parse::concepts::integral T>
     inline save_buffer &save(save_buffer &ab, T const t) {
         ab.append(static_cast<std::uint8_t>(marker_for<T>()));
