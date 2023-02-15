@@ -2,6 +2,7 @@
 
 
 #include <planet/serialise/forward.hpp>
+#include <planet/serialise/marker.hpp>
 
 #include <felspar/memory/shared_vector.hpp>
 #include <felspar/parse/extract.hpp>
@@ -25,7 +26,7 @@ namespace planet::serialise {
             return r;
         }
 
-        template<typename T>
+        template<felspar::parse::concepts::integral T>
         T extract() {
             return felspar::parse::binary::extract<T>(buffer);
         }

@@ -58,6 +58,43 @@ void planet::serialise::save_buffer::append(std::string_view const sv) {
 }
 
 
+/// ## `planet::serialise::marker`
+
+
+std::string_view planet::serialise::to_string(marker const m) {
+    auto const v = static_cast<std::uint8_t>(m);
+    if (v > 0 and v < 0x80) {
+        return "box";
+    } else {
+        switch (m) {
+        case marker::empty: return "empty";
+        case marker::binary: return "binary";
+
+        case marker::u8: return "u8";
+        case marker::i8: return "i8";
+        case marker::u16: return "u16";
+        case marker::i16: return "i16";
+        case marker::u32: return "u32";
+        case marker::i32: return "i32";
+        case marker::u64: return "u64";
+        case marker::i64: return "i64";
+        case marker::u128: return "u128";
+        case marker::i128: return "i128";
+        case marker::size_t: return "size_t";
+
+        case marker::f16: return "f16";
+        case marker::f32: return "f32";
+        case marker::f64: return "f64";
+        case marker::f80: return "f80";
+        case marker::f128: return "f128";
+
+        case marker::string: return "string";
+        }
+    }
+    return "Unknown marker";
+}
+
+
 /// ## `planet::serialise::serialisation_error` and related sub-classes
 
 

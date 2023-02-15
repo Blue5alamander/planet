@@ -4,6 +4,13 @@
 #include <felspar/memory/hexdump.hpp>
 
 
+static_assert(
+        planet::serialise::marker_for<bool>() == planet::serialise::marker::u8);
+static_assert(
+        planet::serialise::marker_for<std::int8_t>()
+        == planet::serialise::marker::i8);
+
+
 namespace {
 
 
