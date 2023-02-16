@@ -11,10 +11,9 @@
 namespace planet::serialise {
 
 
-    inline save_buffer &save(save_buffer &ab, bool const b) {
+    inline void save(save_buffer &ab, bool const b) {
         ab.append(static_cast<std::uint8_t>(
                 b ? marker::b_true : marker::b_false));
-        return ab;
     }
     inline void load(load_buffer &l, bool &b) {
         auto const m = l.extract_marker();
@@ -29,10 +28,9 @@ namespace planet::serialise {
 
 
     template<felspar::parse::concepts::integral T>
-    inline save_buffer &save(save_buffer &ab, T const t) {
+    inline void save(save_buffer &ab, T const t) {
         ab.append(static_cast<std::uint8_t>(marker_for<T>()));
         ab.append(t);
-        return ab;
     }
     template<felspar::parse::concepts::integral T>
     inline void load(load_buffer &l, T &s) {
@@ -46,20 +44,19 @@ namespace planet::serialise {
 
 
     template<typename T, std::size_t N>
-    inline save_buffer &save(save_buffer &ab, std::span<T, N> const a) {
+    inline void save(save_buffer &ab, std::span<T, N> const a) {
         ab.append(a.size());
         for (auto &&item : a) { save(ab, item); }
-        return ab;
     }
 
     template<typename T, std::size_t N>
-    inline save_buffer &save(save_buffer &ab, std::array<T, N> const &a) {
-        return save(ab, std::span<T const, N>{a.data(), a.size()});
+    inline void save(save_buffer &ab, std::array<T, N> const &a) {
+        save(ab, std::span<T const, N>{a.data(), a.size()});
     }
 
     template<typename T>
-    inline save_buffer &save(save_buffer &ab, std::vector<T> const &v) {
-        return save(ab, std::span<T const>{v.data(), v.size()});
+    inline void save(save_buffer &ab, std::vector<T> const &v) {
+        save(ab, std::span<T const>{v.data(), v.size()});
     }
     template<typename T>
     inline void load(load_buffer &l, std::vector<T> &v) {

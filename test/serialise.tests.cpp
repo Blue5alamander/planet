@@ -39,6 +39,13 @@ namespace {
     struct small {
         std::uint32_t field1 = {};
     };
+    /**
+     * Although the `save` functions used by the serialisation generally return
+     * `void`, they can return anything you want. The tests return the
+     * `save_buffer` because it means that the tests can call `save` and then
+     * `complete()` the returned value. This just serves to make the test code a
+     * little shorter.
+     */
     planet::serialise::save_buffer &
             save(planet::serialise::save_buffer &ab, small const &s) {
         return ab.save_box("small", s.field1);

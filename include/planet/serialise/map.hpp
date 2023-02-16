@@ -12,20 +12,20 @@ namespace planet::map {
 
 
     template<typename Cell, std::size_t DimX, std::size_t DimY>
-    inline serialise::save_buffer &
+    inline void
             save(serialise::save_buffer &ab, chunk<Cell, DimX, DimY> const &c) {
-        return ab.save_box("_p:m:chunk", c.storage);
+        ab.save_box("_p:m:chunk", c.storage);
     }
     template<typename Cell, std::size_t DimX, std::size_t DimY>
     inline void load(serialise::load_buffer &lb, chunk<Cell, DimX, DimY> &c) {
-        return lb.load_box("_p:m:chunk", c.storage);
+        lb.load_box("_p:m:chunk", c.storage);
     }
 
     /// ### `planet::map::world`
 
 
     template<typename Chunk>
-    inline serialise::save_buffer &save(
+    inline void save(
             serialise::save_buffer &ab,
             std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> const
                     &v) {
@@ -39,12 +39,10 @@ namespace planet::map {
             save(ab, p.first);
             save(ab, *p.second);
         }
-        return ab;
     }
     template<typename Chunk>
-    inline serialise::save_buffer &
-            save(serialise::save_buffer &ab, world<Chunk> const &w) {
-        return ab.save_box("_p:m:world", w.storage);
+    inline void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+        ab.save_box("_p:m:world", w.storage);
     }
     template<typename Chunk>
     inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
@@ -75,13 +73,12 @@ namespace planet::hexmap {
 
 
     template<typename Chunk>
-    inline serialise::save_buffer &
-            save(serialise::save_buffer &ab, world<Chunk> const &w) {
-        return ab.save_box("_p:h:world", w.grid);
+    inline void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+        ab.save_box("_p:h:world", w.grid);
     }
     template<typename Chunk>
     inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
-        return lb.load_box("_p:h:world", w.grid);
+        lb.load_box("_p:h:world", w.grid);
     }
 
 

@@ -151,11 +151,10 @@ namespace planet::hexmap {
         }
 
         /// ### Serialise
-        friend serialise::save_buffer &
-                save(serialise::save_buffer &, coordinates);
+        friend void save(serialise::save_buffer &, coordinates);
         friend void load(serialise::load_buffer &, coordinates &);
     };
-    serialise::save_buffer &save(serialise::save_buffer &, coordinates);
+    void save(serialise::save_buffer &, coordinates);
     void load(serialise::load_buffer &, coordinates &);
 
 
@@ -201,8 +200,7 @@ namespace planet::hexmap {
 
         /// ### Serialise
         template<typename C>
-        friend serialise::save_buffer &
-                save(serialise::save_buffer &, world<C> const &);
+        friend void save(serialise::save_buffer &, world<C> const &);
         template<typename C>
         friend void load(serialise::load_buffer &, world<C> &);
     };
