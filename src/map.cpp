@@ -21,3 +21,6 @@ planet::serialise::save_buffer &
         planet::hexmap::save(serialise::save_buffer &ab, coordinates const c) {
     return ab.save_box("_p:h:coord", c.pos);
 }
+void planet::hexmap::load(serialise::load_buffer &lb, coordinates &c) {
+    lb.load_box("_p:h:coord", c.pos);
+}
