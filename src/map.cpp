@@ -17,8 +17,10 @@ void planet::map::load(serialise::load_buffer &lb, coordinates &c) {
 
 
 void planet::hexmap::save(serialise::save_buffer &ab, coordinates const c) {
-    ab.save_box("_p:h:coord", c.pos);
+    ab.save_box("_p:h:coord", c.column(), c.row());
 }
 void planet::hexmap::load(serialise::load_buffer &lb, coordinates &c) {
-    lb.load_box("_p:h:coord", c.pos);
+    coordinates::value_type col{}, row{};
+    lb.load_box("_p:h:coord", col, row);
+    c = {col, row};
 }
