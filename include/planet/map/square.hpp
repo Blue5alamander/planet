@@ -134,6 +134,15 @@ namespace planet::map {
         mutable std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>>
                 storage;
 
+        auto &chunk_at(coordinates const p) {
+            cell_at(p);
+            for (auto &cc : storage) {
+                if (cc.first == p) { return *cc.second; }
+            }
+            throw felspar::stdexcept::logic_error{
+                    "Looking for chunk didn't find coordinates"};
+        }
+
         auto *cell_at(coordinates const p) const {
             auto const rows_inserted = coordinates::insert_count(
                     bottom_edge, p.row(), chunk_type::height);
@@ -214,6 +223,9 @@ namespace planet::map {
       private:
         init_function_type init;
     };
+
+    template<typename C, std::size_t X, std::size_t Y = X>
+    using world_type = world<chunk<C, X, Y>>;
 
 
 }

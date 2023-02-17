@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/exceptions.hpp>
 #include <planet/serialise/forward.hpp>
 #include <planet/serialise/marker.hpp>
 
@@ -19,6 +20,7 @@ namespace planet::serialise {
         explicit load_buffer(std::span<std::byte const> b) : buffer{b} {}
 
         bool empty() const noexcept { return buffer.empty(); }
+        auto cmemory() const noexcept { return buffer; }
 
         auto split(std::size_t const bytecount) {
             auto const r = buffer.first(bytecount);
@@ -27,10 +29,18 @@ namespace planet::serialise {
         }
 
         auto extract_marker() { return marker{extract<std::uint8_t>()}; }
-        std::size_t extract_size_t();
+        std::size_t extract_size_t(
+                felspar::source_location const & =
+                        felspar::source_location::current());
         template<felspar::parse::concepts::integral T>
-        T extract() {
-            return felspar::parse::binary::extract<T>(buffer);
+        T
+                extract(felspar::source_location const &loc =
+                                felspar::source_location::current()) {
+            if (buffer.size() < sizeof(T)) {
+                throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
+            } else {
+                return felspar::parse::binary::extract<T>(buffer, loc);
+            }
         }
 
         template<typename... Args>
@@ -38,6 +48,16 @@ namespace planet::serialise {
     };
 
 
+    /**
+     * Loading an instance of a box from a `load_buffer` allows a loader to
+     * explicitly deal with various box loading needs. For example:
+     *
+     * 1. Manual loading of box content.
+     * 2. To skip a box.
+     *
+     * The `load_buffer` instance the box is loaded from will now point to after
+     * the box. To load from the content the `content` member should be used.
+     */
     struct box {
         std::string_view name;
         load_buffer content;
@@ -54,10 +74,15 @@ namespace planet::serialise {
 
     template<typename... Args>
     inline void load_buffer::load_box(std::string_view name, Args &...args) {
-        auto b = load_type<box>(*this);
-        b.check_name_or_throw(name);
-        (load(b.content, args), ...);
-        b.check_empty_or_throw();
+        try {
+            auto b = load_type<box>(*this);
+            b.check_name_or_throw(name);
+            (load(b.content, args), ...);
+            b.check_empty_or_throw();
+        } catch (serialisation_error &e) {
+            e.inside_box(name);
+            throw;
+        }
     }
 
     inline void load(load_buffer &l, box &b) {

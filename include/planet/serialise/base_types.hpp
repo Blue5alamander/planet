@@ -15,14 +15,14 @@ namespace planet::serialise {
         ab.append(static_cast<std::uint8_t>(
                 b ? marker::b_true : marker::b_false));
     }
-    inline void load(load_buffer &l, bool &b) {
-        auto const m = l.extract_marker();
+    inline void load(load_buffer &lb, bool &b) {
+        auto const m = lb.extract_marker();
         if (m == marker::b_true) {
             b = true;
         } else if (m == marker::b_false) {
             b = false;
         } else {
-            throw wanted_boolean(m);
+            throw wanted_boolean(lb.cmemory(), m);
         }
     }
 
@@ -33,36 +33,41 @@ namespace planet::serialise {
         ab.append(t);
     }
     template<felspar::parse::concepts::integral T>
-    inline void load(load_buffer &l, T &s) {
-        auto const m = l.extract_marker();
+    inline void load(load_buffer &lb, T &s) {
+        auto const m = lb.extract_marker();
         if (auto const want = marker_for<T>(); m != want) {
-            throw wrong_marker(want, m);
+            throw wrong_marker(lb.cmemory(), want, m);
         } else {
-            s = l.extract<T>();
+            s = lb.extract<T>();
         }
     }
 
 
     template<typename T, std::size_t N>
-    inline void save(save_buffer &ab, std::span<T, N> const a) {
-        ab.append(a.size());
+    inline void save(save_buffer &ab, std::array<T, N> const &a) {
+        ab.append_size_t(a.size());
         for (auto &&item : a) { save(ab, item); }
     }
-
     template<typename T, std::size_t N>
-    inline void save(save_buffer &ab, std::array<T, N> const &a) {
-        save(ab, std::span<T const, N>{a.data(), a.size()});
+    void load(load_buffer &lb, std::array<T, N> &a) {
+        auto const items = lb.extract_size_t();
+        if (items > N) {
+            throw felspar::stdexcept::runtime_error{"Too many items for array"};
+        }
+        for (auto &item : a) { load(lb, item); }
     }
+
 
     template<typename T>
     inline void save(save_buffer &ab, std::vector<T> const &v) {
-        save(ab, std::span<T const>{v.data(), v.size()});
+        ab.append_size_t(v.size());
+        for (auto &&item : v) { save(ab, item); }
     }
     template<typename T>
-    inline void load(load_buffer &l, std::vector<T> &v) {
-        auto const items = load_type<std::size_t>(l);
+    inline void load(load_buffer &lb, std::vector<T> &v) {
+        auto const items = lb.extract_size_t();
         v = std::vector<T>(items);
-        for (auto &item : v) { load(l, item); }
+        for (auto &item : v) { load(lb, item); }
     }
 
 

@@ -34,7 +34,7 @@ namespace planet::map {
          * harder for the specialised loader we need to load the items back in.
          * So just keep things simple.
          */
-        ab.append(v.size());
+        ab.append_size_t(v.size());
         for (auto const &p : v) {
             save(ab, p.first);
             save(ab, *p.second);
@@ -49,14 +49,19 @@ namespace planet::map {
         /**
          * Because we don't have a default constructor for the chunk, and the
          * internal bookkeeping that we need in the world is a bit complicated
-         * we have to load in a different way as well.
+         * we have to load in a different way.
+         *
+         * The save file contains the position of the corner of each chunk, so
+         * we can iterate through these and fetch the chunks at those positions
+         * to load in -- this will overwrite the saved fields in the chunk's
+         * data type and leave the others as if it was a fresh world.
          */
         auto box = serialise::load_type<serialise::box>(lb);
         box.check_name_or_throw("_p:m:world");
-        auto const items = serialise::load_type<std::size_t>(lb);
+        auto const items = box.content.extract_size_t();
         for (std::size_t index{}; index < items; ++index) {
-            auto const pos = serialise::load_type<coordinates>(lb);
-            auto &chunk = w[pos];
+            auto const pos = serialise::load_type<coordinates>(box.content);
+            Chunk &chunk = w.chunk_at(pos);
             load(box.content, chunk);
         }
         box.check_empty_or_throw();
