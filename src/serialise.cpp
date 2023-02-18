@@ -5,8 +5,10 @@
 #include <felspar/memory/hexdump.hpp>
 
 #include <cstring>
+#include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 
 
 /// ## `planet::serialise::box`
@@ -29,11 +31,66 @@ void planet::serialise::box::check_empty_or_throw(
 /// ## `planet::serialise::load_buffer`
 
 
+namespace {
+    /// `std::in_range` and save comparisons are not available in the Android
+    /// compiler :-(
+    template<class T, class U>
+    constexpr bool cmp_equal(T t, U u) noexcept {
+        using UT = std::make_unsigned_t<T>;
+        using UU = std::make_unsigned_t<U>;
+        if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+            return t == u;
+        } else if constexpr (std::is_signed_v<T>) {
+            return t < 0 ? false : UT(t) == u;
+        } else {
+            return u < 0 ? false : t == UU(u);
+        }
+    }
+
+    template<class T, class U>
+    constexpr bool cmp_not_equal(T t, U u) noexcept {
+        return not cmp_equal(t, u);
+    }
+
+    template<class T, class U>
+    constexpr bool cmp_less(T t, U u) noexcept {
+        using UT = std::make_unsigned_t<T>;
+        using UU = std::make_unsigned_t<U>;
+        if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+            return t < u;
+        } else if constexpr (std::is_signed_v<T>) {
+            return t < 0 ? true : UT(t) < u;
+        } else {
+            return u < 0 ? false : t < UU(u);
+        }
+    }
+
+    template<class T, class U>
+    constexpr bool cmp_greater(T t, U u) noexcept {
+        return cmp_less(u, t);
+    }
+
+    template<class T, class U>
+    constexpr bool cmp_less_equal(T t, U u) noexcept {
+        return not cmp_greater(t, u);
+    }
+
+    template<class T, class U>
+    constexpr bool cmp_greater_equal(T t, U u) noexcept {
+        return not cmp_less(t, u);
+    }
+
+    template<class R, class T>
+    constexpr bool in_range(T t) noexcept {
+        return cmp_greater_equal(t, std::numeric_limits<R>::min())
+                and cmp_less_equal(t, std::numeric_limits<R>::max());
+    }
+}
 std::size_t planet::serialise::load_buffer::extract_size_t(
         felspar::source_location const &loc) {
     auto const bytes = extract<std::uint64_t>(loc);
     if constexpr (sizeof(std::size_t) < sizeof(std::uint64_t)) {
-        if (not std::in_range<std::size_t>(bytes)) {
+        if (not in_range<std::size_t>(bytes)) {
             throw felspar::stdexcept::runtime_error{
                     "This save file is too large to load on this machine", loc};
         } else {
