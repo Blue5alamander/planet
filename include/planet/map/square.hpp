@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/forward.hpp>
 #include <planet/to_string.hpp>
 
 #include <felspar/coro/generator.hpp>
@@ -13,9 +14,19 @@
 #include <vector>
 
 
+namespace planet::hexmap {
+    class coordinates;
+}
+
+
 namespace planet::map {
 
 
+    /// ### Chunk
+    /**
+     * The map is split up into rectangular chunks. The `Cell` type is what is
+     * stored at each location on the map.
+     */
     template<typename Cell, std::size_t DimX, std::size_t DimY = DimX>
     class chunk {
         std::array<Cell, DimX * DimY> storage;
@@ -25,7 +36,7 @@ namespace planet::map {
         static constexpr std::size_t width = DimX, height = DimY;
 
         template<typename Init>
-        constexpr chunk(Init cell) {
+        explicit constexpr chunk(Init cell) {
             for (std::size_t x{}; x < width; ++x) {
                 for (std::size_t y{}; y < height; ++y) {
                     (*this)[{x, y}] = cell(x, y);
@@ -33,11 +44,17 @@ namespace planet::map {
             }
         }
 
-        /// Access into the cells within the chunk
+        /// ### Access into the cells within the chunk
         constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
             return storage.at(p.first * height + p.second);
         }
         std::span<Cell, DimX * DimY> cells() { return storage; }
+
+        /// ### Serialise
+        template<typename C, std::size_t X, std::size_t Y>
+        friend void save(serialise::save_buffer &, chunk<C, X, Y> const &);
+        template<typename C, std::size_t X, std::size_t Y>
+        friend void load(serialise::load_buffer &, chunk<C, X, Y> &);
     };
 
 
@@ -48,11 +65,14 @@ namespace planet::map {
      * y-axis is bottom to top -- increases up
      */
     class coordinates {
-        long x = {}, y = {};
+        friend class hexmap::coordinates;
 
       public:
+        using value_type = std::int32_t;
+
         constexpr coordinates() noexcept {}
-        constexpr coordinates(long x, long y) noexcept : x{x}, y{y} {}
+        constexpr coordinates(value_type x, value_type y) noexcept
+        : x{x}, y{y} {}
 
         constexpr auto row() const noexcept { return y; }
         constexpr auto column() const noexcept { return x; }
@@ -64,11 +84,11 @@ namespace planet::map {
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
         /// The square of the magnitude of the location from the origin
-        long mag2() const noexcept { return x * x + y * y; }
+        value_type mag2() const noexcept { return x * x + y * y; }
 
         static constexpr std::size_t insert_count(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             if (position < lowest) {
                 return (lowest - position) / width + 1;
@@ -77,33 +97,51 @@ namespace planet::map {
             }
         }
         static constexpr std::size_t chunk_number(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             return (position - lowest) / width;
         }
         static constexpr std::size_t inside_chunk(
-                long const lowest,
-                long const position,
+                value_type const lowest,
+                value_type const position,
                 std::size_t const width) noexcept {
             return (position - lowest) % width;
         }
+
+        /// ### Serialisation
+        friend void save(serialise::save_buffer &, coordinates);
+        friend void load(serialise::load_buffer &, coordinates &);
+
+      private:
+        value_type x = {}, y = {};
     };
+    void save(serialise::save_buffer &, coordinates);
+    void load(serialise::load_buffer &, coordinates &);
 
 
     /// ## The world map
     template<typename Chunk>
     class world {
         struct row {
-            long left_edge = {};
+            coordinates::value_type left_edge = {};
             std::vector<Chunk *> chunks = {};
         };
 
-        mutable long bottom_edge = {};
+        mutable coordinates::value_type bottom_edge = {};
         mutable std::vector<row> rows;
 
         mutable std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>>
                 storage;
+
+        auto &chunk_at(coordinates const p) {
+            cell_at(p);
+            for (auto &cc : storage) {
+                if (cc.first == p) { return *cc.second; }
+            }
+            throw felspar::stdexcept::logic_error{
+                    "Looking for chunk didn't find coordinates"};
+        }
 
         auto *cell_at(coordinates const p) const {
             auto const rows_inserted = coordinates::insert_count(
@@ -135,16 +173,19 @@ namespace planet::map {
                 auto const offy = row_number * chunk_type::height;
                 storage.emplace_back(std::pair{
                         coordinates{
-                                row.left_edge + long(offx),
-                                bottom_edge + long(offy)},
-                        std::make_unique<chunk_type>(
-                                [=, this](auto const x, auto const y) {
-                                    auto const relx = offx + x;
-                                    auto const rely = offy + y;
-                                    return init(
-                                            {row.left_edge + long(relx),
-                                             bottom_edge + long(rely)});
-                                })});
+                                row.left_edge + coordinates::value_type(offx),
+                                bottom_edge + coordinates::value_type(offy)},
+                        std::make_unique<chunk_type>([=,
+                                                      this](auto const x,
+                                                            auto const y) {
+                            auto const relx = offx + x;
+                            auto const rely = offy + y;
+                            return init(
+                                    {row.left_edge
+                                             + coordinates::value_type(relx),
+                                     bottom_edge
+                                             + coordinates::value_type(rely)});
+                        })});
                 chunk = storage.back().second.get();
             }
 
@@ -173,9 +214,18 @@ namespace planet::map {
             return *cell_at(p);
         }
 
+        /// ### Serialise
+        template<typename C>
+        friend void save(serialise::save_buffer &, world<C> const &);
+        template<typename C>
+        friend void load(serialise::load_buffer &, world<C> &);
+
       private:
         init_function_type init;
     };
+
+    template<typename C, std::size_t X, std::size_t Y = X>
+    using world_type = world<chunk<C, X, Y>>;
 
 
 }

@@ -71,8 +71,10 @@ namespace planet::hexmap {
         constexpr coordinates(map::coordinates p) : pos{p} {}
 
       public:
+        using value_type = map::coordinates::value_type;
+
         constexpr coordinates() noexcept {}
-        constexpr coordinates(long x, long y) noexcept
+        constexpr coordinates(value_type x, value_type y) noexcept
         : pos{x, (y < 0 ? y - 1 : y) / 2} {}
         /// Create a hex co-ordinate from the compressed co-ordinates
         static constexpr coordinates from_compressed(map::coordinates const p) {
@@ -84,10 +86,10 @@ namespace planet::hexmap {
         /// Return the compressed co-ordinates
         constexpr map::coordinates compressed() const noexcept { return pos; }
 
-        constexpr long row() const noexcept {
+        constexpr value_type row() const noexcept {
             return (pos.row() * 2) + (pos.column() bitand 1);
         }
-        constexpr long column() const noexcept { return pos.column(); }
+        constexpr value_type column() const noexcept { return pos.column(); }
 
         /// Return the centre position of the hex
         constexpr affine::point2d centre(float const r = 1.0f) const noexcept {
@@ -108,11 +110,13 @@ namespace planet::hexmap {
             auto const y = p.y();
             return x * x + y * y;
         }
-        /// Return the 6 vertices for the hex, starting at the top going
-        /// clockwise. The parameter `r` is used for the hex spacing, and `ir`
-        /// is used as the radius for the vertices. If these values are
-        /// different then the vertices will be either inside or outside of the
-        /// vertex locations for a true tessellation.
+        /**
+         * Return the 6 vertices for the hex, starting at the top going
+         * clockwise. The parameter `r` is used for the hex spacing, and `ir` is
+         * used as the radius for the vertices. If these values are different
+         * then the vertices will be either inside or outside of the vertex
+         * locations for a true tessellation.
+         */
         constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
             return hexmap::vertices(centre(r), ir);
@@ -127,7 +131,7 @@ namespace planet::hexmap {
         constexpr coordinates operator-(coordinates const r) const noexcept {
             return {column() - r.column(), row() - r.row()};
         }
-        constexpr coordinates operator*(long const s) const noexcept {
+        constexpr coordinates operator*(value_type const s) const noexcept {
             return {column() * s, row() * s};
         }
 
@@ -145,11 +149,19 @@ namespace planet::hexmap {
                 }
             }
         }
+
+        /// ### Serialise
+        friend void save(serialise::save_buffer &, coordinates);
+        friend void load(serialise::load_buffer &, coordinates &);
     };
+    void save(serialise::save_buffer &, coordinates);
+    void load(serialise::load_buffer &, coordinates &);
+
 
     inline std::string to_string(coordinates p) {
         return planet::to_string(std::pair{p.column(), p.row()});
     }
+
 
     constexpr coordinates east{2, 0}, north_east{1, 1}, north_west{-1, 1},
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
@@ -157,6 +169,7 @@ namespace planet::hexmap {
             east, north_east, north_west, west, south_west, south_east};
 
 
+    /// ## Hex world
     template<typename Chunk>
     class world {
         static_assert(
@@ -184,6 +197,12 @@ namespace planet::hexmap {
         cell_type const &operator[](coordinates p) const {
             return grid[p.compressed()];
         }
+
+        /// ### Serialise
+        template<typename C>
+        friend void save(serialise::save_buffer &, world<C> const &);
+        template<typename C>
+        friend void load(serialise::load_buffer &, world<C> &);
     };
 
 

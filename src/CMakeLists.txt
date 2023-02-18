@@ -6,12 +6,14 @@ add_library(planet
         gravity.ui.cpp
         hex.map.cpp
         image.drawing.cpp
+        map.cpp
         mixer.audio.cpp
         mouse.events.cpp
         oscillator.audio.cpp
         panel.ui.cpp
+        serialise.cpp
         scale.ui.cpp
         stdin.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
-target_link_libraries(planet felspar-io)
+target_link_libraries(planet felspar-io felspar-parse)

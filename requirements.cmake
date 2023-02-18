@@ -55,3 +55,15 @@ if(NOT felspar-memory_POPULATED)
     FetchContent_Populate(felspar-memory)
     add_subdirectory(${felspar-memory_SOURCE_DIR} ${felspar-memory_BINARY_DIR})
 endif()
+
+FetchContent_Declare(
+        felspar-parse
+        GIT_REPOSITORY https://github.com/Felspar/parse.git
+        GIT_TAG main
+    )
+FetchContent_GetProperties(felspar-parse)
+if(NOT felspar-parse_POPULATED)
+    FetchContent_Populate(felspar-parse)
+    add_subdirectory(${felspar-parse_SOURCE_DIR} ${felspar-parse_BINARY_DIR})
+endif()
+

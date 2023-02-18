@@ -1,0 +1,296 @@
+#include <planet/serialise.hpp>
+#include <felspar/test.hpp>
+
+#include <felspar/memory/hexdump.hpp>
+
+
+static_assert(
+        planet::serialise::marker_for<bool>() == planet::serialise::marker::u8);
+static_assert(
+        planet::serialise::marker_for<std::int8_t>()
+        == planet::serialise::marker::i8);
+
+
+namespace {
+
+
+    auto const suite = felspar::testsuite("serialize");
+
+
+    auto const e = suite.test("empty", [](auto check, auto &log) {
+        planet::serialise::save_buffer ab;
+        auto const bytes{ab.save_box("empty").complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        check(bytes.size()) == 15u;
+
+        auto span = bytes.cmemory();
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 't';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'y';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 0u;
+        check(span.empty()) == true;
+    });
+
+
+    struct small {
+        std::uint32_t field1 = {};
+    };
+    /**
+     * Although the `save` functions used by the serialisation generally return
+     * `void`, they can return anything you want. The tests return the
+     * `save_buffer` because it means that the tests can call `save` and then
+     * `complete()` the returned value. This just serves to make the test code a
+     * little shorter.
+     */
+    planet::serialise::save_buffer &
+            save(planet::serialise::save_buffer &ab, small const &s) {
+        return ab.save_box("small", s.field1);
+    }
+    void load(planet::serialise::load_buffer &lb, small &s) {
+        lb.load_box("small", s.field1);
+    }
+    auto const s = suite.test("small", [](auto check, auto &log) {
+        small const s{1234};
+        planet::serialise::save_buffer ab;
+
+        auto bytes{save(ab, s).complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        check(bytes.size()) == 20u;
+
+        auto span = bytes.cmemory();
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 5u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::u32);
+        check(felspar::parse::binary::extract<std::uint32_t>(span)) == 1234u;
+        check(span.empty()) == true;
+
+        auto const ss = planet::serialise::load_type<small>(bytes);
+        check(ss.field1) == 1234u;
+    });
+
+
+    struct larger {
+        bool field1 = {};
+        std::int32_t field2 = {};
+        std::int16_t field3 = {};
+        std::uint64_t field4 = {};
+    };
+    planet::serialise::save_buffer &
+            save(planet::serialise::save_buffer &ab, larger const &l) {
+        return ab.save_box("larger", l.field1, l.field2, l.field3, l.field4);
+    }
+    void load(planet::serialise::load_buffer &lb, larger &l) {
+        lb.load_box("larger", l.field1, l.field2, l.field3, l.field4);
+    }
+    auto const l = suite.test("larger", [](auto check, auto &log) {
+        larger const l{true, -0x12345678, 0x1234, 0x12345678'90987654};
+        planet::serialise::save_buffer ab;
+
+        auto bytes{save(ab, l).complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        check(bytes.size()) == 34u;
+
+        auto span = bytes.cmemory();
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'g';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 18u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::b_true);
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::i32);
+        check(felspar::parse::binary::extract<std::int32_t>(span))
+                == -0x12345678;
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::i16);
+        check(felspar::parse::binary::extract<std::int16_t>(span)) == 0x1234;
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::u64);
+        check(felspar::parse::binary::extract<std::uint64_t>(span))
+                == 0x12345678'90987654U;
+        check(span.empty()) == true;
+
+        auto const ll = planet::serialise::load_type<larger>(bytes);
+        check(ll.field1) == true;
+        check(ll.field2) == -0x12345678;
+        check(ll.field3) == 0x1234;
+        check(ll.field4) == 0x12345678'90987654U;
+    });
+
+
+    struct nested {
+        small s;
+        larger l;
+    };
+    planet::serialise::save_buffer &
+            save(planet::serialise::save_buffer &ab, nested const &n) {
+        return ab.save_box("nested", n.s, n.l);
+    }
+    void load(planet::serialise::load_buffer &lb, nested &n) {
+        lb.load_box("nested", n.s, n.l);
+    }
+    auto const n = suite.test("nested", [](auto check, auto &log) {
+        nested const n{
+                {0x1234}, {false, -0x12345678, 0x1234, 0x12345678'90987654}};
+        planet::serialise::save_buffer ab;
+
+        auto bytes{save(ab, n).complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        check(bytes.size()) == 70u;
+
+        auto span = bytes.cmemory();
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 't';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+        check(felspar::parse::binary::extract<std::int64_t>(span)) == 54u;
+        check(span.size()) == 54u;
+
+        auto const nn = planet::serialise::load_type<nested>(bytes);
+        check(nn.s.field1) == 0x1234u;
+        check(nn.l.field1) == false;
+        check(nn.l.field2) == -0x12345678;
+        check(nn.l.field3) == 0x1234;
+        check(nn.l.field4) == 0x12345678'90987654U;
+    });
+
+
+    auto const m = suite.test("square map", [](auto check, auto &log) {
+        planet::map::world_type<bool, 2> world{
+                {0, 0}, [](auto) { return true; }};
+
+        {
+            planet::serialise::save_buffer ab;
+            save(ab, world);
+            auto bytes{ab.complete()};
+            felspar::memory::hexdump(log, bytes.memory());
+            check(bytes.size()) == 28u;
+
+            auto span = bytes.cmemory();
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'w';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 8u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 0u;
+            check(span.empty()) == true;
+
+            planet::map::world_type<bool, 2> nw{
+                    {{}, {}}, [](auto) { return true; }};
+            auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+            load(lb, nw);
+            check(nw[{0, 0}]) == true;
+        }
+
+        world[{0, 0}] = false;
+        {
+            planet::serialise::save_buffer ab;
+            save(ab, world);
+            auto bytes{ab.complete()};
+            felspar::memory::hexdump(log, bytes.memory());
+            check(bytes.size()) == 90u;
+
+            auto span = bytes.cmemory();
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'w';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 70u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 1u;
+
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'c';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 10u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::i32);
+            check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::i32);
+            check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
+
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'c';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'h';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'u';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'k';
+            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 12u;
+            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 4u;
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::b_false);
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::b_true);
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::b_true);
+            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                    == static_cast<std::uint8_t>(
+                            planet::serialise::marker::b_true);
+            check(span.empty()) == true;
+
+            planet::map::world_type<bool, 2> nw{
+                    {{}, {}}, [](auto) { return true; }};
+            auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+            load(lb, nw);
+            check(nw[{0, 0}]) == false;
+        }
+    });
+
+
+}
