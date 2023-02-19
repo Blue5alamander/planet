@@ -195,7 +195,7 @@ namespace {
                 health += outcome->health_delta;
                 score += outcome->score_delta;
                 if (health < 0) { outcome->state = player::dead_health; }
-                auto const length = health / 8;
+                std::size_t const length = health / 8;
                 while (occupies.size() > length) {
                     occupies.front()->player = nullptr;
                     occupies.erase(occupies.begin());
@@ -207,7 +207,10 @@ namespace {
     };
 
 
-    void draw(hex::world_type const &world, snake const &player, long range) {
+    void
+            draw(hex::world_type const &world,
+                 snake const &player,
+                 planet::hexmap::coordinates::value_type range) {
         auto const top_left =
                 player.position + planet::hexmap::coordinates{-range, range};
         auto const bottom_right = player.position
@@ -292,26 +295,25 @@ namespace {
         draw(world, player, player.vision_distance);
 
         planet::client::command_mapping<message> commands;
-        commands["e"] = [&world, &player](auto args) {
+        commands["e"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::east);
         };
-        commands["ne"] = [&world, &player](auto args) {
+        commands["ne"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::north_east);
         };
-        commands["nw"] = [&world, &player](auto args) {
+        commands["nw"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::north_west);
         };
-        commands["w"] = [&world, &player](auto args) {
+        commands["w"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::west);
         };
-        commands["sw"] = [&world, &player](auto args) {
+        commands["sw"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::south_west);
         };
-        commands["se"] = [&world, &player](auto args) {
+        commands["se"] = [&world, &player](auto) {
             return player.move(world, planet::hexmap::south_east);
         };
-        commands["draw"] =
-                [&world, &player](auto args) -> felspar::coro::stream<message> {
+        commands["draw"] = [](auto args) -> felspar::coro::stream<message> {
             std::string_view const sv = args.next().value_or("8");
             message distance{};
             auto const [_, ec] = std::from_chars(
