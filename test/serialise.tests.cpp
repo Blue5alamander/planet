@@ -293,4 +293,43 @@ namespace {
     });
 
 
+    struct binary {
+        std::vector<std::byte> vec;
+    };
+    planet::serialise::save_buffer &
+            save(planet::serialise::save_buffer &ab, binary const &b) {
+        return ab.save_box("bin", b.vec);
+    }
+    void load(planet::serialise::load_buffer &lb, binary &b) {
+        lb.load_box("bin", b.vec);
+    }
+    auto const b = suite.test("binary", [](auto check, auto &log) {
+        binary const b{std::vector<std::byte>(20 << 10, std::byte{'-'})};
+        planet::serialise::save_buffer ab;
+
+        auto bytes{save(ab, b).complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        check(bytes.size()) == 20480u + 3u + 16u + 2u + 1u;
+
+        auto span = bytes.cmemory();
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 3u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'b';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'i';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
+        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
+        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20489u;
+        check(felspar::parse::binary::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::binary);
+        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20480u;
+        check(span.size()) == 20480u;
+
+        binary bb{};
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        load(lb, bb);
+        check(bb.vec.size()) == 20480u;
+        check(std::count(bb.vec.begin(), bb.vec.end(), std::byte{'-'}))
+                == 20480u;
+    });
+
+
 }

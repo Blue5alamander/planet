@@ -5,6 +5,7 @@
 #include <planet/serialise/save_buffer.hpp>
 
 #include <array>
+#include <cstring>
 #include <vector>
 
 
@@ -12,8 +13,7 @@ namespace planet::serialise {
 
 
     inline void save(save_buffer &ab, bool const b) {
-        ab.append(static_cast<std::uint8_t>(
-                b ? marker::b_true : marker::b_false));
+        ab.append(b ? marker::b_true : marker::b_false);
     }
     inline void load(load_buffer &lb, bool &b) {
         auto const m = lb.extract_marker();
@@ -24,6 +24,31 @@ namespace planet::serialise {
         } else {
             throw wanted_boolean(lb.cmemory(), m);
         }
+    }
+
+
+    inline void save(save_buffer &ab, std::span<std::byte const> const s) {
+        ab.append(marker::binary);
+        ab.append_size_t(s.size());
+        ab.append(s);
+    }
+    inline void load(load_buffer &lb, std::span<std::byte const> &s) {
+        if (auto const m = lb.extract_marker(); m != marker::binary) {
+            throw wrong_marker{lb.cmemory(), marker::binary, m};
+        } else {
+            auto const size = lb.extract_size_t();
+            s = lb.split(size);
+        }
+    }
+
+
+    inline void save(save_buffer &ab, std::vector<std::byte> const &v) {
+        save(ab, std::span{v.data(), v.size()});
+    }
+    inline void load(load_buffer &lb, std::vector<std::byte> &v) {
+        auto const d = load_type<std::span<std::byte const>>(lb);
+        v.resize(d.size());
+        std::memcpy(v.data(), d.data(), d.size());
     }
 
 

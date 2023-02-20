@@ -40,6 +40,7 @@ namespace planet::serialise {
             return *this;
         }
 
+        void append(marker const m) { append(static_cast<std::uint8_t>(m)); }
         void append_size_t(std::size_t);
         void append(std::string_view);
         void append(std::span<std::byte const>);
