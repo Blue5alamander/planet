@@ -153,22 +153,22 @@ std::string_view planet::serialise::to_string(marker const m) {
 
         case marker::u8: return "u8";
         case marker::i8: return "i8";
-        case marker::u16: return "u16";
-        case marker::i16: return "i16";
-        case marker::u32: return "u32";
-        case marker::i32: return "i32";
-        case marker::u64: return "u64";
-        case marker::i64: return "i64";
-        case marker::u128: return "u128";
-        case marker::i128: return "i128";
+        case marker::u16be: return "u16be";
+        case marker::i16be: return "i16be";
+        case marker::u32be: return "u32be";
+        case marker::i32be: return "i32be";
+        case marker::u64be: return "u64be";
+        case marker::i64be: return "i64be";
+        case marker::u128be: return "u128be";
+        case marker::i128be: return "i128be";
         case marker::b_false: return "b_false";
         case marker::b_true: return "b_true";
 
-        case marker::f16: return "f16";
-        case marker::f32: return "f32";
-        case marker::f64: return "f64";
-        case marker::f80: return "f80";
-        case marker::f128: return "f128";
+        case marker::f16be: return "f16be";
+        case marker::f32be: return "f32be";
+        case marker::f64be: return "f64be";
+        case marker::f80be: return "f80be";
+        case marker::f128be: return "f128be";
 
         case marker::string: return "string";
         }

@@ -71,7 +71,7 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
         check(felspar::parse::binary::extract<std::int64_t>(span)) == 5u;
         check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::u32);
+                == static_cast<std::uint8_t>(planet::serialise::marker::u32be);
         check(felspar::parse::binary::extract<std::uint32_t>(span)) == 1234u;
         check(span.empty()) == true;
 
@@ -114,14 +114,14 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span))
                 == static_cast<std::uint8_t>(planet::serialise::marker::b_true);
         check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::i32);
+                == static_cast<std::uint8_t>(planet::serialise::marker::i32be);
         check(felspar::parse::binary::extract<std::int32_t>(span))
                 == -0x12345678;
         check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::i16);
+                == static_cast<std::uint8_t>(planet::serialise::marker::i16be);
         check(felspar::parse::binary::extract<std::int16_t>(span)) == 0x1234;
         check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::u64);
+                == static_cast<std::uint8_t>(planet::serialise::marker::u64be);
         check(felspar::parse::binary::extract<std::uint64_t>(span))
                 == 0x12345678'90987654U;
         check(span.empty()) == true;
@@ -249,11 +249,11 @@ namespace {
             check(felspar::parse::binary::extract<std::uint64_t>(span)) == 10u;
             check(felspar::parse::binary::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
-                            planet::serialise::marker::i32);
+                            planet::serialise::marker::i32be);
             check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
             check(felspar::parse::binary::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
-                            planet::serialise::marker::i32);
+                            planet::serialise::marker::i32be);
             check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
 
             check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;

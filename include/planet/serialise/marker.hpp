@@ -20,22 +20,22 @@ namespace planet::serialise {
 
         u8 = 0x81,
         i8,
-        u16,
-        i16,
-        u32,
-        i32,
-        u64,
-        i64,
-        u128,
-        i128,
+        u16be,
+        i16be,
+        u32be,
+        i32be,
+        u64be,
+        i64be,
+        u128be,
+        i128be,
         b_true,
         b_false,
 
-        f16 = 0x91,
-        f32,
-        f64,
-        f80,
-        f128,
+        f16be = 0x91,
+        f32be,
+        f64be,
+        f80be,
+        f128be,
 
         string = 0xa1,
     };
@@ -53,10 +53,10 @@ namespace planet::serialise {
     constexpr marker marker_for() {
         switch (sizeof(T)) {
         case 1: return marker::u8;
-        case 2: return marker::u16;
-        case 4: return marker::u32;
-        case 8: return marker::u64;
-        case 16: return marker::u128;
+        case 2: return marker::u16be;
+        case 4: return marker::u32be;
+        case 8: return marker::u64be;
+        case 16: return marker::u128be;
         }
     }
 
@@ -64,10 +64,10 @@ namespace planet::serialise {
     constexpr marker marker_for() {
         switch (sizeof(T)) {
         case 1: return marker::i8;
-        case 2: return marker::i16;
-        case 4: return marker::i32;
-        case 8: return marker::i64;
-        case 16: return marker::i128;
+        case 2: return marker::i16be;
+        case 4: return marker::i32be;
+        case 8: return marker::i64be;
+        case 16: return marker::i128be;
         }
     }
 
