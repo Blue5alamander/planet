@@ -150,7 +150,7 @@ std::string_view planet::serialise::to_string(marker const m) {
         switch (m) {
         case marker::empty: return "empty";
 
-        case marker::std_byte: return "std::byte";
+        case marker::std_byte_array: return "std::byte[]";
         case marker::u8: return "u8";
         case marker::i8: return "i8";
         case marker::u16be: return "u16be";
@@ -171,8 +171,6 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::f128be: return "f128be";
 
         case marker::string: return "string";
-
-        case marker::std_byte_array: return "std::byte[]";
         }
     }
     return "Unknown marker";
