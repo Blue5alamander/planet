@@ -319,7 +319,8 @@ namespace {
         check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
         check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20489u;
         check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::binary);
+                == static_cast<std::uint8_t>(
+                        planet::serialise::marker::std_byte_array);
         check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20480u;
         check(span.size()) == 20480u;
 

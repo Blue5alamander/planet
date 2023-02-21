@@ -16,9 +16,8 @@ namespace planet::serialise {
         // Between 0x01 and 0x7f are boxes (specifying the box name length in
         // bytes)
 
-        binary = 0x80,
-
-        u8 = 0x81,
+        std_byte = 0x80,
+        u8,
         i8,
         u16be,
         i16be,
@@ -38,6 +37,8 @@ namespace planet::serialise {
         f128be,
 
         string = 0xa1,
+
+        std_byte_array = 0xd0,
     };
 
 

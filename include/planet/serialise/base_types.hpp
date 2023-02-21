@@ -28,13 +28,13 @@ namespace planet::serialise {
 
 
     inline void save(save_buffer &ab, std::span<std::byte const> const s) {
-        ab.append(marker::binary);
+        ab.append(marker::std_byte_array);
         ab.append_size_t(s.size());
         ab.append(s);
     }
     inline void load(load_buffer &lb, std::span<std::byte const> &s) {
-        if (auto const m = lb.extract_marker(); m != marker::binary) {
-            throw wrong_marker{lb.cmemory(), marker::binary, m};
+        if (auto const m = lb.extract_marker(); m != marker::std_byte_array) {
+            throw wrong_marker{lb.cmemory(), marker::std_byte_array, m};
         } else {
             auto const size = lb.extract_size_t();
             s = lb.split(size);
