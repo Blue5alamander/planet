@@ -11,13 +11,13 @@
 namespace planet::events {
 
 
-    /// Configuration for timing and movements metrics
+    /// ## Configuration for timing and movements metrics
     struct mouse_settings {
         std::chrono::milliseconds click_time{200};
     };
 
 
-    /// Low-level mouse clicks and movement
+    /// ## Low-level mouse clicks and movement
     class mouse final {
       public:
         enum class press { none, left, right, middle, x1, x2 };
@@ -31,7 +31,7 @@ namespace planet::events {
     };
 
 
-    /// Higher level events
+    /// ## Higher level events
     class click final {
       public:
         mouse::press button = mouse::press::none;
@@ -42,9 +42,9 @@ namespace planet::events {
     };
 
 
-    /// Given two raw mouse events in time order, is this a click?
+    /// ## Given two raw mouse events in time order, is this a click?
     bool is_click(mouse_settings const &, mouse const &, mouse const &);
-    /// Process a stream of mouse data into higher level events
+    /// ## Process a stream of mouse data into higher level events
     felspar::coro::stream<click> identify_clicks(
             mouse_settings const &, felspar::coro::stream<mouse>);
 
