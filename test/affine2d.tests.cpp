@@ -137,4 +137,11 @@ namespace {
             });
 
 
+    auto const mat = felspar::testsuite("affine3d/matrix2d", [](auto check) {
+        auto const tr = planet::affine::matrix2d::translate({2, 3});
+        check(tr[{2, 0}]) == 2.0f;
+        check(tr[{2, 1}]) == 3.0f;
+    });
+
+
 }

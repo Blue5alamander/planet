@@ -76,6 +76,12 @@ namespace planet::affine {
                     0,
                     1};
         }
+
+        /// ### Access into the matrix
+        constexpr float operator[](
+                std::pair<std::size_t, std::size_t> const p) const noexcept {
+            return m[(p.first % 3) + (p.second % 3) * 3];
+        }
     };
 
 

@@ -1,7 +1,8 @@
 #pragma once
 
 
-#include <array>
+#include <planet/affine/matrix2d.hpp>
+
 #include <span>
 #include <utility>
 
@@ -34,11 +35,12 @@ namespace planet::affine {
 
       public:
         constexpr matrix3d() {}
-
-        constexpr float operator[](
-                std::pair<std::size_t, std::size_t> const s) const noexcept {
-            return m[(s.first bitand 3) * 4 + (s.second bitand 3)];
-        }
+        constexpr matrix3d(matrix2d const &m2)
+        : matrix3d{
+                {std::array{m2[{0, 0}], m2[{1, 0}], float{}, m2[{2, 0}]},
+                 std::array{m2[{0, 1}], m2[{1, 1}], float{}, m2[{2, 1}]},
+                 std::array{float{}, float{}, float{1}, float{}},
+                 std::array{m2[{0, 2}], m2[{1, 2}], float{}, m2[{2, 2}]}}} {}
 
         static constexpr matrix3d
                 translate(float const x, float const y, float const z) {
@@ -54,6 +56,11 @@ namespace planet::affine {
                      std::array{0.0f, y, 0.0f, 0.0f},
                      std::array{0.0f, 0.0f, 1.0f, 0.0f},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
+        }
+
+        constexpr float operator[](
+                std::pair<std::size_t, std::size_t> const s) const noexcept {
+            return m[(s.first bitand 3) * 4 + (s.second bitand 3)];
         }
     };
 
