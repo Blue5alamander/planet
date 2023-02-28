@@ -40,6 +40,25 @@ namespace {
         check(mul[{1, 3}]) == t3[{1, 3}];
         check(mul[{2, 3}]) == t3[{2, 3}];
         check(mul[{3, 3}]) == t3[{3, 3}];
+
+        planet::affine::matrix3d const ry{
+                planet::affine::matrix2d::reflect_y()};
+        check(ry[{0, 0}]) == 1.0f;
+        check(ry[{1, 0}]) == 0.0f;
+        check(ry[{2, 0}]) == 0.0f;
+        check(ry[{3, 0}]) == 0.0f;
+        check(ry[{0, 1}]) == 0.0f;
+        check(ry[{1, 1}]) == -1.0f;
+        check(ry[{2, 1}]) == 0.0f;
+        check(ry[{3, 1}]) == 0.0f;
+        check(ry[{0, 2}]) == 0.0f;
+        check(ry[{1, 2}]) == 0.0f;
+        check(ry[{2, 2}]) == 1.0f;
+        check(ry[{3, 2}]) == 0.0f;
+        check(ry[{0, 3}]) == 0.0f;
+        check(ry[{1, 3}]) == 0.0f;
+        check(ry[{2, 3}]) == 0.0f;
+        check(ry[{3, 3}]) == 1.0f;
     });
 
 
