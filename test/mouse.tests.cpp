@@ -13,16 +13,16 @@ namespace {
     auto const clicks = suite.test("clicks", [](auto check) {
         planet::events::mouse_settings config;
 
-        planet::events::cursor e1{}, e2{};
+        planet::events::mouse e1{}, e2{};
         check(planet::events::is_click(config, e1, e2)) == false;
 
-        e1.button = planet::events::mouse::button::left;
-        e1.action = planet::events::mouse::action::down;
-        e2.button = planet::events::mouse::button::right;
-        e2.action = planet::events::mouse::action::up;
+        e1.button = planet::events::button::left;
+        e1.action = planet::events::action::down;
+        e2.button = planet::events::button::right;
+        e2.action = planet::events::action::up;
         check(planet::events::is_click(config, e1, e2)) == false;
 
-        e2.button = planet::events::mouse::button::left;
+        e2.button = planet::events::button::left;
         check(planet::events::is_click(config, e1, e2)) == true;
 
         e1.timestamp -= std::chrono::milliseconds{202};
