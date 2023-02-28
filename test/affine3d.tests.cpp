@@ -2,6 +2,11 @@
 #include <felspar/test.hpp>
 
 
+static_assert(
+        sizeof(planet::affine::matrix3d) == sizeof(float) * 16,
+        "There must be zero extra data in the matrix for Vulkan compatibility");
+
+
 namespace {
 
 
