@@ -65,6 +65,13 @@ namespace planet::events {
         backspace_key = 42,
         tab_key = 43,
         space_key = 44,
+
+        insert_key = 73,
+        home_key = 74,
+        page_up_key = 75,
+        delete_key = 76,
+        end_key = 77,
+        page_down_key = 78,
     };
 
 
