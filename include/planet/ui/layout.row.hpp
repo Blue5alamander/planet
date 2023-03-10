@@ -39,7 +39,7 @@ namespace planet::ui {
         void draw_within(Target &t, affine::rectangle2d const outer) {
             auto left = outer.left();
             auto const top = outer.top(), bottom = outer.bottom();
-            for (auto const &item : items) {
+            for (auto &item : items) {
                 auto const ex = item.extents(outer.extents);
                 auto const width = ex.width;
                 item.draw_within(
