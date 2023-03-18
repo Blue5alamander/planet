@@ -1,0 +1,13 @@
+# behaviour
+
+A good introduction to behaviour trees can be found at [Game Developer](https://www.gamedeveloper.com/programming/behavior-trees-for-ai-how-they-work) by the developer of _Project Zomboid_.
+
+* [`context.hpp`](./context.hpp) -- The `context` type stores the variable assignments that the behaviours are able to use.
+* [`decorators.hpp`](./decorators.hpp) -- Contains implementations of the decorators. These are behaviours that can be used to alter the outcome of another behaviour.
+* [`key.hpp`](./key.hpp) -- Contains the `key` which describes the lookup for a named variable available to call a behaviour with.
+* [`leaf.hpp`](./leaf.hpp) -- Leaf behaviours have to be implemented within each game the behaviours are used in. The various `create` overloads simplify the binding between coroutines and behaviours.
+* [`parameter.hpp`](./parameter.hpp) -- Describes a parameter that is available to a behaviour to take as an argument.
+* [`runner.hpp`](./runner.hpp) -- The `runner` type is an abstract interface that all behaviours conform to.
+* [`state.hpp`](./state.hpp) -- The `state` enumeration used to describe behaviour outcomes.
+
+There is also the convenience header [`planet/behaviour.hpp`](../behaviour.hpp) which includes everything.
