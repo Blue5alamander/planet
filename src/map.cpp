@@ -16,6 +16,20 @@ void planet::map::load(serialise::load_buffer &lb, coordinates &c) {
 /// ### `planet::hexmap::coordinates`
 
 
+auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
+        -> coordinates {
+    auto const angle = (to - from).centre().theta();
+    for (std::size_t index{}; auto const ref : angles) {
+        if (std::abs(ref - angle) <= 1.0f / 12.0f) {
+            return directions[index];
+        } else {
+            ++index;
+        }
+    }
+    return south_east;
+}
+
+
 void planet::hexmap::save(serialise::save_buffer &ab, coordinates const c) {
     ab.save_box("_p:h:coord", c.column(), c.row());
 }

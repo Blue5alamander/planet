@@ -150,6 +150,22 @@ namespace {
             });
 
 
+    auto const dirs = felspar::testsuite("hexmap/directions", [](auto check) {
+        planet::hexmap::coordinates from{5, 7}, to{11, 7};
+        check(best_direction(from, to)) == planet::hexmap::east;
+        to = {11, 13};
+        check(best_direction(from, to)) == planet::hexmap::north_east;
+        to = {-1, 13};
+        check(best_direction(from, to)) == planet::hexmap::north_west;
+        to = {-1, 7};
+        check(best_direction(from, to)) == planet::hexmap::west;
+        to = {-1, 1};
+        check(best_direction(from, to)) == planet::hexmap::south_west;
+        to = {11, 1};
+        check(best_direction(from, to)) == planet::hexmap::south_east;
+    });
+
+
     auto const world =
             felspar::testsuite("hexmap/world", [](auto check, auto &log) {
                 std::size_t calls{};

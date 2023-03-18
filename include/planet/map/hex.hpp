@@ -163,10 +163,17 @@ namespace planet::hexmap {
     }
 
 
+    /// ## Directions and direction finding
+
     constexpr coordinates east{2, 0}, north_east{1, 1}, north_west{-1, 1},
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
     constexpr std::array<coordinates, 6> directions{
             east, north_east, north_west, west, south_west, south_east};
+    constexpr std::array<float, 6> angles{
+            0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 6.0f / 6.0f};
+
+    /// ### The best direction to move towards a given point
+    coordinates best_direction(coordinates from, coordinates towards);
 
 
     /// ## Hex world
