@@ -1,4 +1,4 @@
-# Game tooling
+# Tooling
 
 Various tooling utilities to help with things like game distribution and asset management etc.
 

@@ -1,15 +1,8 @@
 # Planet
 
-**An implementation of infinitely auto-expanding containers for 2D square and hex maps**, of the sort suitable for simple games
+**A C++ game engine**
 
-It contains implementations for both square and hex grids. Both make use of a chunking system that aggregates the allocation of larger parts of the map which are created lazily as required by the game.
-
-There is also some help for implementing the control mechanism between a player or AI and the actual game.
-
-
-## Audio
-
-Simple audio mixer and playback with real-time triggering and sequencing
+Planet started as just a 2D hex and square grid infinite map implementation. Both make use of a chunking system that aggregates the allocation of larger parts of the map which are created lazily as required by the game.
 
 
 ## Building and running the library and examples
@@ -24,3 +17,11 @@ cmake ..
 make
 ./examples/snake
 ```
+
+
+## Modules
+
+An incomplete list of the available modules are:
+
+* [Behaviours](./include/behaviour/) -- unstable
+* [Serialisation](./include/serialise/) -- stable
