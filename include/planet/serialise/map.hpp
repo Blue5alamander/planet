@@ -8,7 +8,7 @@
 namespace planet::map {
 
 
-    /// ### `planet::map::chunk`
+    /// ## `planet::map::chunk`
 
 
     template<typename Cell, std::size_t DimX, std::size_t DimY>
@@ -21,7 +21,8 @@ namespace planet::map {
         lb.load_box("_p:m:chunk", c.storage);
     }
 
-    /// ### `planet::map::world`
+
+    /// ## `planet::map::world`
 
 
     template<typename Chunk>
@@ -74,7 +75,7 @@ namespace planet::map {
 namespace planet::hexmap {
 
 
-    /// ### `planet::hexmap::world`
+    /// ## `planet::hexmap::world`
 
 
     template<typename Chunk>
