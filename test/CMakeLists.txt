@@ -3,6 +3,7 @@ add_test_run(check planet TESTS
         affine3d.tests.cpp
         asset_manager.tests.cpp
         column.layout.tests.cpp
+        constrained.tests.cpp
         event.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
