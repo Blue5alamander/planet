@@ -2,6 +2,9 @@
 
 
 #include <planet/ui/box.hpp>
+#include <planet/ui/constrained.hpp>
+#include <planet/ui/element.hpp>
+#include <planet/ui/layout.hpp>
 #include <planet/ui/layout.column.hpp>
 #include <planet/ui/layout.corners.hpp>
 #include <planet/ui/layout.grid.hpp>
