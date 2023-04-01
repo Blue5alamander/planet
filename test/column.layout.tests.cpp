@@ -11,7 +11,7 @@ namespace {
 
     auto const array_one = suite.test("array/one", [](auto check) {
         auto empty = planet::ui::column{
-                std::array{planet::debug::ui_element{{3, 4}}}, 10};
+                std::array{planet::debug::fixed_element{{3, 4}}}, 10};
         check(empty.extents({20, 20}).width) == 3;
         check(empty.extents({20, 20}).height) == 4;
     });
@@ -20,8 +20,8 @@ namespace {
     auto const array_two = suite.test("array/two", [](auto check) {
         auto empty = planet::ui::column{
                 std::array{
-                        planet::debug::ui_element{{3, 4}},
-                        planet::debug::ui_element{{8, 4}}},
+                        planet::debug::fixed_element{{3, 4}},
+                        planet::debug::fixed_element{{8, 4}}},
                 10};
         check(empty.extents({20, 20}).width) == 8;
         check(empty.extents({20, 20}).height) == 18;
@@ -37,7 +37,7 @@ namespace {
 
     auto const tuple_one = suite.test("tuple/one", [](auto check) {
         auto empty = planet::ui::column{
-                std::tuple{planet::debug::ui_element{{3, 4}}}, 10};
+                std::tuple{planet::debug::fixed_element{{3, 4}}}, 10};
         check(empty.extents({20, 20}).width) == 3;
         check(empty.extents({20, 20}).height) == 4;
     });
@@ -46,8 +46,8 @@ namespace {
     auto const tuple_two = suite.test("tuple/two", [](auto check) {
         auto empty = planet::ui::column{
                 std::tuple{
-                        planet::debug::ui_element{{3, 4}},
-                        planet::debug::ui_element{{8, 4}}},
+                        planet::debug::fixed_element{{3, 4}},
+                        planet::debug::fixed_element{{8, 4}}},
                 10};
         check(empty.extents({20, 20}).width) == 8;
         check(empty.extents({20, 20}).height) == 18;

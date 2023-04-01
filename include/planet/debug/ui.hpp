@@ -8,10 +8,10 @@ namespace planet::debug {
 
 
     /// UI element
-    struct ui_element {
+    struct fixed_element {
         affine::extents2d size;
 
-        ui_element(affine::extents2d const s) : size{s} {}
+        fixed_element(affine::extents2d const s) : size{s} {}
 
         affine::extents2d extents(affine::extents2d) const noexcept {
             return size;
