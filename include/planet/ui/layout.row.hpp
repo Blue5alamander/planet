@@ -186,6 +186,7 @@ namespace planet::ui {
                 } else {
                     if (left) { left += hpadding; }
                     left += item_ex.width;
+                    row_height = std::max(row_height, item_ex.height);
                 }
             }
             max_width = std::max(max_width, left);
