@@ -10,8 +10,7 @@
 namespace planet::ui {
 
 
-    /// A row of boxes. When presented they can line break pushing over spill
-    /// into the space below
+    /// ## A row of boxes
     template<typename C>
     struct row {
         using collection_type = C;
@@ -49,9 +48,68 @@ namespace planet::ui {
             }
         }
     };
+    template<typename... Pack>
+    struct row<std::tuple<Pack...>> {
+        using collection_type = std::tuple<Pack...>;
+        collection_type items;
+        static constexpr std::size_t item_count =
+                std::tuple_size<collection_type>();
+        /// Padding between items in the row
+        float padding = {};
+
+        row(collection_type c, float const p)
+        : items{std::move(c)}, padding{p} {}
+
+        affine::extents2d extents(affine::extents2d const outer) const {
+            if constexpr (item_count == 0) {
+                return {{}, {}};
+            } else {
+                auto const sizes = item_sizes(items, outer);
+                auto const first_ex = sizes[0];
+                float width = first_ex.width;
+                float height = first_ex.height;
+                for (std::size_t index{1}; index < item_count; ++index) {
+                    auto const ex = sizes[index];
+                    width += padding + ex.width;
+                    height = std::max(height, ex.height);
+                }
+                return {width, height};
+            }
+        }
+
+        template<typename Target>
+        void draw_within(Target &t, affine::rectangle2d const outer) {
+            return draw_within(
+                    t, outer, std::make_index_sequence<sizeof...(Pack)>{});
+        }
+
+      private:
+        template<typename Target, std::size_t... I>
+        void draw_within(
+                Target &t,
+                affine::rectangle2d const outer,
+                std::index_sequence<I...>) {
+            float left = outer.left();
+            ((left += draw_item(t, std::get<I>(items), outer, left) + padding),
+             ...);
+        }
+        template<typename Target, typename Item>
+        float draw_item(
+                Target &t,
+                Item &item,
+                affine::rectangle2d const within,
+                float const left) {
+            auto const ex = item.extents(within.extents);
+            auto const height = ex.height;
+            auto const top = within.top(), right = within.right();
+            item.draw_within(
+                    t, {{left, top}, affine::point2d{right, top + height}});
+            return ex.width;
+        }
+    };
 
 
-    /// Draws the items across multiple lines when needed
+    /// ## Draws the items across multiple lines when needed
     template<typename C>
     struct breakable_row {
         using collection_type = C;
