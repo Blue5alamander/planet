@@ -13,7 +13,7 @@ namespace planet::ui {
         template<typename... Pack, std::size_t... I>
         inline auto item_sizes_helper(
                 std::tuple<Pack...> const &items,
-                affine::extents2d const outer,
+                [[maybe_unused]] affine::extents2d const outer,
                 std::index_sequence<I...>) {
             return std::array<affine::extents2d, sizeof...(Pack)>{
                     std::get<I>(items).extents(outer)...,
