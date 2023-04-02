@@ -22,7 +22,7 @@ namespace planet::ui {
         row(collection_type c, float const p)
         : items{std::move(c)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             auto const first_ex = items[0].extents(outer);
             float width = first_ex.width;
             float height = first_ex.height;
@@ -60,7 +60,7 @@ namespace planet::ui {
         row(collection_type c, float const p)
         : items{std::move(c)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             if constexpr (item_count == 0) {
                 return {{}, {}};
             } else {
@@ -122,7 +122,7 @@ namespace planet::ui {
         breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             float max_width = {}, row_height = {}, total_height = {}, left{};
             for (auto const &item : items) {
                 auto const item_ex = item.extents(outer);
@@ -174,7 +174,7 @@ namespace planet::ui {
         breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             float max_width = {}, row_height = {}, total_height = {}, left{};
             for (auto &item_ex : item_sizes(items, outer)) {
                 if (left + item_ex.width > outer.width) {

@@ -21,7 +21,7 @@ namespace planet::ui {
         grid(collection_type c, float const p)
         : items{std::move(c)}, vpadding{p}, hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             auto const cell = cell_size(outer);
             auto const w = std::min(
                     float(items.size()),
@@ -70,7 +70,7 @@ namespace planet::ui {
         grid(collection_type c, float const p)
         : items{std::move(c)}, vpadding{p}, hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer)  {
+        affine::extents2d extents(affine::extents2d const outer) {
             auto const cell = cell_size(outer);
             auto const w = std::min(
                     float(sizeof...(Pack)),

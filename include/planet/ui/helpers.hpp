@@ -12,7 +12,7 @@ namespace planet::ui {
     namespace detail {
         template<typename... Pack, std::size_t... I>
         inline auto item_sizes_helper(
-                std::tuple<Pack...> const &items,
+                std::tuple<Pack...> &items,
                 [[maybe_unused]] affine::extents2d const outer,
                 std::index_sequence<I...>) {
             return std::array<affine::extents2d, sizeof...(Pack)>{
@@ -22,7 +22,7 @@ namespace planet::ui {
     }
     template<typename... Pack, std::size_t... I>
     inline auto item_sizes(
-            std::tuple<Pack...> const &items, affine::extents2d const outer) {
+            std::tuple<Pack...> &items, affine::extents2d const outer) {
         return detail::item_sizes_helper(
                 items, outer, std::make_index_sequence<sizeof...(Pack)>{});
     }

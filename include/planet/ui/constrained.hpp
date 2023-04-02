@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <planet/affine/extents2d.hpp>
+
 #include <concepts>
 #include <limits>
 
@@ -11,7 +13,8 @@ namespace planet {
     /// ## Constrained values
     template<typename T>
     class constrained1d {
-        T m_value, m_desired, m_min, m_max;
+        T m_value{}, m_desired{}, m_min{},
+                m_max{std::numeric_limits<value_type>::max()};
 
         auto constrain() {
             m_value = m_desired;
@@ -26,10 +29,10 @@ namespace planet {
       public:
         using value_type = T;
 
-        explicit constrained1d(
-                value_type t,
-                value_type min = {},
-                value_type max = std::numeric_limits<value_type>::max())
+        constrained1d() noexcept {}
+        explicit constrained1d(value_type t, value_type min = {})
+        : m_value{t}, m_desired{t}, m_min{min} {}
+        constrained1d(value_type t, value_type min, value_type max) noexcept
         : m_value{t}, m_desired{t}, m_min{min}, m_max{max} {}
 
         value_type value() const noexcept { return m_value; }
@@ -64,7 +67,16 @@ namespace planet {
       public:
         using value_type = T;
 
-        constrained2d(value_type w, value_type h) : width{w}, height{h} {}
+        constrained2d() noexcept {}
+        constrained2d(value_type w, value_type h) noexcept
+        : width{w}, height{h} {}
+        explicit constrained2d(affine::extents2d ex) noexcept
+        : width{ex.width, ex.width, ex.width},
+          height{ex.height, ex.width, ex.height} {}
+
+        affine::extents2d extents() const noexcept {
+            return {width.value(), height.value()};
+        }
 
         friend bool operator==(constrained2d const &l, constrained2d const &r) {
             return l.width == r.width and l.height == r.height;
