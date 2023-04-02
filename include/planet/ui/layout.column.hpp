@@ -21,9 +21,9 @@ namespace planet::ui {
         explicit column(collection_type c, float const p = {})
         : items{std::move(c)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) const {
+        affine::extents2d extents(affine::extents2d const outer)  {
             float max_width = {}, height = {};
-            for (auto const &item : items) {
+            for (auto  &item : items) {
                 auto const ex = item.extents(outer);
                 max_width = std::max(max_width, ex.width);
                 if (height) { height += padding; }
@@ -60,7 +60,7 @@ namespace planet::ui {
         column(collection_type i, float const p)
         : items{std::move(i)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) const {
+        affine::extents2d extents(affine::extents2d const outer)  {
             auto const sizes = item_sizes(items, outer);
             affine::extents2d r{{}, {}};
             for (auto const e : sizes) {

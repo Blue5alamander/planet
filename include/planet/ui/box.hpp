@@ -66,7 +66,7 @@ namespace planet::ui {
         : content{std::move(c)}, inner{g}, hpadding{hp}, vpadding{vp} {}
 
         /// ### Calculate the extents of the box
-        affine::extents2d extents(affine::extents2d const &ex) const {
+        affine::extents2d extents(affine::extents2d const &ex) {
             return add_padding(content.extents(remove_padding(ex)));
         }
 

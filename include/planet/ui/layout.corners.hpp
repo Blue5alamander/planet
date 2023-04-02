@@ -39,7 +39,7 @@ namespace planet::ui {
           bottom_left{std::move(bl)},
           bottom_right{std::move(br)} {}
 
-        affine::extents2d extents(affine::extents2d const outer) const {
+        affine::extents2d extents(affine::extents2d const outer) {
             auto const tl = top_left.extents(outer);
             auto const tr = top_right.extents(outer);
             auto const bl = bottom_left.extents(outer);

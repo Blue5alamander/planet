@@ -21,7 +21,7 @@ namespace planet::ui {
         grid(collection_type c, float const p)
         : items{std::move(c)}, vpadding{p}, hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) const {
+        affine::extents2d extents(affine::extents2d const outer)  {
             auto const cell = cell_size(outer);
             auto const w = std::min(
                     float(items.size()),
@@ -52,7 +52,7 @@ namespace planet::ui {
       private:
         affine::extents2d cell_size(affine::extents2d const outer) const {
             float max_width = {}, max_height = {};
-            for (auto const &i : items) {
+            for (auto &i : items) {
                 auto const ex = i.extents(outer);
                 max_width = std::max(ex.width, max_width);
                 max_height = std::max(ex.height, max_height);
@@ -70,7 +70,7 @@ namespace planet::ui {
         grid(collection_type c, float const p)
         : items{std::move(c)}, vpadding{p}, hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) const {
+        affine::extents2d extents(affine::extents2d const outer)  {
             auto const cell = cell_size(outer);
             auto const w = std::min(
                     float(sizeof...(Pack)),
@@ -104,9 +104,9 @@ namespace planet::ui {
         }
 
       private:
-        affine::extents2d cell_size(affine::extents2d const outer) const {
+        affine::extents2d cell_size(affine::extents2d const outer) {
             float max_width = {}, max_height = {};
-            for (auto const &ex : item_sizes(items, outer)) {
+            for (auto &ex : item_sizes(items, outer)) {
                 max_width = std::max(ex.width, max_width);
                 max_height = std::max(ex.height, max_height);
             }
