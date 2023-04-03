@@ -20,6 +20,22 @@ namespace {
         check(planet::constrained1d{42}) != 43L;
         check(42) != planet::constrained1d{43L};
         check(planet::constrained1d{42}) != planet::constrained1d{43L};
+
+        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
+                planet::constrained1d{54, 0, 100}))
+                == true;
+        check(planet::constrained1d{42, 10, 100}.is_at_least_as_constrained_as(
+                planet::constrained1d{54, 0, 100}))
+                == true;
+        check(planet::constrained1d{42, 0, 90}.is_at_least_as_constrained_as(
+                planet::constrained1d{54, 0, 100}))
+                == true;
+        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
+                planet::constrained1d{54, 10, 100}))
+                == false;
+        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
+                planet::constrained1d{54, 0, 90}))
+                == false;
     });
 
 

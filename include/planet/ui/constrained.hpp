@@ -5,6 +5,7 @@
 
 #include <concepts>
 #include <limits>
+#include <optional>
 
 
 namespace planet {
@@ -48,7 +49,10 @@ namespace planet {
             return constrain();
         }
 
-        template<std::equality_comparable_with<value_type> R>
+        bool is_at_least_as_constrained_as(constrained1d const &o) const {
+            return m_min >= o.m_min and m_max <= o.m_max;
+        }
+
         friend bool
                 operator==(constrained1d const &l, constrained1d<R> const &r) {
             return l.m_value == r.value();
@@ -71,11 +75,22 @@ namespace planet {
         constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
         explicit constrained2d(affine::extents2d ex) noexcept
-        : width{ex.width, ex.width, ex.width},
-          height{ex.height, ex.width, ex.height} {}
+        : width{ex.width, {}, ex.width},
+          height{ex.height, {}, ex.height} {}
 
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};
+        }
+        affine::extents2d min() const noexcept {
+            return {width.min(), height.min()};
+        }
+        affine::extents2d max() const noexcept {
+            return {width.max(), height.max()};
+        }
+
+        bool is_at_least_as_constrained_as(constrained2d const &o) const {
+            return width.is_at_least_as_constrained_as(o.width)
+                    and height.is_at_least_as_constrained_as(o.height);
         }
 
         friend bool operator==(constrained2d const &l, constrained2d const &r) {
