@@ -78,8 +78,7 @@ namespace planet {
         constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
         explicit constrained2d(affine::extents2d ex) noexcept
-        : width{ex.width, {}, ex.width},
-          height{ex.height, {}, ex.height} {}
+        : width{ex.width, {}, ex.width}, height{ex.height, {}, ex.height} {}
 
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};
