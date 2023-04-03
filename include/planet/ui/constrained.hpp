@@ -3,7 +3,7 @@
 
 #include <planet/affine/extents2d.hpp>
 
-#include <concepts>
+// #include <concepts>
 #include <limits>
 #include <optional>
 
@@ -53,6 +53,9 @@ namespace planet {
             return m_min >= o.m_min and m_max <= o.m_max;
         }
 
+        // TODO std::equality_comparable_with<value_type>
+        // When android NDK gets the concepts header
+        template<typename R>
         friend bool
                 operator==(constrained1d const &l, constrained1d<R> const &r) {
             return l.m_value == r.value();
