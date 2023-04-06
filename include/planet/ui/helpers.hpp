@@ -20,16 +20,21 @@ namespace planet::ui {
     concept reflowable =
             requires(W w) {
                 typename W::constrained_type;
-                { w.reflow(w, std::declval<W::constrained_type>()) };
+                { w.reflow(std::declval<typename W::constrained_type>()) };
             };
+
+    /// Legacy reflow using extents
     template<typename W, typename T>
     inline auto reflow(W &widget, constrained2d<T> const &constraint) {
-        return widget.extents(constraint.extents());
+        return constrained2d<T>{widget.extents(constraint.extents())};
     }
     template<typename W>
     inline auto reflow(W &widget, affine::extents2d const &ex) {
-        return reflow(widget, constrained2d<float>(ex));
+        return widget.extents(ex);
+        ;
     }
+
+    /// Using reflow
     template<reflowable W>
     inline auto
             reflow(W &widget, typename W::constrained_type const &constraint) {
@@ -37,7 +42,7 @@ namespace planet::ui {
     }
     template<reflowable W>
     inline auto reflow(W &widget, affine::extents2d const &ex) {
-        return widget.reflow(typename W::constrained_type{ex});
+        return widget.reflow(typename W::constrained_type{ex}).extents();
     }
 
 
@@ -48,7 +53,7 @@ namespace planet::ui {
                 std::tuple<Pack...> &items,
                 [[maybe_unused]] Ex const &outer,
                 std::index_sequence<I...>) {
-            return std::array<affine::extents2d, sizeof...(Pack)>{
+            return std::array<Ex, sizeof...(Pack)>{
                     reflow(std::get<I>(items), outer)...,
             };
         }

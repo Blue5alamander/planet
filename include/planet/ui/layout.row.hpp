@@ -70,6 +70,8 @@ namespace planet::ui {
         layout_type elements;
 
         auto reflow(constrained_type const &constraint) {
+            /// TODO Use constrained type when calculating the `item_sizes` and
+            /// also when returning the constriant value
             auto const space = constraint.extents();
             float const unused = space.width - (item_count - 1) * padding;
             float const item_width = unused / item_count;
@@ -82,11 +84,12 @@ namespace planet::ui {
                 max_height = std::max(max_height, sizes[index].height);
                 ++index;
             }
-            return affine::extents2d{left - padding, max_height};
+            return constrained_type{
+                    affine::extents2d{left - padding, max_height}};
         }
 
         affine::extents2d extents(affine::extents2d const outer) {
-            return reflow(constrained_type{outer});
+            return reflow(constrained_type{outer}).extents();
         }
 
         template<typename Target>
