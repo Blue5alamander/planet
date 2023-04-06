@@ -9,38 +9,42 @@ namespace {
 
 
     auto const n1d = c1d.test("comparisons", [](auto check) {
-        check(planet::constrained1d{42}) == 42;
-        check(42) == planet::constrained1d{42};
-        check(planet::constrained1d{42}) == planet::constrained1d{42};
+        check(planet::ui::constrained1d{42}) == 42;
+        check(42) == planet::ui::constrained1d{42};
+        check(planet::ui::constrained1d{42}) == planet::ui::constrained1d{42};
 
-        check(planet::constrained1d{42}) != 43;
-        check(42) != planet::constrained1d{43};
-        check(planet::constrained1d{42}) != planet::constrained1d{43};
+        check(planet::ui::constrained1d{42}) != 43;
+        check(42) != planet::ui::constrained1d{43};
+        check(planet::ui::constrained1d{42}) != planet::ui::constrained1d{43};
 
-        check(planet::constrained1d{42}) != 43L;
-        check(42) != planet::constrained1d{43L};
-        check(planet::constrained1d{42}) != planet::constrained1d{43L};
+        check(planet::ui::constrained1d{42}) != 43L;
+        check(42) != planet::ui::constrained1d{43L};
+        check(planet::ui::constrained1d{42}) != planet::ui::constrained1d{43L};
 
-        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
-                planet::constrained1d{54, 0, 100}))
+        check(planet::ui::constrained1d{42, 0, 100}
+                      .is_at_least_as_constrained_as(
+                              planet::ui::constrained1d{54, 0, 100}))
                 == true;
-        check(planet::constrained1d{42, 10, 100}.is_at_least_as_constrained_as(
-                planet::constrained1d{54, 0, 100}))
+        check(planet::ui::constrained1d{42, 10, 100}
+                      .is_at_least_as_constrained_as(
+                              planet::ui::constrained1d{54, 0, 100}))
                 == true;
-        check(planet::constrained1d{42, 0, 90}.is_at_least_as_constrained_as(
-                planet::constrained1d{54, 0, 100}))
+        check(planet::ui::constrained1d{42, 0, 90}.is_at_least_as_constrained_as(
+                planet::ui::constrained1d{54, 0, 100}))
                 == true;
-        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
-                planet::constrained1d{54, 10, 100}))
+        check(planet::ui::constrained1d{42, 0, 100}
+                      .is_at_least_as_constrained_as(
+                              planet::ui::constrained1d{54, 10, 100}))
                 == false;
-        check(planet::constrained1d{42, 0, 100}.is_at_least_as_constrained_as(
-                planet::constrained1d{54, 0, 90}))
+        check(planet::ui::constrained1d{42, 0, 100}
+                      .is_at_least_as_constrained_as(
+                              planet::ui::constrained1d{54, 0, 90}))
                 == false;
     });
 
 
     auto const d1d = c1d.test("desired", [](auto check) {
-        planet::constrained1d v1{42, {}, 100};
+        planet::ui::constrained1d v1{42, {}, 100};
         check(v1) == 42;
 
         v1.min(50);
@@ -59,7 +63,8 @@ namespace {
 
 
     auto const n2d = c2d.test("comparisons", [](auto check) {
-        check(planet::constrained2d{3, 5}) == planet::constrained2d{3, 5};
+        check(planet::ui::constrained2d{3, 5})
+                == planet::ui::constrained2d{3, 5};
     });
 
 
