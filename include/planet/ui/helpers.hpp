@@ -5,10 +5,35 @@
 #include <span>
 #include <tuple>
 
+#include <planet/ui/constrained.hpp>
+
 
 namespace planet::ui {
 
 
+    /// ## Reflow helpers
+    /**
+     * Helpers for transitioning between the old extents layout system and the
+     * new reflow one
+     */
+    template<typename W>
+    concept reflowable =
+            requires(W w) {
+                typename W::constrained_type;
+                { w.reflow(w, std::declval<W::constrained_type>()) };
+            };
+    template<typename W, typename T>
+    inline auto reflow(W &widget, constrained2d<T> const &constraint) {
+        return widget.extents(constraint.extents());
+    }
+    template<reflowable W>
+    inline auto
+            reflow(W &widget, typename W::constrained_type const &constraint) {
+        return widget.reflow(constraint);
+    }
+
+
+    /// ## Helpers for tuples
     namespace detail {
         template<typename... Pack, std::size_t... I>
         inline auto item_sizes_helper(

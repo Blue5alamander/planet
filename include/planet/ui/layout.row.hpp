@@ -3,6 +3,7 @@
 
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
+#include <planet/ui/layout.hpp>
 
 #include <felspar/memory/small_vector.hpp>
 
@@ -54,57 +55,65 @@ namespace planet::ui {
         collection_type items;
         static constexpr std::size_t item_count =
                 std::tuple_size<collection_type>();
+        static_assert(
+                item_count > 0,
+                "There must be at least one UI element in the row");
         /// Padding between items in the row
         float padding = {};
 
         row(collection_type c, float const p)
         : items{std::move(c)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            if constexpr (item_count == 0) {
-                return {{}, {}};
-            } else {
-                auto const sizes = item_sizes(items, outer);
-                auto const first_ex = sizes[0];
-                float width = first_ex.width;
-                float height = first_ex.height;
-                for (std::size_t index{1}; index < item_count; ++index) {
-                    auto const ex = sizes[index];
-                    width += padding + ex.width;
-                    height = std::max(height, ex.height);
-                }
-                return {width, height};
+        using layout_type = planet::ui::layout<
+                std::array<planet::ui::element<void>, item_count>>;
+        using constrained_type = typename layout_type::constrained_type;
+        layout_type elements;
+
+        auto reflow(constrained_type const &constraint) {
+            auto const space = constraint.extents();
+            float const unused = space.width - (item_count - 1) * padding;
+            float const item_width = unused / item_count;
+            float left = 0, max_height = {};
+            auto const sizes = item_sizes(items, {item_width, space.height});
+            for (std::size_t index{}; auto &element : elements) {
+                element.position = {{left, {}}, sizes[index]};
+                left += sizes[index].width + padding;
+                max_height = std::max(max_height, sizes[index].height);
+                ++index;
             }
+            return affine::extents2d{left - padding, max_height};
+        }
+
+        affine::extents2d extents(affine::extents2d const outer) {
+            return reflow(constrained_type{outer});
         }
 
         template<typename Target>
         void draw_within(Target &t, affine::rectangle2d const outer) {
+            extents(outer.extents);
             return draw_within(
-                    t, outer, std::make_index_sequence<sizeof...(Pack)>{});
+                    t, outer.top_left,
+                    std::make_index_sequence<sizeof...(Pack)>{});
         }
 
       private:
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
-                affine::rectangle2d const outer,
+                affine::point2d const offset,
                 std::index_sequence<I...>) {
-            float left = outer.left();
-            ((left += draw_item(t, std::get<I>(items), outer, left) + padding),
-             ...);
+            (draw_item(t, std::get<I>(items), offset, I), ...);
         }
         template<typename Target, typename Item>
-        float draw_item(
+        void draw_item(
                 Target &t,
                 Item &item,
-                affine::rectangle2d const within,
-                float const left) {
-            auto const ex = item.extents(within.extents);
-            auto const height = ex.height;
-            auto const top = within.top(), right = within.right();
+                affine::point2d const offset,
+                std::size_t index) {
             item.draw_within(
-                    t, {{left, top}, affine::point2d{right, top + height}});
-            return ex.width;
+                    t,
+                    {offset + elements[index].position->top_left,
+                     elements[index].position->extents});
         }
     };
 
