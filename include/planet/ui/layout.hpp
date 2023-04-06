@@ -11,7 +11,7 @@ namespace planet::ui {
 
     /// ## A layout
     template<typename C>
-    class layout {
+    class layout final {
         C elements;
 
       public:
@@ -30,7 +30,7 @@ namespace planet::ui {
         auto end() noexcept { return elements.end(); }
         auto &back() noexcept { return elements.back(); }
 
-        element_type &operator[](std::size_t index) { return elements[index]; }
+        element_type &operator[](std::size_t index) { return elements.at(index); }
 
         std::optional<constrained_type> laid_out_in;
         std::optional<affine::extents2d> size;

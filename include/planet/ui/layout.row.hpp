@@ -50,7 +50,7 @@ namespace planet::ui {
         }
     };
     template<typename... Pack>
-    struct row<std::tuple<Pack...>> {
+    struct row<std::tuple<Pack...>> final {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
         static constexpr std::size_t item_count =

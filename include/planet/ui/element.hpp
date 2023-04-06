@@ -26,7 +26,7 @@ namespace planet::ui {
     };
 
     template<typename E, typename T>
-    struct element : public element<void, T> {
+    struct element final : public element<void, T> {
         using element<void, T>::element;
 
         using value_type = E;
