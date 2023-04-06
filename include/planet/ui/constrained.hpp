@@ -77,8 +77,14 @@ namespace planet::ui {
         constrained2d() noexcept {}
         constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
-        explicit constrained2d(affine::extents2d ex) noexcept
+        explicit constrained2d(affine::extents2d const ex) noexcept
         : width{ex.width, {}, ex.width}, height{ex.height, {}, ex.height} {}
+        constrained2d(
+                affine::extents2d const ex,
+                affine::extents2d const min,
+                affine::extents2d const max)
+        : width(ex.width, min.width, max.width),
+          height{ex.height, min.height, max.height} {}
 
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};

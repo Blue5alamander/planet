@@ -2,6 +2,7 @@
 
 
 #include <planet/affine/extents2d.hpp>
+#include <planet/ui/constrained.hpp>
 
 
 namespace planet::ui {
@@ -25,6 +26,8 @@ namespace planet::ui {
     /// Calculate a new extent based on a scaling characteristic
     affine::extents2d
             scaling(affine::extents2d size, affine::extents2d bounds, scale);
+    constrained2d<float>
+            scaling(affine::extents2d size, constrained2d<float> bounds, scale);
 
 
 }
