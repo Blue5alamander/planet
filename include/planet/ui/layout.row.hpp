@@ -74,7 +74,8 @@ namespace planet::ui {
             float const unused = space.width - (item_count - 1) * padding;
             float const item_width = unused / item_count;
             float left = 0, max_height = {};
-            auto const sizes = item_sizes(items, {item_width, space.height});
+            auto const sizes = item_sizes(
+                    items, affine::extents2d{item_width, space.height});
             for (std::size_t index{}; auto &element : elements) {
                 element.position = {{left, {}}, sizes[index]};
                 left += sizes[index].width + padding;

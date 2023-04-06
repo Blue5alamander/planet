@@ -26,28 +26,35 @@ namespace planet::ui {
     inline auto reflow(W &widget, constrained2d<T> const &constraint) {
         return widget.extents(constraint.extents());
     }
+    template<typename W>
+    inline auto reflow(W &widget, affine::extents2d const &ex) {
+        return reflow(widget, constrained2d<float>(ex));
+    }
     template<reflowable W>
     inline auto
             reflow(W &widget, typename W::constrained_type const &constraint) {
         return widget.reflow(constraint);
     }
+    template<reflowable W>
+    inline auto reflow(W &widget, affine::extents2d const &ex) {
+        return widget.reflow(typename W::constrained_type{ex});
+    }
 
 
     /// ## Helpers for tuples
     namespace detail {
-        template<typename... Pack, std::size_t... I>
+        template<typename... Pack, std::size_t... I, typename Ex>
         inline auto item_sizes_helper(
                 std::tuple<Pack...> &items,
-                [[maybe_unused]] affine::extents2d const outer,
+                [[maybe_unused]] Ex const &outer,
                 std::index_sequence<I...>) {
             return std::array<affine::extents2d, sizeof...(Pack)>{
-                    std::get<I>(items).extents(outer)...,
+                    reflow(std::get<I>(items), outer)...,
             };
         }
     }
-    template<typename... Pack, std::size_t... I>
-    inline auto item_sizes(
-            std::tuple<Pack...> &items, affine::extents2d const outer) {
+    template<typename... Pack, std::size_t... I, typename Ex>
+    inline auto item_sizes(std::tuple<Pack...> &items, Ex const &outer) {
         return detail::item_sizes_helper(
                 items, outer, std::make_index_sequence<sizeof...(Pack)>{});
     }
