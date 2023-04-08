@@ -75,6 +75,9 @@ namespace planet {
                 return viewport.outof(p);
             }
         }
+        /// Provide access to the matrices
+        auto into() const noexcept { return viewport.into(); }
+        auto outof() const noexcept { return viewport.outof(); }
 
         /// #### Transformations of the local co-ordinate space
         panel &reflect_y() {
