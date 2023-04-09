@@ -36,10 +36,12 @@ namespace planet::camera {
         /// ### Targets
         planet::affine::point2d target_looking_at{{}, {}};
         float target_scale{1};
+        float target_rotation{};
 
       private:
         planet::affine::point2d current_looking_at = target_looking_at;
         float current_scale = target_scale;
+        float current_rotation = target_rotation;
     };
 
 
