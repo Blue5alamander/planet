@@ -27,8 +27,10 @@ namespace planet::camera {
          * Should be run in a task manager, e.g.:
          * ```cpp
          * felspar::coro::starter<> tasks;
-         * tasks.post(camera, &planet::camera::orthogonal_birdseye::updates,
-         * std::ref(warden));
+         * tasks.post(
+         *      camera,
+         *      &planet::camera::orthogonal_birdseye::updates,
+         *      std::ref(warden));
          * ```
          */
         felspar::coro::task<void> updates(felspar::io::warden &warden);
