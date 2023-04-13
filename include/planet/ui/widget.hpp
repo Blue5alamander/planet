@@ -12,6 +12,14 @@ namespace planet::ui {
         felspar::coro::eager<> response;
 
       public:
+        widget() = default;
+        widget(widget const &) = delete;
+        widget(widget &&) = default;
+        virtual ~widget() = default;
+
+        widget &operator=(widget const &) = delete;
+        widget &operator=(widget &&) = default;
+
         void add_to(planet::panel &parent) {
             parent.add_child(panel);
             response.post(*this, &widget::behaviour);
