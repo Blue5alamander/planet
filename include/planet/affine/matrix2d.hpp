@@ -62,6 +62,9 @@ namespace planet::affine {
         static constexpr matrix2d scale(float const factor) {
             return {factor, 0, 0, 0, factor, 0, 0, 0, 1};
         }
+        static constexpr matrix2d scale(float const x, float const y) {
+            return {x, 0, 0, 0, y, 0, 0, 0, 1};
+        }
         static constexpr matrix2d rotate(float const turns) {
             float const r = turns * τ;
             return {std::cos(r),

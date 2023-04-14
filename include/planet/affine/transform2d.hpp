@@ -24,6 +24,11 @@ namespace planet::affine {
             out = out * matrix2d::scale(1.0f / factor);
             return *this;
         }
+        transform2d &scale(float const x, float const y) {
+            in = matrix2d::scale(x, y) * in;
+            out = out * matrix2d::scale(1.0f / x, 1.0f / y);
+            return *this;
+        }
         /// ### Translate by the provided amount
         transform2d &translate(point2d const by) {
             in = matrix2d::translate(by) * in;
