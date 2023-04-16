@@ -3,6 +3,7 @@
 
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
+#include <planet/ui/layout.hpp>
 
 
 namespace planet::ui {
@@ -21,30 +22,53 @@ namespace planet::ui {
         explicit column(collection_type c, float const p = {})
         : items{std::move(c)}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            float max_width = {}, height = {};
-            for (auto &item : items) {
-                auto const ex = item.extents(outer);
-                max_width = std::max(max_width, ex.width);
-                if (height) { height += padding; }
-                height += ex.height;
+        using layout_type = planet::ui::layout_for<C>;
+        using constrained_type = typename layout_type::constrained_type;
+        layout_type elements;
+
+        constrained_type reflow(constrained_type const &constraint) {
+            /// TODO Use constrained type when calculating the `item_sizes` and
+            /// also when returning the constriant value
+            if (items.empty()) {
+                elements.extents = affine::extents2d{{}, {}};
+                return {};
+            } else {
+                auto const space = constraint.extents();
+                float const unused =
+                        space.height - (items.size() - 1) * padding;
+                float const item_height = unused / items.size();
+                float top = {}, max_width = {};
+                affine::extents2d const row_space{space.width, item_height};
+                elements.resize_to(std::span{items});
+                for (std::size_t index{}; auto &item : items) {
+                    affine::extents2d const item_ex =
+                            ui::reflow(item, row_space);
+                    elements.at(index).size = constrained_type{item_ex};
+                    elements.at(index).position = {{{}, top}, item_ex};
+                    top += item_ex.height + padding;
+                    max_width = std::max(max_width, item_ex.width);
+                    ++index;
+                }
+                elements.extents = {max_width, top - padding};
+                return constrained_type{*elements.extents};
             }
-            return {max_width, height};
+        }
+
+        affine::extents2d extents(affine::extents2d const outer) {
+            return reflow(constrained_type{outer}).extents();
         }
 
         template<typename Target>
         auto draw_within(Target &t, affine::rectangle2d const outer) {
-            auto const width = extents(outer.extents).width;
-            float top = {};
-            for (auto &item : items) {
-                affine::extents2d const remaining = {
-                        width, outer.bottom() - top};
-                auto const ex = item.extents(remaining);
-                item.draw_within(
-                        t,
-                        {outer.top_left + affine::point2d{0, top}, remaining});
-                if (top) { top += padding; }
-                top += ex.height;
+            /// TODO Should use dirty handling
+            reflow(constrained_type{outer.extents});
+            for (std::size_t index{}; auto &item : items) {
+                if (index < elements.size() and elements.at(index).position) {
+                    auto const &pos = *elements.at(index).position;
+                    item.draw_within(
+                            t, {outer.top_left + pos.top_left, pos.extents});
+                }
+                ++index;
             }
         }
     };
