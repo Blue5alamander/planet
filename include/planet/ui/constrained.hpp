@@ -68,11 +68,9 @@ namespace planet::ui {
 
     /// ## Constrained area
     template<typename T>
-    class constrained2d {
-        constrained1d<T> width, height;
-
-      public:
+    struct constrained2d {
         using value_type = T;
+        constrained1d<value_type> width, height;
 
         constrained2d() noexcept {}
         constrained2d(value_type w, value_type h) noexcept
