@@ -10,7 +10,9 @@ planet::panel::panel() { feeder.post(*this, &panel::feed_children); }
 planet::panel::panel(panel &&p, felspar::source_location const &loc) : panel{} {
     if (p.parent or not p.children.empty()) {
         throw felspar::stdexcept::logic_error{
-                "A panel cannot be moved once it is in the hierarchy", loc};
+                "A panel cannot be moved in memory (std::move) once it is in "
+                "the hierarchy",
+                loc};
     }
     viewport = p.viewport;
 }
