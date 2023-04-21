@@ -32,6 +32,9 @@ namespace planet::affine {
             return contains(r.top_left) and contains(r.bottom_right());
         }
 
+        friend bool operator==(rectangle2d const &l, rectangle2d const &r) =
+                default;
+
         /// ### Move the rectangle
         friend rectangle2d operator+(rectangle2d const r, point2d const p) {
             return {r.top_left + p, r.extents};

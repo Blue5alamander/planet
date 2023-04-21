@@ -28,6 +28,8 @@ namespace planet::affine {
             return width <= r.width and height <= r.height;
         }
 
+        friend bool operator==(extents2d const &, extents2d const &) = default;
+
         /// Scaling with a scalar
         friend constexpr extents2d
                 operator*(extents2d const e, float const f) noexcept {
