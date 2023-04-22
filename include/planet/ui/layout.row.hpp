@@ -116,8 +116,8 @@ namespace planet::ui {
                 std::size_t index) {
             item.draw_within(
                     t,
-                    {offset + elements[index].position->top_left,
-                     elements[index].position->extents});
+                    {offset + elements.at(index).position->top_left,
+                     elements.at(index).position->extents});
         }
     };
 
