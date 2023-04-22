@@ -10,7 +10,7 @@ namespace {
 
 
     auto const h1 = suite.test("hierarchy 1", [](auto check) {
-        planet::panel p, pc;
+        planet::ui::panel p, pc;
         planet::events::click c{};
 
         p.add_child(pc, {3, 4}, {5, 6});
@@ -31,13 +31,13 @@ namespace {
         check(click.y()) == 2;
     });
     auto const h2 = suite.test("hierarchy 2", [](auto check) {
-        planet::panel p1, p3;
+        planet::ui::panel p1, p3;
         planet::events::click c{};
 
         check(p1.clicks.latest()).is_falsey();
         check(p3.clicks.latest()).is_falsey();
         {
-            planet::panel p2;
+            planet::ui::panel p2;
             check(p2.clicks.latest()).is_falsey();
             p1.add_child(p2, {3, 4}, {15, 16});
             p2.add_child(p3, {1, 2}, {8, 9});

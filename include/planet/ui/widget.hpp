@@ -20,7 +20,7 @@ namespace planet::ui {
         widget &operator=(widget const &) = delete;
         widget &operator=(widget &&) = default;
 
-        void add_to(planet::panel &parent) {
+        void add_to(ui::panel &parent) {
             parent.add_child(panel);
             response.post(*this, &widget::behaviour);
             visible = true;
@@ -31,7 +31,7 @@ namespace planet::ui {
         }
 
       protected:
-        planet::panel panel;
+        ui::panel panel;
         bool visible = false;
 
         virtual felspar::coro::task<void> behaviour() = 0;

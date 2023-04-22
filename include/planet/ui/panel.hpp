@@ -8,7 +8,7 @@
 #include <felspar/coro/eager.hpp>
 
 
-namespace planet {
+namespace planet::ui {
 
 
     /// ## Co-ordinate transform hierarchy co-ordinate spaces
