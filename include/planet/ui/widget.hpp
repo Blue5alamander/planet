@@ -42,9 +42,11 @@ namespace planet::ui {
         }
 
         /// ### Check if a point in screen space is within the widget
-        bool is_within(affine::point2d const &p) { return panel.contains(p); }
+        virtual bool is_within(affine::point2d const &p) const {
+            return panel.contains(p);
+        }
         /// ### Return true if this widget can take focus
-        virtual bool wants_focus() { return visible; }
+        virtual bool wants_focus() const { return visible; }
 
       protected:
         ui::panel panel;

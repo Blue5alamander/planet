@@ -51,9 +51,12 @@ namespace planet::ui {
         events::bus events;
 
         /// ### Register and remove widgets from event routing
-        baseplate &add(widget<Renderer> *const w, float const z) {
+        baseplate &add(widget<Renderer> *const w, float const z = {}) {
             widgets.push_back({w, z});
             return *this;
+        }
+        baseplate &add(widget<Renderer> &w, float const z = {}) {
+            return add(&w, z);
         }
         void remove(widget<Renderer> *const w) {
             if (hard_focus and hard_focus->ptr == w) { hard_focus = nullptr; }

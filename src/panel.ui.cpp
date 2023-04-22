@@ -4,9 +4,6 @@
 /// ## `panel::ui::panel`
 
 
-planet::ui::panel::panel() { feeder.post(*this, &panel::feed_children); }
-
-
 planet::ui::panel::panel(panel &&p, felspar::source_location const &loc)
 : panel{} {
     if (p.parent or not p.children.empty()) {
@@ -35,34 +32,6 @@ bool planet::ui::panel::contains(affine::point2d const &pos) const {
         }
     }
     return false;
-}
-
-
-felspar::coro::task<void> planet::ui::panel::feed_children() {
-    while (true) {
-        auto click = co_await clicks.next();
-        /**
-         * We really only want to send the click to a single child of this
-         * panel. Because we don't have Z heights or any other hierarchy at this
-         * level we look for the smallest child that the mouse click is within
-         * and send to that.
-         */
-        child *send_to = nullptr;
-        for (auto &c : children) {
-            if (c.area) {
-                if (c.area->contains(click.location)) {
-                    if (not send_to or send_to->area->contains(*c.area)) {
-                        send_to = &c;
-                    }
-                }
-            }
-        }
-        if (send_to) {
-            auto transformed{click};
-            transformed.location = send_to->sub->viewport.outof(click.location);
-            send_to->sub->clicks.push(transformed);
-        }
-    }
 }
 
 
