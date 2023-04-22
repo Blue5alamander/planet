@@ -25,6 +25,19 @@ planet::ui::panel::~panel() {
 }
 
 
+bool planet::ui::panel::contains(affine::point2d const &pos) const {
+    if (parent) {
+        for (auto &c : parent->children) {
+            if (c.sub == this and c.area) {
+                auto const parent_space = parent->viewport.into(pos);
+                return c.area->contains(parent_space);
+            }
+        }
+    }
+    return false;
+}
+
+
 felspar::coro::task<void> planet::ui::panel::feed_children() {
     while (true) {
         auto click = co_await clicks.next();
