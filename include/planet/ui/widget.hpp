@@ -31,7 +31,7 @@ namespace planet::ui {
         events::bus events;
 
         /// ### Add a widget to a base plate so it can receive events
-        void
+        virtual void
                 add_to(ui::baseplate<Renderer> &,
                        ui::panel &parent,
                        float z_layer = {});
