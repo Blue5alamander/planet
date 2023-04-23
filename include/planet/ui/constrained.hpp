@@ -40,6 +40,10 @@ namespace planet::ui {
         value_type min() const noexcept { return m_min; }
         value_type max() const noexcept { return m_max; }
 
+        value_type desire(value_type const m) {
+            m_desired = m;
+            return constrain();
+        }
         value_type min(value_type const m) {
             m_min = m;
             return constrain();
@@ -70,10 +74,14 @@ namespace planet::ui {
     template<typename T>
     struct constrained2d {
         using value_type = T;
-        constrained1d<value_type> width, height;
+        using axis_contrained_type = constrained1d<value_type>;
+        axis_contrained_type width, height;
 
         constrained2d() noexcept {}
         constrained2d(value_type w, value_type h) noexcept
+        : width{w}, height{h} {}
+        constrained2d(
+                axis_contrained_type const &w, axis_contrained_type const &h)
         : width{w}, height{h} {}
         explicit constrained2d(affine::extents2d const ex) noexcept
         : width{ex.width, {}, ex.width}, height{ex.height, {}, ex.height} {}
@@ -84,6 +92,9 @@ namespace planet::ui {
         : width(ex.width, min.width, max.width),
           height{ex.height, min.height, max.height} {}
 
+        affine::point2d position() const noexcept {
+            return {width.value(), height.value()};
+        }
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};
         }
@@ -92,6 +103,10 @@ namespace planet::ui {
         }
         affine::extents2d max() const noexcept {
             return {width.max(), height.max()};
+        }
+
+        affine::point2d desire(affine::point2d const &p) noexcept {
+            return {width.desire(p.x()), height.desire(p.y())};
         }
 
         bool is_at_least_as_constrained_as(constrained2d const &o) const {
