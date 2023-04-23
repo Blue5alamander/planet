@@ -30,10 +30,11 @@ namespace planet::ui {
       public:
         using value_type = T;
 
-        constrained1d() noexcept {}
-        explicit constrained1d(value_type t, value_type min = {})
+        constexpr constrained1d() noexcept {}
+        explicit constexpr constrained1d(value_type t, value_type min = {})
         : m_value{t}, m_desired{t}, m_min{min} {}
-        constrained1d(value_type t, value_type min, value_type max) noexcept
+        constexpr constrained1d(
+                value_type t, value_type min, value_type max) noexcept
         : m_value{t}, m_desired{t}, m_min{min}, m_max{max} {}
 
         value_type value() const noexcept { return m_value; }
@@ -77,15 +78,15 @@ namespace planet::ui {
         using axis_contrained_type = constrained1d<value_type>;
         axis_contrained_type width, height;
 
-        constrained2d() noexcept {}
-        constrained2d(value_type w, value_type h) noexcept
+        constexpr constrained2d() noexcept {}
+        constexpr constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
-        constrained2d(
+        constexpr constrained2d(
                 axis_contrained_type const &w, axis_contrained_type const &h)
         : width{w}, height{h} {}
-        explicit constrained2d(affine::extents2d const ex) noexcept
+        explicit constexpr constrained2d(affine::extents2d const ex) noexcept
         : width{ex.width, {}, ex.width}, height{ex.height, {}, ex.height} {}
-        constrained2d(
+        constexpr constrained2d(
                 affine::extents2d const ex,
                 affine::extents2d const min,
                 affine::extents2d const max)
