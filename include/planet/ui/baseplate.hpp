@@ -64,6 +64,19 @@ namespace planet::ui {
             std::erase_if(widgets, [&](auto const &i) { return i.ptr == w; });
         }
 
+        /// Set and remove hard focus
+        void hard_focus_on(widget<Renderer> *const wp) {
+            for (auto &w : widgets) {
+                if (w.ptr == wp) {
+                    hard_focus = &w;
+                    return;
+                }
+            }
+        }
+        void hard_focus_off(widget<Renderer> *const w) {
+            if (hard_focus->ptr == w) { hard_focus = nullptr; }
+        }
+
         /// ### Does this widget have focus
         bool has_focus(widget<Renderer> const *const wp) const noexcept {
             auto const *f = find_focused_widget();
