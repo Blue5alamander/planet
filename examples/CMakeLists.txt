@@ -3,7 +3,7 @@ if(TARGET planet-examples)
     target_link_libraries(cmd-client planet)
 
     add_executable(oggplayer oggplayer.cpp)
-    target_link_libraries(oggplayer planet)
+    target_link_libraries(oggplayer planet ogg opus)
 
     add_executable(snake snake.cpp)
     target_link_libraries(snake planet)
