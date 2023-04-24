@@ -11,7 +11,8 @@
 namespace planet {
 
 
-    /// Super class for an asset loader. Create a sub-class of this to load assets
+    /// ## Super class for an asset loader
+    /// Create a sub-class of this to load assets
     struct asset_loader {
         asset_loader();
         virtual ~asset_loader();
@@ -23,12 +24,9 @@ namespace planet {
     };
 
 
-    /// A file loader
+    /// ## A file loader
     class file_loader final : public planet::asset_loader {
         std::filesystem::path base;
-
-        std::vector<std::byte>
-                file_data(std::filesystem::path const &pathname) const;
 
       public:
         explicit file_loader(std::filesystem::path);
@@ -41,10 +39,14 @@ namespace planet {
 
         /// The paths that are to be searched for assets
         felspar::coro::generator<std::filesystem::path> search_paths() const;
+
+        /// ### Load a file into memory
+        static std::vector<std::byte>
+                file_data(std::filesystem::path const &pathname);
     };
 
 
-    /// Find paths for asset files
+    /// ## Find paths for asset files
     class asset_manager final {
         file_loader exe_directory;
 
