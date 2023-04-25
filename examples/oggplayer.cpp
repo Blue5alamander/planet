@@ -17,7 +17,6 @@ int main(int const argc, char const *const argv[]) {
         ogg_sync_state oss{};
         ogg_sync_init(&oss); // Always works
 
-
         std::byte *const buffer = reinterpret_cast<std::byte *>(
                 ogg_sync_buffer(&oss, ogg.size()));
         std::copy(ogg.begin(), ogg.end(), buffer);
@@ -35,18 +34,17 @@ int main(int const argc, char const *const argv[]) {
             if (not streams.contains(serialno)) {
                 ogg_stream_init(&streams[serialno], serialno);
             }
-            std::cout << "page in "
-                      << ogg_stream_pagein(&streams[serialno], &op)
-                      << '\n'; // Check for failure
+            ogg_stream_pagein(&streams[serialno], &op); // Check for failure
 
             ogg_packet packet = {};
             int pread = ogg_stream_packetout(&streams[serialno], &packet);
-            std::cout << "stream: " << serialno << " packet: " << pread << ' '
+
+            std::cout << "stream: " << serialno
+                      << " ogg_stream_packetout: " << pread << ' '
+                      << " number: " << packet.packetno << ' '
                       << felspar::memory::hexdump(std::span{
                                  packet.packet,
                                  static_cast<std::size_t>(packet.bytes)});
-
-            break;
         }
 
         return 0;
