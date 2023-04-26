@@ -22,27 +22,30 @@ namespace {
         felspar::coro::generator<vorbis_packet>
                 vorbis_packets(std::vector<std::byte> ogg) {
             ogg_sync_init(&sync); // Always works
+            vorbis_info_init(&vi);
+            vorbis_comment_init(&vc);
 
             std::byte *const buffer = reinterpret_cast<std::byte *>(
                     ogg_sync_buffer(&sync, ogg.size()));
             std::copy(ogg.begin(), ogg.end(), buffer);
-            ogg_sync_wrote(&sync, ogg.size());
+            if (ogg_sync_wrote(&sync, ogg.size()) == -1) {
+                throw std::runtime_error{"ogg_sync_wrote failed"};
+            }
 
             std::optional<int> streamid;
-
             ogg_page op;
             while (ogg_sync_pageout(&sync, &op) == 1) {
                 int serialno = ogg_page_serialno(&op);
                 if (not streamid) {
                     streamid = serialno;
                     ogg_stream_init(&stream, serialno);
-                    vorbis_info_init(&vi);
-                    vorbis_comment_init(&vc);
                 }
                 if (serialno == streamid) {
-                    ogg_stream_pagein(&stream, &op); // Check for failure
+                    if (ogg_stream_pagein(&stream, &op) == -1) {
+                        throw std::runtime_error{"ogg_stream_pagein failed"};
+                    }
 
-                    ogg_packet packet = {};
+                    ogg_packet packet;
                     ogg_stream_packetout(&stream, &packet);
 
                     co_yield {serialno, packet};
@@ -98,7 +101,7 @@ int main(int const argc, char const *const argv[]) {
             }
         }
 
-        std::cout << "Samples produces: " << sample_length << " ("
+        std::cout << "Samples produced: " << sample_length << " ("
                   << (sample_length / decoder.vi.rate) << "s)\n";
 
         vorbis_block_clear(&vb);
