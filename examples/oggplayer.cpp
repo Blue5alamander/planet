@@ -10,20 +10,24 @@
 
 namespace {
     struct decoder {
-        struct vorbis_packet {
-            int serialno;
-            ogg_packet &packet;
-        };
         vorbis_info vi;
         vorbis_comment vc;
-        ogg_stream_state stream;
         ogg_sync_state sync;
+        ogg_stream_state stream;
 
-        felspar::coro::generator<vorbis_packet>
+        felspar::coro::generator<ogg_packet>
                 vorbis_packets(std::vector<std::byte> ogg) {
+            std::cout << "Decoding file size " << ogg.size() << " bytes\n";
+
             ogg_sync_init(&sync); // Always works
             vorbis_info_init(&vi);
             vorbis_comment_init(&vc);
+
+            ogg_page op;
+            if (ogg_sync_pageout(&sync, &op) != 0) {
+                throw std::runtime_error{
+                        "ogg_sync_pageout not requesting data"};
+            }
 
             std::byte *const buffer = reinterpret_cast<std::byte *>(
                     ogg_sync_buffer(&sync, ogg.size()));
@@ -33,7 +37,6 @@ namespace {
             }
 
             std::optional<int> streamid;
-            ogg_page op;
             while (ogg_sync_pageout(&sync, &op) == 1) {
                 int serialno = ogg_page_serialno(&op);
                 if (not streamid) {
@@ -47,10 +50,10 @@ namespace {
 
                     ogg_packet packet;
                     ogg_stream_packetout(&stream, &packet);
-
-                    co_yield {serialno, packet};
+                    co_yield packet;
                 }
             }
+            std::cout << "No more packets\n";
         }
     };
 }
@@ -67,7 +70,7 @@ int main(int const argc, char const *const argv[]) {
 
         for (std::size_t expected{3}; expected; --expected) {
             auto vip = packets.next();
-            if (vorbis_synthesis_headerin(&decoder.vi, &decoder.vc, &vip->packet)
+            if (vorbis_synthesis_headerin(&decoder.vi, &decoder.vc, &*vip)
                 < 0) {
                 throw std::runtime_error{"Not Vorbis audio data"};
             }
@@ -82,9 +85,10 @@ int main(int const argc, char const *const argv[]) {
         vorbis_block_init(&vd, &vb);
 
         std::size_t sample_length{};
+        std::size_t packet_count{};
 
-        for (auto &&vp : packets) {
-            if (vorbis_synthesis(&vb, &vp.packet) == 0) {
+        for (auto &&packet : packets) {
+            if (vorbis_synthesis(&vb, &packet) == 0) {
                 vorbis_synthesis_blockin(&vd, &vb);
             } else {
                 throw std::runtime_error{"vorbis_synthesis failed"};
@@ -99,10 +103,12 @@ int main(int const argc, char const *const argv[]) {
                 vorbis_synthesis_read(&vd, samples);
                 sample_length += samples;
             }
+            ++packet_count;
         }
 
         std::cout << "Samples produced: " << sample_length << " ("
-                  << (sample_length / decoder.vi.rate) << "s)\n";
+                  << (sample_length / decoder.vi.rate) << "s) over "
+                  << packet_count << " ogg packets\n";
 
         vorbis_block_clear(&vb);
         vorbis_dsp_clear(&vd);
