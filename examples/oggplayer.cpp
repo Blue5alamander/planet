@@ -49,8 +49,9 @@ namespace {
                     }
 
                     ogg_packet packet;
-                    ogg_stream_packetout(&stream, &packet);
-                    co_yield packet;
+                    while (ogg_stream_packetout(&stream, &packet) == 1) {
+                        co_yield packet;
+                    }
                 }
             }
             std::cout << "No more packets\n";
