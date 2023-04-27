@@ -19,16 +19,32 @@ using namespace planet::audio::literals;
 
 namespace {
     struct decoder {
-        vorbis_info vi;
-        vorbis_comment vc;
-        ogg_sync_state sync;
-        ogg_stream_state stream;
-
-        felspar::coro::generator<ogg_packet>
-                vorbis_packets(std::vector<std::byte> ogg) {
-            ogg_sync_init(&sync); // Always works
+        decoder(std::vector<std::byte> o)
+        : ogg{std::move(o)}, packets{vorbis_packets()} {
             vorbis_info_init(&vi);
             vorbis_comment_init(&vc);
+            for (std::size_t expected{3}; expected; --expected) {
+                auto vip = packets.next();
+                if (vorbis_synthesis_headerin(&vi, &vc, &*vip) < 0) {
+                    throw std::runtime_error{"Not Vorbis audio data"};
+                }
+            }
+        }
+        ~decoder() {
+            vorbis_comment_clear(&vc);
+            vorbis_info_clear(&vi);
+        }
+
+        std::vector<std::byte> ogg;
+        felspar::coro::generator<ogg_packet> packets;
+
+        vorbis_info vi;
+        vorbis_comment vc;
+
+        felspar::coro::generator<ogg_packet> vorbis_packets() {
+            ogg_sync_state sync;
+            ogg_stream_state stream;
+            ogg_sync_init(&sync); // Always works
 
             ogg_page op;
             if (ogg_sync_pageout(&sync, &op) != 0) {
@@ -61,19 +77,13 @@ namespace {
                     }
                 }
             }
+            ogg_stream_clear(&stream);
+            ogg_sync_clear(&sync);
         }
 
         felspar::coro::generator<
                 planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
-                stereo(std::vector<std::byte> ogg) {
-            auto packets = vorbis_packets(std::move(ogg));
-            for (std::size_t expected{3}; expected; --expected) {
-                auto vip = packets.next();
-                if (vorbis_synthesis_headerin(&vi, &vc, &*vip) < 0) {
-                    throw std::runtime_error{"Not Vorbis audio data"};
-                }
-            }
-
+                stereo() {
             vorbis_dsp_state vd;
             vorbis_synthesis_init(&vd, &vi);
             vorbis_block vb;
@@ -101,10 +111,6 @@ namespace {
 
             vorbis_block_clear(&vb);
             vorbis_dsp_clear(&vd);
-            ogg_stream_clear(&stream);
-            vorbis_comment_clear(&vc);
-            vorbis_info_clear(&vi);
-            ogg_sync_clear(&sync);
 
             co_return;
         }
@@ -130,10 +136,8 @@ int main(int const argc, char const *const argv[]) {
         snd_pcm_hw_params_set_rate(pcm, hw, 44100, 0);
         snd_pcm_hw_params(pcm, hw);
 
-        ::decoder decoder;
-        for (auto block : planet::audio::gain(
-                     -6_dB,
-                     decoder.stereo(planet::file_loader::file_data(argv[1])))) {
+        ::decoder decoder{planet::file_loader::file_data(argv[1])};
+        for (auto block : planet::audio::gain(-6_dB, decoder.stereo())) {
             snd_pcm_writei(pcm, block.data(), block.samples());
         }
 
