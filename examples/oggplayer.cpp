@@ -17,8 +17,6 @@ namespace {
 
         felspar::coro::generator<ogg_packet>
                 vorbis_packets(std::vector<std::byte> ogg) {
-            std::cout << "Decoding file size " << ogg.size() << " bytes\n";
-
             ogg_sync_init(&sync); // Always works
             vorbis_info_init(&vi);
             vorbis_comment_init(&vc);
@@ -54,7 +52,6 @@ namespace {
                     }
                 }
             }
-            std::cout << "No more packets\n";
         }
     };
 }
