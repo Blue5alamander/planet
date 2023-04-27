@@ -1,11 +1,20 @@
 #include <planet/asset_manager.hpp>
+#include <planet/audio.hpp>
 
 #include <felspar/memory/hexdump.hpp>
 
+extern "C" {
+#include <alsa/asoundlib.h>
+#include <alsa/pcm.h>
+}
 #include <vorbis/codec.h>
 
 #include <iostream>
 #include <map>
+
+
+using namespace std::literals;
+using namespace planet::audio::literals;
 
 
 namespace {
@@ -53,67 +62,84 @@ namespace {
                 }
             }
         }
+
+        felspar::coro::generator<
+                planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+                stereo(std::vector<std::byte> ogg) {
+            auto packets = vorbis_packets(std::move(ogg));
+            for (std::size_t expected{3}; expected; --expected) {
+                auto vip = packets.next();
+                if (vorbis_synthesis_headerin(&vi, &vc, &*vip) < 0) {
+                    throw std::runtime_error{"Not Vorbis audio data"};
+                }
+            }
+
+            vorbis_dsp_state vd;
+            vorbis_synthesis_init(&vd, &vi);
+            vorbis_block vb;
+            vorbis_block_init(&vd, &vb);
+
+            for (auto &&packet : packets) {
+                if (vorbis_synthesis(&vb, &packet) == 0) {
+                    vorbis_synthesis_blockin(&vd, &vb);
+                } else {
+                    throw std::runtime_error{"vorbis_synthesis failed"};
+                }
+                float **pcm = nullptr;
+                while (int samples = vorbis_synthesis_pcmout(&vd, &pcm)) {
+                    planet::audio::buffer_storage<planet::audio::sample_clock, 2>
+                            buffer{static_cast<std::size_t>(samples)};
+                    for (std::size_t sample{}; sample < buffer.samples();
+                         ++sample) {
+                        buffer[sample][0] = pcm[0][sample];
+                        buffer[sample][1] = pcm[1][sample];
+                    }
+                    vorbis_synthesis_read(&vd, samples);
+                    co_yield std::move(buffer);
+                }
+            }
+
+            vorbis_block_clear(&vb);
+            vorbis_dsp_clear(&vd);
+            ogg_stream_clear(&stream);
+            vorbis_comment_clear(&vc);
+            vorbis_info_clear(&vi);
+            ogg_sync_clear(&sync);
+
+            co_return;
+        }
     };
 }
 
 
 int main(int const argc, char const *const argv[]) {
     std::cout << ".ogg file player\n";
+
     if (argc == 2) {
         std::cout << "Loading " << argv[1] << '\n';
 
+        snd_pcm_t *pcm = nullptr;
+        snd_pcm_hw_params_t *hw = nullptr;
+
+        snd_pcm_open(&pcm, "default", SND_PCM_STREAM_PLAYBACK, 0);
+        snd_pcm_hw_params_malloc(&hw);
+        snd_pcm_hw_params_any(pcm, hw);
+        snd_pcm_hw_params_set_access(pcm, hw, SND_PCM_ACCESS_RW_INTERLEAVED);
+        snd_pcm_hw_params_set_format(pcm, hw, SND_PCM_FORMAT_FLOAT);
+        snd_pcm_hw_params_set_channels(pcm, hw, 2);
+        snd_pcm_hw_params_set_rate(pcm, hw, 44100, 0);
+        snd_pcm_hw_params(pcm, hw);
+
         ::decoder decoder;
-        auto packets =
-                decoder.vorbis_packets(planet::file_loader::file_data(argv[1]));
-
-        for (std::size_t expected{3}; expected; --expected) {
-            auto vip = packets.next();
-            if (vorbis_synthesis_headerin(&decoder.vi, &decoder.vc, &*vip)
-                < 0) {
-                throw std::runtime_error{"Not Vorbis audio data"};
-            }
+        for (auto block : planet::audio::gain(
+                     -6_dB,
+                     decoder.stereo(planet::file_loader::file_data(argv[1])))) {
+            snd_pcm_writei(pcm, block.data(), block.samples());
         }
 
-        std::cout << "Bitstream is " << decoder.vi.channels << " channels at "
-                  << decoder.vi.rate << "Hz\n";
-
-        vorbis_dsp_state vd;
-        vorbis_synthesis_init(&vd, &decoder.vi);
-        vorbis_block vb;
-        vorbis_block_init(&vd, &vb);
-
-        std::size_t sample_length{};
-        std::size_t packet_count{};
-
-        for (auto &&packet : packets) {
-            if (vorbis_synthesis(&vb, &packet) == 0) {
-                vorbis_synthesis_blockin(&vd, &vb);
-            } else {
-                throw std::runtime_error{"vorbis_synthesis failed"};
-            }
-            float **pcm = nullptr;
-            while (int samples = vorbis_synthesis_pcmout(&vd, &pcm)) {
-                std::cout << "pcm: "
-                          << felspar::memory::hexdump(std::span{
-                                     reinterpret_cast<std::byte *>(pcm[0]),
-                                     static_cast<std::size_t>(
-                                             samples * sizeof(float))});
-                vorbis_synthesis_read(&vd, samples);
-                sample_length += samples;
-            }
-            ++packet_count;
-        }
-
-        std::cout << "Samples produced: " << sample_length << " ("
-                  << (sample_length / decoder.vi.rate) << "s) over "
-                  << packet_count << " ogg packets\n";
-
-        vorbis_block_clear(&vb);
-        vorbis_dsp_clear(&vd);
-        ogg_stream_clear(&decoder.stream);
-        vorbis_comment_clear(&decoder.vc);
-        vorbis_info_clear(&decoder.vi);
-        ogg_sync_clear(&decoder.sync);
+        snd_pcm_hw_params_free(hw);
+        snd_pcm_drain(pcm);
+        snd_pcm_close(pcm);
 
         return 0;
     } else {
