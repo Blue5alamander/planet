@@ -19,7 +19,7 @@ using namespace planet::audio::literals;
 
 namespace {
     struct decoder {
-        decoder(std::vector<std::byte> o)
+        explicit decoder(std::vector<std::byte> o)
         : ogg{std::move(o)}, packets{vorbis_packets()} {
             vorbis_info_init(&vi);
             vorbis_comment_init(&vc);
@@ -35,11 +35,54 @@ namespace {
             vorbis_info_clear(&vi);
         }
 
-        std::vector<std::byte> ogg;
-        felspar::coro::generator<ogg_packet> packets;
-
         vorbis_info vi;
         vorbis_comment vc;
+
+        felspar::coro::generator<
+                planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+                stereo() {
+            if (vi.channels != 2) {
+                throw std::runtime_error{"This ogg file is not stereo"};
+            } else if (vi.rate != planet::audio::sample_clock::period::den) {
+                throw std::runtime_error{
+                        "The sample rate is wrong. Should be 48kHz and is "
+                        + std::to_string(vi.rate) + "Hz"};
+            }
+
+            vorbis_dsp_state vd;
+            vorbis_synthesis_init(&vd, &vi);
+            vorbis_block vb;
+            vorbis_block_init(&vd, &vb);
+
+            for (auto &&packet : packets) {
+                if (vorbis_synthesis(&vb, &packet) == 0) {
+                    vorbis_synthesis_blockin(&vd, &vb);
+                } else {
+                    throw std::runtime_error{"vorbis_synthesis failed"};
+                }
+                float **pcm = nullptr;
+                while (int samples = vorbis_synthesis_pcmout(&vd, &pcm)) {
+                    planet::audio::buffer_storage<planet::audio::sample_clock, 2>
+                            buffer{static_cast<std::size_t>(samples)};
+                    for (std::size_t sample{}; sample < buffer.samples();
+                         ++sample) {
+                        buffer[sample][0] = pcm[0][sample];
+                        buffer[sample][1] = pcm[1][sample];
+                    }
+                    vorbis_synthesis_read(&vd, samples);
+                    co_yield std::move(buffer);
+                }
+            }
+
+            vorbis_block_clear(&vb);
+            vorbis_dsp_clear(&vd);
+
+            co_return;
+        }
+
+      private:
+        std::vector<std::byte> ogg;
+        felspar::coro::generator<ogg_packet> packets;
 
         felspar::coro::generator<ogg_packet> vorbis_packets() {
             ogg_sync_state sync;
@@ -80,40 +123,6 @@ namespace {
             ogg_stream_clear(&stream);
             ogg_sync_clear(&sync);
         }
-
-        felspar::coro::generator<
-                planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
-                stereo() {
-            vorbis_dsp_state vd;
-            vorbis_synthesis_init(&vd, &vi);
-            vorbis_block vb;
-            vorbis_block_init(&vd, &vb);
-
-            for (auto &&packet : packets) {
-                if (vorbis_synthesis(&vb, &packet) == 0) {
-                    vorbis_synthesis_blockin(&vd, &vb);
-                } else {
-                    throw std::runtime_error{"vorbis_synthesis failed"};
-                }
-                float **pcm = nullptr;
-                while (int samples = vorbis_synthesis_pcmout(&vd, &pcm)) {
-                    planet::audio::buffer_storage<planet::audio::sample_clock, 2>
-                            buffer{static_cast<std::size_t>(samples)};
-                    for (std::size_t sample{}; sample < buffer.samples();
-                         ++sample) {
-                        buffer[sample][0] = pcm[0][sample];
-                        buffer[sample][1] = pcm[1][sample];
-                    }
-                    vorbis_synthesis_read(&vd, samples);
-                    co_yield std::move(buffer);
-                }
-            }
-
-            vorbis_block_clear(&vb);
-            vorbis_dsp_clear(&vd);
-
-            co_return;
-        }
     };
 }
 
@@ -123,6 +132,7 @@ int main(int const argc, char const *const argv[]) {
 
     if (argc == 2) {
         std::cout << "Loading " << argv[1] << '\n';
+        ::decoder decoder{planet::file_loader::file_data(argv[1])};
 
         snd_pcm_t *pcm = nullptr;
         snd_pcm_hw_params_t *hw = nullptr;
@@ -133,10 +143,9 @@ int main(int const argc, char const *const argv[]) {
         snd_pcm_hw_params_set_access(pcm, hw, SND_PCM_ACCESS_RW_INTERLEAVED);
         snd_pcm_hw_params_set_format(pcm, hw, SND_PCM_FORMAT_FLOAT);
         snd_pcm_hw_params_set_channels(pcm, hw, 2);
-        snd_pcm_hw_params_set_rate(pcm, hw, 44100, 0);
+        snd_pcm_hw_params_set_rate(pcm, hw, decoder.vi.rate, 0);
         snd_pcm_hw_params(pcm, hw);
 
-        ::decoder decoder{planet::file_loader::file_data(argv[1])};
         for (auto block : planet::audio::gain(-6_dB, decoder.stereo())) {
             snd_pcm_writei(pcm, block.data(), block.samples());
         }
