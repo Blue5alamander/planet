@@ -17,4 +17,9 @@ add_library(planet
         stdin.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
-target_link_libraries(planet felspar-io felspar-parse)
+target_link_libraries(planet
+        felspar-io
+        felspar-parse
+        ogg
+        vorbis
+    )
