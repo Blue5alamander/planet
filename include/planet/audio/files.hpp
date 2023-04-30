@@ -1,8 +1,7 @@
 #pragma once
 
 
-#include <planet/audio/buffer.hpp>
-#include <planet/audio/clocks.hpp>
+#include <planet/audio/stereo.hpp>
 
 #include <felspar/coro/generator.hpp>
 
@@ -22,15 +21,13 @@ namespace planet::audio {
                 felspar::source_location const & =
                         felspar::source_location::current());
 
-        felspar::coro::generator<
-                planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
-                stereo();
+        felspar::coro::generator<stereo_buffer> stereo();
     };
 
 
     /// ## Load a WAV file
     class wav final {
-        buffer_storage<sample_clock, 2> samples;
+        stereo_buffer samples;
 
       public:
         explicit wav(std::span<std::byte const>);
@@ -42,7 +39,7 @@ namespace planet::audio {
         wav &operator=(wav &&) = delete;
 
         /// Produce output in small chunks up to the `default_buffer_duration`
-        felspar::coro::generator<buffer_storage<sample_clock, 2>> output();
+        felspar::coro::generator<stereo_buffer> output();
     };
 
 

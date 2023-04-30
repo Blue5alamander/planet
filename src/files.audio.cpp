@@ -1,5 +1,7 @@
 #include <planet/audio/files.hpp>
 
+#include <felspar/memory/accumulation_buffer.hpp>
+
 #include <vorbis/codec.h>
 
 
@@ -108,6 +110,9 @@ felspar::coro::generator<
     vorbis_block vb;
     vorbis_block_init(&vd, &vb);
 
+    felspar::memory::accumulation_buffer<float> output{
+        default_buffer_samples * 50};
+
     for (auto &&packet : packets) {
         if (vorbis_synthesis(&vb, &packet) == 0) {
             vorbis_synthesis_blockin(&vd, &vb);
@@ -116,22 +121,20 @@ felspar::coro::generator<
                     "vorbis_synthesis failed", loc};
         }
         float **pcm = nullptr;
-        while (int samples = vorbis_synthesis_pcmout(&vd, &pcm)) {
-            planet::audio::buffer_storage<planet::audio::sample_clock, 2> buffer{
-                    static_cast<std::size_t>(samples)};
-            for (std::size_t sample{}; sample < buffer.samples(); ++sample) {
-                buffer[sample][0] = pcm[0][sample];
-                buffer[sample][1] = pcm[1][sample];
+        while (int isamples = vorbis_synthesis_pcmout(&vd, &pcm)) {
+            auto const samples = static_cast<std::size_t>(isamples);
+            output.ensure_length(samples * stereo_buffer::channels);
+            for (std::size_t sample{}; sample < samples; ++sample) {
+                output.at(sample * stereo_buffer::channels + 0) = pcm[0][sample];
+                output.at(sample * stereo_buffer::channels + 1) = pcm[1][sample];
             }
             vorbis_synthesis_read(&vd, samples);
-            co_yield std::move(buffer);
+            co_yield output.first(samples * stereo_buffer::channels);
         }
     }
 
     vorbis_block_clear(&vb);
     vorbis_dsp_clear(&vd);
-
-    co_return;
 }
 
 
@@ -166,29 +169,22 @@ planet::audio::wav::wav(std::span<std::byte const> filedata)
       std::size_t const data_size = header[84] + (header[85] << 8)
               + (header[86] << 16) + (header[87] << 24);
 
-      std::span<float const> samples(
+      std::span<float const> sample_data(
               reinterpret_cast<float const *>(filedata.data() + 88),
               data_size / sizeof(float));
+      std::size_t const samples = sample_data.size() / 2;
 
-      buffer_storage<sample_clock, 2> audio{samples.size() / 2};
-      for (std::size_t index{}; index < audio.samples(); ++index) {
-          audio[index][0] = samples[index * 2];
-          audio[index][1] = samples[index * 2 + 1];
+      felspar::memory::accumulation_buffer<float> output;
+      output.ensure_length(sample_data.size());
+      for (std::size_t index{}; index < samples; ++index) {
+          output.at(index * 2 + 0) = sample_data[index * 2 + 0];
+          output.at(index * 2 + 1) = sample_data[index * 2 + 1];
       }
-      return audio;
+      return output.first(samples);
   }()} {}
 
 
 auto planet::audio::wav::output()
         -> felspar::coro::generator<buffer_storage<sample_clock, 2>> {
-    for (std::size_t marker{}; marker < samples.samples(); ++marker) {
-        buffer_storage<sample_clock, 2> buffer{std::min(
-                samples.samples() - marker,
-                std::size_t(default_buffer_duration.count()))};
-        for (std::size_t index{}; index < buffer.samples(); ++index, ++marker) {
-            buffer[index][0] = samples[marker][0];
-            buffer[index][1] = samples[marker][1];
-        }
-        co_yield std::move(buffer);
-    }
+    co_yield samples;
 }

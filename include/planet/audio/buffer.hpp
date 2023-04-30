@@ -1,8 +1,7 @@
 #pragma once
 
 
-#include <span>
-#include <vector>
+#include <felspar/memory/shared_buffer.hpp>
 
 
 namespace planet::audio {
@@ -19,25 +18,34 @@ namespace planet::audio {
      * The `Clock` is the audio clock that is used to determine the sample
      * frequency. For example, `planet::audio::sample_clock` will give a
      * standard 48KHz sample frequency.
+     *
+     * The buffer is "interleaved", meaning that samples for each channel are
+     * next to each other in memory.
      */
     template<typename Clock, std::size_t Channels>
     class buffer_storage {
-        std::vector<float> storage;
+        felspar::memory::shared_buffer<float> storage;
 
       public:
+        using buffer_type = felspar::memory::shared_buffer<float>;
         using clock_type = Clock;
         static constexpr std::size_t samples_per_second = Clock::period::den;
         static constexpr std::size_t channels = Channels;
 
-        buffer_storage(std::size_t const sample_count)
-        : storage(sample_count * channels) {}
+        buffer_storage(buffer_type bt) : storage{std::move(bt)} {}
 
         float const *data() const { return storage.data(); }
         std::size_t samples() const { return storage.size() / channels; }
 
-        auto operator[](std::size_t index) {
-            return std::span<float, channels>{
+        /// ## Access channel sample data
+        auto operator[](std::size_t index) const {
+            return std::span<float const, channels>{
                     storage.data() + index * channels, channels};
+        }
+
+        /// ## Copy first part of the buffer
+        buffer_storage first(std::size_t samples) {
+            return storage.first(samples * channels);
         }
     };
 
