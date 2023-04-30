@@ -17,7 +17,7 @@ auto planet::audio::mixer::output() -> stereo_generator {
                     for (std::size_t sample{}; sample < buffer->samples();
                          ++sample) {
                         std::size_t const idx = (gen.samples + sample)
-                                            * stereo_buffer::channels;
+                                * stereo_buffer::channels;
                         auto const src = (*buffer)[sample];
                         output.at(idx + 0) += src[0];
                         output.at(idx + 1) += src[1];

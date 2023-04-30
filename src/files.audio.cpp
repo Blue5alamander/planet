@@ -111,7 +111,7 @@ felspar::coro::generator<
     vorbis_block_init(&vd, &vb);
 
     felspar::memory::accumulation_buffer<float> output{
-        default_buffer_samples * 50};
+            default_buffer_samples * 50};
 
     for (auto &&packet : packets) {
         if (vorbis_synthesis(&vb, &packet) == 0) {
@@ -125,8 +125,10 @@ felspar::coro::generator<
             auto const samples = static_cast<std::size_t>(isamples);
             output.ensure_length(samples * stereo_buffer::channels);
             for (std::size_t sample{}; sample < samples; ++sample) {
-                output.at(sample * stereo_buffer::channels + 0) = pcm[0][sample];
-                output.at(sample * stereo_buffer::channels + 1) = pcm[1][sample];
+                output.at(sample * stereo_buffer::channels + 0) =
+                        pcm[0][sample];
+                output.at(sample * stereo_buffer::channels + 1) =
+                        pcm[1][sample];
             }
             vorbis_synthesis_read(&vd, samples);
             co_yield output.first(samples * stereo_buffer::channels);
