@@ -23,6 +23,7 @@ namespace planet::audio {
     inline felspar::coro::generator<buffer_storage<Clock, 1>> monobuffer(
             felspar::coro::generator<std::span<float>> sample_generator) {
         for (auto samples : sample_generator) {
+            /// TODO This is broken now
             buffer_storage<Clock, 1> buffer{samples.size()};
             for (std::size_t index{}; auto const sample : samples) {
                 buffer[index++][0] = sample;
@@ -37,6 +38,7 @@ namespace planet::audio {
     inline felspar::coro::generator<buffer_storage<Clock, 2>> stereobuffer(
             felspar::coro::generator<buffer_storage<Clock, 1>> mono) {
         for (auto block : mono) {
+            /// TODO This is broken now
             buffer_storage<Clock, 2> buffer{block.samples()};
             for (std::size_t index{}; index < block.samples(); ++index) {
                 buffer[index][0] = buffer[index][1] = block[index][0];
