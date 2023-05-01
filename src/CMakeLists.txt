@@ -10,6 +10,7 @@ add_library(planet
         map.cpp
         mixer.audio.cpp
         mouse.events.cpp
+        music.audio.cpp
         oscillator.audio.cpp
         panel.ui.cpp
         serialise.cpp
