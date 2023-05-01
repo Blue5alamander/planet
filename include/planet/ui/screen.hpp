@@ -21,7 +21,7 @@ namespace planet::ui {
     template<typename Renderer>
     class screen final : public widget<Renderer> {
       public:
-        ui::panel &panel() { return this->widget<Renderer>::panel; }
+        ui::panel &panel() { return widget<Renderer>::panel; }
 
       private:
         bool is_within(affine::point2d const &) const override { return true; }
