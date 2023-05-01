@@ -23,7 +23,6 @@ struct planet::audio::ogg::impl {
   private:
     std::span<std::byte> ogg;
     felspar::coro::generator<ogg_packet> packets;
-
     felspar::coro::generator<ogg_packet> vorbis_packets();
 };
 
@@ -50,45 +49,52 @@ planet::audio::ogg::impl::~impl() {
 
 
 felspar::coro::generator<ogg_packet> planet::audio::ogg::impl::vorbis_packets() {
-    ogg_sync_state sync;
-    ogg_stream_state stream;
-    ogg_sync_init(&sync); // Always works
+    struct ogg_resources {
+        ogg_resources() {
+            ogg_sync_init(&sync); // Always works
+        }
+        ~ogg_resources() {
+            if (stream) { ogg_stream_clear(&*stream); }
+            ogg_sync_clear(&sync);
+        }
+        ogg_sync_state sync;
+        std::optional<ogg_stream_state> stream;
+    };
+    ogg_resources oggr;
 
     ogg_page op;
-    if (ogg_sync_pageout(&sync, &op) != 0) {
+    if (ogg_sync_pageout(&oggr.sync, &op) != 0) {
         throw felspar::stdexcept::runtime_error{
                 "ogg_sync_pageout not requesting data", loc};
     }
 
-    std::byte *const buffer =
-            reinterpret_cast<std::byte *>(ogg_sync_buffer(&sync, ogg.size()));
+    std::byte *const buffer = reinterpret_cast<std::byte *>(
+            ogg_sync_buffer(&oggr.sync, ogg.size()));
     std::copy(ogg.begin(), ogg.end(), buffer);
-    if (ogg_sync_wrote(&sync, ogg.size()) == -1) {
+    if (ogg_sync_wrote(&oggr.sync, ogg.size()) == -1) {
         throw felspar::stdexcept::runtime_error{"ogg_sync_wrote failed", loc};
     }
 
     std::optional<int> streamid;
-    while (ogg_sync_pageout(&sync, &op) == 1) {
+    while (ogg_sync_pageout(&oggr.sync, &op) == 1) {
         int serialno = ogg_page_serialno(&op);
         if (not streamid) {
             streamid = serialno;
-            ogg_stream_init(&stream, serialno);
+            oggr.stream = ogg_stream_state{};
+            ogg_stream_init(&*oggr.stream, serialno);
         }
         if (serialno == streamid) {
-            if (ogg_stream_pagein(&stream, &op) == -1) {
+            if (ogg_stream_pagein(&*oggr.stream, &op) == -1) {
                 throw felspar::stdexcept::runtime_error{
                         "ogg_stream_pagein failed", loc};
             }
 
             ogg_packet packet;
-            while (ogg_stream_packetout(&stream, &packet) == 1) {
+            while (ogg_stream_packetout(&*oggr.stream, &packet) == 1) {
                 co_yield packet;
             }
         }
     }
-    /// TODO Make exception safe
-    ogg_stream_clear(&stream);
-    ogg_sync_clear(&sync);
 }
 
 
@@ -104,24 +110,32 @@ felspar::coro::generator<
                         + std::to_string(vi.rate) + "Hz",
                 loc};
     }
-
-    vorbis_dsp_state vd;
-    vorbis_synthesis_init(&vd, &vi);
-    vorbis_block vb;
-    vorbis_block_init(&vd, &vb);
+    struct vorbis_resources {
+        vorbis_resources(impl *i) {
+            vorbis_synthesis_init(&d, &i->vi);
+            vorbis_block_init(&d, &b);
+        }
+        ~vorbis_resources() {
+            vorbis_block_clear(&b);
+            vorbis_dsp_clear(&d);
+        }
+        vorbis_dsp_state d;
+        vorbis_block b;
+    };
+    vorbis_resources v{this};
 
     felspar::memory::accumulation_buffer<float> output{
             default_buffer_samples * 50};
 
     for (auto &&packet : packets) {
-        if (vorbis_synthesis(&vb, &packet) == 0) {
-            vorbis_synthesis_blockin(&vd, &vb);
+        if (vorbis_synthesis(&v.b, &packet) == 0) {
+            vorbis_synthesis_blockin(&v.d, &v.b);
         } else {
             throw felspar::stdexcept::runtime_error{
                     "vorbis_synthesis failed", loc};
         }
         float **pcm = nullptr;
-        while (int isamples = vorbis_synthesis_pcmout(&vd, &pcm)) {
+        while (int isamples = vorbis_synthesis_pcmout(&v.d, &pcm)) {
             auto const samples = static_cast<std::size_t>(isamples);
             output.ensure_length(samples * stereo_buffer::channels);
             for (std::size_t sample{}; sample < samples; ++sample) {
@@ -130,13 +144,10 @@ felspar::coro::generator<
                 output.at(sample * stereo_buffer::channels + 1) =
                         pcm[1][sample];
             }
-            vorbis_synthesis_read(&vd, samples);
+            vorbis_synthesis_read(&v.d, samples);
             co_yield output.first(samples * stereo_buffer::channels);
         }
     }
-
-    vorbis_block_clear(&vb);
-    vorbis_dsp_clear(&vd);
 }
 
 
