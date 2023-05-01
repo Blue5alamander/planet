@@ -51,13 +51,11 @@ namespace planet::ui {
         events::bus events;
 
         /// ### Register and remove widgets from event routing
-        baseplate &add(widget<Renderer> *const w, float const z = {}) {
+        void add(widget<Renderer> *const w, float const z = {}) {
+            w->baseplate = this;
             widgets.push_back({w, z});
-            return *this;
         }
-        baseplate &add(widget<Renderer> &w, float const z = {}) {
-            return add(&w, z);
-        }
+        void add(widget<Renderer> &w, float const z = {}) { add(&w, z); }
         void remove(widget<Renderer> *const w) {
             if (hard_focus and hard_focus->ptr == w) { hard_focus = nullptr; }
             if (soft_focus and soft_focus->ptr == w) { soft_focus = nullptr; }
@@ -136,7 +134,7 @@ template<typename Renderer>
 inline void planet::ui::widget<Renderer>::add_to(
         ui::baseplate<Renderer> &bp, ui::panel &parent, float const z_layer) {
     parent.add_child(panel);
-    baseplate = &bp.add(this, z_layer);
+    bp.add(this, z_layer);
     visible = true;
     response.post(*this, &widget::behaviour);
 }

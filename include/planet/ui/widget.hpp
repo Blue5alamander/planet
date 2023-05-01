@@ -14,6 +14,8 @@ namespace planet::ui {
 
     template<typename Renderer>
     class widget {
+        friend class baseplate<Renderer>;
+
         felspar::coro::eager<> response;
 
       public:
