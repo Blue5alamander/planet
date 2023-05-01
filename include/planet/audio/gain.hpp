@@ -5,12 +5,15 @@
 
 #include <felspar/coro/generator.hpp>
 
+#include <atomic>
+
 
 namespace planet::audio {
 
 
-    /// Linear gain
+    /// ## Linear gain
     class linear_gain {
+        friend class atomic_linear_gain;
         float multiplier = {1};
 
       public:
@@ -21,7 +24,23 @@ namespace planet::audio {
     };
 
 
-    /// Gain in +/- dB
+    /// ## Linear gain using an atomic multiplier
+    class atomic_linear_gain {
+        std::atomic<float> multiplier = {1};
+
+      public:
+        atomic_linear_gain() {}
+        explicit atomic_linear_gain(float);
+
+        void set(linear_gain);
+
+        float operator*(float const v) const noexcept {
+            return multiplier.load(std::memory_order_relaxed) * v;
+        }
+    };
+
+
+    /// ## Gain in +/- dB
     class dB_gain {
         float dB = {};
 
@@ -31,14 +50,14 @@ namespace planet::audio {
 
         explicit operator linear_gain() const noexcept;
 
-        auto operator-() const noexcept { return dB_gain{-dB}; }
+        dB_gain operator-() const noexcept { return dB_gain{-dB}; }
     };
 
 
-    /// Apply a gain level to the audio
-    template<typename Clock, std::size_t Channels>
+    /// ## Apply a gain level to the audio
+    template<typename Clock, std::size_t Channels, typename LinearGain>
     inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
-            linear_gain const gain,
+            LinearGain const gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         for (auto block : signal) {
             buffer_storage<Clock, Channels> buffer{block.samples()};

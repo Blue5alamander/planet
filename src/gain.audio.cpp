@@ -9,6 +9,14 @@
 planet::audio::linear_gain::linear_gain(float const g) : multiplier{g} {}
 
 
+/// ## `planet::audio::atomic_linear_gain`
+
+
+void planet::audio::atomic_linear_gain::set(linear_gain const g) {
+    multiplier = g.multiplier;
+}
+
+
 /// ## `planet::audio::dB_gain`
 
 
