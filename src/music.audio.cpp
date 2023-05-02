@@ -10,6 +10,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
     while (true) {
         if (clear_flag.load(std::memory_order_relaxed)) {
             clear_flag.store(false, std::memory_order_relaxed);
+            playing = {};
             std::scoped_lock _{mtx};
             queue.clear();
         }
@@ -27,6 +28,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
                     co_yield *block;
                 }
             }
+            playing = {};
         } else {
             output.ensure_length(
                     default_buffer_samples * stereo_buffer::channels);
