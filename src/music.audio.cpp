@@ -18,13 +18,13 @@ planet::audio::stereo_generator planet::audio::music::output() {
             if (queue.size()) { playing = queue.front().start(); }
         }
         if (playing) {
-            for (auto block : *playing) {
+            while (auto block = playing->next()) {
                 if (clear_flag.load(std::memory_order_relaxed)) {
                     /// TODO Micro fade block
                     // co_yield block;
                     break;
                 } else {
-                    co_yield block;
+                    co_yield *block;
                 }
             }
         } else {
