@@ -4,6 +4,7 @@
 #include <planet/audio/buffer.hpp>
 
 #include <felspar/coro/generator.hpp>
+#include <felspar/memory/accumulation_buffer.hpp>
 
 
 namespace planet::audio {
@@ -22,28 +23,14 @@ namespace planet::audio {
     template<typename Clock>
     inline felspar::coro::generator<buffer_storage<Clock, 1>> monobuffer(
             felspar::coro::generator<std::span<float>> sample_generator) {
+        felspar::memory::accumulation_buffer<float> output{
+                default_buffer_samples * 50};
         for (auto samples : sample_generator) {
-            /// TODO This is broken now
-            buffer_storage<Clock, 1> buffer{samples.size()};
+            output.ensure_length(samples.size());
             for (std::size_t index{}; auto const sample : samples) {
-                buffer[index++][0] = sample;
+                output[index++] = sample;
             }
-            co_yield std::move(buffer);
-        }
-    }
-
-
-    /// Converts a mono buffer to a stereo buffer
-    template<typename Clock>
-    inline felspar::coro::generator<buffer_storage<Clock, 2>> stereobuffer(
-            felspar::coro::generator<buffer_storage<Clock, 1>> mono) {
-        for (auto block : mono) {
-            /// TODO This is broken now
-            buffer_storage<Clock, 2> buffer{block.samples()};
-            for (std::size_t index{}; index < block.samples(); ++index) {
-                buffer[index][0] = buffer[index][1] = block[index][0];
-            }
-            co_yield std::move(buffer);
+            co_yield output.first(samples.size());
         }
     }
 

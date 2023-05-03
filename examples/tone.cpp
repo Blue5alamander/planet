@@ -23,10 +23,7 @@ int main() {
             pcm, hw, planet::audio::sample_clock::period::den, 0);
     snd_pcm_hw_params(pcm, hw);
 
-    planet::audio::mixer<
-            planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
-            desk;
-
+    planet::audio::mixer desk;
 
     desk.add_track(planet::audio::gain(
             -6_dB,

@@ -2,8 +2,10 @@
 
 
 #include <planet/audio/buffer.hpp>
+#include <planet/audio/clocks.hpp>
 
 #include <felspar/coro/generator.hpp>
+#include <felspar/memory/accumulation_buffer.hpp>
 
 #include <atomic>
 
@@ -59,14 +61,17 @@ namespace planet::audio {
     inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
             LinearGain const gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
+        felspar::memory::accumulation_buffer<float> output{
+                default_buffer_samples * Channels * 25};
         for (auto block : signal) {
-            buffer_storage<Clock, Channels> buffer{block.samples()};
+            output.ensure_length(block.samples() * Channels);
             for (std::size_t index{}; index < block.samples(); ++index) {
                 for (std::size_t channel{}; channel < Channels; ++channel) {
-                    buffer[index][channel] = gain * block[index][channel];
+                    output[index * Channels + channel] =
+                            gain * block[index][channel];
                 }
             }
-            co_yield std::move(buffer);
+            co_yield output.first(block.samples() * Channels);
         }
     }
     template<typename Clock, std::size_t Channels>
