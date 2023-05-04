@@ -24,6 +24,10 @@ namespace planet::ui {
         ui::panel &panel() { return widget<Renderer>::panel; }
 
       private:
+        using constrained_type = typename widget<Renderer>::constrained_type;
+        constrained_type reflow(constrained_type const &) override {
+            return {};
+        }
         bool is_within(affine::point2d const &) const override { return true; }
         bool wants_focus() const override { return true; }
         felspar::coro::task<void> behaviour() override { co_return; }
