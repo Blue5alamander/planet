@@ -7,7 +7,7 @@
 namespace planet::affine {
 
 
-    /// Extents of a rectangular area
+    /// ## Extents of a rectangular area
     struct extents2d {
         float width, height;
 
@@ -23,22 +23,27 @@ namespace planet::affine {
             return std::size_t(height);
         }
 
-        /// An extents is smaller only if both axes are
+        /// ### An extents is smaller only if both axes are
         constexpr bool fits_within(extents2d const r) const noexcept {
             return width <= r.width and height <= r.height;
         }
 
         friend bool operator==(extents2d const &, extents2d const &) = default;
 
-        /// Scaling with a scalar
+        /// ### Scaling with a scalar
         friend constexpr extents2d
                 operator*(extents2d const e, float const f) noexcept {
             return {e.width * f, e.height * f};
         }
-        /// Addition of points
+
+        /// ### Addition and subtraction
         friend constexpr point2d
                 operator+(point2d const p, extents2d const e) noexcept {
             return {p.x() + e.width, p.y() + e.height};
+        }
+        friend constexpr auto
+                operator-(extents2d const l, extents2d const r) noexcept {
+            return extents2d{l.width - r.width, l.height - l.height};
         }
     };
 
