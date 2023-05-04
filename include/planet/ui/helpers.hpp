@@ -18,7 +18,7 @@ namespace planet::ui {
      * new reflow one
      */
     template<typename W, typename V = void>
-    concept reflowable =
+    concept reflowable_concept =
             requires(W w) {
                 typename W::constrained_type;
                 { w.reflow(std::declval<typename W::constrained_type>()) };
@@ -37,12 +37,12 @@ namespace planet::ui {
     }
 
     /// Using reflow
-    template<reflowable W>
+    template<reflowable_concept W>
     inline auto
             reflow(W &widget, typename W::constrained_type const &constraint) {
         return widget.reflow(constraint);
     }
-    template<reflowable W>
+    template<reflowable_concept W>
     inline auto reflow(W &widget, affine::extents2d const &ex) {
         return widget.reflow(typename W::constrained_type{ex}).extents();
     }

@@ -8,7 +8,7 @@ namespace planet::ui {
 
 
     /// ## Reflow controls UI element layouts
-    struct reflowableX {
+    struct reflowable {
         using constrained_type = constrained2d<float>;
 
         /// ### Dirty calculation
