@@ -22,8 +22,10 @@ namespace planet::ui {
             requires(W w) {
                 typename W::constrained_type;
                 { w.reflow(std::declval<typename W::constrained_type>()) };
-                // { w.layout } -> std::same_as<element<V, typename
-                // W::value_type>>;
+                {
+                    *w.layout
+                    } -> std::same_as<element<
+                            V, typename W::constrained_type::value_type> &>;
             };
 
 
