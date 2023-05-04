@@ -11,7 +11,7 @@ namespace planet::ui {
 
     /// ## User interface widget
     template<typename Renderer>
-    class widget : public reflowableX<Renderer> {
+    class widget : public reflowableX {
         friend class baseplate<Renderer>;
 
         felspar::coro::eager<> response;

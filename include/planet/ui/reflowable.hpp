@@ -8,7 +8,6 @@ namespace planet::ui {
 
 
     /// ## Reflow controls UI element layouts
-    template<typename Renderer, typename V = void>
     struct reflowableX {
         using constrained_type = constrained2d<float>;
 
@@ -51,9 +50,6 @@ namespace planet::ui {
                     affine::extents2d{r.width.value(), r.height.value()};
             return r;
         }
-
-        /// ### Draw at the calculated position
-        // virtual void draw(Renderer &, affine::point2d const &offset) const = 0;
 
       protected:
         /// ### Reflow implementation
