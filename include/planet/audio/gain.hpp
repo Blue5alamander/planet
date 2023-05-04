@@ -43,10 +43,9 @@ namespace planet::audio {
 
 
     /// ## Gain in +/- dB
-    class dB_gain {
+    struct dB_gain {
         float dB = {};
 
-      public:
         dB_gain() {}
         explicit dB_gain(float);
 
