@@ -22,7 +22,7 @@ namespace planet::ui {
             requires(W w) {
                 typename W::constrained_type;
                 { w.reflow(std::declval<typename W::constrained_type>()) };
-                { *w.size } -> std::same_as<affine::extents2d &>;
+                { w.size() } -> std::same_as<affine::extents2d const &>;
             };
 
 

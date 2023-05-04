@@ -23,9 +23,10 @@ namespace planet::ui {
       public:
         ui::panel &panel() { return widget<Renderer>::panel; }
 
-      private:
         using constrained_type = typename widget<Renderer>::constrained_type;
-        constrained_type reflow(constrained_type const &) override {
+
+      private:
+        constrained_type do_reflow(constrained_type const &) override {
             return {};
         }
         bool is_within(affine::point2d const &) const override { return true; }
