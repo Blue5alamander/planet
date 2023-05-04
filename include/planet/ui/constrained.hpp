@@ -37,9 +37,22 @@ namespace planet::ui {
                 value_type t, value_type min, value_type max) noexcept
         : m_value{t}, m_desired{t}, m_min{min}, m_max{max} {}
 
+        /// ### Access to held values
         value_type value() const noexcept { return m_value; }
         value_type min() const noexcept { return m_min; }
         value_type max() const noexcept { return m_max; }
+        /// #### The normalised value to a scale of 0 to 1
+        value_type normalised_value() const noexcept {
+            if (m_max != m_min) {
+                return (m_value - m_min) / (m_max - m_min);
+            } else {
+                return {};
+            }
+        }
+        /// #### The current value remapped to another constrained
+        value_type remapped_to(constrained1d const &c) const noexcept {
+            return c.m_min + (normalised_value() * (c.m_max - c.m_min));
+        }
 
         value_type desire(value_type const m) {
             m_desired = m;

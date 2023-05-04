@@ -59,6 +59,18 @@ namespace {
     });
 
 
+    auto const l1d = c1d.test("normalisation", [](auto check) {
+        planet::ui::constrained1d<float> db{-6, -128, 0};
+        planet::ui::constrained1d<float> pixels{300, 200, 456};
+
+        check(db.normalised_value()) == 122.0f / 128.0f;
+        check(db.remapped_to(pixels)) == 444;
+
+        check(pixels.normalised_value()) == 100.0f / 256.0f;
+        check(pixels.remapped_to(db)) == -78.0f;
+    });
+
+
     auto const c2d = felspar::testsuite("constrained2d");
 
 
