@@ -91,20 +91,24 @@ namespace planet::ui {
         using axis_contrained_type = constrained1d<value_type>;
         axis_contrained_type width, height;
 
+        /// ### Construction
+
         constexpr constrained2d() noexcept {}
         constexpr constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
         constexpr constrained2d(
                 axis_contrained_type const &w, axis_contrained_type const &h)
         : width{w}, height{h} {}
-        explicit constexpr constrained2d(affine::extents2d const ex) noexcept
-        : width{ex.width, {}, ex.width}, height{ex.height, {}, ex.height} {}
         constexpr constrained2d(
                 affine::extents2d const ex,
                 affine::extents2d const min,
                 affine::extents2d const max)
         : width(ex.width, min.width, max.width),
           height{ex.height, min.height, max.height} {}
+        /// #### Force a fixed size with no latitude for change
+        explicit constexpr constrained2d(affine::extents2d const ex) noexcept
+        : width{ex.width, ex.width, ex.width},
+          height{ex.height, ex.height, ex.height} {}
 
         affine::point2d position() const noexcept {
             return {width.value(), height.value()};
