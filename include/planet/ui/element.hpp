@@ -23,6 +23,7 @@ namespace planet::ui {
         std::optional<affine::rectangle2d> position;
     };
 
+
     template<typename E, typename T>
     struct element final : public element<void, T> {
         using element<void, T>::element;

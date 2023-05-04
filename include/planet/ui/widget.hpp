@@ -2,18 +2,16 @@
 
 
 #include <planet/events/bus.hpp>
+#include <planet/ui/reflowable.hpp>
 #include <planet/ui/panel.hpp>
 
 
 namespace planet::ui {
 
 
+    /// ## User interface widget
     template<typename Renderer>
-    class baseplate;
-
-
-    template<typename Renderer>
-    class widget {
+    class widget : public reflowableX<Renderer> {
         friend class baseplate<Renderer>;
 
         felspar::coro::eager<> response;
