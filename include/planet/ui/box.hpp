@@ -2,6 +2,7 @@
 
 
 #include <planet/affine2d.hpp>
+#include <planet/ui/reflowable.hpp>
 
 
 namespace planet::ui {
@@ -46,7 +47,7 @@ namespace planet::ui {
      * box.
      */
     template<typename C>
-    struct box {
+    struct box : public reflowable {
         /// What is inside the box
         using content_type = C;
         content_type content;
@@ -87,6 +88,20 @@ namespace planet::ui {
         }
 
       private:
+        constrained_type do_reflow(constrained_type const &ex) override {
+            constrained_type inside{ex};
+            inside.width.min(inside.width.min() + hpadding);
+            inside.width.max(inside.width.max() - hpadding);
+            inside.height.min(inside.height.min() + vpadding);
+            inside.height.max(inside.height.max() - vpadding);
+            auto needs = content.reflow(inside);
+            needs.width.min(needs.width.min() - hpadding);
+            needs.width.max(needs.width.max() + hpadding);
+            needs.height.min(needs.height.min() - hpadding);
+            needs.height.max(needs.height.max() + hpadding);
+            return needs;
+        }
+
         affine::extents2d
                 remove_padding(affine::extents2d const ex) const noexcept {
             return {ex.width - 2 * hpadding, ex.height - 2 * vpadding};

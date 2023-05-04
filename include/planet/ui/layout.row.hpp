@@ -4,6 +4,7 @@
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
 #include <planet/ui/layout.hpp>
+#include <planet/ui/reflowable.hpp>
 
 #include <felspar/memory/small_vector.hpp>
 
@@ -13,7 +14,7 @@ namespace planet::ui {
 
     /// ## A row of boxes
     template<typename C>
-    struct row {
+    struct row : public reflowable {
         using collection_type = C;
         using box_type = typename collection_type::value_type;
         collection_type items;
@@ -47,6 +48,13 @@ namespace planet::ui {
                         {{left, top}, affine::point2d{left + width, bottom}});
                 left += width + padding;
             }
+        }
+
+      private:
+        constrained_type do_reflow(constrained_type const &ex) {
+            /// TODO All of the layout logic should move to here which will fill
+            /// in a `layout` structure
+            return constrained_type{extents(ex.extents())};
         }
     };
     template<typename... Pack>
@@ -124,7 +132,7 @@ namespace planet::ui {
 
     /// ## Draws the items across multiple lines when needed
     template<typename C>
-    struct breakable_row {
+    struct breakable_row : public reflowable {
         using collection_type = C;
         collection_type items;
         /// Padding between items in the row
@@ -173,6 +181,13 @@ namespace planet::ui {
                 x += ex.width;
                 if (x) { x += hpadding; }
             }
+        }
+
+      private:
+        constrained_type do_reflow(constrained_type const &ex) {
+            /// TODO All of the layout logic should move to here which will fill
+            /// in a `layout` structure
+            return constrained_type{extents(ex.extents())};
         }
     };
     template<typename... Pack>

@@ -3,6 +3,7 @@
 
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
+#include <planet/ui/reflowable.hpp>
 
 #include <felspar/memory/small_vector.hpp>
 
@@ -61,7 +62,7 @@ namespace planet::ui {
         }
     };
     template<typename... Pack>
-    struct grid<std::tuple<Pack...>> {
+    struct grid<std::tuple<Pack...>> : public reflowable {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
         /// Padding between items in the row
@@ -104,6 +105,12 @@ namespace planet::ui {
         }
 
       private:
+        constrained_type do_reflow(constrained_type const &ex) {
+            /// TODO All of the layout logic should move to here which will fill
+            /// in a `layout` structure
+            return constrained_type{extents(ex.extents())};
+        }
+
         affine::extents2d cell_size(affine::extents2d const outer) {
             float max_width = {}, max_height = {};
             for (auto &ex : item_sizes(items, outer)) {

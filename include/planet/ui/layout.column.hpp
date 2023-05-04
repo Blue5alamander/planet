@@ -4,6 +4,7 @@
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
 #include <planet/ui/layout.hpp>
+#include <planet/ui/reflowable.hpp>
 
 
 namespace planet::ui {
@@ -76,7 +77,7 @@ namespace planet::ui {
 
     /// ## Specialisation for tuple
     template<typename... Pack>
-    struct column<std::tuple<Pack...>> {
+    struct column<std::tuple<Pack...>> : public reflowable {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
         float padding = {};
@@ -102,6 +103,12 @@ namespace planet::ui {
         }
 
       private:
+        constrained_type do_reflow(constrained_type const &ex) {
+            /// TODO All of the layout logic should move to here which will fill
+            /// in a `layout` structure
+            return constrained_type{extents(ex.extents())};
+        }
+
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
