@@ -3,6 +3,7 @@
 
 #include <planet/affine/rectangle2d.hpp>
 #include <planet/ui/constrained.hpp>
+#include <planet/ui/forward.hpp>
 
 #include <optional>
 
@@ -11,9 +12,6 @@ namespace planet::ui {
 
 
     /// ## Layout element
-    template<typename E = void, typename T = float>
-    struct element;
-
     template<typename T>
     struct element<void, T> {
         using constrained_type = constrained2d<T>;

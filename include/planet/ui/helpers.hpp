@@ -6,6 +6,7 @@
 #include <tuple>
 
 #include <planet/ui/constrained.hpp>
+#include <planet/ui/forward.hpp>
 
 
 namespace planet::ui {
@@ -16,12 +17,15 @@ namespace planet::ui {
      * Helpers for transitioning between the old extents layout system and the
      * new reflow one
      */
-    template<typename W>
+    template<typename W, typename V = void>
     concept reflowable =
             requires(W w) {
                 typename W::constrained_type;
                 { w.reflow(std::declval<typename W::constrained_type>()) };
+                // { w.layout } -> std::same_as<element<V, typename
+                // W::value_type>>;
             };
+
 
     /// Legacy reflow using extents
     template<typename W, typename T>
@@ -31,7 +35,6 @@ namespace planet::ui {
     template<typename W>
     inline auto reflow(W &widget, affine::extents2d const &ex) {
         return widget.extents(ex);
-        ;
     }
 
     /// Using reflow
