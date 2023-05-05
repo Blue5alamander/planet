@@ -4,7 +4,6 @@
 #include <planet/ui/baseplate.hpp>
 #include <planet/ui/box.hpp>
 #include <planet/ui/constrained.hpp>
-#include <planet/ui/drawable.hpp>
 #include <planet/ui/element.hpp>
 #include <planet/ui/forward.hpp>
 #include <planet/ui/layout.hpp>
