@@ -28,13 +28,6 @@ namespace {
     });
 
 
-    auto const tuple_empty = suite.test("tuple/empty", [](auto check) {
-        auto empty = planet::ui::column{std::tuple{}, 10};
-        check(empty.extents({20, 20}).width) == 0;
-        check(empty.extents({20, 20}).height) == 0;
-    });
-
-
     auto const tuple_one = suite.test("tuple/one", [](auto check) {
         auto t = planet::ui::column{
                 std::tuple{planet::debug::fixed_element{{3, 4}}}, 10};

@@ -86,6 +86,10 @@ namespace planet::ui {
                     content.extents(remove_padding(outer.extents)));
             content.draw_within(t, area);
         }
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            content.draw(r);
+        }
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {

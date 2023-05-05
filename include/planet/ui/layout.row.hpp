@@ -88,6 +88,10 @@ namespace planet::ui {
                     t, outer.top_left,
                     std::make_index_sequence<sizeof...(Pack)>{});
         }
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            draw_items(r, items);
+        }
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) {
@@ -188,6 +192,11 @@ namespace planet::ui {
             }
         }
 
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            for (auto &item : items) { item.draw(r); }
+        }
+
       private:
         constrained_type do_reflow(constrained_type const &ex) {
             /// TODO All of the layout logic should move to here which will fill
@@ -248,6 +257,11 @@ namespace planet::ui {
             draw_items_within(
                     t, items, locations,
                     std::make_index_sequence<sizeof...(Pack)>{});
+        }
+
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            draw_items(r, items);
         }
     };
 

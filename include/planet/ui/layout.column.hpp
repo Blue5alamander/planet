@@ -80,6 +80,12 @@ namespace planet::ui {
     struct column<std::tuple<Pack...>> : public reflowable {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
+        static constexpr std::size_t item_count =
+                std::tuple_size<collection_type>();
+        static_assert(
+                item_count > 0,
+                "There must be at least one UI element in the column");
+        /// Padding between items in the column
         float padding = {};
 
         column(collection_type i, float const p)
@@ -96,16 +102,25 @@ namespace planet::ui {
             return r;
         }
 
+        using layout_type = planet::ui::layout<
+                std::array<planet::ui::element<void>, item_count>>;
+        using constrained_type = typename layout_type::constrained_type;
+        layout_type elements;
+
         template<typename Target>
         auto draw_within(Target &t, affine::rectangle2d const outer) {
             return draw_within(
                     t, outer, std::make_index_sequence<sizeof...(Pack)>{});
         }
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            draw_items(r, items);
+        }
 
       private:
         constrained_type do_reflow(constrained_type const &ex) {
-            /// TODO All of the layout logic should move to here which will fill
-            /// in a `layout` structure
+            // auto space = ex.extents();
+            // float const unused = space.height - (item.count - 1) * padding;
             return constrained_type{extents(ex.extents())};
         }
 

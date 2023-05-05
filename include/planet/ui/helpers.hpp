@@ -67,6 +67,17 @@ namespace planet::ui {
     }
 
 
+    template<typename Renderer, typename... Pack, std::size_t... I>
+    inline void draw_items(
+            Renderer &r, std::tuple<Pack...> &items, std::index_sequence<I...>) {
+        (std::get<I>(items).draw(r), ...);
+    }
+    template<typename Renderer, typename... Pack>
+    inline void draw_items(Renderer &r, std::tuple<Pack...> &items) {
+        draw_items(r, items, std::make_index_sequence<sizeof...(Pack)>{});
+    }
+
+
     template<typename Target, typename... Pack, std::size_t... I>
     void draw_items_within(
             Target &t,
