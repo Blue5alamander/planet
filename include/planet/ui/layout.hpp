@@ -40,7 +40,9 @@ namespace planet::ui {
         void resize_to(std::span<I, N>) {}
 
         auto begin() noexcept { return elements.begin(); }
+        auto begin() const noexcept { return elements.begin(); }
         auto end() noexcept { return elements.end(); }
+        auto end() const noexcept { return elements.end(); }
         auto &back() noexcept { return elements.back(); }
 
 
