@@ -16,7 +16,11 @@ namespace planet::ui {
         collection_type items;
         static constexpr std::size_t item_count = sizeof...(Pack);
 
-        pack_reflowable(collection_type c) : items{std::move(c)} {}
+        pack_reflowable(
+                collection_type c,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : items{std::move(c)}, created_loc{loc} {}
 
         using layout_type = planet::ui::layout<
                 std::array<planet::ui::element<ET>, item_count>>;
@@ -32,6 +36,7 @@ namespace planet::ui {
         }
 
       private:
+        felspar::source_location created_loc;
         static_assert(item_count > 0, "There must be at least one UI element");
 
         void move_sub_elements(affine::rectangle2d const &r) {
@@ -40,11 +45,18 @@ namespace planet::ui {
         template<std::size_t... I>
         void move_elements(
                 affine::rectangle2d const &r, std::index_sequence<I...>) {
-            auto const tl = r.top_left;
-            (std::get<I>(items).move_to(
-                     {elements.at(I).position->top_left + tl,
-                      elements.at(I).position->extents}),
-             ...);
+            try {
+                auto const tl = r.top_left;
+                std::array const pos{elements.at(I).position.value()...};
+                (std::get<I>(items).move_to(
+                         {pos[I].top_left + tl, pos[I].extents}),
+                 ...);
+            } catch (std::bad_optional_access const &) {
+                throw felspar::stdexcept::logic_error{
+                        "Element position has not been set for "
+                        "`pack_reflowable` created at",
+                        created_loc};
+            }
         }
     };
 
