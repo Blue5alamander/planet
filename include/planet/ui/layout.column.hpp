@@ -126,11 +126,6 @@ namespace planet::ui {
             return constrained_type{extents(ex.extents())};
         }
 
-        template<std::size_t... I>
-        void move_elements(std::index_sequence<I...>) {
-            (std::get<I>(items).move_to(*elements.at(I).position), ...);
-        }
-
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
