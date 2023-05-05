@@ -1,7 +1,5 @@
 #include <planet/ui/scale.hpp>
 
-#include <algorithm>
-
 
 namespace {
     float scale_factor(
