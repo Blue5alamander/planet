@@ -232,7 +232,7 @@ namespace planet::ui {
         template<typename Target>
         void draw_within(Target &t, affine::rectangle2d const border) {
             float row_height = {}, x = {}, y = {};
-            felspar::memory::small_vector<affine::rectangle2d, sizeof...(Pack)>
+            felspar::memory::small_vector<affine::rectangle2d, item_count>
                     locations;
             for (auto &ex : item_sizes(items, border.extents)) {
                 if (x + ex.width > border.extents.width) {
@@ -249,14 +249,37 @@ namespace planet::ui {
             }
             draw_items_within(
                     t, items, locations,
-                    std::make_index_sequence<sizeof...(Pack)>{});
+                    std::make_index_sequence<item_count>{});
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            /// TODO All of the layout logic should move to here which will fill
-            /// in a `layout` structure
-            return constrained_type{extents(ex.extents())};
+        constrained_type do_reflow(constrained_type const &border) override {
+            float row_height = {}, x = {}, y = {}, max_width{};
+            felspar::memory::small_vector<affine::rectangle2d, item_count>
+                    locations;
+            for (auto &ex : item_sizes(items, border)) {
+                if (x + ex.width.value() > border.width.value()) {
+                    x = {};
+                    if (y) { y += vpadding; }
+                    y += row_height;
+                    row_height = {};
+                }
+                max_width = std::max(x, max_width);
+                if (x) { x += hpadding; }
+                locations.emplace_back(affine::point2d{x, y}, ex.extents());
+                row_height = std::max(row_height, ex.height.value());
+                x += ex.width.value();
+            }
+            if (locations.size() != item_count) {
+                throw felspar::stdexcept::logic_error{
+                        "We have the wrong number of locations for "
+                        "sub-elements"};
+            }
+            for (std::size_t index{}; auto const &loc : locations) {
+                elements.at(index).position = loc;
+            }
+            float const width = max_width, height = row_height + y;
+            return constrained_type{width, height};
         }
     };
 
