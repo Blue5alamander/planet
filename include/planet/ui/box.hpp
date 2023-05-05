@@ -2,6 +2,7 @@
 
 
 #include <planet/affine2d.hpp>
+#include <planet/ui/helpers.hpp>
 #include <planet/ui/reflowable.hpp>
 
 
@@ -87,8 +88,11 @@ namespace planet::ui {
             content.draw_within(t, area);
         }
         template<typename Renderer>
-        void draw(Renderer &r) {
-            content.draw(r);
+        void
+                draw(Renderer &r,
+                     felspar::source_location const &loc =
+                             felspar::source_location::current()) {
+            detail::draw(r, content, loc);
         }
 
       private:
