@@ -105,6 +105,9 @@ namespace planet::ui {
             needs.height.max(needs.height.max() + hpadding);
             return needs;
         }
+        void move_sub_elements(affine::rectangle2d const &r) override {
+            content.move_to(r);
+        }
 
         affine::extents2d
                 remove_padding(affine::extents2d const ex) const noexcept {

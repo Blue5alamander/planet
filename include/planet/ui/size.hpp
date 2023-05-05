@@ -16,7 +16,11 @@ namespace planet::ui {
         affine::extents2d size;
 
         target_size(content_type c, affine::extents2d const s)
+            requires(not std::is_lvalue_reference_v<content_type>)
         : content{std::move(c)}, size{s} {}
+        target_size(content_type c, affine::extents2d const s)
+            requires std::is_lvalue_reference_v<content_type>
+        : content{c}, size{s} {}
 
         affine::extents2d extents(affine::extents2d const &) const noexcept {
             return size;
@@ -30,6 +34,10 @@ namespace planet::ui {
       private:
         constrained_type do_reflow(constrained_type const &) override {
             return constrained_type{size};
+        }
+
+        void move_sub_elements(affine::rectangle2d const &r) override {
+            content.move_to(r);
         }
     };
 

@@ -35,11 +35,6 @@ namespace planet::ui {
                 add_to(ui::baseplate<Renderer> &,
                        ui::panel &parent,
                        float z_layer = {});
-        /// ### Move the widget
-        void move_to(affine::rectangle2d const &r) override {
-            reflowable::move_to(r);
-            panel.move_to(r);
-        }
 
         /// ### Draw the widget
         void draw_within(Renderer &r, affine::rectangle2d const outer) {
@@ -61,6 +56,11 @@ namespace planet::ui {
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw_within(Renderer &r, affine::rectangle2d) = 0;
+
+        /// ### Move the widget's panel
+        void move_sub_elements(affine::rectangle2d const &r) override {
+            panel.move_to(r);
+        }
     };
 
 

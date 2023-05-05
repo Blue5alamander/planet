@@ -12,7 +12,7 @@ namespace planet::ui {
 
     /// ## A single wide column
     template<typename C>
-    struct column {
+    struct column : public reflowable {
         using collection_type = C;
         using box_type = typename collection_type::value_type;
         collection_type items;
@@ -27,9 +27,28 @@ namespace planet::ui {
         using constrained_type = typename layout_type::constrained_type;
         layout_type elements;
 
-        constrained_type reflow(constrained_type const &constraint) {
+        affine::extents2d extents(affine::extents2d const outer) {
+            return reflow(constrained_type{outer}).extents();
+        }
+
+        template<typename Target>
+        auto draw_within(Target &t, affine::rectangle2d const outer) {
+            /// TODO Should use dirty handling
+            reflow(constrained_type{outer.extents});
+            for (std::size_t index{}; auto &item : items) {
+                if (index < elements.size() and elements.at(index).position) {
+                    auto const &pos = *elements.at(index).position;
+                    item.draw_within(
+                            t, {outer.top_left + pos.top_left, pos.extents});
+                }
+                ++index;
+            }
+        }
+
+      private:
+        constrained_type do_reflow(constrained_type const &constraint) override {
             /// TODO Use constrained type when calculating the `item_sizes` and
-            /// also when returning the constriant value
+            /// also when returning the constraint value
             if (items.empty()) {
                 elements.extents = affine::extents2d{{}, {}};
                 return {};
@@ -55,23 +74,7 @@ namespace planet::ui {
             }
         }
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            return reflow(constrained_type{outer}).extents();
-        }
-
-        template<typename Target>
-        auto draw_within(Target &t, affine::rectangle2d const outer) {
-            /// TODO Should use dirty handling
-            reflow(constrained_type{outer.extents});
-            for (std::size_t index{}; auto &item : items) {
-                if (index < elements.size() and elements.at(index).position) {
-                    auto const &pos = *elements.at(index).position;
-                    item.draw_within(
-                            t, {outer.top_left + pos.top_left, pos.extents});
-                }
-                ++index;
-            }
-        }
+        void move_sub_elements(affine::rectangle2d const &) override {}
     };
 
 
@@ -118,10 +121,28 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) {
-            // auto space = ex.extents();
-            // float const unused = space.height - (item.count - 1) * padding;
+        constrained_type do_reflow(constrained_type const &ex) override {
+            auto space = ex.extents();
+            float const unused = space.height - (item_count - 1) * padding;
+            float const item_height = unused / item_count;
+            float top = {}, max_width = {};
+            auto const sizes = item_sizes(
+                    items, affine::extents2d{space.width, item_height});
+            for (std::size_t index{}; auto &element : elements) {
+                element.position = {{{}, top}, sizes[index]};
+                top += sizes[index].height + padding;
+                max_width = std::max(max_width, sizes[index].height);
+                ++index;
+            }
+            /// TODO Calculate better constraints here
             return constrained_type{extents(ex.extents())};
+        }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
+
+        template<std::size_t... I>
+        void move_elements(std::index_sequence<I...>) {
+            (std::get<I>(items).move_to(*elements.at(I).position), ...);
         }
 
         template<typename Target, std::size_t... I>

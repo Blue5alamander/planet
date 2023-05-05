@@ -11,7 +11,7 @@
 namespace planet::ui {
 
 
-    /// A grid of equally sized blocks which can break onto multiple lines
+    /// ## A grid of equally sized blocks which can break onto multiple lines
     template<typename C>
     struct grid {
         using collection_type = C;
@@ -105,11 +105,13 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) {
+        constrained_type do_reflow(constrained_type const &ex) override {
             /// TODO All of the layout logic should move to here which will fill
             /// in a `layout` structure
             return constrained_type{extents(ex.extents())};
         }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
 
         affine::extents2d cell_size(affine::extents2d const outer) {
             float max_width = {}, max_height = {};

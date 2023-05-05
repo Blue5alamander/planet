@@ -14,7 +14,7 @@ namespace planet::ui {
 
     /// ## A row of boxes
     template<typename C>
-    struct row : public reflowable {
+    struct row final : public reflowable {
         using collection_type = C;
         using box_type = typename collection_type::value_type;
         collection_type items;
@@ -51,11 +51,13 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) {
+        constrained_type do_reflow(constrained_type const &ex) override {
             /// TODO All of the layout logic should move to here which will fill
             /// in a `layout` structure
             return constrained_type{extents(ex.extents())};
         }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
     };
     template<typename... Pack>
     struct row<std::tuple<Pack...>> final : public reflowable {
@@ -89,12 +91,15 @@ namespace planet::ui {
                     std::make_index_sequence<sizeof...(Pack)>{});
         }
         template<typename Renderer>
-        void draw(Renderer &r) {
-            draw_items(r, items);
+        void
+                draw(Renderer &r,
+                     felspar::source_location const &loc =
+                             felspar::source_location::current()) {
+            draw_items(r, items, loc);
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &constraint) {
+        constrained_type do_reflow(constrained_type const &constraint) override {
             /// TODO Use constrained type when calculating the `item_sizes` and
             /// also when returning the constriant value
             auto const space = constraint.extents();
@@ -110,9 +115,12 @@ namespace planet::ui {
                 ++index;
             }
             move_elements(std::make_index_sequence<sizeof...(Pack)>{});
+            /// TODO Calculate better constraints here
             return constrained_type{
                     affine::extents2d{left - padding, max_height}};
         }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
 
         template<std::size_t... I>
         void move_elements(std::index_sequence<I...>) {
@@ -198,14 +206,16 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) {
+        constrained_type do_reflow(constrained_type const &ex) override {
             /// TODO All of the layout logic should move to here which will fill
             /// in a `layout` structure
             return constrained_type{extents(ex.extents())};
         }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
     };
     template<typename... Pack>
-    struct breakable_row<std::tuple<Pack...>> {
+    struct breakable_row<std::tuple<Pack...>> : public reflowable {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
         /// Padding between items in the row
@@ -263,6 +273,15 @@ namespace planet::ui {
         void draw(Renderer &r) {
             draw_items(r, items);
         }
+
+      private:
+        constrained_type do_reflow(constrained_type const &ex) override {
+            /// TODO All of the layout logic should move to here which will fill
+            /// in a `layout` structure
+            return constrained_type{extents(ex.extents())};
+        }
+
+        void move_sub_elements(affine::rectangle2d const &) override {}
     };
 
 

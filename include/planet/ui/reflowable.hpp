@@ -54,7 +54,10 @@ namespace planet::ui {
          * For widgets (or other UI items that have a `panel`) the parent must
          * tell the child what the new position is going to be.
          */
-        virtual void move_to(affine::rectangle2d const &r) { m_position = r; }
+        void move_to(affine::rectangle2d const &r) {
+            m_position = r;
+            move_sub_elements(r);
+        }
 
       protected:
         /// ### Reflow implementation
@@ -72,6 +75,7 @@ namespace planet::ui {
                 return *m_position;
             }
         }
+        virtual void move_sub_elements(affine::rectangle2d const &) = 0;
 
       private:
         std::optional<affine::rectangle2d> m_position;
