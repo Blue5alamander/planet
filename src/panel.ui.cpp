@@ -73,7 +73,7 @@ void planet::ui::panel::remove_child(panel &c) {
 }
 
 
-void planet::ui::panel::move_to(affine::rectangle2d const area) {
+void planet::ui::panel::move_to(affine::rectangle2d const &area) {
     if (parent) {
         auto pos = std::find_if(
                 parent->children.begin(), parent->children.end(),

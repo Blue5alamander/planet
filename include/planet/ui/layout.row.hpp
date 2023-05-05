@@ -58,7 +58,7 @@ namespace planet::ui {
         }
     };
     template<typename... Pack>
-    struct row<std::tuple<Pack...>> final {
+    struct row<std::tuple<Pack...>> final : public reflowable {
         using collection_type = std::tuple<Pack...>;
         collection_type items;
         static constexpr std::size_t item_count =
@@ -77,7 +77,20 @@ namespace planet::ui {
         using constrained_type = typename layout_type::constrained_type;
         layout_type elements;
 
-        auto reflow(constrained_type const &constraint) {
+        affine::extents2d extents(affine::extents2d const outer) {
+            return reflow(constrained_type{outer}).extents();
+        }
+
+        template<typename Target>
+        void draw_within(Target &t, affine::rectangle2d const outer) {
+            extents(outer.extents);
+            return draw_within(
+                    t, outer.top_left,
+                    std::make_index_sequence<sizeof...(Pack)>{});
+        }
+
+      private:
+        constrained_type do_reflow(constrained_type const &constraint) {
             /// TODO Use constrained type when calculating the `item_sizes` and
             /// also when returning the constriant value
             auto const space = constraint.extents();
@@ -92,23 +105,15 @@ namespace planet::ui {
                 max_height = std::max(max_height, sizes[index].height);
                 ++index;
             }
+            move_elements(std::make_index_sequence<sizeof...(Pack)>{});
             return constrained_type{
                     affine::extents2d{left - padding, max_height}};
         }
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            return reflow(constrained_type{outer}).extents();
+        template<std::size_t... I>
+        void move_elements(std::index_sequence<I...>) {
+            (std::get<I>(items).move_to(*elements.at(I).position), ...);
         }
-
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const outer) {
-            extents(outer.extents);
-            return draw_within(
-                    t, outer.top_left,
-                    std::make_index_sequence<sizeof...(Pack)>{});
-        }
-
-      private:
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,

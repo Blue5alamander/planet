@@ -130,7 +130,7 @@ namespace planet::ui {
         /// ### Panel positioning
 
         /// #### Move the location of this panel in the parent's space
-        void move_to(affine::rectangle2d);
+        void move_to(affine::rectangle2d const &);
 
 
         /// ### Drawing in the panel coordinate space

@@ -7,25 +7,25 @@
 namespace planet::ui {
 
 
-    /// ## Reflow controls UI element layouts
+    /// ## Reflow UI element layout
     struct reflowable {
         using constrained_type = constrained2d<float>;
 
         /// ### Dirty calculation
 
         /// #### Set this item as dirty
-        void set_dirty() { reflowed_size = {}; }
+        void set_dirty() { position = {}; }
 
         /// #### Check item dirtyness
         /**
          * For UI elements that contain sub-elements this must check all
          * sub-elements and return true if any of them do so.
          */
-        virtual bool is_dirty() const { return not reflowed_size.has_value(); }
+        virtual bool is_dirty() const { return not position.has_value(); }
 
         /// ### Calculated position
         /// `reflow` must have been called before this size is required
-        affine::extents2d const &size() { return reflowed_size.value(); }
+        affine::extents2d const &size() { return position.value().extents; }
 
         /// ### Calculate position
         /**
@@ -39,24 +39,25 @@ namespace planet::ui {
          * be met, and parent items need to take this into account or layouts
          * will break in weird and wonderful ways.
          *
-         * Calling this will also make the `size` member available so that other
-         * code can be aware of the concrete size that has been chosen to draw
-         * this item. The code that performs the draw will also need to be able
-         * to make use of this calculated value to correctly draw the item.
+         * After calling `reflow` on all children the parent element must
+         * determine their locations. Once done the parent element calls
+         * `move_to` on each child to inform it of where to draw.
          */
         constrained_type reflow(constrained_type const &ex) {
-            auto const r = do_reflow(ex);
-            reflowed_size =
-                    affine::extents2d{r.width.value(), r.height.value()};
-            return r;
+            return do_reflow(ex);
         }
+
+        /// ### Move the widget to a new position
+        /**
+         * For widgets (or other UI items that have a `panel`) the parent must
+         * tell the child what the new position is going to be.
+         */
+        virtual void move_to(affine::rectangle2d const &r) { position = r; }
 
       protected:
         /// ### Reflow implementation
         virtual constrained_type do_reflow(constrained_type const &) = 0;
-
-      private:
-        std::optional<affine::extents2d> reflowed_size;
+        std::optional<affine::rectangle2d> position;
     };
 
 
