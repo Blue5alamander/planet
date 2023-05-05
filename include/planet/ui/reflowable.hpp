@@ -3,6 +3,8 @@
 
 #include <planet/ui/element.hpp>
 
+#include <felspar/exceptions.hpp>
+
 
 namespace planet::ui {
 
@@ -14,18 +16,18 @@ namespace planet::ui {
         /// ### Dirty calculation
 
         /// #### Set this item as dirty
-        void set_dirty() { position = {}; }
+        void set_dirty() { m_position = {}; }
 
         /// #### Check item dirtyness
         /**
          * For UI elements that contain sub-elements this must check all
          * sub-elements and return true if any of them do so.
          */
-        virtual bool is_dirty() const { return not position.has_value(); }
+        virtual bool is_dirty() const { return not m_position.has_value(); }
 
         /// ### Calculated position
         /// `reflow` must have been called before this size is required
-        affine::extents2d const &size() { return position.value().extents; }
+        affine::extents2d const &size() { return m_position.value().extents; }
 
         /// ### Calculate position
         /**
@@ -52,12 +54,27 @@ namespace planet::ui {
          * For widgets (or other UI items that have a `panel`) the parent must
          * tell the child what the new position is going to be.
          */
-        virtual void move_to(affine::rectangle2d const &r) { position = r; }
+        virtual void move_to(affine::rectangle2d const &r) { m_position = r; }
 
       protected:
         /// ### Reflow implementation
         virtual constrained_type do_reflow(constrained_type const &) = 0;
-        std::optional<affine::rectangle2d> position;
+        affine::rectangle2d const &position(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            if (not m_position) {
+                throw felspar::stdexcept::logic_error{
+                        "The position for this reflowable has not been set. "
+                        "Generally this means that a parent hasn't called "
+                        "`move_to` as it was supposed to",
+                        loc};
+            } else {
+                return *m_position;
+            }
+        }
+
+      private:
+        std::optional<affine::rectangle2d> m_position;
     };
 
 
