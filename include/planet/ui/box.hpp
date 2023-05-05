@@ -106,7 +106,8 @@ namespace planet::ui {
             return needs;
         }
         void move_sub_elements(affine::rectangle2d const &r) override {
-            content.move_to(r);
+            affine::point2d const tl{hpadding, vpadding};
+            content.move_to({r.top_left + tl, r.extents});
         }
 
         affine::extents2d

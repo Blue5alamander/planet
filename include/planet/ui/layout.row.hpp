@@ -1,12 +1,7 @@
 #pragma once
 
 
-#include <planet/affine2d.hpp>
-#include <planet/ui/helpers.hpp>
-#include <planet/ui/layout.hpp>
-#include <planet/ui/reflowable.hpp>
-
-#include <felspar/memory/small_vector.hpp>
+#include <planet/ui/pack.layout.hpp>
 
 
 namespace planet::ui {
@@ -60,24 +55,20 @@ namespace planet::ui {
         void move_sub_elements(affine::rectangle2d const &) override {}
     };
     template<typename... Pack>
-    struct row<std::tuple<Pack...>> final : public reflowable {
-        using collection_type = std::tuple<Pack...>;
-        collection_type items;
-        static constexpr std::size_t item_count =
-                std::tuple_size<collection_type>();
-        static_assert(
-                item_count > 0,
-                "There must be at least one UI element in the row");
+    struct row<std::tuple<Pack...>> final :
+    public pack_reflowable<void, Pack...> {
+        using superclass = pack_reflowable<void, Pack...>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::item_count;
+        using superclass::items;
+
         /// Padding between items in the row
         float padding = {};
 
         row(collection_type c, float const p)
-        : items{std::move(c)}, padding{p} {}
-
-        using layout_type = planet::ui::layout<
-                std::array<planet::ui::element<void>, item_count>>;
-        using constrained_type = typename layout_type::constrained_type;
-        layout_type elements;
+        : superclass{std::move(c)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             return reflow(constrained_type{outer}).extents();
@@ -90,18 +81,11 @@ namespace planet::ui {
                     t, outer.top_left,
                     std::make_index_sequence<sizeof...(Pack)>{});
         }
-        template<typename Renderer>
-        void
-                draw(Renderer &r,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
-            draw_items(r, items, loc);
-        }
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
             /// TODO Use constrained type when calculating the `item_sizes` and
-            /// also when returning the constriant value
+            /// also when returning the constraint value
             auto const space = constraint.extents();
             float const unused = space.width - (item_count - 1) * padding;
             float const item_width = unused / item_count;
@@ -114,18 +98,11 @@ namespace planet::ui {
                 max_height = std::max(max_height, sizes[index].height);
                 ++index;
             }
-            move_elements(std::make_index_sequence<sizeof...(Pack)>{});
             /// TODO Calculate better constraints here
             return constrained_type{
                     affine::extents2d{left - padding, max_height}};
         }
 
-        void move_sub_elements(affine::rectangle2d const &) override {}
-
-        template<std::size_t... I>
-        void move_elements(std::index_sequence<I...>) {
-            (std::get<I>(items).move_to(*elements.at(I).position), ...);
-        }
         template<typename Target, std::size_t... I>
         void draw_within(
                 Target &t,
@@ -215,14 +192,20 @@ namespace planet::ui {
         void move_sub_elements(affine::rectangle2d const &) override {}
     };
     template<typename... Pack>
-    struct breakable_row<std::tuple<Pack...>> : public reflowable {
-        using collection_type = std::tuple<Pack...>;
-        collection_type items;
+    struct breakable_row<std::tuple<Pack...>> :
+    public pack_reflowable<void, Pack...> {
+        using superclass = pack_reflowable<void, Pack...>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::item_count;
+        using superclass::items;
+
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
 
         breakable_row(collection_type c, float const hp, float const vp)
-        : items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        : superclass{std::move(c)}, hpadding{hp}, vpadding{vp} {}
         breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
 
@@ -269,19 +252,12 @@ namespace planet::ui {
                     std::make_index_sequence<sizeof...(Pack)>{});
         }
 
-        template<typename Renderer>
-        void draw(Renderer &r) {
-            draw_items(r, items);
-        }
-
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
             /// TODO All of the layout logic should move to here which will fill
             /// in a `layout` structure
             return constrained_type{extents(ex.extents())};
         }
-
-        void move_sub_elements(affine::rectangle2d const &) override {}
     };
 
 

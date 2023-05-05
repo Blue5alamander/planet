@@ -1,10 +1,7 @@
 #pragma once
 
 
-#include <planet/affine2d.hpp>
-#include <planet/ui/helpers.hpp>
-#include <planet/ui/layout.hpp>
-#include <planet/ui/reflowable.hpp>
+#include <planet/ui/pack.layout.hpp>
 
 
 namespace planet::ui {
@@ -80,19 +77,19 @@ namespace planet::ui {
 
     /// ## Specialisation for tuple
     template<typename... Pack>
-    struct column<std::tuple<Pack...>> : public reflowable {
-        using collection_type = std::tuple<Pack...>;
-        collection_type items;
-        static constexpr std::size_t item_count =
-                std::tuple_size<collection_type>();
-        static_assert(
-                item_count > 0,
-                "There must be at least one UI element in the column");
-        /// Padding between items in the column
+    struct column<std::tuple<Pack...>> : public pack_reflowable<void, Pack...> {
+        using superclass = pack_reflowable<void, Pack...>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::item_count;
+        using superclass::items;
+
+        /// Padding between items
         float padding = {};
 
         column(collection_type i, float const p)
-        : items{std::move(i)}, padding{p} {}
+        : superclass{std::move(i)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const sizes = item_sizes(items, outer);
@@ -105,19 +102,10 @@ namespace planet::ui {
             return r;
         }
 
-        using layout_type = planet::ui::layout<
-                std::array<planet::ui::element<void>, item_count>>;
-        using constrained_type = typename layout_type::constrained_type;
-        layout_type elements;
-
         template<typename Target>
         auto draw_within(Target &t, affine::rectangle2d const outer) {
             return draw_within(
                     t, outer, std::make_index_sequence<sizeof...(Pack)>{});
-        }
-        template<typename Renderer>
-        void draw(Renderer &r) {
-            draw_items(r, items);
         }
 
       private:
@@ -137,8 +125,6 @@ namespace planet::ui {
             /// TODO Calculate better constraints here
             return constrained_type{extents(ex.extents())};
         }
-
-        void move_sub_elements(affine::rectangle2d const &) override {}
 
         template<std::size_t... I>
         void move_elements(std::index_sequence<I...>) {

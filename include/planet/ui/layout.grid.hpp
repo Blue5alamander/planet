@@ -1,11 +1,7 @@
 #pragma once
 
 
-#include <planet/affine2d.hpp>
-#include <planet/ui/helpers.hpp>
-#include <planet/ui/reflowable.hpp>
-
-#include <felspar/memory/small_vector.hpp>
+#include <planet/ui/pack.layout.hpp>
 
 
 namespace planet::ui {
@@ -62,14 +58,19 @@ namespace planet::ui {
         }
     };
     template<typename... Pack>
-    struct grid<std::tuple<Pack...>> : public reflowable {
-        using collection_type = std::tuple<Pack...>;
-        collection_type items;
-        /// Padding between items in the row
+    struct grid<std::tuple<Pack...>> : public pack_reflowable<void, Pack...> {
+        using superclass = pack_reflowable<void, Pack...>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::item_count;
+        using superclass::items;
+
+        /// ### Padding between items
         float vpadding = {}, hpadding = {};
 
         grid(collection_type c, float const p)
-        : items{std::move(c)}, vpadding{p}, hpadding{p} {}
+        : superclass{std::move(c)}, vpadding{p}, hpadding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const cell = cell_size(outer);
@@ -110,8 +111,6 @@ namespace planet::ui {
             /// in a `layout` structure
             return constrained_type{extents(ex.extents())};
         }
-
-        void move_sub_elements(affine::rectangle2d const &) override {}
 
         affine::extents2d cell_size(affine::extents2d const outer) {
             float max_width = {}, max_height = {};
