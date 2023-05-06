@@ -40,6 +40,9 @@ namespace planet::ui {
         void draw_within(Renderer &r, affine::rectangle2d const outer) {
             if (visible) { do_draw_within(r, outer); }
         }
+        void draw(Renderer &r) {
+          if (visible) { do_draw(r); }
+        }
 
         /// ### Check if a point in screen space is within the widget
         virtual bool is_within(affine::point2d const &p) const {
@@ -56,6 +59,7 @@ namespace planet::ui {
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw_within(Renderer &r, affine::rectangle2d) = 0;
+        virtual void do_draw(Renderer &r) = 0;
         virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
 
         /// ### Move the widget's panel
