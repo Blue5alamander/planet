@@ -8,6 +8,10 @@ namespace planet::ui {
 
 
     /// ## A grid of equally sized blocks which can break onto multiple lines
+    /**
+     * The size of the grid squares is based on the minimum width and height of
+     * the contained grid items.
+     */
     template<typename C>
     struct grid {
         using collection_type = C;
@@ -106,10 +110,28 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            /// TODO All of the layout logic should move to here which will fill
-            /// in a `layout` structure
-            return constrained_type{extents(ex.extents())};
+        constrained_type do_reflow(constrained_type const &border) override {
+            auto const constraints = superclass::items_reflow(border);
+            affine::extents2d min;
+            for (auto const &ic : constraints) {
+                min.width = std::max(min.width, ic.width.min());
+                min.height = std::max(min.height, ic.height.min());
+            }
+            float left = 0, top = 0, max_width = 0;
+            for (auto &element : elements) {
+                if (left + hpadding + min.width > border.width.max()) {
+                    max_width = std::max(left, max_width);
+                    left = 0;
+                    top += min.height + hpadding;
+                }
+                if (left) { left += hpadding; }
+                element.position = {{left, top}, min};
+                left += min.width;
+            }
+            auto const width = std::max(max_width, left);
+            auto const height = top + min.height;
+            return constrained_type{
+                    {width, width, width}, {height, height, height}};
         }
 
         affine::extents2d cell_size(affine::extents2d const outer) {
