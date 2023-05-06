@@ -167,37 +167,3 @@ felspar::coro::generator<
         co_yield std::move(*p);
     }
 }
-
-
-/// ## `planet::audio::wav`
-
-
-planet::audio::wav::wav(std::span<std::byte const> filedata)
-: samples{[&]() -> buffer_storage<sample_clock, 2> {
-      auto const header = std::span<std::uint8_t const>{
-              reinterpret_cast<std::uint8_t const *>(filedata.data()), 88};
-
-      [[maybe_unused]] std::size_t const file_size = header[4]
-              + (header[5] << 8) + (header[6] << 16) + (header[7] << 24);
-      std::size_t const data_size = header[84] + (header[85] << 8)
-              + (header[86] << 16) + (header[87] << 24);
-
-      std::span<float const> sample_data(
-              reinterpret_cast<float const *>(filedata.data() + 88),
-              data_size / sizeof(float));
-      std::size_t const samples = sample_data.size() / 2;
-
-      felspar::memory::accumulation_buffer<float> output;
-      output.ensure_length(sample_data.size());
-      for (std::size_t index{}; index < samples; ++index) {
-          output.at(index * 2 + 0) = sample_data[index * 2 + 0];
-          output.at(index * 2 + 1) = sample_data[index * 2 + 1];
-      }
-      return output.first(samples);
-  }()} {}
-
-
-auto planet::audio::wav::output()
-        -> felspar::coro::generator<buffer_storage<sample_clock, 2>> {
-    co_yield samples;
-}
