@@ -88,8 +88,8 @@ namespace planet::ui {
     template<typename T>
     struct constrained2d {
         using value_type = T;
-        using axis_contrained_type = constrained1d<value_type>;
-        axis_contrained_type width, height;
+        using axis_constrained_type = constrained1d<value_type>;
+        axis_constrained_type width, height;
 
         /// ### Construction
 
@@ -97,7 +97,7 @@ namespace planet::ui {
         constexpr constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
         constexpr constrained2d(
-                axis_contrained_type const &w, axis_contrained_type const &h)
+                axis_constrained_type const &w, axis_constrained_type const &h)
         : width{w}, height{h} {}
         constexpr constrained2d(
                 affine::extents2d const ex,
