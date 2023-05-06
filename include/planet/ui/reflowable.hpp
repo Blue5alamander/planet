@@ -16,18 +16,53 @@ namespace planet::ui {
         /// ### Dirty calculation
 
         /// #### Set this item as dirty
-        void set_dirty() { m_position = {}; }
+        void set_dirty() {
+            m_constraints = {};
+            m_position = {};
+        }
 
         /// #### Check item dirtyness
         /**
          * For UI elements that contain sub-elements this must check all
          * sub-elements and return true if any of them do so.
          */
-        virtual bool is_dirty() const { return not m_position.has_value(); }
+        virtual bool is_dirty() const {
+            return not m_constraints.has_value() or not m_position.has_value();
+        }
 
-        /// ### Calculated position
-        /// `reflow` must have been called before this size is required
-        affine::extents2d const &size() { return m_position.value().extents; }
+        /// ### Calculated position and constraints
+        /// `reflow` and `move_to` must have been called before these are available
+
+        /// #### The size of the item
+        affine::extents2d const &size() { return position().extents; }
+        /// #### The position that it has
+        affine::rectangle2d const &position(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            if (not m_position) {
+                throw felspar::stdexcept::logic_error{
+                        "The position for this reflowable has not been set. "
+                        "Generally this means that a parent hasn't called "
+                        "`move_to` as it was supposed to",
+                        loc};
+            } else {
+                return *m_position;
+            }
+        }
+        /// #### The constraints that the item has
+        constrained_type constraints(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            if (m_constraints) {
+                return *m_constraints;
+            } else {
+                throw felspar::stdexcept::logic_error{
+                        "The constraints for this reflowable has not been set. "
+                        "Generally this means that the parent hasn't called "
+                        "`reflow` is it was supposed to",
+                        loc};
+            }
+        }
 
         /// ### Calculate position
         /**
@@ -45,8 +80,9 @@ namespace planet::ui {
          * determine their locations. Once done the parent element calls
          * `move_to` on each child to inform it of where to draw.
          */
-        constrained_type reflow(constrained_type const &ex) {
-            return do_reflow(ex);
+        constrained_type const &reflow(constrained_type const &ex) {
+            m_constraints = do_reflow(ex);
+            return *m_constraints;
         }
 
         /// ### Move the widget to a new position
@@ -62,22 +98,10 @@ namespace planet::ui {
       protected:
         /// ### Reflow implementation
         virtual constrained_type do_reflow(constrained_type const &) = 0;
-        affine::rectangle2d const &position(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
-            if (not m_position) {
-                throw felspar::stdexcept::logic_error{
-                        "The position for this reflowable has not been set. "
-                        "Generally this means that a parent hasn't called "
-                        "`move_to` as it was supposed to",
-                        loc};
-            } else {
-                return *m_position;
-            }
-        }
         virtual void move_sub_elements(affine::rectangle2d const &) = 0;
 
       private:
+        std::optional<constrained_type> m_constraints;
         std::optional<affine::rectangle2d> m_position;
     };
 
