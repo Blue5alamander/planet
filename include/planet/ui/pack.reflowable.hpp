@@ -12,21 +12,34 @@ namespace planet::ui {
     /// ## Reflowable implementation for tuple based layouts
     template<typename ET, typename... Pack>
     struct pack_reflowable : public reflowable {
+
         using collection_type = std::tuple<Pack...>;
         collection_type items;
-        static constexpr std::size_t item_count = sizeof...(Pack);
 
+
+        /// ### Meta-data
+        static constexpr std::size_t item_count = sizeof...(Pack);
+        static constexpr auto item_sequence =
+                std::make_index_sequence<item_count>{};
+        static_assert(item_count > 0, "There must be at least one UI element");
+
+
+        /// ### Construction
         pack_reflowable(
                 collection_type c,
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : items{std::move(c)}, created_loc{loc} {}
 
+
+        /// ### Information about the layout of the contained items
         using layout_type = planet::ui::layout<
                 std::array<planet::ui::element<ET>, item_count>>;
         using constrained_type = typename layout_type::constrained_type;
         layout_type elements;
 
+
+        /// ### Draw the contained items
         template<typename Renderer>
         void
                 draw(Renderer &r,
@@ -35,13 +48,19 @@ namespace planet::ui {
             draw_items(r, items, loc);
         }
 
-      private:
-        felspar::source_location created_loc;
-        static_assert(item_count > 0, "There must be at least one UI element");
+      protected:
+        /// ### Return an array of constraints for all of the included items
+        auto items_reflow(constrained_type const &c) {
+            return items_reflow_sequence(c, item_sequence);
+        }
 
         void move_sub_elements(affine::rectangle2d const &r) {
-            move_elements(r, std::make_index_sequence<sizeof...(Pack)>{});
+            move_elements(r, item_sequence);
         }
+
+      private:
+        felspar::source_location created_loc;
+
         template<std::size_t... I>
         void move_elements(
                 affine::rectangle2d const &r, std::index_sequence<I...>) {
@@ -57,6 +76,11 @@ namespace planet::ui {
                         "`pack_reflowable` created at",
                         created_loc};
             }
+        }
+        template<std::size_t... I>
+        auto items_reflow_sequence(
+                constrained_type const &c, std::index_sequence<I...>) {
+            return std::array{std::get<I>(items).reflow(c)...};
         }
     };
 
