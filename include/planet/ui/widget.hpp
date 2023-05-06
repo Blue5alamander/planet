@@ -56,10 +56,12 @@ namespace planet::ui {
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw_within(Renderer &r, affine::rectangle2d) = 0;
+        virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
 
         /// ### Move the widget's panel
         void move_sub_elements(affine::rectangle2d const &r) override {
             panel.move_to(r);
+            do_move_sub_elements(r);
         }
     };
 

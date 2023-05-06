@@ -98,6 +98,15 @@ namespace planet::ui {
       protected:
         /// ### Reflow implementation
         virtual constrained_type do_reflow(constrained_type const &) = 0;
+
+        /// ### Move sub-elements to final positions
+        /**
+         * Implement this in order to set the positions for any sub-elements
+         * that the reflowable may have.
+         *
+         * For widgets this method name changes slights. See
+         * [widget.hpp](./widget.hpp) for more details.
+         */
         virtual void move_sub_elements(affine::rectangle2d const &) = 0;
 
       private:
