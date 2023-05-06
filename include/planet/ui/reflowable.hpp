@@ -14,6 +14,12 @@ namespace planet::ui {
     struct reflowable : public telemetry::id {
         using constrained_type = constrained2d<float>;
 
+
+        /// ### Construction
+        reflowable() = default;
+        reflowable(std::string_view n) : id{n} {}
+
+
         /// ### Dirty calculation
 
         /// #### Set this item as dirty

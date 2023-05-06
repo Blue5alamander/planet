@@ -16,8 +16,10 @@ namespace planet::ui {
         /// Padding between items in the row
         float padding = {};
 
-        row(collection_type c, float const p)
+        explicit row(collection_type c, float const p)
         : items{std::move(c)}, padding{p} {}
+        explicit row(std::string_view const n, collection_type c, float const p)
+        : reflowable{n}, items{std::move(c)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const first_ex = items[0].extents(outer);
@@ -67,8 +69,10 @@ namespace planet::ui {
         /// Padding between items in the row
         float padding = {};
 
-        row(collection_type c, float const p)
+        explicit row(collection_type c, float const p)
         : superclass{std::move(c)}, padding{p} {}
+        explicit row(std::string_view const n, collection_type c, float const p)
+        : superclass{n, std::move(c)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             return reflow(constrained_type{outer}).extents();
@@ -132,10 +136,19 @@ namespace planet::ui {
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
 
-        breakable_row(collection_type c, float const hp, float const vp)
+        explicit breakable_row(collection_type c, float const hp, float const vp)
         : items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
-        breakable_row(collection_type c, float const p)
+        explicit breakable_row(
+                std::string_view const n,
+                collection_type c,
+                float const hp,
+                float const vp)
+        : reflowable{n}, items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        explicit breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
+        explicit breakable_row(
+                std::string_view const n, collection_type c, float const p)
+        : breakable_row{n, std::move(c), p, p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             float max_width = {}, row_height = {}, total_height = {}, left{};
@@ -204,10 +217,25 @@ namespace planet::ui {
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
 
-        breakable_row(collection_type c, float const hp, float const vp)
+        explicit breakable_row(collection_type c, float const hp, float const vp)
         : superclass{std::move(c)}, hpadding{hp}, vpadding{vp} {}
-        breakable_row(collection_type c, float const p)
+        explicit breakable_row(
+                std::string_view const n,
+                collection_type c,
+                float const hp,
+                float const vp,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : superclass{n, std::move(c), loc}, hpadding{hp}, vpadding{vp} {}
+        explicit breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
+        explicit breakable_row(
+                std::string_view const n,
+                collection_type c,
+                float const p,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : breakable_row{n, std::move(c), p, p, loc} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             float max_width = {}, row_height = {}, total_height = {}, left{};

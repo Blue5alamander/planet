@@ -22,6 +22,7 @@ namespace planet::ui {
         widget(widget &&w)
         : response{std::move(w.response)},
           baseplate{std::exchange(w.baseplate, nullptr)} {}
+        widget(std::string_view const n) : reflowable{n} {}
         virtual ~widget() { deregister(baseplate, this); }
 
         widget &operator=(widget const &) = delete;

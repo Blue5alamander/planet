@@ -25,11 +25,17 @@ namespace planet::ui {
 
 
         /// ### Construction
-        pack_reflowable(
+        explicit pack_reflowable(
                 collection_type c,
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : items{std::move(c)}, created_loc{loc} {}
+        explicit pack_reflowable(
+                std::string_view const n,
+                collection_type c,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : reflowable{n}, items{std::move(c)}, created_loc{loc} {}
 
 
         /// ### Information about the layout of the contained items
@@ -73,7 +79,8 @@ namespace planet::ui {
             } catch (std::bad_optional_access const &) {
                 throw felspar::stdexcept::logic_error{
                         "Element position has not been set for "
-                        "`pack_reflowable` created at",
+                        "`pack_reflowable` id `"
+                                + name() + "` created at",
                         created_loc};
             }
         }

@@ -61,11 +61,14 @@ namespace planet::ui {
 
         box() {}
         explicit box(content_type c) : content{std::move(c)} {}
-        box(content_type c,
-            gravity const g,
-            float const hp = {},
-            float const vp = {})
+        explicit box(
+                content_type c,
+                gravity const g,
+                float const hp = {},
+                float const vp = {})
         : content{std::move(c)}, inner{g}, hpadding{hp}, vpadding{vp} {}
+        explicit box(std::string_view const n, content_type c)
+        : reflowable{n}, content{std::move(c)} {}
 
         /// ### Calculate the extents of the box
         affine::extents2d extents(affine::extents2d const &ex) {

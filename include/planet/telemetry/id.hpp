@@ -2,6 +2,7 @@
 
 
 #include <string>
+#include <string_view>
 
 
 namespace planet::telemetry {
@@ -21,7 +22,10 @@ namespace planet::telemetry {
         std::string m_name;
 
       public:
-        id();
+        /// ### Construction
+        explicit id();
+        explicit id(std::string_view);
+
 
         /// ### The name for this game item
         std::string const &name() const noexcept { return m_name; }

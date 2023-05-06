@@ -19,6 +19,9 @@ namespace planet::ui {
         column() {}
         explicit column(collection_type c, float const p = {})
         : items{std::move(c)}, padding{p} {}
+        explicit column(
+                std::string_view const n, collection_type c, float const p = {})
+        : reflowable{n}, items{std::move(c)}, padding{p} {}
 
         using layout_type = planet::ui::layout_for<C>;
         using constrained_type = typename layout_type::constrained_type;
@@ -88,8 +91,11 @@ namespace planet::ui {
         /// Padding between items
         float padding = {};
 
-        column(collection_type i, float const p)
+        explicit column(collection_type i, float const p)
         : superclass{std::move(i)}, padding{p} {}
+        explicit column(
+                std::string_view const n, collection_type i, float const p)
+        : superclass{n, std::move(i)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const sizes = item_sizes(items, outer);
