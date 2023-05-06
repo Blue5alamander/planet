@@ -6,6 +6,7 @@ add_library(planet
         gain.audio.cpp
         gravity.ui.cpp
         hex.map.cpp
+        id.telemetry.cpp
         image.drawing.cpp
         map.cpp
         mixer.audio.cpp

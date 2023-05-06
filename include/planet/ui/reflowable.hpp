@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/telemetry/id.hpp>
 #include <planet/ui/element.hpp>
 
 #include <felspar/exceptions.hpp>
@@ -10,7 +11,7 @@ namespace planet::ui {
 
 
     /// ## Reflow UI element layout
-    struct reflowable {
+    struct reflowable : public telemetry::id {
         using constrained_type = constrained2d<float>;
 
         /// ### Dirty calculation
@@ -43,7 +44,8 @@ namespace planet::ui {
                 throw felspar::stdexcept::logic_error{
                         "The position for this reflowable has not been set. "
                         "Generally this means that a parent hasn't called "
-                        "`move_to` as it was supposed to",
+                        "`move_to` as it was supposed to\n"
+                                + name(),
                         loc};
             } else {
                 return *m_position;
@@ -59,7 +61,8 @@ namespace planet::ui {
                 throw felspar::stdexcept::logic_error{
                         "The constraints for this reflowable has not been set. "
                         "Generally this means that the parent hasn't called "
-                        "`reflow` is it was supposed to",
+                        "`reflow` is it was supposed to\n"
+                                + name(),
                         loc};
             }
         }
