@@ -41,7 +41,7 @@ namespace planet::ui {
             if (visible) { do_draw_within(r, outer); }
         }
         void draw(Renderer &r) {
-          if (visible) { do_draw(r); }
+            if (visible) { do_draw(r); }
         }
 
         /// ### Check if a point in screen space is within the widget
