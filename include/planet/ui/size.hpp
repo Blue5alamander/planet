@@ -8,7 +8,7 @@
 namespace planet::ui {
 
 
-    /// ## Draw re-sizeable content at up to the specified size
+    /// ## Draw re-sizeable content at the specified size
     template<typename C>
     struct target_size : public reflowable {
         using content_type = C;
@@ -36,17 +36,18 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &bounds) override {
-            constrained_type inner{bounds};
-            inner.width.max(size.width);
-            inner.height.max(size.height);
-            return content.reflow(inner);
+        constrained_type do_reflow(constrained_type const &) override {
+            constrained_type const csize{size};
+            content.reflow(csize);
+            return csize;
         }
 
         void move_sub_elements(affine::rectangle2d const &r) override {
-            content.move_to(r);
+            content.move_to({r.top_left, content.constraints().extents()});
         }
     };
+    template<typename C>
+    target_size(C, affine::extents2d) -> target_size<C>;
 
 
 }

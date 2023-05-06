@@ -104,14 +104,22 @@ namespace planet::ui {
             inside.height.max(inside.height.max() - vpadding);
             auto needs = content.reflow(inside);
             needs.width.min(needs.width.min() - hpadding);
-            needs.width.max(needs.width.max() + hpadding);
             needs.height.min(needs.height.min() - hpadding);
-            needs.height.max(needs.height.max() + hpadding);
-            return needs;
+            return constrained_type{
+                    constrained_type::axis_constrained_type{
+                            ex.width.value(), needs.width.min(), ex.width.max()},
+                    constrained_type::axis_constrained_type{
+                            ex.height.value(), needs.height.min(),
+                            ex.height.max()}};
         }
-        void move_sub_elements(affine::rectangle2d const &r) override {
-            affine::point2d const tl{hpadding, vpadding};
-            content.move_to({r.top_left + tl, r.extents});
+        void move_sub_elements(affine::rectangle2d const &outer) override {
+            affine::point2d const padding{hpadding, vpadding};
+            auto const inner_size = content.constraints().extents();
+            auto const area = within(
+                    inner,
+                    {outer.top_left + padding, remove_padding(outer.extents)},
+                    inner_size);
+            content.move_to(area);
         }
 
         affine::extents2d
