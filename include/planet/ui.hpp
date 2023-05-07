@@ -7,6 +7,7 @@
 #include <planet/ui/element.hpp>
 #include <planet/ui/forward.hpp>
 #include <planet/ui/layout.hpp>
+#include <planet/ui/layout.breakable_row.hpp>
 #include <planet/ui/layout.column.hpp>
 #include <planet/ui/layout.corners.hpp>
 #include <planet/ui/layout.grid.hpp>
