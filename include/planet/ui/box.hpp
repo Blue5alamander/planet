@@ -76,26 +76,7 @@ namespace planet::ui {
         explicit box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
-        /// ### Calculate the extents of the box
-        affine::extents2d extents(affine::extents2d const &ex) {
-            return add_padding(content.extents(remove_padding(ex)));
-        }
-
         /// ### Drawing the box content
-        /**
-         * Draw the content within the area outlined by the top left and bottom
-         * right corners passed in. All calculations are done in the screen
-         * space co-ordinate system
-         */
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const outer) {
-            auto const area = within(
-                    inner,
-                    {outer.top_left + affine::point2d{hpadding, vpadding},
-                     remove_padding(outer.extents)},
-                    content.extents(remove_padding(outer.extents)));
-            content.draw_within(t, area);
-        }
         template<typename Renderer>
         void
                 draw(Renderer &r,

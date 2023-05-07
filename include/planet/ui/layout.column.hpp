@@ -86,23 +86,6 @@ namespace planet::ui {
                         felspar::source_location::current())
         : superclass{n, std::move(i), loc}, padding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            auto const sizes = item_sizes(items, outer);
-            affine::extents2d r{{}, {}};
-            for (auto const e : sizes) {
-                r.width = std::max(r.width, e.width);
-                if (r.height) { r.height += padding; }
-                r.height += e.height;
-            }
-            return r;
-        }
-
-        template<typename Target>
-        auto draw_within(Target &t, affine::rectangle2d const outer) {
-            return draw_within(
-                    t, outer, std::make_index_sequence<sizeof...(Pack)>{});
-        }
-
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
             float const unused = ex.height.value() - (item_count - 1) * padding;
@@ -117,29 +100,6 @@ namespace planet::ui {
                 ++index;
             }
             return constrained_type{max_width, top - padding};
-        }
-
-        template<typename Target, std::size_t... I>
-        void draw_within(
-                Target &t,
-                affine::rectangle2d const outer,
-                std::index_sequence<I...>) {
-            float top = outer.top();
-            ((top += draw_item(t, std::get<I>(items), outer, top) + padding),
-             ...);
-        }
-        template<typename Target, typename Item>
-        float draw_item(
-                Target &t,
-                Item &item,
-                affine::rectangle2d const within,
-                float const top) {
-            auto const ex = item.extents(within.extents);
-            auto const height = ex.height;
-            auto const left = within.left(), right = within.right();
-            item.draw_within(
-                    t, {{left, top}, affine::point2d{right, top + height}});
-            return height;
         }
     };
 
