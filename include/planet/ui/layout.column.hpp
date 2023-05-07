@@ -91,11 +91,19 @@ namespace planet::ui {
         /// Padding between items
         float padding = {};
 
-        explicit column(collection_type i, float const p)
-        : superclass{std::move(i)}, padding{p} {}
         explicit column(
-                std::string_view const n, collection_type i, float const p)
-        : superclass{n, std::move(i)}, padding{p} {}
+                collection_type i,
+                float const p,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : superclass{std::move(i), loc}, padding{p} {}
+        explicit column(
+                std::string_view const n,
+                collection_type i,
+                float const p,
+                felspar::source_location const &loc =
+                        felspar::source_location::current())
+        : superclass{n, std::move(i), loc}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const sizes = item_sizes(items, outer);
@@ -116,20 +124,18 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
-            auto space = ex.extents();
-            float const unused = space.height - (item_count - 1) * padding;
+            float const unused = ex.height.value() - (item_count - 1) * padding;
             float const item_height = unused / item_count;
             float top = {}, max_width = {};
-            auto const sizes = item_sizes(
-                    items, affine::extents2d{space.width, item_height});
+            auto const sizes = superclass::items_reflow(
+                    {ex.width, {ex.height.min(), item_height, ex.height.max()}});
             for (std::size_t index{}; auto &element : elements) {
-                element.position = {{{}, top}, sizes[index]};
-                top += sizes[index].height + padding;
-                max_width = std::max(max_width, sizes[index].height);
+                element.position = {{{}, top}, sizes[index].extents()};
+                top += sizes[index].height.value() + padding;
+                max_width = std::max(max_width, sizes[index].width.value());
                 ++index;
             }
-            /// TODO Calculate better constraints here
-            return constrained_type{extents(ex.extents())};
+            return constrained_type{max_width, top - padding};
         }
 
         template<typename Target, std::size_t... I>

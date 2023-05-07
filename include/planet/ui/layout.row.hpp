@@ -283,30 +283,24 @@ namespace planet::ui {
       private:
         constrained_type do_reflow(constrained_type const &border) override {
             float row_height = {}, x = {}, y = {}, max_width{};
-            felspar::memory::small_vector<affine::rectangle2d, item_count>
-                    locations;
-            for (auto &ex : item_sizes(items, border)) {
+            for (std::size_t index{};
+                 auto &ex : superclass::items_reflow(border)) {
                 if (x + ex.width.value() > border.width.value()) {
                     x = {};
                     if (y) { y += vpadding; }
                     y += row_height;
                     row_height = {};
                 }
-                max_width = std::max(x, max_width);
                 if (x) { x += hpadding; }
-                locations.emplace_back(affine::point2d{x, y}, ex.extents());
+                elements.at(index).position = {
+                        affine::point2d{x, y}, ex.extents()};
                 row_height = std::max(row_height, ex.height.value());
                 x += ex.width.value();
-            }
-            if (locations.size() != item_count) {
-                throw felspar::stdexcept::logic_error{
-                        "We have the wrong number of locations for "
-                        "sub-elements"};
-            }
-            for (std::size_t index{}; auto const &loc : locations) {
-                elements.at(index).position = loc;
+                max_width = std::max(x, max_width);
+                ++index;
             }
             float const width = max_width, height = row_height + y;
+            /// TODO We could calculate better min/max here
             return constrained_type{width, height};
         }
     };

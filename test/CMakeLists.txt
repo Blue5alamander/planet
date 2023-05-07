@@ -12,6 +12,7 @@ add_test_run(check planet TESTS
         map.tests.cpp
         mouse.tests.cpp
         panel.tests.cpp
+        row.layout.tests.cpp
         serialise.tests.cpp
         scaling.tests.cpp
     )
