@@ -26,6 +26,11 @@ namespace planet::ui {
         using constrained_type = typename layout_type::constrained_type;
         layout_type elements;
 
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            for (auto &item : items) { item.draw(r); }
+        }
+
       protected:
         void move_sub_elements(affine::rectangle2d const &r) override {
             for (std::size_t index{}; auto &item : items) {
