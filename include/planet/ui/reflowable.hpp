@@ -46,15 +46,13 @@ namespace planet::ui {
         affine::rectangle2d const &position(
                 felspar::source_location const &loc =
                         felspar::source_location::current()) const {
-            if (not m_position) {
-                throw felspar::stdexcept::logic_error{
-                        "The position for this reflowable has not been set. "
-                        "Generally this means that a parent hasn't called "
-                        "`move_to` as it was supposed to\n"
-                                + name(),
-                        loc};
-            } else {
+            if (m_position) {
                 return *m_position;
+            } else {
+                throw felspar::stdexcept::logic_error{
+                    "The position for this reflowable `" + name() +
+                    "` has not been set. Generally this means that a parent "
+                    "hasn't called `move_to` as it was supposed to\n", loc};
             }
         }
         /// #### The constraints that the item has
@@ -65,11 +63,9 @@ namespace planet::ui {
                 return *m_constraints;
             } else {
                 throw felspar::stdexcept::logic_error{
-                        "The constraints for this reflowable has not been set. "
-                        "Generally this means that the parent hasn't called "
-                        "`reflow` is it was supposed to\n"
-                                + name(),
-                        loc};
+                    "The constraints for this reflowable `" + name() +
+                    "` have not been set. Generally this means that a parent "
+                    "hasn't called `reflow` as it was supposed to\n", loc};
             }
         }
 
