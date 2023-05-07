@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ui/collection.reflowable.hpp>
 #include <planet/ui/pack.reflowable.hpp>
 
 
@@ -8,42 +9,23 @@ namespace planet::ui {
 
 
     /// ## A single wide column
-    template<typename C>
-    struct column : public reflowable {
-        using collection_type = C;
-        using box_type = typename collection_type::value_type;
-        collection_type items;
+    template<typename CT>
+    struct column : public collection_reflowable<CT, void> {
+        using superclass = collection_reflowable<CT, void>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::items;
+
         /// ### Padding between items in the column
         float padding = {};
 
         column() {}
         explicit column(collection_type c, float const p = {})
-        : reflowable{"planet::ui::column<C>"}, items{std::move(c)}, padding{p} {}
+        : superclass{"planet::ui::column<>", std::move(c)}, padding{p} {}
         explicit column(
                 std::string_view const n, collection_type c, float const p = {})
-        : reflowable{n}, items{std::move(c)}, padding{p} {}
-
-        using layout_type = planet::ui::layout_for<C>;
-        using constrained_type = typename layout_type::constrained_type;
-        layout_type elements;
-
-        affine::extents2d extents(affine::extents2d const outer) {
-            return reflow(constrained_type{outer}).extents();
-        }
-
-        template<typename Target>
-        auto draw_within(Target &t, affine::rectangle2d const outer) {
-            /// TODO Should use dirty handling
-            reflow(constrained_type{outer.extents});
-            for (std::size_t index{}; auto &item : items) {
-                if (index < elements.size() and elements.at(index).position) {
-                    auto const &pos = *elements.at(index).position;
-                    item.draw_within(
-                            t, {outer.top_left + pos.top_left, pos.extents});
-                }
-                ++index;
-            }
-        }
+        : superclass{n, std::move(c)}, padding{p} {}
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
@@ -73,8 +55,6 @@ namespace planet::ui {
                 return constrained_type{*elements.extents};
             }
         }
-
-        void move_sub_elements(affine::rectangle2d const &) override {}
     };
 
 
@@ -162,6 +142,16 @@ namespace planet::ui {
             return height;
         }
     };
+
+
+    template<typename C>
+    column(C) -> column<C>;
+    template<typename C>
+    column(std::string_view, C) -> column<C>;
+    template<typename C>
+    column(C, float) -> column<C>;
+    template<typename C>
+    column(std::string_view, C, float) -> column<C>;
 
 
 }
