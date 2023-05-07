@@ -103,15 +103,14 @@ namespace planet::ui {
             inside.width.max(inside.width.max() - hpadding);
             inside.height.min(inside.height.min() + vpadding);
             inside.height.max(inside.height.max() - vpadding);
-            auto needs = content.reflow(inside);
-            needs.width.min(needs.width.min() - hpadding);
-            needs.height.min(needs.height.min() - hpadding);
+            auto const needs = content.reflow(inside);
+            auto const min_width = needs.width.min() + 2 * hpadding;
+            auto const min_height = needs.height.min() + 2 * hpadding;
             return constrained_type{
-                    constrained_type::axis_constrained_type{
-                            ex.width.value(), needs.width.min(), ex.width.max()},
-                    constrained_type::axis_constrained_type{
-                            ex.height.value(), needs.height.min(),
-                            ex.height.max()}};
+                    {ex.width.value(), std::max(min_width, ex.width.min()),
+                     ex.width.max()},
+                    {ex.height.value(), std::max(min_height, ex.height.min()),
+                     ex.height.max()}};
         }
         void move_sub_elements(affine::rectangle2d const &outer) override {
             affine::point2d const padding{hpadding, vpadding};
