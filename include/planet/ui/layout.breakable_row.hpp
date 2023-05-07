@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ui/collection.reflowable.hpp>
 #include <planet/ui/pack.reflowable.hpp>
 
 
@@ -8,16 +9,19 @@ namespace planet::ui {
 
 
     /// ## Draws the items across multiple lines when needed
-    template<typename C>
-    struct breakable_row : public reflowable {
-        using collection_type = C;
-        collection_type items;
+    template<typename CT>
+    struct breakable_row : public collection_reflowable<CT, void> {
+        using superclass = collection_reflowable<CT, void>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::items;
+
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
 
         explicit breakable_row(collection_type c, float const hp, float const vp)
-        : reflowable{"planet::ui::breakable_row<C>"},
-          items{std::move(c)},
+        : superclass{"planet::ui::breakable_row<C>", std::move(c)},
           hpadding{hp},
           vpadding{vp} {}
         explicit breakable_row(
@@ -25,7 +29,7 @@ namespace planet::ui {
                 collection_type c,
                 float const hp,
                 float const vp)
-        : reflowable{n}, items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        : superclass{n, std::move(c)}, hpadding{hp}, vpadding{vp} {}
         explicit breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
         explicit breakable_row(
@@ -72,20 +76,31 @@ namespace planet::ui {
             }
         }
 
-        template<typename Renderer>
-        void draw(Renderer &r) {
-            for (auto &item : items) { item.draw(r); }
-        }
-
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            /// TODO All of the layout logic should move to here which will fill
-            /// in a `layout` structure
-            return constrained_type{extents(ex.extents())};
+        constrained_type do_reflow(constrained_type const &border) override {
+            float row_height = {}, x = {}, y = {}, max_width{};
+            for (std::size_t index{}; auto &element : elements) {
+                auto const ex = items[index].reflow(border);
+                if (x + ex.width.value() > border.width.value()) {
+                    x = {};
+                    if (y) { y += vpadding; }
+                    y += row_height;
+                    row_height = {};
+                }
+                if (x) { x += hpadding; }
+                element.position = {affine::point2d{x, y}, ex.extents()};
+                row_height = std::max(row_height, ex.height.value());
+                x += ex.width.value();
+                max_width = std::max(x, max_width);
+                ++index;
+            }
+            float const width = max_width, height = row_height + y;
+            /// TODO We could calculate better min/max here
+            return constrained_type{width, height};
         }
-
-        void move_sub_elements(affine::rectangle2d const &) override {}
     };
+
+
     template<typename... Pack>
     struct breakable_row<std::tuple<Pack...>> :
     public pack_reflowable<void, Pack...> {
@@ -188,6 +203,20 @@ namespace planet::ui {
             return constrained_type{width, height};
         }
     };
+
+
+    template<typename C>
+    breakable_row(C) -> breakable_row<C>;
+    template<typename C>
+    breakable_row(std::string_view, C) -> breakable_row<C>;
+    template<typename C>
+    breakable_row(C, float) -> breakable_row<C>;
+    template<typename C>
+    breakable_row(std::string_view, C, float) -> breakable_row<C>;
+    template<typename C>
+    breakable_row(C, float, float) -> breakable_row<C>;
+    template<typename C>
+    breakable_row(std::string_view, C, float, float) -> breakable_row<C>;
 
 
 }
