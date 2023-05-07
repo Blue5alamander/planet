@@ -18,7 +18,7 @@ namespace planet::ui {
 
         column() {}
         explicit column(collection_type c, float const p = {})
-        : items{std::move(c)}, padding{p} {}
+        : reflowable{"planet::ui::column<C>"}, items{std::move(c)}, padding{p} {}
         explicit column(
                 std::string_view const n, collection_type c, float const p = {})
         : reflowable{n}, items{std::move(c)}, padding{p} {}
@@ -96,7 +96,8 @@ namespace planet::ui {
                 float const p,
                 felspar::source_location const &loc =
                         felspar::source_location::current())
-        : superclass{std::move(i), loc}, padding{p} {}
+        : superclass{"planet::ui::column<std::tuple<Pack...>>", std::move(i), loc},
+          padding{p} {}
         explicit column(
                 std::string_view const n,
                 collection_type i,

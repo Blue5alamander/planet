@@ -21,6 +21,8 @@ namespace planet::ui {
     template<typename Renderer>
     class screen final : public widget<Renderer> {
       public:
+        explicit screen() : widget<Renderer>{"planet::ui::screen"} {}
+
         ui::panel &panel() { return widget<Renderer>::panel; }
 
         using constrained_type = typename widget<Renderer>::constrained_type;

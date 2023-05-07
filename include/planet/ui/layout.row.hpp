@@ -18,7 +18,7 @@ namespace planet::ui {
         float padding = {};
 
         explicit row(collection_type c, float const p)
-        : items{std::move(c)}, padding{p} {}
+        : reflowable{"planet::ui::row<C>"}, items{std::move(c)}, padding{p} {}
         explicit row(std::string_view const n, collection_type c, float const p)
         : reflowable{n}, items{std::move(c)}, padding{p} {}
 
@@ -96,7 +96,8 @@ namespace planet::ui {
         float padding = {};
 
         explicit row(collection_type c, float const p)
-        : superclass{std::move(c)}, padding{p} {}
+        : superclass{"planet::ui::row<std::tuple<Pack...>>", std::move(c)},
+          padding{p} {}
         explicit row(std::string_view const n, collection_type c, float const p)
         : superclass{n, std::move(c)}, padding{p} {}
 
@@ -163,7 +164,10 @@ namespace planet::ui {
         float hpadding = {}, vpadding = {};
 
         explicit breakable_row(collection_type c, float const hp, float const vp)
-        : items{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        : reflowable{"planet::ui::breakable_row<C>"},
+          items{std::move(c)},
+          hpadding{hp},
+          vpadding{vp} {}
         explicit breakable_row(
                 std::string_view const n,
                 collection_type c,
@@ -244,7 +248,9 @@ namespace planet::ui {
         float hpadding = {}, vpadding = {};
 
         explicit breakable_row(collection_type c, float const hp, float const vp)
-        : superclass{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        : superclass{"planet::ui::breakable_row<std::tuple<Pack...>>", std::move(c)},
+          hpadding{hp},
+          vpadding{vp} {}
         explicit breakable_row(
                 std::string_view const n,
                 collection_type c,

@@ -12,7 +12,8 @@ namespace planet::debug {
     struct fixed_element : public ui::reflowable {
         affine::extents2d size;
 
-        fixed_element(affine::extents2d const s) : size{s} {}
+        fixed_element(affine::extents2d const s)
+        : reflowable{"planet::debug::fixed_element"}, size{s} {}
 
         affine::extents2d extents(affine::extents2d) const noexcept {
             return size;

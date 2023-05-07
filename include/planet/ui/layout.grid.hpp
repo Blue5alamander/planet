@@ -74,7 +74,9 @@ namespace planet::ui {
         float vpadding = {}, hpadding = {};
 
         grid(collection_type c, float const p)
-        : superclass{std::move(c)}, vpadding{p}, hpadding{p} {}
+        : superclass{"planet::ui::grid<std::tuple<Pack...>>", std::move(c)},
+          vpadding{p},
+          hpadding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const cell = cell_size(outer);

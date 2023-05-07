@@ -16,7 +16,6 @@ namespace planet::ui {
 
 
         /// ### Construction
-        reflowable() = default;
         reflowable(std::string_view n) : id{n} {}
 
 

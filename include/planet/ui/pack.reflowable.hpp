@@ -26,11 +26,6 @@ namespace planet::ui {
 
         /// ### Construction
         explicit pack_reflowable(
-                collection_type c,
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
-        : items{std::move(c)}, created_loc{loc} {}
-        explicit pack_reflowable(
                 std::string_view const n,
                 collection_type c,
                 felspar::source_location const &loc =

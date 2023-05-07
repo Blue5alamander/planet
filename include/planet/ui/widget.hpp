@@ -17,10 +17,10 @@ namespace planet::ui {
         felspar::coro::eager<> response;
 
       public:
-        widget() = default;
         widget(widget const &) = delete;
         widget(widget &&w)
-        : response{std::move(w.response)},
+        : reflowable{std::move(w)},
+          response{std::move(w.response)},
           baseplate{std::exchange(w.baseplate, nullptr)} {}
         widget(std::string_view const n) : reflowable{n} {}
         virtual ~widget() { deregister(baseplate, this); }

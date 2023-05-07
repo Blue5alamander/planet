@@ -59,12 +59,20 @@ namespace planet::ui {
         /// The amount of padding to be added around the content.
         float hpadding = {}, vpadding = {};
 
-        box() {}
-        explicit box(content_type c) : content{std::move(c)} {}
+        box() : reflowable{"planet::ui::box"} {}
+        explicit box(content_type c)
+        : reflowable{"planet::ui::box"}, content{std::move(c)} {}
         explicit box(content_type c, float const hp, float const vp)
-        : content{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        : reflowable{"planet::ui::box"},
+          content{std::move(c)},
+          hpadding{hp},
+          vpadding{vp} {}
         explicit box(content_type c, gravity const g, float const p = {})
-        : content{std::move(c)}, inner{g}, hpadding{p}, vpadding{p} {}
+        : reflowable{"planet::ui::box"},
+          content{std::move(c)},
+          inner{g},
+          hpadding{p},
+          vpadding{p} {}
         explicit box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
