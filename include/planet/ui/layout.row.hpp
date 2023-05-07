@@ -13,6 +13,7 @@ namespace planet::ui {
         using collection_type = C;
         using box_type = typename collection_type::value_type;
         collection_type items;
+
         /// Padding between items in the row
         float padding = {};
 
@@ -20,6 +21,10 @@ namespace planet::ui {
         : items{std::move(c)}, padding{p} {}
         explicit row(std::string_view const n, collection_type c, float const p)
         : reflowable{n}, items{std::move(c)}, padding{p} {}
+
+        using layout_type = planet::ui::layout_for<C>;
+        using constrained_type = typename layout_type::constrained_type;
+        layout_type elements;
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const first_ex = items[0].extents(outer);
@@ -48,13 +53,34 @@ namespace planet::ui {
         }
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            /// TODO All of the layout logic should move to here which will fill
-            /// in a `layout` structure
-            return constrained_type{extents(ex.extents())};
+        constrained_type do_reflow(constrained_type const &bounds) override {
+            elements.resize_to(std::span{items});
+            if (items.empty()) { return {}; }
+            float const unused =
+                    bounds.width.value() - (items.size() - 1) * padding;
+            float const item_width = unused / items.size();
+            constrained_type const space{
+                    {item_width, std::min(item_width, bounds.width.min()),
+                     bounds.width.max()},
+                    bounds.height};
+            float left = 0, max_height = 0;
+            for (std::size_t index{}; auto &item : items) {
+                auto const ex = item.reflow(space);
+                elements.at(index).position = {{left, 0}, ex.extents()};
+                left += ex.width.value() + padding;
+                max_height = std::max(max_height, ex.height.value());
+                ++index;
+            }
+            return constrained_type{left - padding, max_height};
         }
 
-        void move_sub_elements(affine::rectangle2d const &) override {}
+        void move_sub_elements(affine::rectangle2d const &r) override {
+            for (std::size_t index{}; auto &item : items) {
+                auto const &epos = elements.at(index).position.value();
+                item.move_to({r.top_left + epos.top_left, epos.extents});
+                ++index;
+            }
+        }
     };
     template<typename... Pack>
     struct row<std::tuple<Pack...>> final :
