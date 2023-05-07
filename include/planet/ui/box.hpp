@@ -61,12 +61,10 @@ namespace planet::ui {
 
         box() {}
         explicit box(content_type c) : content{std::move(c)} {}
-        explicit box(
-                content_type c,
-                gravity const g,
-                float const hp = {},
-                float const vp = {})
-        : content{std::move(c)}, inner{g}, hpadding{hp}, vpadding{vp} {}
+        explicit box(content_type c, float const hp, float const vp)
+        : content{std::move(c)}, hpadding{hp}, vpadding{vp} {}
+        explicit box(content_type c, gravity const g, float const p = {})
+        : content{std::move(c)}, inner{g}, hpadding{p}, vpadding{p} {}
         explicit box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
