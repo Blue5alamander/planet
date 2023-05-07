@@ -99,14 +99,12 @@ namespace {
         constexpr planet::affine::extents2d target_size{4, 3};
         auto g = planet::ui::grid{
                 std::tuple{planet::debug::fixed_element{target_size}}, 4};
-        g.reflow(
-                {axis_constrained_type{0, 400, 400},
-                 axis_constrained_type{0, 300, 300}});
+        g.reflow({{400, 0, 400}, {300, 0, 300}});
         g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
         check(g.position())
                 == planet::affine::rectangle2d{
-                        {0, 0}, planet::affine::extents2d{400, 300}};
+                        {0, 0}, planet::affine::extents2d{4, 3}};
         check(std::get<0>(g.items).position())
                 == planet::affine::rectangle2d{
                         {0, 0}, planet::affine::extents2d{4, 3}};
@@ -118,9 +116,7 @@ namespace {
                         planet::debug::fixed_element{target_size},
                         planet::debug::fixed_element{target_size}},
                 4};
-        g.reflow(
-                {axis_constrained_type{0, 400, 400},
-                 axis_constrained_type{0, 300, 300}});
+        g.reflow({{400, 0, 400}, {300, 0, 300}});
         g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
         check(g.hpadding) == 4;
@@ -128,7 +124,7 @@ namespace {
 
         check(g.position())
                 == planet::affine::rectangle2d{
-                        {0, 0}, planet::affine::extents2d{400, 300}};
+                        {0, 0}, planet::affine::extents2d{12, 3}};
         check(std::get<0>(g.items).position())
                 == planet::affine::rectangle2d{
                         {0, 0}, planet::affine::extents2d{4, 3}};
@@ -143,9 +139,7 @@ namespace {
                         planet::debug::fixed_element{target_size},
                         planet::debug::fixed_element{target_size}},
                 4};
-        g.reflow(
-                {axis_constrained_type{0, 8, 8},
-                 axis_constrained_type{0, 300, 300}});
+        g.reflow({{8, 0, 8}, {300, 0, 300}});
         g.move_to({{0, 0}, planet::affine::extents2d{8, 300}});
 
         check(g.hpadding) == 4;
@@ -153,7 +147,7 @@ namespace {
 
         check(g.position())
                 == planet::affine::rectangle2d{
-                        {0, 0}, planet::affine::extents2d{8, 300}};
+                        {0, 0}, planet::affine::extents2d{4, 10}};
         check(std::get<0>(g.items).position())
                 == planet::affine::rectangle2d{
                         {0, 0}, planet::affine::extents2d{4, 3}};
@@ -168,9 +162,7 @@ namespace {
                         planet::debug::fixed_element{target_size},
                         planet::debug::fixed_element{target_size}},
                 5}};
-        g.reflow(
-                {axis_constrained_type{0, 400, 400},
-                 axis_constrained_type{0, 300, 300}});
+        g.reflow({{400, 0, 400}, {300, 0, 300}});
         g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
         check(g.position())

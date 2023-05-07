@@ -100,7 +100,7 @@ namespace planet::ui {
          * tell the child what the new position is going to be.
          */
         void move_to(affine::rectangle2d const &r) {
-            m_position = r;
+            m_position = {r.top_left, constraints().extents()};
             move_sub_elements(r);
         }
 
