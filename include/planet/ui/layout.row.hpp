@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ui/collection.reflowable.hpp>
 #include <planet/ui/pack.reflowable.hpp>
 
 
@@ -8,23 +9,21 @@ namespace planet::ui {
 
 
     /// ## A row of boxes
-    template<typename C>
-    struct row final : public reflowable {
-        using collection_type = C;
-        using box_type = typename collection_type::value_type;
-        collection_type items;
+    template<typename CT>
+    struct row final : public collection_reflowable<CT, void> {
+        using superclass = collection_reflowable<CT, void>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::elements;
+        using superclass::items;
 
         /// Padding between items in the row
         float padding = {};
 
         explicit row(collection_type c, float const p)
-        : reflowable{"planet::ui::row<C>"}, items{std::move(c)}, padding{p} {}
+        : superclass{"planet::ui::row<>", std::move(c)}, padding{p} {}
         explicit row(std::string_view const n, collection_type c, float const p)
-        : reflowable{n}, items{std::move(c)}, padding{p} {}
-
-        using layout_type = planet::ui::layout_for<C>;
-        using constrained_type = typename layout_type::constrained_type;
-        layout_type elements;
+        : superclass{n, std::move(c)}, padding{p} {}
 
         affine::extents2d extents(affine::extents2d const outer) {
             auto const first_ex = items[0].extents(outer);
@@ -73,15 +72,9 @@ namespace planet::ui {
             }
             return constrained_type{left - padding, max_height};
         }
-
-        void move_sub_elements(affine::rectangle2d const &r) override {
-            for (std::size_t index{}; auto &item : items) {
-                auto const &epos = elements.at(index).position.value();
-                item.move_to({r.top_left + epos.top_left, epos.extents});
-                ++index;
-            }
-        }
     };
+
+
     template<typename... Pack>
     struct row<std::tuple<Pack...>> final :
     public pack_reflowable<void, Pack...> {
@@ -153,6 +146,16 @@ namespace planet::ui {
                      elements.at(index).position->extents});
         }
     };
+
+
+    template<typename C>
+    row(C) -> row<C>;
+    template<typename C>
+    row(std::string_view, C) -> row<C>;
+    template<typename C>
+    row(C, float) -> row<C>;
+    template<typename C>
+    row(std::string_view, C, float) -> row<C>;
 
 
 }
