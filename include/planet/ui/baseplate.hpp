@@ -21,20 +21,9 @@ namespace planet::ui {
             float z_layer = {};
         };
         std::vector<widget_> widgets;
-        /// ### Focus handling
-        /**
-         * Soft focus is handled purely by widget the the mouse is over. In the
-         * absence of hard focus all of the forwarded events will go to the
-         * widget pointed to by the soft focus (if any). Hard focus is managed
-         * by the application and overrides the soft focus. It can be used by a
-         * widget to "capture" events even if the mouse moves away.
-         */
-        widget_ *soft_focus = nullptr, *hard_focus = nullptr;
-        widget_ *find_focused_widget() const noexcept {
-            return hard_focus ? hard_focus : soft_focus;
-        }
 
       public:
+        /// ### Construction
         baseplate() {
             forwarders.post(*this, &baseplate::forward_mouse);
             forwarders.post(*this, &baseplate::forward_keys);
@@ -46,9 +35,11 @@ namespace planet::ui {
         baseplate &operator=(baseplate const &) = delete;
         baseplate &operator=(baseplate &&) = delete;
 
+
         /// ### Event inputs and settings
         events::mouse_settings mouse_settings;
         events::bus events;
+
 
         /// ### Register and remove widgets from event routing
         void add(widget<Renderer> *const w, float const z = {}) {
@@ -62,7 +53,8 @@ namespace planet::ui {
             std::erase_if(widgets, [&](auto const &i) { return i.ptr == w; });
         }
 
-        /// Set and remove hard focus
+
+        /// ### Set and remove hard focus
         void hard_focus_on(widget<Renderer> *const wp) {
             for (auto &w : widgets) {
                 if (w.ptr == wp) {
@@ -75,13 +67,29 @@ namespace planet::ui {
             if (hard_focus->ptr == w) { hard_focus = nullptr; }
         }
 
+
         /// ### Does this widget have focus
         bool has_focus(widget<Renderer> const *const wp) const noexcept {
             auto const *f = find_focused_widget();
             return f and f->ptr == wp;
         }
 
+
       private:
+        /// ### Focus handling
+        /**
+         * Soft focus is handled purely by widget the the mouse is over. In the
+         * absence of hard focus all of the forwarded events will go to the
+         * widget pointed to by the soft focus (if any). Hard focus is managed
+         * by the application and overrides the soft focus. It can be used by a
+         * widget to "capture" events even if the mouse moves away.
+         */
+        widget_ *soft_focus = nullptr, *hard_focus = nullptr;
+        widget_ *find_focused_widget() const noexcept {
+            return hard_focus ? hard_focus : soft_focus;
+        }
+
+        /// ### Event forwarding
         felspar::coro::starter<> forwarders;
         felspar::coro::starter<>::task_type forward_mouse() {
             while (true) {
