@@ -13,41 +13,43 @@ namespace {
     auto const rsuite = felspar::testsuite("row.layout");
 
 
-    auto const arf1 = rsuite.test("reflow/array/1", [](auto check) {
-        auto c = planet::ui::row{
-                std::array{planet::debug::fixed_element{{4, 3}}}, 2};
-        c.reflow({{100, 0, 100}, {100, 0, 100}});
-        c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
+    auto const arf1 = rsuite.test(
+            "reflow/array",
+            [](auto check) {
+                auto c = planet::ui::row{
+                        std::array{planet::debug::fixed_element{{4, 3}}}, 2};
+                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
-        check(c.position())
-                == planet::affine::rectangle2d{
-                        {15, 20}, planet::affine::extents2d{4, 3}};
-        check(c.items[0].position())
-                == planet::affine::rectangle2d{
-                        {15, 20}, planet::affine::extents2d{4, 3}};
-    });
-    auto const arf2 = rsuite.test("reflow/array/2", [](auto check) {
-        auto c = planet::ui::row{
-                std::array{
-                        planet::debug::fixed_element{{4, 3}},
-                        planet::debug::fixed_element{{4, 3}}},
-                2};
-        c.reflow({{100, 0, 100}, {100, 0, 100}});
-        c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
+                check(c.position())
+                        == planet::affine::rectangle2d{
+                                {15, 20}, planet::affine::extents2d{4, 3}};
+                check(c.items[0].position())
+                        == planet::affine::rectangle2d{
+                                {15, 20}, planet::affine::extents2d{4, 3}};
+            },
+            [](auto check) {
+                auto c = planet::ui::row{
+                        std::array{
+                                planet::debug::fixed_element{{4, 3}},
+                                planet::debug::fixed_element{{4, 3}}},
+                        2};
+                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
-        check(c.position())
-                == planet::affine::rectangle2d{
-                        {15, 20}, planet::affine::extents2d{10, 3}};
-        check(c.items[0].position())
-                == planet::affine::rectangle2d{
-                        {15, 20}, planet::affine::extents2d{4, 3}};
-        check(c.items[1].position())
-                == planet::affine::rectangle2d{
-                        {21, 20}, planet::affine::extents2d{4, 3}};
-    });
+                check(c.position())
+                        == planet::affine::rectangle2d{
+                                {15, 20}, planet::affine::extents2d{10, 3}};
+                check(c.items[0].position())
+                        == planet::affine::rectangle2d{
+                                {15, 20}, planet::affine::extents2d{4, 3}};
+                check(c.items[1].position())
+                        == planet::affine::rectangle2d{
+                                {21, 20}, planet::affine::extents2d{4, 3}};
+            });
 
 
-    auto const rf1 = rsuite.test("reflow/tuple/1", [](auto check) {
+    auto const rf1 = rsuite.test("reflow/tuple", [](auto check) {
         auto c = planet::ui::row{
                 std::tuple{planet::debug::fixed_element{{4, 3}}}, 2};
         c.reflow({{100, 0, 100}, {100, 0, 100}});
