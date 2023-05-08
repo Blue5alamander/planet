@@ -14,15 +14,13 @@ namespace planet::ui {
     class widget : public reflowable {
         friend class baseplate<Renderer>;
 
-        felspar::coro::eager<> response;
-
       public:
         /// ### Construction
         widget(widget const &) = delete;
         widget(widget &&w)
         : reflowable{std::move(w)},
-          response{std::move(w.response)},
-          baseplate{std::exchange(w.baseplate, nullptr)} {}
+          baseplate{std::exchange(w.baseplate, nullptr)},
+          response{std::move(w.response)} {}
         widget(std::string_view const n) : reflowable{n} {}
         virtual ~widget() { deregister(baseplate, this); }
 
@@ -81,6 +79,8 @@ namespace planet::ui {
             do_move_sub_elements(r);
         }
         virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
+
+        felspar::coro::eager<> response;
     };
 
 

@@ -3,6 +3,7 @@
 
 #include <planet/affine/rectangle2d.hpp>
 #include <planet/ostream.hpp>
+#include <planet/ui/baseplate.hpp>
 #include <planet/ui/reflowable.hpp>
 #include <planet/ui/widget.hpp>
 
@@ -38,8 +39,17 @@ namespace planet::debug {
 
         button() : superclass{"planet::debug::button"} {}
 
+        /// ### The number of times the button has been pressed
+        std::size_t clicks = {};
+
         constrained_type do_reflow(constrained_type const &c) { return c; }
-        felspar::coro::task<void> behaviour() { co_return; }
+        felspar::coro::task<void> behaviour() {
+            for (auto mc = events::identify_clicks(
+                         baseplate->mouse_settings, events.mouse.stream());
+                 auto click = co_await mc.next();) {
+                ++clicks;
+            }
+        }
         void do_draw(std::ostream &os) {
             os << name() << " do_draw @ " << position() << '\n';
         }
