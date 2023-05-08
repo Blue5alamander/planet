@@ -36,6 +36,10 @@ namespace planet::ui {
         baseplate &operator=(baseplate &&) = delete;
 
 
+        /// ### Meta-data
+        std::size_t widget_count() const noexcept { return widgets.size(); }
+
+
         /// ### Event inputs and settings
         events::mouse_settings mouse_settings;
         events::bus events;

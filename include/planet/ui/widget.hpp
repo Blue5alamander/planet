@@ -17,6 +17,7 @@ namespace planet::ui {
         felspar::coro::eager<> response;
 
       public:
+        /// ### Construction
         widget(widget const &) = delete;
         widget(widget &&w)
         : reflowable{std::move(w)},
@@ -28,26 +29,41 @@ namespace planet::ui {
         widget &operator=(widget const &) = delete;
         widget &operator=(widget &&);
 
+
         /// ### Events going to this widget
         events::bus events;
 
+
         /// ### Add a widget to a base plate so it can receive events
+        /**
+         * This member is implemented near the bottom of
+         * [`baseplate.hpp`](./baseplate.hpp).
+         */
         virtual void
                 add_to(ui::baseplate<Renderer> &,
                        ui::panel &parent,
                        float z_layer = {});
+
 
         /// ### Draw the widget
         void draw(Renderer &r) {
             if (visible) { do_draw(r); }
         }
 
-        /// ### Check if a point in screen space is within the widget
+
+        /// ### Meta-data
+
+        /// #### Check if a point in screen space is within the widget
         virtual bool is_within(affine::point2d const &p) const {
             return panel.contains(p);
         }
+        /// #### Will we try to draw the widget
+        bool is_visible() const noexcept { return visible; }
+
+
         /// ### Return true if this widget can take focus
         virtual bool wants_focus() const { return visible; }
+
 
       protected:
         ui::panel panel;
@@ -57,6 +73,7 @@ namespace planet::ui {
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw(Renderer &r) = 0;
+
 
         /// ### Move the widget's panel
         void move_sub_elements(affine::rectangle2d const &r) override {
