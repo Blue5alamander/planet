@@ -78,39 +78,6 @@ namespace planet::ui {
           vpadding{p},
           hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            auto const cell = cell_size(outer);
-            auto const w = std::min(
-                    float(sizeof...(Pack)),
-                    std::floor(
-                            (outer.width + hpadding) / (cell.width + hpadding)));
-            auto const h = std::floor((sizeof...(Pack) + w - 1) / w);
-            return {w * cell.width + (w - 1) * hpadding,
-                    h * cell.height + (h - 1) * vpadding};
-        }
-
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const within) {
-            auto const cell = cell_size(within.extents);
-            float x = {}, y = {};
-            felspar::memory::small_vector<affine::rectangle2d, sizeof...(Pack)>
-                    locations;
-            for (std::size_t index{}; index < sizeof...(Pack); ++index) {
-                if (x > 0 and x + cell.width > within.extents.width) {
-                    x = 0;
-                    if (y) { y += vpadding; }
-                    y += cell.height;
-                }
-                locations.emplace_back(
-                        affine::point2d{x, y} + within.top_left, cell);
-                if (x) { x += hpadding; }
-                x += cell.width;
-            }
-            draw_items_within(
-                    t, items, locations,
-                    std::make_index_sequence<sizeof...(Pack)>{});
-        }
-
       private:
         constrained_type do_reflow(constrained_type const &border) override {
             auto const constraints = superclass::items_reflow(border);
@@ -134,15 +101,6 @@ namespace planet::ui {
             auto const height = top + min.height;
             return constrained_type{
                     {width, width, width}, {height, height, height}};
-        }
-
-        affine::extents2d cell_size(affine::extents2d const outer) {
-            float max_width = {}, max_height = {};
-            for (auto &ex : item_sizes(items, outer)) {
-                max_width = std::max(ex.width, max_width);
-                max_height = std::max(ex.height, max_height);
-            }
-            return {max_width, max_height};
         }
     };
 

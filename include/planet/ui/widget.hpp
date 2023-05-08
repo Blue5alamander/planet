@@ -38,9 +38,6 @@ namespace planet::ui {
                        float z_layer = {});
 
         /// ### Draw the widget
-        void draw_within(Renderer &r, affine::rectangle2d const outer) {
-            if (visible) { do_draw_within(r, outer); }
-        }
         void draw(Renderer &r) {
             if (visible) { do_draw(r); }
         }
@@ -59,15 +56,14 @@ namespace planet::ui {
         bool visible = false;
 
         virtual felspar::coro::task<void> behaviour() = 0;
-        virtual void do_draw_within(Renderer &r, affine::rectangle2d) = 0;
         virtual void do_draw(Renderer &r) = 0;
-        virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
 
         /// ### Move the widget's panel
         void move_sub_elements(affine::rectangle2d const &r) override {
             panel.move_to(r);
             do_move_sub_elements(r);
         }
+        virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
     };
 
 

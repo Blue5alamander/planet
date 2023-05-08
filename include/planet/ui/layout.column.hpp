@@ -29,8 +29,6 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
-            /// TODO Use constrained type when calculating the `item_sizes` and
-            /// also when returning the constraint value
             if (items.empty()) {
                 elements.extents = affine::extents2d{{}, {}};
                 return {};
@@ -40,15 +38,18 @@ namespace planet::ui {
                         space.height - (items.size() - 1) * padding;
                 float const item_height = unused / items.size();
                 float top = {}, max_width = {};
-                affine::extents2d const row_space{space.width, item_height};
+                constrained_type const row_space = {
+                        constraint.width,
+                        {constraint.height.min(), item_height,
+                         constraint.height.max()}};
                 elements.resize_to(std::span{items});
                 for (std::size_t index{}; auto &item : items) {
-                    affine::extents2d const item_ex =
-                            ui::reflow(item, row_space);
-                    elements.at(index).size = constrained_type{item_ex};
-                    elements.at(index).position = {{{}, top}, item_ex};
-                    top += item_ex.height + padding;
-                    max_width = std::max(max_width, item_ex.width);
+                    auto const item_ex = item.reflow(row_space);
+                    elements.at(index).size = item_ex;
+                    elements.at(index).position = {
+                            {{}, top}, item_ex.extents()};
+                    top += item_ex.height.value() + padding;
+                    max_width = std::max(max_width, item_ex.width.value());
                     ++index;
                 }
                 elements.extents = {max_width, top - padding};
@@ -91,8 +92,9 @@ namespace planet::ui {
             float const unused = ex.height.value() - (item_count - 1) * padding;
             float const item_height = unused / item_count;
             float top = {}, max_width = {};
-            auto const sizes = superclass::items_reflow(
-                    {ex.width, {ex.height.min(), item_height, ex.height.max()}});
+            constrained_type const row_space = {
+                    ex.width, {ex.height.min(), item_height, ex.height.max()}};
+            auto const sizes = superclass::items_reflow(row_space);
             for (std::size_t index{}; auto &element : elements) {
                 element.position = {{{}, top}, sizes[index].extents()};
                 top += sizes[index].height.value() + padding;

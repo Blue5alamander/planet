@@ -70,18 +70,19 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
-            /// TODO Use constrained type when calculating the `item_sizes` and
-            /// also when returning the constraint value
-            auto const space = constraint.extents();
-            float const unused = space.width - (item_count - 1) * padding;
+            float const unused =
+                    constraint.width.value() - (item_count - 1) * padding;
             float const item_width = unused / item_count;
+            constrained_type const space{
+                    {item_width, std::min(item_width, constraint.width.min()),
+                     constraint.width.max()},
+                    constraint.height};
             float left = 0, max_height = {};
-            auto const sizes = item_sizes(
-                    items, affine::extents2d{item_width, space.height});
+            auto const sizes = superclass::items_reflow(space);
             for (std::size_t index{}; auto &element : elements) {
-                element.position = {{left, {}}, sizes[index]};
-                left += sizes[index].width + padding;
-                max_height = std::max(max_height, sizes[index].height);
+                element.position = {{left, {}}, sizes[index].extents()};
+                left += sizes[index].width.value() + padding;
+                max_height = std::max(max_height, sizes[index].height.value());
                 ++index;
             }
             /// TODO Calculate better constraints here

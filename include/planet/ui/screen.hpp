@@ -36,7 +36,6 @@ namespace planet::ui {
         bool is_within(affine::point2d const &) const override { return true; }
         bool wants_focus() const override { return true; }
         felspar::coro::task<void> behaviour() override { co_return; }
-        void do_draw_within(Renderer &, affine::rectangle2d) override {}
     };
 
 
