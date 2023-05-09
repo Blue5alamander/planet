@@ -1,6 +1,8 @@
 #include <planet/debug/ui.hpp>
 #include <planet/ostream.hpp>
 #include <planet/ui/baseplate.hpp>
+#include <planet/ui/layout.column.hpp>
+#include <planet/ui/layout.row.hpp>
 #include <felspar/test.hpp>
 
 
@@ -16,7 +18,7 @@ namespace {
     auto const ordering = suite.test("ordering", [](auto check, auto &log) {
         planet::ui::panel panel;
         planet::ui::baseplate<std::ostream &> bp;
-        planet::debug::button btn;
+        planet::debug::button<> btn;
 
         check(bp.widget_count()) == 0u;
         check(btn.is_visible()) == false;
@@ -41,7 +43,7 @@ namespace {
             [](auto check) {
                 planet::ui::baseplate<std::ostream &> bp;
                 planet::ui::panel panel;
-                planet::debug::button btn;
+                planet::debug::button<> btn;
 
                 btn.add_to(bp, panel);
                 btn.reflow({{40, 0, 40}, {30, 0, 30}});
@@ -81,7 +83,7 @@ namespace {
             [](auto check, auto &log) {
                 planet::ui::baseplate<std::ostream &> bp;
                 planet::ui::panel panel1, panel2;
-                planet::debug::button btn;
+                planet::debug::button<> btn;
 
                 panel1.add_child(panel2);
                 panel2.move_to({{6, 7}, planet::affine::extents2d{8, 10}});
@@ -134,6 +136,33 @@ namespace {
                          planet::events::action::up,
                          {22, 29}});
                 /// A hit here is what we want
+                check(btn.clicks) == 1u;
+            },
+            [](auto check, auto &log) {
+                planet::ui::baseplate<std::ostream &> bp;
+                planet::ui::panel panel;
+                auto ui = planet::ui::column{std::tuple{
+                        planet::ui::row{std::tuple{planet::debug::button{
+                                planet::debug::fixed_element{{4, 3}}}}}}};
+
+                auto &btn = std::get<0>(std::get<0>(ui.items).items);
+                btn.add_to(bp, panel);
+                ui.reflow({{40, 0, 40}, {30, 0, 30}});
+                ui.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
+
+                log << "btn position: " << btn.position() << '\n';
+
+                check(btn.is_visible()) == true;
+                check(btn.wants_focus()) == true;
+
+                bp.events.mouse.push(
+                        {planet::events::button::left,
+                         planet::events::action::down,
+                         {16, 21}});
+                bp.events.mouse.push(
+                        {planet::events::button::left,
+                         planet::events::action::up,
+                         {16, 21}});
                 check(btn.clicks) == 1u;
             });
 
