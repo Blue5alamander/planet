@@ -31,7 +31,36 @@ namespace planet::debug {
 
 
     /// ## Button
+    template<typename C = void>
     struct button final : public ui::widget<std::ostream &> {
+        using superclass = ui::widget<std::ostream &>;
+        using content_type = C;
+
+        button(content_type c)
+        : superclass{"planet::debug::button"}, content{std::move(c)} {}
+
+        content_type content;
+
+        /// ### The number of times the button has been pressed
+        std::size_t clicks = {};
+
+        constrained_type do_reflow(constrained_type const &c) {
+            return content.reflow(c);
+        }
+        felspar::coro::task<void> behaviour() {
+            for (auto mc = events::identify_clicks(
+                         baseplate->mouse_settings, events.mouse.stream());
+                 auto click = co_await mc.next();) {
+                ++clicks;
+            }
+        }
+        void do_draw(std::ostream &os) { content.draw(os); }
+        void do_move_sub_elements(affine::rectangle2d const &c) {
+            content.move_to(c);
+        }
+    };
+    template<>
+    struct button<void> final : public ui::widget<std::ostream &> {
         using superclass = ui::widget<std::ostream &>;
 
         button() : superclass{"planet::debug::button"} {}
