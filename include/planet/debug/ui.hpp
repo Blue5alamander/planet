@@ -18,12 +18,9 @@ namespace planet::debug {
         fixed_element(affine::extents2d const s)
         : reflowable{"planet::debug::fixed_element"}, size{s} {}
 
-        affine::extents2d extents(affine::extents2d) const noexcept {
-            return size;
+        void draw(std::ostream &os) {
+            os << name() << " draw @ " << position() << '\n';
         }
-
-        void draw_within(std::ostream &, affine::rectangle2d);
-        void draw(std::ostream &);
 
       private:
         constrained_type do_reflow(constrained_type const &) override {
