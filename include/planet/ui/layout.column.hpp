@@ -74,7 +74,7 @@ namespace planet::ui {
 
         explicit column(
                 collection_type i,
-                float const p,
+                float const p = {},
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : superclass{"planet::ui::column<std::tuple<Pack...>>", std::move(i), loc},
@@ -82,7 +82,7 @@ namespace planet::ui {
         explicit column(
                 std::string_view const n,
                 collection_type i,
-                float const p,
+                float const p = {},
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : superclass{n, std::move(i), loc}, padding{p} {}
