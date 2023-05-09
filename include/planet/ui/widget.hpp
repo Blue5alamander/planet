@@ -53,7 +53,7 @@ namespace planet::ui {
 
         /// #### Check if a point in screen space is within the widget
         virtual bool is_within(affine::point2d const &p) const {
-            return panel.contains(p);
+            return panel.contains_pixel_coordinate(p);
         }
         /// #### Will we try to draw the widget
         bool is_visible() const noexcept { return visible; }

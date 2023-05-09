@@ -15,8 +15,8 @@ namespace {
 
         check(p.into({2, 3})) == planet::affine::point2d{2, 3};
         check(p.into({4, 6})) == planet::affine::point2d{4, 6};
-        check(pc.contains({3, 4})) == true;
-        check(pc.contains({1, 1})) == false;
+        check(pc.contains_pixel_coordinate({3, 4})) == true;
+        check(pc.contains_pixel_coordinate({1, 1})) == false;
     });
 
 

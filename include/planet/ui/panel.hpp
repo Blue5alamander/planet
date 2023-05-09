@@ -84,7 +84,7 @@ namespace planet::ui {
          * Returns true if the location (in the screen coordinate space) is
          * within the area of the panel.
          */
-        bool contains(affine::point2d const &) const;
+        bool contains_pixel_coordinate(affine::point2d const &) const;
 
         /// #### Transformations of the local co-ordinate space
         panel &reflect_y() {

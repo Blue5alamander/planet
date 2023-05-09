@@ -22,11 +22,12 @@ planet::ui::panel::~panel() {
 }
 
 
-bool planet::ui::panel::contains(affine::point2d const &pos) const {
+bool planet::ui::panel::contains_pixel_coordinate(
+        affine::point2d const &pos) const {
     if (parent) {
         for (auto &c : parent->children) {
             if (c.sub == this and c.area) {
-                auto const parent_space = parent->viewport.into(pos);
+                auto const parent_space = parent->viewport.outof(pos);
                 return c.area->contains(parent_space);
             }
         }
