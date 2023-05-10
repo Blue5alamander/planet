@@ -36,6 +36,9 @@ namespace planet::ui {
         baseplate &operator=(baseplate &&) = delete;
 
 
+        /// ### Base panel for local transformations
+        panel pixels;
+
         /// ### Meta-data
         std::size_t widget_count() const noexcept { return widgets.size(); }
 

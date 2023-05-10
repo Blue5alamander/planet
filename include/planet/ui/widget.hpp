@@ -45,6 +45,9 @@ namespace planet::ui {
                 add_to(ui::baseplate<Renderer> &,
                        ui::panel &parent,
                        float z_layer = {});
+        void add_to(ui::baseplate<Renderer> &bp, float const z_layer = {}) {
+            add_to(bp, bp.pixels, z_layer);
+        }
 
 
         /// ### Draw the widget
