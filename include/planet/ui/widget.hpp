@@ -16,6 +16,10 @@ namespace planet::ui {
 
       public:
         /// ### Construction
+        /**
+         * TODO Have the widget take a `baseplate` in the constructor, which is
+         * then the one that the widget is to appear on.
+         */
         widget(widget const &) = delete;
         widget(widget &&w)
         : reflowable{std::move(w)},
