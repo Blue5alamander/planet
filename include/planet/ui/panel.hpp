@@ -13,7 +13,7 @@ namespace planet::ui {
 
     /// ## Co-ordinate transform hierarchy co-ordinate spaces
     class panel final {
-        panel *parent = nullptr;
+        panel *m_parent = nullptr;
 
         /// ### Transformation into and out of the local coordinate space
         affine::transform2d viewport = {};
@@ -62,15 +62,15 @@ namespace planet::ui {
          * have to undo the parent transformation first
          */
         affine::point2d into(affine::point2d const p) const {
-            if (parent) {
-                return parent->into(viewport.into(p));
+            if (m_parent) {
+                return m_parent->into(viewport.into(p));
             } else {
                 return viewport.into(p);
             }
         }
         affine::point2d outof(affine::point2d const p) const {
-            if (parent) {
-                return viewport.outof(parent->outof(p));
+            if (m_parent) {
+                return viewport.outof(m_parent->outof(p));
             } else {
                 return viewport.outof(p);
             }
@@ -108,7 +108,18 @@ namespace planet::ui {
         /// ### Panel hierarchy management
 
         /// #### Tell if this parent currently has a parent or not
-        bool has_parent() const noexcept { return parent; }
+        bool has_parent() const noexcept { return m_parent; }
+        /// #### Return the parent panel
+        panel &
+                parent(felspar::source_location const &loc =
+                               felspar::source_location::current()) const {
+            if (m_parent) {
+                return *m_parent;
+            } else {
+                throw felspar::stdexcept::logic_error{
+                        "This panel has no parent", loc};
+            }
+        }
         /// #### Add to a parent, but don't position it
         void add_child(panel &);
         /// #### Add a child

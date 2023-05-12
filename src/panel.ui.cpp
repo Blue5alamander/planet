@@ -6,7 +6,7 @@
 
 planet::ui::panel::panel(panel &&p, felspar::source_location const &loc)
 : panel{} {
-    if (p.parent or not p.children.empty()) {
+    if (p.m_parent or not p.children.empty()) {
         throw felspar::stdexcept::logic_error{
                 "A panel cannot be moved in memory (std::move) once it is in "
                 "the hierarchy",
@@ -17,17 +17,17 @@ planet::ui::panel::panel(panel &&p, felspar::source_location const &loc)
 
 
 planet::ui::panel::~panel() {
-    if (parent) { parent->remove_child(*this); }
-    reparent_children(parent);
+    if (m_parent) { m_parent->remove_child(*this); }
+    reparent_children(m_parent);
 }
 
 
 bool planet::ui::panel::contains_pixel_coordinate(
         affine::point2d const &pos) const {
-    if (parent) {
-        for (auto &c : parent->children) {
+    if (m_parent) {
+        for (auto &c : m_parent->children) {
             if (c.sub == this and c.area) {
-                auto const parent_space = parent->viewport.outof(pos);
+                auto const parent_space = m_parent->viewport.outof(pos);
                 return c.area->contains(parent_space);
             }
         }
@@ -38,7 +38,7 @@ bool planet::ui::panel::contains_pixel_coordinate(
 
 void planet::ui::panel::reparent_children(panel *const np) {
     for (auto &p : children) {
-        p.sub->parent = np;
+        p.sub->m_parent = np;
         if (np) {
             if (p.area) {
                 np->add_child(*p.sub, *p.area);
@@ -51,7 +51,7 @@ void planet::ui::panel::reparent_children(panel *const np) {
 
 
 planet::ui::panel::child &planet::ui::panel::add(panel *c) {
-    c->parent = this;
+    c->m_parent = this;
     children.emplace_back(c);
     return children.back();
 }
@@ -68,18 +68,18 @@ void planet::ui::panel::remove_child(panel &c) {
                 return &c == p.sub;
             });
     if (pos != children.end()) {
-        c.parent = nullptr;
+        c.m_parent = nullptr;
         children.erase(pos);
     }
 }
 
 
 void planet::ui::panel::move_to(affine::rectangle2d const &area) {
-    if (parent) {
+    if (m_parent) {
         auto pos = std::find_if(
-                parent->children.begin(), parent->children.end(),
+                m_parent->children.begin(), m_parent->children.end(),
                 [this](auto const &p) { return p.sub == this; });
-        if (pos != parent->children.end()) {
+        if (pos != m_parent->children.end()) {
             if (pos->area) { translate(-pos->area->top_left); }
             translate(area.top_left);
             pos->area = area;
