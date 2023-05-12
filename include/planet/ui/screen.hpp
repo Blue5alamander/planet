@@ -33,7 +33,9 @@ namespace planet::ui {
         }
         void do_move_sub_elements(affine::rectangle2d const &) override {}
         void do_draw(Renderer &) override{};
-        bool is_within(affine::point2d const &) const override { return true; }
+        bool contains_global_coordinate(affine::point2d const &) const override {
+            return true;
+        }
         bool wants_focus() const override { return true; }
         felspar::coro::task<void> behaviour() override { co_return; }
     };

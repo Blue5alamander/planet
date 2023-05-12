@@ -58,9 +58,9 @@ namespace planet::ui {
 
         /// ### Meta-data
 
-        /// #### Check if a point in screen space is within the widget
-        virtual bool is_within(affine::point2d const &p) const {
-            return panel.contains_pixel_coordinate(p);
+        /// #### Check if a point in global space is within the widget
+        virtual bool contains_global_coordinate(affine::point2d const &p) const {
+            return position().contains(p);
         }
         /// #### Will we try to draw the widget
         bool is_visible() const noexcept { return visible; }

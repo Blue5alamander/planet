@@ -106,7 +106,7 @@ namespace planet::ui {
                 for (auto &w : widgets) {
                     if (w.ptr->wants_focus()
                         and (not soft_focus or soft_focus->z_layer < w.z_layer)
-                        and w.ptr->is_within(m.location)) {
+                        and w.ptr->contains_global_coordinate(m.location)) {
                         soft_focus = &w;
                     }
                 }
