@@ -43,10 +43,14 @@ namespace planet::affine {
         }
 
         /// ### Transform points into and out of co-ordinate space
-        auto const &into() const { return in; }
-        auto const &outof() const { return out; }
-        point2d into(point2d const p) const { return in * p; }
-        point2d outof(point2d const p) const { return out * p; }
+        constexpr auto const &into() const noexcept { return in; }
+        constexpr auto const &outof() const noexcept { return out; }
+        constexpr point2d into(point2d const &p) const noexcept {
+            return in * p;
+        }
+        constexpr point2d outof(point2d const &p) const noexcept {
+            return out * p;
+        }
     };
 
 
