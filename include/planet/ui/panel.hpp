@@ -75,6 +75,15 @@ namespace planet::ui {
                 return viewport.outof(p);
             }
         }
+
+        /// #### Transform only based on its local transform
+        auto local_into(affine::point2d const &p) const noexcept {
+            return viewport.into(p);
+        }
+        auto local_outof(affine::point2d const &p) const noexcept {
+            return viewport.outof(p);
+        }
+
         /// #### Provide access to the matrices
         auto into() const noexcept { return viewport.into(); }
         auto outof() const noexcept { return viewport.outof(); }
