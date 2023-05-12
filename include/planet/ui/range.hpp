@@ -59,9 +59,7 @@ namespace planet::ui {
 
         constrained_type do_reflow(constrained_type const &constraint) override {
             auto const bg = background.reflow(constraint);
-            auto const r = slider.reflow(bg);
-            auto const slider_offset = affine::point2d{px_offset, 0};
-            slider.move_to({slider_offset, r.extents()});
+            slider.reflow(bg);
             return bg;
         }
 
