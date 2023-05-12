@@ -129,6 +129,10 @@ namespace planet::ui {
         affine::extents2d desire(affine::extents2d const &e) noexcept {
             return {width.desire(e.width), height.desire(e.height)};
         }
+        void max(affine::extents2d const &e) noexcept {
+            width.max(e.width);
+            height.max(e.height);
+        }
 
         bool is_at_least_as_constrained_as(constrained2d const &o) const {
             return width.is_at_least_as_constrained_as(o.width)
