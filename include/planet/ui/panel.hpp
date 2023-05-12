@@ -61,14 +61,14 @@ namespace planet::ui {
          * apply the parent ones. When coming out of the screen coordinates we
          * have to undo the parent transformation first
          */
-        affine::point2d into(affine::point2d const p) {
+        affine::point2d into(affine::point2d const p) const {
             if (parent) {
                 return parent->into(viewport.into(p));
             } else {
                 return viewport.into(p);
             }
         }
-        affine::point2d outof(affine::point2d const p) {
+        affine::point2d outof(affine::point2d const p) const {
             if (parent) {
                 return viewport.outof(parent->outof(p));
             } else {
