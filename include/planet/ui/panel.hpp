@@ -79,13 +79,6 @@ namespace planet::ui {
         auto into() const noexcept { return viewport.into(); }
         auto outof() const noexcept { return viewport.outof(); }
 
-        /// #### Is a location in the panel
-        /**
-         * Returns true if the location (in the screen coordinate space) is
-         * within the area of the panel.
-         */
-        bool contains_pixel_coordinate(affine::point2d const &) const;
-
         /// #### Transformations of the local co-ordinate space
         panel &reflect_y() {
             viewport.reflect_y();
