@@ -15,9 +15,9 @@ namespace planet::ui {
               Draggable ctrl,
               planet::ui::constrained1d<float> const &position)
         : widget<Renderer>{"planet::ui::range<>"},
-          slider_position{position},
           background{std::move(bg)},
-          slider{std::move(ctrl)} {
+          slider{std::move(ctrl)},
+          slider_position{position} {
             slider.offset = {fully_constrained, fully_constrained};
         }
         range(std::string_view const n,
@@ -25,12 +25,14 @@ namespace planet::ui {
               Draggable ctrl,
               planet::ui::constrained1d<float> const &position)
         : widget<Renderer>{n},
-          slider_position{position},
           background{std::move(bg)},
-          slider{std::move(ctrl)} {
+          slider{std::move(ctrl)},
+          slider_position{position} {
             slider.offset = {fully_constrained, fully_constrained};
         }
 
+        Background background;
+        Draggable slider;
         planet::ui::constrained1d<float> slider_position = {};
 
         using constrained_type =
@@ -48,8 +50,6 @@ namespace planet::ui {
 
 
       protected:
-        Background background;
-        Draggable slider;
         float px_offset = {};
 
 
@@ -68,7 +68,9 @@ namespace planet::ui {
         void do_move_sub_elements(affine::rectangle2d const &r) override {
             background.move_to(r);
             auto const slider_offset = affine::point2d{px_offset, 0};
-            slider.move_to({r.top_left + slider_offset, r.extents});
+            slider.move_to(
+                    {r.top_left + slider_offset,
+                     slider.constraints().extents()});
         }
 
         felspar::coro::task<void> behaviour() override { co_return; }
