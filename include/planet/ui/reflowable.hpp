@@ -110,7 +110,7 @@ namespace planet::ui {
          * Implement this in order to set the positions for any sub-elements
          * that the reflowable may have.
          *
-         * For widgets this method name changes slights. See
+         * For widgets this method name changes slightly. See
          * [widget.hpp](./widget.hpp) for more details.
          */
         virtual void move_sub_elements(affine::rectangle2d const &) = 0;

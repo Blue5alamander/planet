@@ -85,7 +85,7 @@ namespace planet::ui {
             panel.move_to(r);
             do_move_sub_elements(r);
         }
-        virtual void do_move_sub_elements(affine::rectangle2d const &r) = 0;
+        virtual void do_move_sub_elements(affine::rectangle2d const &) = 0;
 
         felspar::coro::eager<> response;
     };
