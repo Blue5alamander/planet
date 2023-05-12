@@ -59,7 +59,8 @@ namespace planet::ui {
 
         constrained_type do_reflow(constrained_type const &constraint) override {
             auto const bg = background.reflow(constraint);
-            slider.reflow(bg);
+            auto const s = slider.reflow(bg);
+            slider.offset.max(bg.max() - s.max());
             return bg;
         }
 
