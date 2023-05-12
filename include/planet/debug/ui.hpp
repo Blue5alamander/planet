@@ -11,6 +11,18 @@
 namespace planet::debug {
 
 
+    /// ## Generic printable component
+    template<typename AS>
+    struct printable : public AS {
+        using AS::AS;
+
+      private:
+        void do_draw(std::ostream &os) {
+            os << AS::name() << " do_draw @ " << AS::position() << '\n';
+        }
+    };
+
+
     /// ## Fixed size UI element
     struct fixed_element : public ui::reflowable {
         affine::extents2d size;
