@@ -80,6 +80,9 @@ namespace planet::ui {
             auto const *f = find_focused_widget();
             return f and f->ptr == wp;
         }
+        bool has_focus(widget<Renderer> const &wp) const noexcept {
+            return has_focus(&wp);
+        }
 
 
       private:
