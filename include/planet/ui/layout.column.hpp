@@ -61,7 +61,8 @@ namespace planet::ui {
 
     /// ## Specialisation for tuple
     template<typename... Pack>
-    struct column<std::tuple<Pack...>> final : public pack_reflowable<void, Pack...> {
+    struct column<std::tuple<Pack...>> final :
+    public pack_reflowable<void, Pack...> {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
