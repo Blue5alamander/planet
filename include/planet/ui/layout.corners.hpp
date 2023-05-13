@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/affine2d.hpp>
+#include <planet/ui/reflowable.hpp>
 
 
 namespace planet::ui {
@@ -16,11 +16,24 @@ namespace planet::ui {
      * There is no support for padding.
      */
     template<typename TL, typename TR, typename BL, typename BR>
-    struct corners {
+    struct corners final : public reflowable {
         using top_left_type = TL;
         using top_right_type = TR;
         using bottom_left_type = BL;
         using bottom_right_type = BR;
+
+        explicit corners(
+                affine::rectangle2d const &w,
+                top_left_type tl,
+                top_right_type tr,
+                bottom_left_type bl,
+                bottom_right_type br)
+        : reflowable{"planet::ui::corners<>"},
+          within{w},
+          top_left{std::move(tl)},
+          top_right{std::move(tr)},
+          bottom_left{std::move(bl)},
+          bottom_right{std::move(br)} {}
 
         affine::rectangle2d within;
         top_left_type top_left;
@@ -28,56 +41,40 @@ namespace planet::ui {
         bottom_left_type bottom_left;
         bottom_right_type bottom_right;
 
-        corners(affine::rectangle2d const &w,
-                top_left_type tl,
-                top_right_type tr,
-                bottom_left_type bl,
-                bottom_right_type br)
-        : within{w},
-          top_left{std::move(tl)},
-          top_right{std::move(tr)},
-          bottom_left{std::move(bl)},
-          bottom_right{std::move(br)} {}
+        using constrained_type = planet::ui::reflowable::constrained_type;
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            auto const tl = top_left.extents(outer);
-            auto const tr = top_right.extents(outer);
-            auto const bl = bottom_left.extents(outer);
-            auto const br = bottom_right.extents(outer);
-
-            auto const width =
-                    std::max(tl.width + tr.width, bl.width + br.width);
-            auto const height =
-                    std::max(tl.height + bl.height, tr.height + br.height);
-
-            return {width, height};
+        template<typename Renderer>
+        void draw(Renderer &r) {
+            top_left.draw(r);
+            top_right.draw(r);
+            bottom_left.draw(r);
+            bottom_right.draw(r);
         }
 
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const bounds) {
-            auto const tl_size = top_left.extents(bounds.extents);
-            top_left.draw_within(t, {bounds.top_left, tl_size});
+      private:
+        constrained_type do_reflow(constrained_type const &c) override {
+            top_left.reflow(c);
+            top_right.reflow(c);
+            bottom_left.reflow(c);
+            bottom_right.reflow(c);
+            /// TODO Calculate a better min based on the corner constraints
+            return constrained_type{c.max()};
+        }
+        void move_sub_elements(affine::rectangle2d const &r) override {
+            auto const tlex = top_left.constraints().extents(),
+                       trex = top_right.constraints().extents(),
+                       blex = bottom_left.constraints().extents(),
+                       brex = bottom_right.constraints().extents();
 
-            auto const tr_size = top_right.extents(bounds.extents);
-            top_right.draw_within(
-                    t,
-                    {{bounds.bottom_right().x() - tr_size.width,
-                      bounds.top_left.y()},
-                     tr_size});
-
-            auto const bl_size = bottom_left.extents(bounds.extents);
-            bottom_left.draw_within(
-                    t,
-                    {{bounds.top_left.x(),
-                      bounds.bottom_right().y() - bl_size.height},
-                     bl_size});
-
-            auto const br_size = bottom_right.extents(bounds.extents);
-            bottom_right.draw_within(
-                    t,
-                    {{bounds.bottom_right().x() - br_size.width,
-                      bounds.bottom_right().y() - bl_size.height},
-                     br_size});
+            top_left.move_to({r.top_left, tlex});
+            top_right.move_to(
+                    {{r.extents.width - trex.width, r.top_left.y()}, trex});
+            bottom_left.move_to(
+                    {{r.top_left.x(), r.extents.height - blex.height}, blex});
+            bottom_right.move_to(
+                    {{r.extents.width - brex.width,
+                      r.extents.height - brex.height},
+                     brex});
         }
     };
 
