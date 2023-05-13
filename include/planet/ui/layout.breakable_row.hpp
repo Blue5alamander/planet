@@ -10,7 +10,7 @@ namespace planet::ui {
 
     /// ## Draws the items across multiple lines when needed
     template<typename CT>
-    struct breakable_row : public collection_reflowable<CT, void> {
+    struct breakable_row final : public collection_reflowable<CT, void> {
         using superclass = collection_reflowable<CT, void>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
@@ -62,7 +62,7 @@ namespace planet::ui {
 
 
     template<typename... Pack>
-    struct breakable_row<std::tuple<Pack...>> :
+    struct breakable_row<std::tuple<Pack...>> final :
     public pack_reflowable<void, Pack...> {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;

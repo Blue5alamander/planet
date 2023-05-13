@@ -61,8 +61,10 @@ namespace planet::ui {
             return {max_width, max_height};
         }
     };
+
+
     template<typename... Pack>
-    struct grid<std::tuple<Pack...>> : public pack_reflowable<void, Pack...> {
+    struct grid<std::tuple<Pack...>> final : public pack_reflowable<void, Pack...> {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
