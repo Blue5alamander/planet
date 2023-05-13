@@ -17,15 +17,25 @@ namespace planet::ui {
         using constrained_type = typename superclass::constrained_type;
 
 
-        button(Texture g, felspar::coro::bus<Return> &o, Return v)
+        explicit button(felspar::coro::bus<Return> &o, Return v)
+        : superclass{"planet::sdl::ui::button"},
+          press_value{std::move(v)},
+          output_to{o} {}
+        explicit button(
+                std::string_view const n,
+                felspar::coro::bus<Return> &o,
+                Return v)
+        : superclass{n}, press_value{std::move(v)}, output_to{o} {}
+        explicit button(Texture g, felspar::coro::bus<Return> &o, Return v)
         : superclass{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o},
           graphic{std::move(g)} {}
-        button(std::string_view const n,
-               Texture g,
-               felspar::coro::bus<Return> &o,
-               Return v)
+        explicit button(
+                std::string_view const n,
+                Texture g,
+                felspar::coro::bus<Return> &o,
+                Return v)
         : superclass{n},
           press_value{std::move(v)},
           output_to{o},
