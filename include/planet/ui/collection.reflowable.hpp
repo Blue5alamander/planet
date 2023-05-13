@@ -18,6 +18,8 @@ namespace planet::ui {
         using collection_type = CT;
         collection_type items;
 
+        explicit collection_reflowable(std::string_view const n)
+        : reflowable{n} {}
         explicit collection_reflowable(
                 std::string_view const n, collection_type c)
         : reflowable{n}, items{std::move(c)} {}
