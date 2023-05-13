@@ -20,7 +20,7 @@ namespace planet::ui {
         /// ### Padding between items in the column
         float padding = {};
 
-        column() {}
+        column() : superclass{"planet::ui::column<>"} {}
         explicit column(collection_type c, float const p = {})
         : superclass{"planet::ui::column<>", std::move(c)}, padding{p} {}
         explicit column(
