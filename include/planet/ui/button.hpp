@@ -15,6 +15,8 @@ namespace planet::ui {
 
       public:
         using constrained_type = typename superclass::constrained_type;
+        using superclass::name;
+        using superclass::position;
 
 
         explicit button(felspar::coro::bus<Return> &o, Return v)
