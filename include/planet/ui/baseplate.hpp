@@ -5,6 +5,8 @@
 
 #include <felspar/coro/start.hpp>
 
+#include <iostream>
+
 
 namespace planet::ui {
 
@@ -102,37 +104,56 @@ namespace planet::ui {
         /// ### Event forwarding
         felspar::coro::starter<> forwarders;
         felspar::coro::starter<>::task_type forward_mouse() {
-            while (true) {
-                auto const m = co_await events.mouse.next();
-                /// Look for the widget that should now have soft focus
-                soft_focus = nullptr;
-                for (auto &w : widgets) {
-                    if (w.ptr->wants_focus()
-                        and (not soft_focus or soft_focus->z_layer < w.z_layer)
-                        and w.ptr->contains_global_coordinate(m.location)) {
-                        soft_focus = &w;
+            try {
+                while (true) {
+                    auto const m = co_await events.mouse.next();
+                    /// Look for the widget that should now have soft focus
+                    soft_focus = nullptr;
+                    for (auto &w : widgets) {
+                        if (w.ptr->wants_focus()
+                            and (not soft_focus
+                                 or soft_focus->z_layer < w.z_layer)
+                            and w.ptr->contains_global_coordinate(m.location)) {
+                            soft_focus = &w;
+                        }
+                    }
+                    /// Now send the event to the correct widget
+                    if (auto *send_to = find_focused_widget(); send_to) {
+                        send_to->ptr->events.mouse.push(m);
                     }
                 }
-                /// Now send the event to the correct widget
-                if (auto *send_to = find_focused_widget(); send_to) {
-                    send_to->ptr->events.mouse.push(m);
-                }
+            } catch (std::exception const &e) {
+                std::cerr << "Baseplate mouse forwarding exception: "
+                          << e.what() << '\n';
+                std::terminate();
             }
         }
         felspar::coro::starter<>::task_type forward_keys() {
-            while (true) {
-                auto const k = co_await events.key.next();
-                if (auto *send_to = find_focused_widget(); send_to) {
-                    send_to->ptr->events.key.push(k);
+            try {
+                while (true) {
+                    auto const k = co_await events.key.next();
+                    if (auto *send_to = find_focused_widget(); send_to) {
+                        send_to->ptr->events.key.push(k);
+                    }
                 }
+            } catch (std::exception const &e) {
+                std::cerr << "Baseplate key forwarding exception: " << e.what()
+                          << '\n';
+                std::terminate();
             }
         }
         felspar::coro::starter<>::task_type forward_scroll() {
-            while (true) {
-                auto const s = co_await events.scroll.next();
-                if (auto *send_to = find_focused_widget(); send_to) {
-                    send_to->ptr->events.scroll.push(s);
+            try {
+                while (true) {
+                    auto const s = co_await events.scroll.next();
+                    if (auto *send_to = find_focused_widget(); send_to) {
+                        send_to->ptr->events.scroll.push(s);
+                    }
                 }
+            } catch (std::exception const &e) {
+                std::cerr << "Baseplate scroll forwarding exception: "
+                          << e.what() << '\n';
+                std::terminate();
             }
         }
     };
