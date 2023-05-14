@@ -20,12 +20,14 @@ namespace planet::ui {
      */
     template<typename Renderer>
     class screen final : public widget<Renderer> {
+        using superclass = widget<Renderer>;
+
       public:
         explicit screen() : widget<Renderer>{"planet::ui::screen"} {}
 
-        ui::panel &panel() { return widget<Renderer>::panel; }
-
-        using constrained_type = typename widget<Renderer>::constrained_type;
+        using constrained_type = typename superclass::constrained_type;
+        using superclass::events;
+        using superclass::panel;
 
       private:
         constrained_type do_reflow(constrained_type const &c) override {
