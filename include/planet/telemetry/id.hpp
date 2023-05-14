@@ -26,6 +26,11 @@ namespace planet::telemetry {
         explicit id();
         explicit id(std::string_view);
 
+        id(id const &) = delete;
+        id(id &&) = default;
+        id &operator=(id const &) = delete;
+        id &operator=(id &&) = default;
+
 
         /// ### The name for this game item
         std::string const &name() const noexcept { return m_name; }
