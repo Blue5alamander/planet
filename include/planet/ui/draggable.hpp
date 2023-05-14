@@ -41,7 +41,7 @@ namespace planet::ui {
 
         drop_target *target = nullptr;
         constrained_type offset;
-        std::optional<affine::point2d> drag_base, drag_last, drag_start;
+        std::optional<affine::point2d> drag_last;
 
 
       protected:
@@ -53,33 +53,30 @@ namespace planet::ui {
             return hotspot.reflow(constraint);
         }
         void do_move_sub_elements(affine::rectangle2d const &r) override {
-            hotspot.move_to(
-                    {r.top_left + offset.position(),
-                     hotspot.constraints().extents()});
+            hotspot.move_to({r.top_left, hotspot.constraints().extents()});
         }
         felspar::coro::task<void> behaviour() override {
             while (true) {
                 auto event = co_await superclass::events.mouse.next();
                 if (target and event.button == events::button::left) {
                     if (event.action == events::action::down) {
-                        drag_start = offset.position();
-                        drag_base = event.location;
                         drag_last = event.location;
                         superclass::baseplate->hard_focus_on(this);
-                    } else if (
-                            drag_base and drag_last and drag_start
-                            and event.action == events::action::held) {
-                        offset.desire(
-                                *drag_start + event.location - *drag_base);
-                        auto const r = superclass::position();
-                        move_to(
-                                {r.top_left + event.location - *drag_last,
-                                 r.extents});
+                    } else if (drag_last and event.action == events::action::held) {
+                        auto const delta_mouse = event.location - *drag_last;
                         drag_last = event.location;
+
+                        auto const old_offset = offset.position();
+                        offset.desire(old_offset + delta_mouse);
+                        auto const delta_offset =
+                                offset.position() - old_offset;
+
+                        auto const old_position = superclass::position();
+                        move_to(
+                                {old_position.top_left + delta_offset,
+                                 old_position.extents});
                     } else if (event.action == events::action::up) {
                         offset = target->drop(offset);
-                        drag_base = {};
-                        drag_start = {};
                         drag_last = {};
                         superclass::baseplate->hard_focus_off(this);
                     }

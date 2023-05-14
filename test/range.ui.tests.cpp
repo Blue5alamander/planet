@@ -38,6 +38,10 @@ namespace {
         check(r.contains_global_coordinate({16, 31})) == true;
         check(r.contains_global_coordinate({16, 41})) == false;
 
+        check(r.slider.offset.min()) == planet::affine::extents2d{0, 0};
+        check(r.slider.offset.extents()) == planet::affine::extents2d{0, 0};
+        check(r.slider.offset.max()) == planet::affine::extents2d{40, 0};
+
         check(r.slider.position())
                 == planet::affine::rectangle2d{
                         {15, 30}, planet::affine::extents2d{10, 10}};
@@ -70,8 +74,7 @@ namespace {
                  planet::events::action::down,
                  {16, 31}});
         check(bp.has_focus(r.slider)) == true;
-        check(r.slider.drag_start.value()) == planet::affine::point2d{0, 0};
-        check(r.slider.drag_base.value()) == planet::affine::point2d{16, 31};
+        check(r.slider.drag_last.value()) == planet::affine::point2d{16, 31};
         check(r.slider.offset.width.value()) == 0;
         check(r.slider.position())
                 == planet::affine::rectangle2d{
@@ -80,11 +83,9 @@ namespace {
         bp.events.mouse.push(
                 {planet::events::button::left,
                  planet::events::action::held,
-                 {26, 31}});
+                 {26, 41}});
         check(bp.has_focus(r.slider)) == true;
-        check(r.slider.drag_start.value()) == planet::affine::point2d{0, 0};
-        check(r.slider.drag_base.value()) == planet::affine::point2d{16, 31};
-        check(r.slider.drag_last.value()) == planet::affine::point2d{26, 31};
+        check(r.slider.drag_last.value()) == planet::affine::point2d{26, 41};
         check(r.slider.offset.width.value()) == 10;
         check(r.slider.position())
                 == planet::affine::rectangle2d{

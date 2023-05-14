@@ -49,10 +49,6 @@ namespace planet::ui {
         }
 
 
-      protected:
-        float px_offset = {};
-
-
       private:
         static constexpr typename constrained_type::axis_constrained_type
                 fully_constrained = {0, 0, 0};
@@ -66,17 +62,15 @@ namespace planet::ui {
 
         void do_move_sub_elements(affine::rectangle2d const &r) override {
             background.move_to(r);
-            auto const slider_offset = affine::point2d{px_offset, 0};
             slider.move_to(
-                    {r.top_left + slider_offset,
+                    {r.top_left + slider.offset.position(),
                      slider.constraints().extents()});
         }
 
         felspar::coro::task<void> behaviour() override { co_return; }
 
         constrained_type drop(constrained_type const &offset) override {
-            px_offset += offset.width.value();
-            return {fully_constrained, fully_constrained};
+            return offset;
         }
     };
 
