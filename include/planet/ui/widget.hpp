@@ -82,6 +82,8 @@ namespace planet::ui {
 
         /// ### Move the widget's panel
         void move_sub_elements(affine::rectangle2d const &r) override {
+            /// TODO Panel should be moving within the parent's coordinate
+            /// space, not the global one
             panel.move_to(r);
             do_move_sub_elements(r);
         }
