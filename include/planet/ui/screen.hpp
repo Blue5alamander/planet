@@ -28,8 +28,8 @@ namespace planet::ui {
         using constrained_type = typename widget<Renderer>::constrained_type;
 
       private:
-        constrained_type do_reflow(constrained_type const &) override {
-            return {};
+        constrained_type do_reflow(constrained_type const &c) override {
+            return c;
         }
         void do_move_sub_elements(affine::rectangle2d const &) override {}
         void do_draw(Renderer &) override{};
