@@ -13,7 +13,7 @@ namespace planet::hexmap {
     using chunk = map::chunk<Cell, DimX, DimY>;
 
 
-    /// Generate the 6 vertices for a hex at the specified location
+    /// ## Generate the 6 vertices for a hex at the specified location
     inline constexpr std::array<affine::point2d, 6>
             vertices(affine::point2d const c, float const ir) noexcept {
         auto const oR = 2.0f * ir / sqrt3;
@@ -32,12 +32,15 @@ namespace planet::hexmap {
         return {c + affine::point2d{-ir, -oR},
                 affine::extents2d{2 * ir, 2 * oR}};
     }
-    /// Return true if the point is within the hex centred at the origin
+    /// ## Return true if the point is within the hex centred at the origin
     bool is_within(affine::point2d, float ir = 1.0f);
 
-    /// Return the distance a point is from the edges of a hex at the origin
-    /// with the given inner radius. Adapted from
-    /// <https://iquilezles.org/articles/distfunctions2d/>
+    /// ## Signed distance
+    /**
+     * Return the distance a point is from the edges of a hex at the origin with
+     * the given inner radius. Adapted from
+     * <https://iquilezles.org/articles/distfunctions2d/>
+     */
     inline constexpr float
             signed_distance(affine::point2d const c, float const ir = 1.0f) {
         // kx is `-cos(pi/6)` and ky is `sin(pi/6)`. kr describes the outer radius
@@ -73,17 +76,21 @@ namespace planet::hexmap {
       public:
         using value_type = map::coordinates::value_type;
 
+        /// ### Construction
         constexpr coordinates() noexcept {}
         constexpr coordinates(value_type x, value_type y) noexcept
         : pos{x, (y < 0 ? y - 1 : y) / 2} {}
-        /// Create a hex co-ordinate from the compressed co-ordinates
+        /// #### Create a hex co-ordinate from the compressed co-ordinates
         static constexpr coordinates from_compressed(map::coordinates const p) {
             return {p};
         }
-        /// Create a hex co-ordinate from any (x, y) location within it
+        /// #### Create a hex co-ordinate from any (x, y) location within it
         static coordinates from_position(affine::point2d, float r = 1.0f);
 
-        /// Return the compressed co-ordinates
+
+        /// ### Queries
+
+        /// #### Return the compressed co-ordinates
         constexpr map::coordinates compressed() const noexcept { return pos; }
 
         constexpr value_type row() const noexcept {
@@ -91,7 +98,7 @@ namespace planet::hexmap {
         }
         constexpr value_type column() const noexcept { return pos.column(); }
 
-        /// Return the centre position of the hex
+        /// #### Return the centre position of the hex
         constexpr affine::point2d centre(float const r = 1.0f) const noexcept {
             /**
              * Given a hexagon, which is point up, with an inner radius `r`,
@@ -103,13 +110,14 @@ namespace planet::hexmap {
             auto const h = sqrt3 * r;
             return {column() * r, row() * h};
         }
-        /// Magnitude squared of the location from the origin
+        /// #### Magnitude squared of the location from the origin
         constexpr float mag2(float const r = 1.0f) const noexcept {
             auto const p = centre(r);
             auto const x = p.x();
             auto const y = p.y();
             return x * x + y * y;
         }
+        /// #### Vertex positions
         /**
          * Return the 6 vertices for the hex, starting at the top going
          * clockwise. The parameter `r` is used for the hex spacing, and `ir` is
@@ -125,6 +133,8 @@ namespace planet::hexmap {
             return vertices(r, r);
         }
 
+
+        /// ### Operators
         constexpr coordinates operator+(coordinates const r) const noexcept {
             return {column() + r.column(), row() + r.row()};
         }
@@ -137,7 +147,8 @@ namespace planet::hexmap {
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
-        /// Produce the co-ordinates iterating through columns first
+
+        /// ### Produce the co-ordinates iterating through columns first
         static felspar::coro::generator<coordinates>
                 by_column(coordinates top_left, coordinates bottom_right) {
             auto const start_odd = top_left.row() bitand 1;
@@ -149,6 +160,7 @@ namespace planet::hexmap {
                 }
             }
         }
+
 
         /// ### Serialise
         friend void save(serialise::save_buffer &, coordinates);
