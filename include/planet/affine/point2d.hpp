@@ -14,6 +14,7 @@ namespace planet::affine {
     struct point2d final {
         float xh = {}, yh = {}, h = {1.0f};
 
+        constexpr point2d() {}
         constexpr point2d(float const x, float const y) : xh{x}, yh{y} {}
         constexpr point2d(float const x, float const y, float const h)
         : xh{x}, yh{y}, h{h} {}
