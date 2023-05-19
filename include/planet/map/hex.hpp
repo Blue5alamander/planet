@@ -25,12 +25,17 @@ namespace planet::hexmap {
                  c + affine::point2d{0.0f, -oR},
                  c + affine::point2d{ir, -oR / 2.0f}}};
     }
-    /// Return the bounding box for a hex of a given size at a given position
+    /// ## Return the bounding box
+    /**
+     * For a hex of a given size at a given position. The `top_left` and
+     * `extents` are aligned with a co-ordinate system where the x-axis runs to
+     * the right and the y-axis runs upwards.
+     */
     inline constexpr affine::rectangle2d
-            bounds(affine::point2d const c, float const ir) noexcept {
+            bounding_box(affine::point2d const c, float const ir) noexcept {
         auto const oR = 2.0f * ir / sqrt3;
-        return {c + affine::point2d{-ir, -oR},
-                affine::extents2d{2 * ir, 2 * oR}};
+        return {c + affine::point2d{-ir, oR},
+                affine::extents2d{2 * ir, -2 * oR}};
     }
     /// ## Return true if the point is within the hex centred at the origin
     bool is_within(affine::point2d, float ir = 1.0f);
