@@ -25,6 +25,19 @@ namespace planet::ecs {
     inline entity_id::~entity_id() {
         if (owner) { --owner->entity(id).reference_count; }
     }
+    inline entity_id &entity_id::operator=(entity_id &&eid) {
+        if (owner) { --owner->entity(id).reference_count; }
+        owner = std::exchange(eid.owner, nullptr);
+        id = std::exchange(eid.id, {});
+        return *this;
+    }
+    inline entity_id &entity_id::operator=(entity_id const &eid) {
+        if (owner) { --owner->entity(id).reference_count; }
+        owner = eid.owner;
+        id = eid.id;
+        if (owner) { ++owner->entity(id).reference_count; }
+        return *this;
+    }
     inline entity *entity_id::operator->() { return &owner->entity(id); }
 
 
