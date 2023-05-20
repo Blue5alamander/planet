@@ -16,6 +16,18 @@ namespace {
     static_assert(integral::maybe_component_index<int>().value() == 1);
     static_assert(integral::maybe_component_index<unsigned>().value() == 2);
 
+    static_assert(not planet::ecs::detail::same_type_index<int, unsigned>(0)
+                              .has_value());
+    static_assert(
+            planet::ecs::detail::same_type_index<int, int>(0).value() == 0);
+
+    using namespace planet::ecs::detail;
+    static_assert(not(type_index{} || type_index{}).has_value());
+    static_assert((type_index{1} || type_index{}).value() == 1);
+    static_assert((type_index{} || type_index{2}).value() == 2);
+    // Fails to compile, which is what we want
+    // static_assert((type_index{1} || type_index{2}).value() == 2);
+
 
     auto const create = suite.test("create", [](auto check) {
         integral int_storage;
@@ -83,18 +95,6 @@ namespace {
         });
         check(count) == 1u;
     });
-
-    static_assert(not planet::ecs::detail::same_type_index<int, unsigned>(0)
-                              .has_value());
-    static_assert(
-            planet::ecs::detail::same_type_index<int, int>(0).value() == 0);
-
-    using namespace planet::ecs::detail;
-    static_assert(not(type_index{} || type_index{}).has_value());
-    static_assert((type_index{1} || type_index{}).value() == 1);
-    static_assert((type_index{} || type_index{2}).value() == 2);
-    // Fails to compile, which is what we want
-    // static_assert((type_index{1} || type_index{2}).value() == 2);
 
 
 }
