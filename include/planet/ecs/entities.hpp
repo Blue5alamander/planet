@@ -95,6 +95,15 @@ namespace planet::ecs {
         }
 
 
+        /// ### Does the component exist
+        template<typename Component>
+        bool has_component(entity_id &eid) {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            return store.template has_component<Component>(eid);
+        }
+
         /// ### Fetch a component
         template<typename Component>
         Component &get_component(
@@ -113,8 +122,11 @@ namespace planet::ecs {
         auto iterate(Lambda &&lambda) {
             for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
                 entity_id eid{this, idx};
-                auto args{lambda_tuple_type<Lambda>::get_args(this, eid)};
-                std::apply(lambda, args);
+                using ltt = lambda_tuple_type<Lambda>;
+                if (ltt::has_args(this, eid)) {
+                    auto args{ltt::get_args(this, eid)};
+                    std::apply(lambda, args);
+                }
             }
         }
 
@@ -128,6 +140,11 @@ namespace planet::ecs {
         struct lambda_tuple_type<R (C::*)(entity_id, Cs...) const> {
             using tuple_type = std::tuple<entity_id &, Cs...>;
 
+            static bool has_args(entities *s, entity_id &eid) {
+                return (s->has_component<std::remove_const_t<
+                                std::remove_reference_t<Cs>>>(eid)
+                        && ...);
+            }
             static tuple_type get_args(entities *s, entity_id &eid) {
                 return {eid,
                         s->get_component<std::remove_const_t<

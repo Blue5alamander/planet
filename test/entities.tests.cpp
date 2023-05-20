@@ -107,6 +107,9 @@ namespace {
                 check(entities.get_component<bool>(e1)) == true;
                 check(entities.get_component<unsigned>(e1)) == 42u;
                 check(entities.get_component<float>(e1)) == 4.0f;
+                auto e2 = entities.create(6.0f, 42);
+                check(entities.get_component<float>(e2)) == 6.0f;
+                check(entities.get_component<int>(e2)) == 42;
 
                 std::size_t count{};
                 entities.iterate([&](planet::ecs::entity_id eid, unsigned &u,

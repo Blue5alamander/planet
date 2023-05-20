@@ -74,6 +74,7 @@ namespace planet::ecs {
             (indexes{});
         }
 
+
         /// ### Create an entity with the desired components
         template<typename... Cs>
         entity_id create(Cs &&...cs) {
@@ -83,7 +84,10 @@ namespace planet::ecs {
             return eid;
         }
 
-        /// ### Add a component to the entity
+
+        /// ### Access to components
+
+        /// #### Add a component to the entity
         template<typename C>
         void add_component(entity_id &eid, C &&component) {
             if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
@@ -96,7 +100,15 @@ namespace planet::ecs {
             }
         }
 
-        /// ### Retrieve a component
+        /// #### Check if a component is present
+        template<typename C>
+        bool has_component(entity_id &eid) {
+            constexpr auto ci = component_index<C>();
+            assert_entities();
+            return eid->components[*entities_storage_index] bitand (1 << ci);
+        }
+
+        /// #### Retrieve a component
         template<typename C>
         C &get_component(
                 entity_id &eid,
@@ -104,12 +116,13 @@ namespace planet::ecs {
                         felspar::source_location::current()) {
             constexpr auto ci = component_index<C>();
             assert_entities();
-            if (not(eid->components[*entities_storage_index] bitand (1 << ci))) {
-                throw_component_not_present(loc);
-            } else {
+            if (has_component<C>(eid)) {
                 return std::get<ci>(components).at(eid.id).value();
+            } else {
+                throw_component_not_present(loc);
             }
         }
+
 
         /// ### Coroutine awaitable triggered when a component is destroyed
         template<typename C>
