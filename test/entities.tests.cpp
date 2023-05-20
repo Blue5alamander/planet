@@ -58,43 +58,66 @@ namespace {
     });
 
 
-    auto const iteration = suite.test("iteration", [](auto check) {
-        integral int_storage;
-        real real_storage;
-        planet::ecs::entities entities{int_storage, real_storage};
+    auto const iteration = suite.test(
+            "iteration",
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
 
-        auto e1 = int_storage.create(true, 42u);
-        check(e1->components[0]) == 5u;
-        auto e2 = int_storage.create(4, 46u);
-        check(e2->components[0]) == 6u;
+                auto e1 = int_storage.create(true, 42u);
+                check(e1->components[0]) == 5u;
+                auto e2 = int_storage.create(4, 46u);
+                check(e2->components[0]) == 6u;
 
-        std::size_t count{};
-        int_storage.iterate([&](planet::ecs::entity_id eid, unsigned const &u) {
-            if (count == 0) {
-                check(eid.id) == 0u;
-                check(u) == 42u;
-            } else if (count == 1) {
-                check(eid.id) == 1u;
-                check(u) == 46u;
-            } else {
-                check(false) == true;
-            }
-            ++count;
-        });
-        check(count) == 2u;
+                std::size_t count{};
+                int_storage.iterate(
+                        [&](planet::ecs::entity_id eid, unsigned const &u) {
+                            if (count == 0) {
+                                check(eid.id) == 1u;
+                                check(u) == 42u;
+                            } else if (count == 1) {
+                                check(eid.id) == 2u;
+                                check(u) == 46u;
+                            } else {
+                                check(false) == true;
+                            }
+                            ++count;
+                        });
+                check(count) == 2u;
 
-        count = {};
-        int_storage.iterate([&](planet::ecs::entity_id eid, int &i) {
-            if (count == 0) {
-                check(eid.id) == 1u;
-                check(i) == 4;
-            } else {
-                check(false) == true;
-            }
-            ++count;
-        });
-        check(count) == 1u;
-    });
+                count = {};
+                int_storage.iterate([&](planet::ecs::entity_id eid, int &i) {
+                    if (count == 0) {
+                        check(eid.id) == 2u;
+                        check(i) == 4;
+                    } else {
+                        check(false) == true;
+                    }
+                    ++count;
+                });
+                check(count) == 1u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(true, 42u, 4.0f);
+                check(entities.get_component<bool>(e1)) == true;
+                check(entities.get_component<unsigned>(e1)) == 42u;
+                check(entities.get_component<float>(e1)) == 4.0f;
+
+                std::size_t count{};
+                entities.iterate([&](planet::ecs::entity_id eid, unsigned &u,
+                                     bool const &b) {
+                    check(eid.id) == 1u;
+                    check(u) == 42u;
+                    check(b) == true;
+                    ++count;
+                });
+                check(count) == 1u;
+            });
 
 
 }
