@@ -7,6 +7,7 @@ add_test_run(check planet TESTS
         breakable_row.layout.tests.cpp
         column.layout.tests.cpp
         constrained.tests.cpp
+        entities.tests.cpp
         event.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
