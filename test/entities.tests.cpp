@@ -8,8 +8,8 @@ namespace {
     auto const suite = felspar::testsuite("entities");
 
 
-    using integral = planet::ecs::entity_storage<bool, int, unsigned>;
-    using real = planet::ecs::entity_storage<float, double>;
+    using integral = planet::ecs::storage<bool, int, unsigned>;
+    using real = planet::ecs::storage<float, double>;
 
     static_assert(not integral::maybe_component_index<float>().has_value());
     static_assert(integral::maybe_component_index<bool>().value() == 0);

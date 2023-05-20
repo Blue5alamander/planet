@@ -11,9 +11,9 @@
 namespace planet::ecs {
 
 
-    /// Holder for all entities
+    /// ## Holder for all entities
     template<typename... Components>
-    class entity_storage final {
+    class storage final {
         template<typename... Storages>
         friend class entities;
 
@@ -46,7 +46,7 @@ namespace planet::ecs {
         }
 
       public:
-        entity_storage() = default;
+        storage() = default;
 
         using component_tuple = std::tuple<Components...>;
         static constexpr std::size_t component_count = sizeof...(Components);
@@ -66,15 +66,15 @@ namespace planet::ecs {
             return *ci;
         }
 
-        /// Add a new slot to the back of each store
+        /// ### Add a new slot to the back of each store
         void emplace_back() {
             [this]<std::size_t... Is>(std::index_sequence<Is...>) {
-                (std::get<Is>(storage).emplace_back(), ...);
+                (std::get<Is>(components).emplace_back(), ...);
             }
             (indexes{});
         }
 
-        /// Create an entity with the desired components
+        /// ### Create an entity with the desired components
         template<typename... Cs>
         entity_id create(Cs &&...cs) {
             assert_entities();
@@ -83,19 +83,20 @@ namespace planet::ecs {
             return eid;
         }
 
-        /// Add a component to the entity
+        /// ### Add a component to the entity
         template<typename C>
         void add_component(entity_id &eid, C &&component) {
             if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
                 assert_entities();
-                std::get<ci.value()>(storage).at(eid.id) = std::move(component);
+                std::get<ci.value()>(components).at(eid.id) =
+                        std::move(component);
                 eid->components[*entities_storage_index] |= (1 << ci.value());
             } else {
                 throw_component_type_not_valid();
             }
         }
 
-        /// Retrieve a component
+        /// ### Retrieve a component
         template<typename C>
         C &get_component(
                 entity_id &eid,
@@ -106,11 +107,11 @@ namespace planet::ecs {
             if (not(eid->components[*entities_storage_index] bitand (1 << ci))) {
                 throw_component_not_present(loc);
             } else {
-                return std::get<ci>(storage).at(eid.id).value();
+                return std::get<ci>(components).at(eid.id).value();
             }
         }
 
-        /// Coroutine awaitable when a component is destroyed
+        /// ### Coroutine awaitable triggered when a component is destroyed
         template<typename C>
         auto on_destroy(entity_id &eid) {
             constexpr auto ci = component_index<C>();
@@ -118,7 +119,7 @@ namespace planet::ecs {
         }
 
 
-        /// Iterate over entities with the requested components
+        /// ### Iterate over entities with the requested components
         template<typename T>
         struct types : public types<decltype(&T::operator())> {};
         template<typename R, typename C, typename... Cs>
@@ -134,10 +135,10 @@ namespace planet::ecs {
             }()};
 
             template<typename L>
-            R invoke(entity_id &&eid, L const &lambda, entity_storage &storage) {
-                return lambda(
+            R invoke(entity_id &&eid, L const &l, storage &s) {
+                return l(
                         eid,
-                        storage.get_component<std::remove_const_t<
+                        s.get_component<std::remove_const_t<
                                 std::remove_reference_t<Cs>>>(eid)...);
             }
         };
@@ -145,7 +146,8 @@ namespace planet::ecs {
         void iterate(L &&lambda) {
             assert_entities();
             types<L> traits;
-            for (std::size_t idx{}; idx < std::get<0>(storage).size(); ++idx) {
+            for (std::size_t idx{}; idx < std::get<0>(components).size();
+                 ++idx) {
                 entity &e{entities->entity(idx)};
                 if (e.components[*entities_storage_index] bitand traits.mask) {
                     traits.invoke({entities, idx}, lambda, *this);
@@ -173,7 +175,7 @@ namespace planet::ecs {
         //     storage_type storage;
         // };
         // std::unordered_map<std::size_t, ring> chain;
-        storage_type storage;
+        storage_type components;
     };
 
 
