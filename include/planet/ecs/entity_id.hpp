@@ -27,7 +27,7 @@ namespace planet::ecs {
         entity_id &operator=(entity_id const &);
 
         /// TODO protect this value
-        std::size_t id;
+        std::size_t id = {};
 
         entity *operator->();
     };
