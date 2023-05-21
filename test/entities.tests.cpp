@@ -147,4 +147,21 @@ namespace {
             });
 
 
+    auto const remove = suite.test("remove", [](auto check) {
+        integral int_storage;
+        real real_storage;
+        planet::ecs::entities entities{int_storage, real_storage};
+
+        auto e1 = entities.create(42u, 4.0f);
+        check(int_storage.has_component<int>(e1)) == false;
+        check(real_storage.has_component<float>(e1)) == true;
+
+        int_storage.remove_component<int>(e1);
+        check(int_storage.has_component<int>(e1)) == false;
+
+        real_storage.remove_component<float>(e1);
+        check(real_storage.has_component<float>(e1)) == false;
+    });
+
+
 }

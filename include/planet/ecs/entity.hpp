@@ -27,6 +27,9 @@ namespace planet::ecs {
         /// leave storage in the entities where this instance is also stored
         std::vector<mask_type> components = {};
 
+        /**
+        TODO Add in an awaitable system for the below
+        ```cpp
         struct on_destroy_continuation {
             mask_type mask;
             felspar::coro::coroutine_handle<> continuation;
@@ -38,13 +41,15 @@ namespace planet::ecs {
                 mask_type mask;
 
                 bool await_ready() const noexcept { return false; }
-                void await_suspend(felspar::coro::coroutine_handle<> h) noexcept {
-                    entity.destroy_continuations.push_back({mask, h});
+                void await_suspend(felspar::coro::coroutine_handle<> h) noexcept
+        { entity.destroy_continuations.push_back({mask, h});
                 }
                 void await_resume() const noexcept {}
             };
             return awaitable{*this, mask};
         }
+        ```
+        */
     };
 
 

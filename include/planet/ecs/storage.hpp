@@ -90,12 +90,25 @@ namespace planet::ecs {
 
         /// #### Add a component to the entity
         template<typename C>
-        void add_component(entity_id &eid, C &&component) {
+        void add_component(entity_id &eid, C &&component,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
             if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
                 assert_entities();
                 std::get<ci.value()>(components).at(eid.id) =
                         std::move(component);
                 eid->components[*entities_storage_index] |= (1 << ci.value());
+            } else {
+                throw_component_type_not_valid(loc);
+            }
+        }
+        /// #### Remove a component from the entity
+        template<typename C>
+        void remove_component(entity_id &eid) {
+            if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
+                assert_entities();
+                std::get<ci.value()>(components).at(eid.id).reset();
+                eid->components[*entities_storage_index] &= ~(1 << ci.value());
             } else {
                 throw_component_type_not_valid();
             }
@@ -126,11 +139,11 @@ namespace planet::ecs {
 
 
         /// ### Coroutine awaitable triggered when a component is destroyed
-        template<typename C>
-        auto on_destroy(entity_id &eid) {
-            constexpr auto ci = component_index<C>();
-            return eid->co_on_destroy(1 << ci);
-        }
+        // template<typename C>
+        // auto on_destroy(entity_id &eid) {
+        //     constexpr auto ci = component_index<C>();
+        //     return eid->co_on_destroy(1 << ci);
+        // }
 
 
         /// ### Iterate over entities with the requested components
