@@ -95,6 +95,16 @@ namespace planet::ecs {
         }
 
 
+        /// ### Remove a component
+        template<typename Component>
+        auto remove_component(entity_id &eid) {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            return std::get<storage>(stores)
+                    .template remove_component<Component>(eid);
+        }
+
+
         /// ### Does the component exist
         template<typename Component>
         bool has_component(entity_id &eid) {
@@ -103,6 +113,7 @@ namespace planet::ecs {
             auto &store = std::get<storage>(stores);
             return store.template has_component<Component>(eid);
         }
+
 
         /// ### Fetch a component
         template<typename Component>
