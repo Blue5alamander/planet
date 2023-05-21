@@ -163,7 +163,7 @@ namespace planet::ecs {
                  ++idx) {
                 entity &e{entities->entity(idx)};
                 if (e.components[*entities_storage_index] bitand traits.mask) {
-                    traits.invoke({entities, idx}, lambda, *this);
+                    traits.invoke(entity_id{entities, idx}, lambda, *this);
                 }
             }
         }

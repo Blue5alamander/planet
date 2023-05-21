@@ -69,7 +69,7 @@ namespace planet::ecs {
             }
             (indexes{});
 
-            return {this, e_slots.size() - 1};
+            return entity_id{this, e_slots.size() - 1};
         }
         template<typename... Components>
         entity_id create(Components &&...components) {

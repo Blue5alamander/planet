@@ -15,16 +15,21 @@ namespace planet::ecs {
     };
 
 
+    /// ## Implementation for `entity_id`
     inline entity_id::entity_id(entity_lookup *const o, std::size_t const i)
     : owner{o}, id{i} {
         ++owner->entity(id).reference_count;
     }
+    inline entity_id::entity_id(entity_id &&o)
+    : owner{std::exchange(o.owner, nullptr)}, id{std::exchange(o.id, {})} {}
     inline entity_id::entity_id(entity_id const &o) : owner{o.owner}, id{o.id} {
         if (owner) { ++owner->entity(id).reference_count; }
     }
+
     inline entity_id::~entity_id() {
         if (owner) { --owner->entity(id).reference_count; }
     }
+
     inline entity_id &entity_id::operator=(entity_id &&eid) {
         if (owner) { --owner->entity(id).reference_count; }
         owner = std::exchange(eid.owner, nullptr);
@@ -38,6 +43,7 @@ namespace planet::ecs {
         if (owner) { ++owner->entity(id).reference_count; }
         return *this;
     }
+
     inline entity *entity_id::operator->() { return &owner->entity(id); }
 
 

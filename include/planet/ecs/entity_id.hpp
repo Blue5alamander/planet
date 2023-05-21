@@ -10,7 +10,12 @@ namespace planet::ecs {
 
 
     /// ## Entity Identifier
-    /// An entity reference. Keeps the entity alive
+    /**
+     * An entity reference. Keeps the entity alive.
+     *
+     * The implementation can be found in
+     * [entity_lookup.hpp](./entity_lookup.hpp).
+     */
     class entity_id final {
         template<typename... Components>
         friend class entity_storage;
@@ -18,8 +23,8 @@ namespace planet::ecs {
 
       public:
         entity_id() = default;
-        entity_id(entity_lookup *, std::size_t);
-        entity_id(entity_id &&o) : owner{std::exchange(o.owner, nullptr)} {}
+        explicit entity_id(entity_lookup *, std::size_t);
+        entity_id(entity_id &&);
         entity_id(entity_id const &);
         ~entity_id();
 
