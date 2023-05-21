@@ -120,6 +120,30 @@ namespace {
                     ++count;
                 });
                 check(count) == 1u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(84u, 6.0f);
+
+                std::size_t count{};
+                entities.iterate(
+                        [&](planet::ecs::entity_id, unsigned int &u, float &f) {
+                            if (count == 0u) {
+                                check(u) == 42u;
+                                check(f) == 4.0f;
+                            } else if (count == 1u) {
+                                check(u) == 84u;
+                                check(f) == 6.0f;
+                            } else {
+                                check(true) == false;
+                            }
+                            ++count;
+                        });
+                check(count) == 2u;
             });
 
 
