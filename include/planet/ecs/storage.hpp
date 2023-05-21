@@ -6,6 +6,7 @@
 #include <planet/ecs/type_index.hpp>
 
 #include <felspar/exceptions.hpp>
+#include <felspar/memory/holding_pen.hpp>
 
 
 namespace planet::ecs {
@@ -169,8 +170,14 @@ namespace planet::ecs {
         }
 
       private:
+        /**
+         * TODO We should use the mask that's already stored in the entities to
+         * determine which entries contain the component, then we can use the
+         * raw memory type here instead.
+         */
         template<typename C>
-        using component_storage_type = std::vector<std::optional<C>>;
+        using component_storage_type =
+                std::vector<felspar::memory::holding_pen<C>>;
         using storage_type = std::tuple<component_storage_type<Components>...>;
 
         /// The index of this storage
