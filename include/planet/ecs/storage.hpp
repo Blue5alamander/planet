@@ -90,10 +90,13 @@ namespace planet::ecs {
 
         /// #### Add a component to the entity
         template<typename C>
-        void add_component(entity_id &eid, C &&component,
+        void add_component(
+                entity_id &eid,
+                C &&component,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
+            static constexpr auto ci = maybe_component_index<C>();
+            if constexpr (ci) {
                 assert_entities();
                 std::get<ci.value()>(components).at(eid.id) =
                         std::move(component);
@@ -105,7 +108,8 @@ namespace planet::ecs {
         /// #### Remove a component from the entity
         template<typename C>
         void remove_component(entity_id &eid) {
-            if constexpr (constexpr auto ci = maybe_component_index<C>(); ci) {
+            static constexpr auto ci = maybe_component_index<C>();
+            if constexpr (ci) {
                 assert_entities();
                 std::get<ci.value()>(components).at(eid.id).reset();
                 eid->components[*entities_storage_index] &= ~(1 << ci.value());
@@ -117,7 +121,7 @@ namespace planet::ecs {
         /// #### Check if a component is present
         template<typename C>
         bool has_component(entity_id &eid) {
-            constexpr auto ci = component_index<C>();
+            static constexpr auto ci = component_index<C>();
             assert_entities();
             return eid->components[*entities_storage_index] bitand (1 << ci);
         }
@@ -128,7 +132,7 @@ namespace planet::ecs {
                 entity_id &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            constexpr auto ci = component_index<C>();
+            static constexpr auto ci = component_index<C>();
             assert_entities();
             if (has_component<C>(eid)) {
                 return std::get<ci>(components).at(eid.id).value();
