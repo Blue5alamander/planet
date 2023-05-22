@@ -14,6 +14,8 @@ namespace planet::ecs {
 
     struct entity_lookup;
 
+    template<typename... Components>
+    class storage;
 
     using mask_type = std::uint64_t;
 

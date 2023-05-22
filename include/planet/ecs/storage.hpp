@@ -1,8 +1,8 @@
 #pragma once
 
 
+#include <planet/ecs/component_proxy.hpp>
 #include <planet/ecs/entities.hpp>
-#include <planet/ecs/entity_id.hpp>
 #include <planet/ecs/type_index.hpp>
 
 #include <felspar/exceptions.hpp>
@@ -15,6 +15,8 @@ namespace planet::ecs {
     /// ## Holder for all entities
     template<typename... Components>
     class storage final {
+        template<typename Component, typename... Cs>
+        friend class component_proxy;
         template<typename... Storages>
         friend class entities;
 
@@ -90,7 +92,7 @@ namespace planet::ecs {
 
         /// #### Add a component to the entity
         template<typename C>
-        void add_component(
+        auto add_component(
                 entity_id &eid,
                 C &&component,
                 felspar::source_location const &loc =
@@ -101,6 +103,7 @@ namespace planet::ecs {
                 std::get<ci.value()>(components).at(eid.id) =
                         std::move(component);
                 eid->components[*entities_storage_index] |= (1 << ci.value());
+                return component_proxy<C, Components...>{*this, eid};
             } else {
                 throw_component_type_not_valid(loc);
             }
@@ -120,7 +123,7 @@ namespace planet::ecs {
 
         /// #### Check if a component is present
         template<typename C>
-        bool has_component(entity_id &eid) {
+        bool has_component(entity_id const &eid) const {
             static constexpr auto ci = component_index<C>();
             assert_entities();
             return eid->components[*entities_storage_index] bitand (1 << ci);
@@ -214,6 +217,20 @@ namespace planet::ecs {
         // std::unordered_map<std::size_t, ring> chain;
         storage_type components;
     };
+
+
+    template<typename Component, typename... Components>
+    inline auto component_proxy<Component, Components...>::get() const
+            -> component_type * {
+        static constexpr auto ci =
+                storage_type::template component_index<Component>();
+        store.assert_entities();
+        if (store.template has_component<Component>(eid)) {
+            return &std::get<ci>(store.components).at(eid.id).value();
+        } else {
+            return nullptr;
+        }
+    }
 
 
 }
