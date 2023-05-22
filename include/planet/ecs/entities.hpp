@@ -45,7 +45,7 @@ namespace planet::ecs {
              * any components, and thus it is safe to dereference or iterate
              * over as well.
              */
-            create();
+            auto discard [[maybe_unused]] = create();
         }
 
         /// #### Not movable, not copyable
@@ -60,7 +60,7 @@ namespace planet::ecs {
 
 
         /// ### Create and return new entity
-        entity_id create() override {
+        [[nodiscard]] entity_id create() override {
             /// TODO Search for a free slot in e_slots
             e_slots.emplace_back(store_count);
 
@@ -72,7 +72,7 @@ namespace planet::ecs {
             return entity_id{this, e_slots.size() - 1};
         }
         template<typename... Components>
-        entity_id create(Components &&...components) {
+        [[nodiscard]] entity_id create(Components &&...components) {
             auto eid = create();
             (add_component(eid, std::forward<Components>(components)), ...);
             return eid;
@@ -110,7 +110,7 @@ namespace planet::ecs {
 
         /// ### Does the component exist
         template<typename Component>
-        bool has_component(entity_id &eid) {
+        [[nodiscard]] bool has_component(entity_id &eid) {
             static constexpr auto storage =
                     get_storage_index_for_type<Component>();
             auto &store = std::get<storage>(stores);
@@ -120,7 +120,7 @@ namespace planet::ecs {
 
         /// ### Fetch a component
         template<typename Component>
-        Component &get_component(
+        [[nodiscard]] Component &get_component(
                 entity_id &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {

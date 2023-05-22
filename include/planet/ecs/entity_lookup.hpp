@@ -10,9 +10,9 @@ namespace planet::ecs {
 
     /// ## Abstract base class used for entity look-ups
     struct entity_lookup {
-        virtual entity_id create() = 0;
-        virtual ecs::entity &entity(std::size_t) = 0;
-        virtual ecs::entity const &entity(std::size_t) const = 0;
+        [[nodiscard]] virtual entity_id create() = 0;
+        [[nodiscard]] virtual ecs::entity &entity(std::size_t) = 0;
+        [[nodiscard]] virtual ecs::entity const &entity(std::size_t) const = 0;
     };
 
 

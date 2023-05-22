@@ -123,7 +123,7 @@ namespace planet::ecs {
 
         /// #### Check if a component is present
         template<typename C>
-        bool has_component(entity_id const &eid) const {
+        [[nodiscard]] bool has_component(entity_id const &eid) const {
             static constexpr auto ci = component_index<C>();
             assert_entities();
             return eid->components[*entities_storage_index] bitand (1 << ci);
@@ -131,7 +131,7 @@ namespace planet::ecs {
 
         /// #### Retrieve a component
         template<typename C>
-        C &get_component(
+        [[nodiscard]] C &get_component(
                 entity_id &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
