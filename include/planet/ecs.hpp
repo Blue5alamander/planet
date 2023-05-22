@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ecs/component_proxy.hpp>
 #include <planet/ecs/entities.hpp>
 #include <planet/ecs/entity.hpp>
 #include <planet/ecs/entity_id.hpp>
