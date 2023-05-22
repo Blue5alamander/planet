@@ -10,8 +10,6 @@ namespace planet::ecs {
     template<typename... Storages>
     class entities;
 
-    struct entity_lookup;
-
     template<typename... Components>
     class storage;
 
@@ -20,6 +18,7 @@ namespace planet::ecs {
 
     namespace detail {
         class entity;
+        struct entity_lookup;
     }
 
 

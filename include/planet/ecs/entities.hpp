@@ -21,7 +21,7 @@ namespace planet::ecs {
      */
     template<typename... Storages>
     class entities final :
-    public entity_lookup,
+    public detail::entity_lookup,
             public base_entities<Storages>... {
         std::vector<detail::entity> e_slots;
         std::tuple<Storages &...> stores;

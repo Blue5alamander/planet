@@ -8,17 +8,20 @@
 namespace planet::ecs {
 
 
-    /// ## Abstract base class used for entity look-ups
-    struct entity_lookup {
-        [[nodiscard]] virtual entity_id create() = 0;
-        [[nodiscard]] virtual detail::entity &entity(std::size_t) = 0;
-        [[nodiscard]] virtual detail::entity const &
-                entity(std::size_t) const = 0;
-    };
+    namespace detail {
+        /// ## Abstract base class used for entity look-ups
+        struct entity_lookup {
+            [[nodiscard]] virtual entity_id create() = 0;
+            [[nodiscard]] virtual detail::entity &entity(std::size_t) = 0;
+            [[nodiscard]] virtual detail::entity const &
+                    entity(std::size_t) const = 0;
+        };
+    }
 
 
     /// ## Implementation for `entity_id`
-    inline entity_id::entity_id(entity_lookup *const o, std::size_t const i)
+    inline entity_id::entity_id(
+            detail::entity_lookup *const o, std::size_t const i)
     : owner{o}, id{i} {
         ++owner->entity(id).reference_count;
     }

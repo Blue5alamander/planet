@@ -201,11 +201,12 @@ namespace planet::ecs {
         using storage_type = std::tuple<component_storage_type<Components>...>;
 
         /// The index of this storage
-        void set_entities_storage_index(entity_lookup *el, std::size_t const si) {
+        void set_entities_storage_index(
+                detail::entity_lookup *el, std::size_t const si) {
             entities = el;
             entities_storage_index = si;
         }
-        entity_lookup *entities = nullptr;
+        detail::entity_lookup *entities = nullptr;
         std::optional<std::size_t> entities_storage_index;
 
         /// TODO Use a ring so we can chain (like a rope data structure)

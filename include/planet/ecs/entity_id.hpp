@@ -19,11 +19,11 @@ namespace planet::ecs {
     class entity_id final {
         template<typename... Components>
         friend class entity_storage;
-        entity_lookup *owner = nullptr;
+        detail::entity_lookup *owner = nullptr;
 
       public:
         entity_id() = default;
-        explicit entity_id(entity_lookup *, std::size_t);
+        explicit entity_id(detail::entity_lookup *, std::size_t);
         entity_id(entity_id &&);
         entity_id(entity_id const &);
         ~entity_id();
