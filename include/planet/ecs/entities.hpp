@@ -83,6 +83,9 @@ namespace planet::ecs {
         ecs::entity &entity(std::size_t const eid) override {
             return e_slots.at(eid);
         }
+        ecs::entity const &entity(std::size_t const eid) const override {
+            return e_slots.at(eid);
+        }
 
 
         /// ### Add a component

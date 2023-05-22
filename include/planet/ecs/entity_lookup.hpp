@@ -12,6 +12,7 @@ namespace planet::ecs {
     struct entity_lookup {
         virtual entity_id create() = 0;
         virtual ecs::entity &entity(std::size_t) = 0;
+        virtual ecs::entity const &entity(std::size_t) const = 0;
     };
 
 
@@ -45,6 +46,9 @@ namespace planet::ecs {
     }
 
     inline entity *entity_id::operator->() { return &owner->entity(id); }
+    inline entity const *entity_id::operator->() const {
+        return &owner->entity(id);
+    }
 
 
 }
