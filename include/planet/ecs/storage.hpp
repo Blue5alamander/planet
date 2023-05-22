@@ -182,7 +182,7 @@ namespace planet::ecs {
             types<L> traits;
             for (std::size_t idx{}; idx < std::get<0>(components).size();
                  ++idx) {
-                entity &e{entities->entity(idx)};
+                detail::entity &e{entities->entity(idx)};
                 if (e.components[*entities_storage_index] bitand traits.mask) {
                     traits.invoke(entity_id{entities, idx}, lambda, *this);
                 }

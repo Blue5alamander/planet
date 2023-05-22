@@ -23,7 +23,7 @@ namespace planet::ecs {
     class entities final :
     public entity_lookup,
             public base_entities<Storages>... {
-        std::vector<ecs::entity> e_slots;
+        std::vector<detail::entity> e_slots;
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
 
@@ -80,10 +80,10 @@ namespace planet::ecs {
 
 
         /// ### Return the entity
-        ecs::entity &entity(std::size_t const eid) override {
+        detail::entity &entity(std::size_t const eid) override {
             return e_slots.at(eid);
         }
-        ecs::entity const &entity(std::size_t const eid) const override {
+        detail::entity const &entity(std::size_t const eid) const override {
             return e_slots.at(eid);
         }
 

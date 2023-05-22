@@ -8,13 +8,13 @@
 #include <vector>
 
 
-namespace planet::ecs {
+namespace planet::ecs::detail {
 
 
     /// ## Entity
     /// Each entity is comprised of a set of components
     class entity final {
-        friend class entity_id;
+        friend class ecs::entity_id;
         std::size_t reference_count = 0;
 
       public:

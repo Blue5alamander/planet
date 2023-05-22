@@ -34,8 +34,8 @@ namespace planet::ecs {
         /// TODO protect this value
         std::size_t id = {};
 
-        entity *operator->();
-        entity const *operator->() const;
+        detail::entity *operator->();
+        detail::entity const *operator->() const;
 
         friend bool operator==(entity_id const &, entity_id const &) noexcept =
                 default;
