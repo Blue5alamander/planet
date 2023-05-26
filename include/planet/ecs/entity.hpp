@@ -15,7 +15,10 @@ namespace planet::ecs::detail {
     /// Each entity is comprised of a set of components
     class entity final {
         friend class ecs::entity_id;
-        std::size_t reference_count = 0;
+
+        std::size_t strong_count = 0;
+        void increment_strong() { ++strong_count; }
+        auto decrement_strong() { return --strong_count; }
 
       public:
         explicit entity(std::size_t const component_count)

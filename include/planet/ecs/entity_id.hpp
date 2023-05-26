@@ -21,6 +21,9 @@ namespace planet::ecs {
         friend class entity_storage;
         detail::entity_lookup *owner = nullptr;
 
+        void increment();
+        void decrement();
+
       public:
         entity_id() = default;
         explicit entity_id(detail::entity_lookup *, std::size_t);

@@ -146,6 +146,10 @@ namespace planet::ecs {
 
 
       private:
+        void destroy(std::size_t) override {
+            /// TODO Destroy all components
+        }
+
         template<typename T>
         struct lambda_tuple_type :
         public lambda_tuple_type<decltype(&T::operator())> {};
