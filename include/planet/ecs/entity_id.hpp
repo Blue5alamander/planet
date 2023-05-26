@@ -44,6 +44,8 @@ namespace planet::ecs {
 
         friend bool operator==(entity_id const &, entity_id const &) noexcept =
                 default;
+
+        explicit operator bool() const noexcept;
     };
 
 

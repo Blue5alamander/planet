@@ -91,5 +91,14 @@ namespace planet::ecs {
         return &owner->entity(id, generation);
     }
 
+    inline entity_id::operator bool() const noexcept {
+        if (owner and generation and id) {
+            auto &e = owner->entity(id);
+            return e.generation == generation;
+        } else {
+            return false;
+        }
+    }
+
 
 }
