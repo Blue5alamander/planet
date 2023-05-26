@@ -127,7 +127,7 @@ namespace planet::ecs {
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid)) {
-                return std::get<ci>(components).at(eid.id).value();
+                return std::get<ci>(components).at(eid.id).value(loc);
             } else {
                 detail::throw_component_not_present(loc);
             }
@@ -158,15 +158,23 @@ namespace planet::ecs {
             }()};
 
             template<typename L>
-            R invoke(entity_id &&eid, L const &l, storage &s) {
+            R
+                    invoke(entity_id &&eid,
+                           L const &l,
+                           storage &s,
+                           felspar::source_location const &loc =
+                                   felspar::source_location::current()) {
                 return l(
                         eid,
                         s.get_component<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>(eid)...);
+                                std::remove_reference_t<Cs>>>(eid, loc)...);
             }
         };
         template<typename L>
-        void iterate(L &&lambda) {
+        void
+                iterate(L &&lambda,
+                        felspar::source_location const &loc =
+                                felspar::source_location::current()) {
             assert_entities();
             types<L> traits;
             for (std::size_t idx{}; idx < std::get<0>(components).size();
