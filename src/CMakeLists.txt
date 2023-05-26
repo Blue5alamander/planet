@@ -1,6 +1,7 @@
 add_library(planet
         asset_manager.cpp
         cameras.cpp
+        ecs.cpp
         files.audio.cpp
         files.drawing.cpp
         gain.audio.cpp

@@ -5,11 +5,23 @@
 #include <planet/ecs/entities.hpp>
 #include <planet/ecs/type_index.hpp>
 
-#include <felspar/exceptions.hpp>
 #include <felspar/memory/holding_pen.hpp>
 
 
 namespace planet::ecs {
+
+
+    namespace detail {
+        [[noreturn]] void throw_no_entities_instance(
+                felspar::source_location const & =
+                        felspar::source_location::current());
+        [[noreturn]] void throw_component_type_not_valid(
+                felspar::source_location const & =
+                        felspar::source_location::current());
+        [[noreturn]] void throw_component_not_present(
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    }
 
 
     /// ## Holder for all entities
@@ -20,32 +32,10 @@ namespace planet::ecs {
         template<typename... Storages>
         friend class entities;
 
-        [[noreturn]] void throw_no_entities_instance(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
-            throw felspar::stdexcept::logic_error{
-                    "The entities storage must be part of an entities "
-                    "structure before it can be used",
-                    loc};
-        }
         void assert_entities() const {
             if (not entities or not entities_storage_index) {
-                throw_no_entities_instance();
+                detail::throw_no_entities_instance();
             }
-        }
-        [[noreturn]] void throw_component_type_not_valid(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
-            throw felspar::stdexcept::logic_error{
-                    "The provided type doesn't match a component type", loc};
-        }
-        [[noreturn]] void throw_component_not_present(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
-            throw felspar::stdexcept::logic_error{
-                    "This entity doesn't have that component at this "
-                    "time",
-                    loc};
         }
 
       public:
@@ -105,7 +95,7 @@ namespace planet::ecs {
                 eid->components[*entities_storage_index] |= (1 << ci.value());
                 return component_proxy<C, Components...>{*this, eid};
             } else {
-                throw_component_type_not_valid(loc);
+                detail::throw_component_type_not_valid(loc);
             }
         }
         /// #### Remove a component from the entity
@@ -117,7 +107,7 @@ namespace planet::ecs {
                 std::get<ci.value()>(components).at(eid.id).reset();
                 eid->components[*entities_storage_index] &= ~(1 << ci.value());
             } else {
-                throw_component_type_not_valid();
+                detail::throw_component_type_not_valid();
             }
         }
 
@@ -140,7 +130,7 @@ namespace planet::ecs {
             if (has_component<C>(eid)) {
                 return std::get<ci>(components).at(eid.id).value();
             } else {
-                throw_component_not_present(loc);
+                detail::throw_component_not_present(loc);
             }
         }
 
