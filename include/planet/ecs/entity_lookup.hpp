@@ -29,34 +29,36 @@ namespace planet::ecs {
     inline entity_id::entity_id(
             detail::entity_lookup *const o, std::size_t const i)
     : owner{o}, id{i} {
-        owner->entity(id).increment_strong();
+        increment();
     }
     inline entity_id::entity_id(entity_id &&o)
     : owner{std::exchange(o.owner, nullptr)}, id{std::exchange(o.id, {})} {}
     inline entity_id::entity_id(entity_id const &o) : owner{o.owner}, id{o.id} {
-        if (owner) { increment(); }
+        increment();
     }
 
-    inline entity_id::~entity_id() {
-        if (owner) { decrement(); }
-    }
+    inline entity_id::~entity_id() { decrement(); }
 
-    inline void entity_id::increment() { owner->entity(id).increment_strong(); }
+    inline void entity_id::increment() {
+        if (owner) { owner->entity(id).increment_strong(); }
+    }
     inline void entity_id::decrement() {
-        if (owner->entity(id).decrement_strong() == 0u) { owner->destroy(id); }
+        if (owner and owner->entity(id).decrement_strong() == 0u) {
+            owner->destroy(id);
+        }
     }
 
     inline entity_id &entity_id::operator=(entity_id &&eid) {
-        if (owner) { decrement(); }
+        decrement();
         owner = std::exchange(eid.owner, nullptr);
         id = std::exchange(eid.id, {});
         return *this;
     }
     inline entity_id &entity_id::operator=(entity_id const &eid) {
-        if (owner) { decrement(); }
+        decrement();
         owner = eid.owner;
         id = eid.id;
-        if (owner) { increment(); }
+        increment();
         return *this;
     }
 
