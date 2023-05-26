@@ -19,6 +19,7 @@ namespace planet::ecs::detail {
         friend class ecs::entity_id;
         template<typename... Components>
         friend class ecs::storage;
+        friend class ecs::weak_entity_id;
 
         /// ### The generation for this entity
         std::size_t generation = 0;
@@ -27,6 +28,14 @@ namespace planet::ecs::detail {
         std::size_t strong_count = 0;
         void increment_strong() { ++strong_count; }
         auto decrement_strong() { return --strong_count; }
+
+        /// ### Weak reference count
+        std::size_t weak_count = 0;
+        void increment_weak() { ++weak_count; }
+        auto decrement_weak(std::size_t) {
+            /// TODO Check generation
+            return --weak_count;
+        }
 
       public:
         explicit entity(std::size_t const component_count)

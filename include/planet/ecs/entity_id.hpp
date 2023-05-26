@@ -17,6 +17,8 @@ namespace planet::ecs {
      * [entity_lookup.hpp](./entity_lookup.hpp).
      */
     class entity_id final {
+        friend class weak_entity_id;
+
         detail::entity_lookup *owner = nullptr;
 
         void increment();

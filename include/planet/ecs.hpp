@@ -10,3 +10,4 @@
 #include <planet/ecs/storage.hpp>
 #include <planet/ecs/storage_base.hpp>
 #include <planet/ecs/type_index.hpp>
+#include <planet/ecs/weak_entity_id.hpp>

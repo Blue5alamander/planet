@@ -81,26 +81,36 @@ namespace planet::ecs {
 
 
         /// ### Return the entity
-        detail::entity &entity(std::size_t const eid) override {
+        detail::entity &
+                entity(std::size_t const eid,
+                       felspar::source_location const & =
+                               felspar::source_location::current()) override {
             return e_slots.at(eid);
         }
         detail::entity &
-                entity(std::size_t const eid, std::size_t const gen) override {
+                entity(std::size_t const eid,
+                       std::size_t const gen,
+                       felspar::source_location const &loc =
+                               felspar::source_location::current()) override {
             auto &e = e_slots.at(eid);
             if (e.generation != gen) {
                 throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store"};
+                        "The generation requested is not the one in the store",
+                        loc};
             } else {
                 return e_slots.at(eid);
             }
         }
-        detail::entity const &
-                entity(std::size_t const eid,
-                       std::size_t const gen) const override {
+        detail::entity const &entity(
+                std::size_t const eid,
+                std::size_t const gen,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const override {
             auto const &e = e_slots.at(eid);
             if (e.generation != gen) {
                 throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store"};
+                        "The generation requested is not the one in the store",
+                        loc};
             } else {
                 return e_slots.at(eid);
             }
@@ -168,6 +178,7 @@ namespace planet::ecs {
 
       private:
         void destroy(std::size_t const id) override {
+            ++e_slots[id].generation;
             [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).destroy(id), ...);
             }

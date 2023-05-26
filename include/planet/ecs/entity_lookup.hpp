@@ -4,6 +4,8 @@
 #include <planet/ecs/entity.hpp>
 #include <planet/ecs/entity_id.hpp>
 
+#include <felspar/test/source.hpp>
+
 
 namespace planet::ecs {
 
@@ -12,16 +14,27 @@ namespace planet::ecs {
         /// ## Abstract base class used for entity look-ups
         struct entity_lookup {
             friend class ecs::entity_id;
+            friend class ecs::weak_entity_id;
 
             [[nodiscard]] virtual entity_id create() = 0;
 
-            [[nodiscard]] virtual detail::entity &entity(std::size_t) = 0;
             [[nodiscard]] virtual detail::entity &
-                    entity(std::size_t, std::size_t) = 0;
-            [[nodiscard]] virtual detail::entity const &
-                    entity(std::size_t, std::size_t) const = 0;
+                    entity(std::size_t,
+                           felspar::source_location const & =
+                                   felspar::source_location::current()) = 0;
+            [[nodiscard]] virtual detail::entity &
+                    entity(std::size_t,
+                           std::size_t,
+                           felspar::source_location const & =
+                                   felspar::source_location::current()) = 0;
+            [[nodiscard]] virtual detail::entity const &entity(
+                    std::size_t,
+                    std::size_t,
+                    felspar::source_location const & =
+                            felspar::source_location::current()) const = 0;
 
           protected:
+            virtual void release(std::size_t) {}
             virtual void destroy(std::size_t) = 0;
         };
     }
