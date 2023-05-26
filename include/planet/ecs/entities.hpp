@@ -146,8 +146,11 @@ namespace planet::ecs {
 
 
       private:
-        void destroy(std::size_t) override {
-            /// TODO Destroy all components
+        void destroy(std::size_t const id) override {
+            [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
+                (std::get<Is>(stores).destroy(id), ...);
+            }
+            (indexes{});
         }
 
         template<typename T>

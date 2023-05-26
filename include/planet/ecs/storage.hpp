@@ -180,6 +180,13 @@ namespace planet::ecs {
         }
 
       private:
+        void destroy(std::size_t const id) {
+            [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
+                (std::get<Is>(components).at(id).reset(), ...);
+            }
+            (indexes{});
+        }
+
         /**
          * TODO We should use the mask that's already stored in the entities to
          * determine which entries contain the component, then we can use the
