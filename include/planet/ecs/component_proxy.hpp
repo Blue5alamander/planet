@@ -17,17 +17,14 @@ namespace planet::ecs {
      */
     template<typename Component, typename... Components>
     class component_proxy {
+        friend class storage<Components...>;
+
         storage<Components...> &store;
         entity_id eid;
 
       public:
         using component_type = Component;
         using storage_type = storage<Components...>;
-
-
-        /// ### Construction
-        component_proxy(storage_type &s, entity_id const &e)
-        : store{s}, eid{e} {}
 
 
         /// ### Fetch the component
@@ -40,6 +37,12 @@ namespace planet::ecs {
 
         /// ### Destroy the component
         void remove();
+
+
+      private:
+        /// ### Construction
+        component_proxy(storage_type &s, entity_id const &e)
+        : store{s}, eid{e} {}
     };
 
 

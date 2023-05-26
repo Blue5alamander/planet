@@ -160,6 +160,16 @@ namespace planet::ecs {
         }
 
 
+        /// ### Get a component proxy
+        template<typename Component>
+        [[nodiscard]] auto get_proxy_for(entity_id const &eid) {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            return store.template get_proxy_for<Component>(eid);
+        }
+
+
         /// ### Iterate over components
         template<typename Lambda>
         auto iterate(Lambda &&lambda) {

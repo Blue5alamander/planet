@@ -70,7 +70,7 @@ namespace planet::ecs {
 
         /// ### Create an entity with the desired components
         template<typename... Cs>
-        entity_id create(Cs &&...cs) {
+        [[nodiscard]] entity_id create(Cs &&...cs) {
             assert_entities();
             auto eid = entities->create();
             (add_component(eid, std::forward<Cs>(cs)), ...);
@@ -97,6 +97,11 @@ namespace planet::ecs {
             } else {
                 detail::throw_component_type_not_valid(loc);
             }
+        }
+        /// #### Provide a component proxy
+        template<typename C>
+        [[nodiscard]] auto get_proxy_for(entity_id const &eid) {
+            return component_proxy<C, Components...>{*this, eid};
         }
         /// #### Remove a component from the entity
         template<typename C>
