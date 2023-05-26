@@ -183,7 +183,9 @@ namespace planet::ecs {
                 if (e.strong_count
                     and e.components[*entities_storage_index]
                             bitand traits.mask) {
-                    traits.invoke(entity_id{entities, idx}, lambda, *this, loc);
+                    traits.invoke(
+                            entity_id{entities, idx, e.generation}, lambda,
+                            *this, loc);
                 }
             }
         }

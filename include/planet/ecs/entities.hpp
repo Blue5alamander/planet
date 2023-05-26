@@ -69,7 +69,8 @@ namespace planet::ecs {
             }
             (indexes{});
 
-            return entity_id{this, e_slots.size() - 1};
+            return entity_id{
+                    this, e_slots.size() - 1, ++e_slots.back().generation};
         }
         template<typename... Components>
         [[nodiscard]] entity_id create(Components &&...components) {
@@ -83,8 +84,26 @@ namespace planet::ecs {
         detail::entity &entity(std::size_t const eid) override {
             return e_slots.at(eid);
         }
-        detail::entity const &entity(std::size_t const eid) const override {
-            return e_slots.at(eid);
+        detail::entity &
+                entity(std::size_t const eid, std::size_t const gen) override {
+            auto &e = e_slots.at(eid);
+            if (e.generation != gen) {
+                throw felspar::stdexcept::logic_error{
+                        "The generation requested is not the one in the store"};
+            } else {
+                return e_slots.at(eid);
+            }
+        }
+        detail::entity const &
+                entity(std::size_t const eid,
+                       std::size_t const gen) const override {
+            auto const &e = e_slots.at(eid);
+            if (e.generation != gen) {
+                throw felspar::stdexcept::logic_error{
+                        "The generation requested is not the one in the store"};
+            } else {
+                return e_slots.at(eid);
+            }
         }
 
 
@@ -136,7 +155,7 @@ namespace planet::ecs {
         auto iterate(Lambda &&lambda) {
             for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
                 if (e_slots[idx].strong_count) {
-                    entity_id eid{this, idx};
+                    entity_id eid{this, idx, e_slots[idx].generation};
                     using ltt = lambda_tuple_type<Lambda>;
                     if (ltt::has_args(this, eid)) {
                         auto args{ltt::get_args(this, eid)};

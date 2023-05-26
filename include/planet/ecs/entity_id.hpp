@@ -22,9 +22,11 @@ namespace planet::ecs {
         void increment();
         void decrement();
 
+        std::size_t generation = {};
+
       public:
         entity_id() = default;
-        explicit entity_id(detail::entity_lookup *, std::size_t);
+        explicit entity_id(detail::entity_lookup *, std::size_t, std::size_t);
         entity_id(entity_id &&);
         entity_id(entity_id const &);
         ~entity_id();

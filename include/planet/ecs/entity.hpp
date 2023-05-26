@@ -20,6 +20,10 @@ namespace planet::ecs::detail {
         template<typename... Components>
         friend class ecs::storage;
 
+        /// ### The generation for this entity
+        std::size_t generation = 0;
+
+        /// ### Strong reference count
         std::size_t strong_count = 0;
         void increment_strong() { ++strong_count; }
         auto decrement_strong() { return --strong_count; }
