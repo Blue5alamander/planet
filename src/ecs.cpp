@@ -9,8 +9,8 @@
 void planet::ecs::detail::throw_no_entities_instance(
         felspar::source_location const &loc) {
     throw felspar::stdexcept::logic_error{
-            "The entities storage must be part of an entities "
-            "structure before it can be used",
+            "The entities storage must be part of an entities structure before "
+            "it can be used",
             loc};
 }
 
@@ -25,7 +25,5 @@ void planet::ecs::detail::throw_component_type_not_valid(
 void planet::ecs::detail::throw_component_not_present(
         felspar::source_location const &loc) {
     throw felspar::stdexcept::logic_error{
-            "This entity doesn't have that component at this "
-            "time",
-            loc};
+            "This entity doesn't have that component at this time", loc};
 }
