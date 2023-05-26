@@ -17,8 +17,6 @@ namespace planet::ecs {
      * [entity_lookup.hpp](./entity_lookup.hpp).
      */
     class entity_id final {
-        template<typename... Components>
-        friend class entity_storage;
         detail::entity_lookup *owner = nullptr;
 
         void increment();
