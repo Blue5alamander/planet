@@ -154,7 +154,7 @@ namespace planet::ecs {
         struct types<R (C::*)(entity_id, Cs...) const> {
             static constexpr mask_type mask = {[]() {
                 constexpr std::array<std::size_t, sizeof...(Cs)> args = {
-                        *maybe_component_index<std::remove_const_t<
+                        component_index<std::remove_const_t<
                                 std::remove_reference_t<Cs>>>()...,
                 };
                 mask_type m{};
