@@ -126,7 +126,6 @@ namespace planet::ecs {
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
-            assert_entities();
             if (has_component<C>(eid)) {
                 return std::get<ci>(components).at(eid.id).value();
             } else {
@@ -222,7 +221,6 @@ namespace planet::ecs {
             -> component_type * {
         static constexpr auto ci =
                 storage_type::template component_index<Component>();
-        store.assert_entities();
         if (store.template has_component<Component>(eid)) {
             return &std::get<ci>(store.components).at(eid.id).value();
         } else {
