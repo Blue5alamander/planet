@@ -229,6 +229,20 @@ namespace planet::ecs {
             return nullptr;
         }
     }
+    template<typename Component, typename... Components>
+    inline void component_proxy<Component, Components...>::remove() {
+        static constexpr auto ci =
+                storage_type::template maybe_component_index<Component>();
+        if constexpr (ci) {
+            store.assert_entities();
+            auto &hp = std::get<ci.value()>(store.components).at(eid.id);
+            hp.reset();
+            eid->components[*store.entities_storage_index] &=
+                    ~(1 << ci.value());
+        } else {
+            detail::throw_component_type_not_valid();
+        }
+    }
 
 
 }

@@ -36,6 +36,10 @@ namespace planet::ecs {
             return get();
         }
         [[nodiscard]] component_type *get() const;
+
+
+        /// ### Destroy the component
+        void remove();
     };
 
 

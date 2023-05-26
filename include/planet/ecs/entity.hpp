@@ -15,6 +15,8 @@ namespace planet::ecs::detail {
     /// Each entity is comprised of a set of components
     class entity final {
         friend class ecs::entity_id;
+        template<typename... Components>
+        friend class ecs::storage;
 
         std::size_t strong_count = 0;
         void increment_strong() { ++strong_count; }

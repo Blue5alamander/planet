@@ -164,4 +164,18 @@ namespace {
     });
 
 
+    auto const proxy = suite.test("component_proxy", [](auto check) {
+        integral int_storage;
+        real real_storage;
+        planet::ecs::entities entities{int_storage, real_storage};
+
+        auto e1 = entities.create();
+        auto p1 = entities.add_component(e1, true);
+        check(entities.has_component<bool>(e1)) == true;
+
+        p1.remove();
+        check(entities.has_component<bool>(e1)) == false;
+    });
+
+
 }

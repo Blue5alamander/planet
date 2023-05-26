@@ -151,6 +151,8 @@ namespace planet::ecs {
                 (std::get<Is>(stores).destroy(id), ...);
             }
             (indexes{});
+            auto &c = e_slots[id].components;
+            std::fill(c.begin(), c.end(), 0);
         }
 
         template<typename T>
