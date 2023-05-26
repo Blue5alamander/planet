@@ -135,11 +135,13 @@ namespace planet::ecs {
         template<typename Lambda>
         auto iterate(Lambda &&lambda) {
             for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
-                entity_id eid{this, idx};
-                using ltt = lambda_tuple_type<Lambda>;
-                if (ltt::has_args(this, eid)) {
-                    auto args{ltt::get_args(this, eid)};
-                    std::apply(lambda, args);
+                if (e_slots[idx].strong_count) {
+                    entity_id eid{this, idx};
+                    using ltt = lambda_tuple_type<Lambda>;
+                    if (ltt::has_args(this, eid)) {
+                        auto args{ltt::get_args(this, eid)};
+                        std::apply(lambda, args);
+                    }
                 }
             }
         }

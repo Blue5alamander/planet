@@ -14,6 +14,8 @@ namespace planet::ecs::detail {
     /// ## Entity
     /// Each entity is comprised of a set of components
     class entity final {
+        template<typename... Storages>
+        friend class ecs::entities;
         friend class ecs::entity_id;
         template<typename... Components>
         friend class ecs::storage;

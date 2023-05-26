@@ -180,8 +180,10 @@ namespace planet::ecs {
             for (std::size_t idx{}; idx < std::get<0>(components).size();
                  ++idx) {
                 detail::entity &e{entities->entity(idx)};
-                if (e.components[*entities_storage_index] bitand traits.mask) {
-                    traits.invoke(entity_id{entities, idx}, lambda, *this);
+                if (e.strong_count
+                    and e.components[*entities_storage_index]
+                            bitand traits.mask) {
+                    traits.invoke(entity_id{entities, idx}, lambda, *this, loc);
                 }
             }
         }
