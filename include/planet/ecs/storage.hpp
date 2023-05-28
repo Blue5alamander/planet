@@ -126,13 +126,24 @@ namespace planet::ecs {
 
         /// #### Retrieve a component
         template<typename C>
-        [[nodiscard]] C &get_component(
+        [[nodiscard]] C *maybe_get_component(
                 entity_id &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid)) {
-                return std::get<ci>(components).at(eid.id).value(loc);
+                return &std::get<ci>(components).at(eid.id).value(loc);
+            } else {
+                return nullptr;
+            }
+        }
+        template<typename C>
+        [[nodiscard]] C &get_component(
+                entity_id &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            if (auto *p = maybe_get_component<C>(eid, loc); p) {
+                return *p;
             } else {
                 detail::throw_component_not_present(loc);
             }
