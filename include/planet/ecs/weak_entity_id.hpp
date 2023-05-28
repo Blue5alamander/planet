@@ -52,7 +52,13 @@ namespace planet::ecs {
         }
         weak_entity_id &operator=(weak_entity_id const &);
 
-        auto lock() { return entity_id{owner, id, generation}; }
+        auto lock() {
+            if (owner->maybe_entity(id, generation)) {
+                return entity_id{owner, id, generation};
+            } else {
+                return entity_id{};
+            }
+        }
 
         friend bool operator==(
                 weak_entity_id const &,

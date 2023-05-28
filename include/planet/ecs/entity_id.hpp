@@ -3,6 +3,8 @@
 
 #include <planet/ecs/forward.hpp>
 
+#include <felspar/test/source.hpp>
+
 #include <utility>
 
 
@@ -21,14 +23,21 @@ namespace planet::ecs {
 
         detail::entity_lookup *owner = nullptr;
 
-        void increment();
+        void increment(
+                felspar::source_location const & =
+                        felspar::source_location::current());
         void decrement();
 
         std::size_t generation = {};
 
       public:
         entity_id() = default;
-        explicit entity_id(detail::entity_lookup *, std::size_t, std::size_t);
+        explicit entity_id(
+                detail::entity_lookup *,
+                std::size_t,
+                std::size_t,
+                felspar::source_location const & =
+                        felspar::source_location::current());
         entity_id(entity_id &&);
         entity_id(entity_id const &);
         ~entity_id();

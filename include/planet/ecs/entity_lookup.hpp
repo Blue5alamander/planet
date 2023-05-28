@@ -33,6 +33,13 @@ namespace planet::ecs {
                     felspar::source_location const & =
                             felspar::source_location::current()) const = 0;
 
+            [[nodiscard]] virtual detail::entity *maybe_entity(
+                    std::size_t,
+                    std::size_t,
+                    felspar::source_location const & =
+                            felspar::source_location::current()) = 0;
+
+
           protected:
             virtual void release(std::size_t) {}
             virtual void destroy(std::size_t) = 0;
@@ -44,9 +51,10 @@ namespace planet::ecs {
     inline entity_id::entity_id(
             detail::entity_lookup *const o,
             std::size_t const i,
-            std::size_t const g)
+            std::size_t const g,
+            felspar::source_location const &loc)
     : owner{o}, generation{g}, id{i} {
-        increment();
+        increment(loc);
     }
     inline entity_id::entity_id(entity_id &&o)
     : owner{std::exchange(o.owner, nullptr)},
@@ -59,8 +67,8 @@ namespace planet::ecs {
 
     inline entity_id::~entity_id() { decrement(); }
 
-    inline void entity_id::increment() {
-        if (owner) { owner->entity(id, generation).increment_strong(); }
+    inline void entity_id::increment(felspar::source_location const &loc) {
+        if (owner) { owner->entity(id, generation, loc).increment_strong(); }
     }
     inline void entity_id::decrement() {
         if (owner and owner->entity(id, generation).decrement_strong() == 0u) {

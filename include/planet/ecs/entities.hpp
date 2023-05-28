@@ -98,7 +98,7 @@ namespace planet::ecs {
                         "The generation requested is not the one in the store",
                         loc};
             } else {
-                return e_slots.at(eid);
+                return e;
             }
         }
         detail::entity const &entity(
@@ -112,7 +112,19 @@ namespace planet::ecs {
                         "The generation requested is not the one in the store",
                         loc};
             } else {
-                return e_slots.at(eid);
+                return e;
+            }
+        }
+        detail::entity *maybe_entity(
+                std::size_t const eid,
+                std::size_t const gen,
+                felspar::source_location const & =
+                        felspar::source_location::current()) override {
+            auto &e = e_slots.at(eid);
+            if (e.generation != gen) {
+                return nullptr;
+            } else {
+                return &e;
             }
         }
 
