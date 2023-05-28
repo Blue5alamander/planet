@@ -44,10 +44,9 @@ namespace planet::ecs {
 
         weak_entity_id &operator=(weak_entity_id &&w) {
             decrement();
-            owner = w.owner;
-            generation = w.generation;
-            id = w.id;
-            increment();
+            owner = std::exchange(w.owner, nullptr);
+            generation = std::exchange(w.generation, {});
+            id = std::exchange(w.id, {});;
             return *this;
         }
         weak_entity_id &operator=(weak_entity_id const &);
