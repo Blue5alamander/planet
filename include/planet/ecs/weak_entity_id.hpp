@@ -51,7 +51,7 @@ namespace planet::ecs {
         }
         weak_entity_id &operator=(weak_entity_id const &);
 
-        auto lock() {
+        auto lock() const {
             if (owner and id and generation
                 and owner->maybe_entity(id, generation)) {
                 return entity_id{owner, id, generation};
