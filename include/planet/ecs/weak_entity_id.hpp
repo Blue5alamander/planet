@@ -46,13 +46,14 @@ namespace planet::ecs {
             decrement();
             owner = std::exchange(w.owner, nullptr);
             generation = std::exchange(w.generation, {});
-            id = std::exchange(w.id, {});;
+            id = std::exchange(w.id, {});
             return *this;
         }
         weak_entity_id &operator=(weak_entity_id const &);
 
         auto lock() {
-            if (owner->maybe_entity(id, generation)) {
+            if (owner and id and generation
+                and owner->maybe_entity(id, generation)) {
                 return entity_id{owner, id, generation};
             } else {
                 return entity_id{};
