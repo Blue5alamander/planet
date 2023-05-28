@@ -159,33 +159,6 @@ namespace planet::ecs {
 
 
         /// ### Iterate over entities with the requested components
-        template<typename T>
-        struct types : public types<decltype(&T::operator())> {};
-        template<typename R, typename C, typename... Cs>
-        struct types<R (C::*)(entity_id, Cs...) const> {
-            static constexpr mask_type mask = {[]() {
-                constexpr std::array<std::size_t, sizeof...(Cs)> args = {
-                        component_index<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>()...,
-                };
-                mask_type m{};
-                for (auto const &i : args) { m |= (1 << i); }
-                return m;
-            }()};
-
-            template<typename L>
-            R
-                    invoke(entity_id &&eid,
-                           L const &l,
-                           storage &s,
-                           felspar::source_location const &loc =
-                                   felspar::source_location::current()) {
-                return l(
-                        eid,
-                        s.get_component<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>(eid, loc)...);
-            }
-        };
         template<typename L>
         void
                 iterate(L &&lambda,
@@ -205,6 +178,25 @@ namespace planet::ecs {
                 }
             }
         }
+        /// #### Iterate over a range of `weak_entity_id`s
+        template<typename Range, typename L>
+        void
+                iterate(Range &&range,
+                        L &&lambda,
+                        felspar::source_location const &loc =
+                                felspar::source_location::current()) {
+            assert_entities();
+            types<L> traits;
+            for (auto &&w : range) {
+                auto eid = w.lock();
+                if (eid
+                    and eid->components[*entities_storage_index]
+                            bitand traits.mask) {
+                    traits.invoke(std::move(eid), lambda, *this, loc);
+                }
+            }
+        }
+
 
       private:
         void destroy(std::size_t const id) {
@@ -241,6 +233,34 @@ namespace planet::ecs {
         // };
         // std::unordered_map<std::size_t, ring> chain;
         storage_type components;
+
+        template<typename T>
+        struct types : public types<decltype(&T::operator())> {};
+        template<typename R, typename C, typename... Cs>
+        struct types<R (C::*)(entity_id, Cs...) const> {
+            static constexpr mask_type mask = {[]() {
+                constexpr std::array<std::size_t, sizeof...(Cs)> args = {
+                        component_index<std::remove_const_t<
+                                std::remove_reference_t<Cs>>>()...,
+                };
+                mask_type m{};
+                for (auto const &i : args) { m |= (1 << i); }
+                return m;
+            }()};
+
+            template<typename L>
+            R
+                    invoke(entity_id &&eid,
+                           L const &l,
+                           storage &s,
+                           felspar::source_location const &loc =
+                                   felspar::source_location::current()) {
+                return l(
+                        eid,
+                        s.get_component<std::remove_const_t<
+                                std::remove_reference_t<Cs>>>(eid, loc)...);
+            }
+        };
     };
 
 
