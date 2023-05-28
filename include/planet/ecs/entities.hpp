@@ -170,6 +170,16 @@ namespace planet::ecs {
             auto &store = std::get<storage>(stores);
             return store.template get_component<Component>(eid, loc);
         }
+        template<typename Component>
+        [[nodiscard]] Component *maybe_get_component(
+                entity_id &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            return store.template maybe_get_component<Component>(eid, loc);
+        }
 
 
         /// ### Get a component proxy
