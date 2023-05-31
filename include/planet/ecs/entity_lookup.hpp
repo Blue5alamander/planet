@@ -45,6 +45,12 @@ namespace planet::ecs {
                     std::size_t,
                     felspar::source_location const & =
                             felspar::source_location::current()) = 0;
+            [[nodiscard]] virtual mask_type mask_for(
+                    std::size_t,
+                    std::size_t,
+                    std::size_t,
+                    felspar::source_location const & =
+                            felspar::source_location::current()) const = 0;
 
           protected:
             virtual void release(std::size_t) {}
@@ -105,6 +111,9 @@ namespace planet::ecs {
         return &owner->entity(id, generation);
     }
     inline mask_type &entity_id::mask(std::size_t const storage_index) {
+        return owner->mask_for(storage_index, id, generation);
+    }
+    inline mask_type entity_id::mask(std::size_t const storage_index) const {
         return owner->mask_for(storage_index, id, generation);
     }
 

@@ -23,7 +23,14 @@ namespace planet::ecs {
     class entities final :
     public detail::entity_lookup,
             public base_entities<Storages>... {
-        std::vector<detail::entity> e_slots;
+        struct e_slot {
+            /// Entity contains reference counts and APIs
+            detail::entity entity{};
+            /// Bitset of the components that this entity uses in each of the
+            /// storages
+            std::array<mask_type, sizeof...(Storages)> masks{};
+        };
+        std::vector<e_slot> e_slots;
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
 
@@ -62,7 +69,7 @@ namespace planet::ecs {
         /// ### Create and return new entity
         [[nodiscard]] entity_id create() override {
             /// TODO Search for a free slot in e_slots
-            e_slots.emplace_back(store_count);
+            e_slots.emplace_back();
 
             [this]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).emplace_back(), ...);
@@ -70,7 +77,8 @@ namespace planet::ecs {
             (indexes{});
 
             return entity_id{
-                    this, e_slots.size() - 1, ++e_slots.back().generation};
+                    this, e_slots.size() - 1,
+                    ++e_slots.back().entity.generation};
         }
         template<typename... Components>
         [[nodiscard]] entity_id create(Components &&...components) {
@@ -85,14 +93,14 @@ namespace planet::ecs {
                 entity(std::size_t const eid,
                        felspar::source_location const & =
                                felspar::source_location::current()) override {
-            return e_slots.at(eid);
+            return e_slots.at(eid).entity;
         }
         detail::entity &
                 entity(std::size_t const eid,
                        std::size_t const gen,
                        felspar::source_location const &loc =
                                felspar::source_location::current()) override {
-            auto &e = e_slots.at(eid);
+            auto &e = e_slots.at(eid).entity;
             if (e.generation != gen) {
                 throw felspar::stdexcept::logic_error{
                         "The generation requested is not the one in the store",
@@ -106,7 +114,7 @@ namespace planet::ecs {
                 std::size_t const gen,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) const override {
-            auto const &e = e_slots.at(eid);
+            auto const &e = e_slots.at(eid).entity;
             if (e.generation != gen) {
                 throw felspar::stdexcept::logic_error{
                         "The generation requested is not the one in the store",
@@ -120,7 +128,7 @@ namespace planet::ecs {
                 std::size_t const gen,
                 felspar::source_location const & =
                         felspar::source_location::current()) override {
-            auto &e = e_slots.at(eid);
+            auto &e = e_slots.at(eid).entity;
             if (e.generation != gen) {
                 return nullptr;
             } else {
@@ -196,8 +204,8 @@ namespace planet::ecs {
         template<typename Lambda>
         auto iterate(Lambda &&lambda) {
             for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
-                if (e_slots[idx].strong_count) {
-                    entity_id eid{this, idx, e_slots[idx].generation};
+                if (e_slots[idx].entity.strong_count) {
+                    entity_id eid{this, idx, e_slots[idx].entity.generation};
                     using ltt = lambda_tuple_type<Lambda>;
                     if (ltt::has_args(this, eid)) {
                         auto args{ltt::get_args(this, eid)};
@@ -214,18 +222,38 @@ namespace planet::ecs {
                 std::size_t const eid,
                 std::size_t const gen,
                 felspar::source_location const &loc) override {
-            auto &e = entity(eid, gen, loc);
-            return e.components[storage_index];
+            auto &e = e_slots.at(eid);
+            if (e.entity.generation != gen) {
+                throw felspar::stdexcept::logic_error{
+                        "The generation requested is not the one in the store",
+                        loc};
+            } else {
+                return e.masks[storage_index];
+            }
+        }
+        mask_type mask_for(
+                std::size_t const storage_index,
+                std::size_t const eid,
+                std::size_t const gen,
+                felspar::source_location const &loc) const override {
+            auto const &e = e_slots.at(eid);
+            if (e.entity.generation != gen) {
+                throw felspar::stdexcept::logic_error{
+                        "The generation requested is not the one in the store",
+                        loc};
+            } else {
+                return e.masks[storage_index];
+            }
         }
 
 
         void destroy(std::size_t const id) override {
-            ++e_slots[id].generation;
+            ++e_slots[id].entity.generation;
             [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).destroy(id), ...);
             }
             (indexes{});
-            auto &c = e_slots[id].components;
+            auto &c = e_slots[id].masks;
             std::fill(c.begin(), c.end(), 0);
         }
 

@@ -92,7 +92,7 @@ namespace planet::ecs {
                 assert_entities();
                 std::get<ci.value()>(components).at(eid.id) =
                         std::move(component);
-                eid->components[*entities_storage_index] |= (1 << ci.value());
+                eid.mask(*entities_storage_index) |= (1 << ci.value());
                 return component_proxy<C, Components...>{*this, eid};
             } else {
                 detail::throw_component_type_not_valid(loc);
@@ -110,7 +110,7 @@ namespace planet::ecs {
             if constexpr (ci) {
                 assert_entities();
                 std::get<ci.value()>(components).at(eid.id).reset();
-                eid->components[*entities_storage_index] &= ~(1 << ci.value());
+                eid.mask(*entities_storage_index) &= ~(1 << ci.value());
             } else {
                 detail::throw_component_type_not_valid();
             }
@@ -121,7 +121,7 @@ namespace planet::ecs {
         [[nodiscard]] bool has_component(entity_id const &eid) const {
             static constexpr auto ci = component_index<C>();
             assert_entities();
-            return eid->components[*entities_storage_index] bitand (1 << ci);
+            return eid.mask(*entities_storage_index) bitand (1 << ci);
         }
 
         /// #### Retrieve a component
@@ -169,12 +169,10 @@ namespace planet::ecs {
             for (std::size_t idx{}; idx < std::get<0>(components).size();
                  ++idx) {
                 detail::entity &e{entities->entity(idx)};
+                entity_id eid{entities, idx, e.generation};
                 if (e.strong_count
-                    and e.components[*entities_storage_index]
-                            bitand traits.mask) {
-                    traits.invoke(
-                            entity_id{entities, idx, e.generation}, lambda,
-                            *this, loc);
+                    and eid.mask(*entities_storage_index) bitand traits.mask) {
+                    traits.invoke(std::move(eid), lambda, *this, loc);
                 }
             }
         }
@@ -190,8 +188,7 @@ namespace planet::ecs {
             for (auto &&w : range) {
                 auto eid = w.lock();
                 if (eid
-                    and eid->components[*entities_storage_index]
-                            bitand traits.mask) {
+                    and eid.mask(*entities_storage_index) bitand traits.mask) {
                     traits.invoke(std::move(eid), lambda, *this, loc);
                 }
             }

@@ -52,6 +52,7 @@ namespace planet::ecs {
         detail::entity const *operator->() const;
 
         mask_type &mask(std::size_t);
+        mask_type mask(std::size_t) const;
 
         friend bool operator==(entity_id const &, entity_id const &) noexcept =
                 default;
