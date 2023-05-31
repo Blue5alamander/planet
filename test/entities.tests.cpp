@@ -35,9 +35,8 @@ namespace {
         planet::ecs::entities entities{int_storage, real_storage};
 
         auto e1 = entities.create();
-        check(e1->components.size()) == 2u;
-        check(e1->components[0]) == 0u;
-        check(e1->components[1]) == 0u;
+        check(e1.mask(0)) == 0u;
+        check(e1.mask(1)) == 0u;
     });
 
 
@@ -48,9 +47,9 @@ namespace {
         auto e1 = int_storage.create(42u);
 
         int_storage.add_component(e1, true);
-        check(e1->components[0]) == 5u;
+        check(e1.mask(0)) == 5u;
         int_storage.add_component(e1, 23);
-        check(e1->components[0]) == 7u;
+        check(e1.mask(0)) == 7u;
 
         check(int_storage.get_component<bool>(e1)) == true;
         check(int_storage.get_component<int>(e1)) == 23;
@@ -66,9 +65,9 @@ namespace {
                 planet::ecs::entities entities{int_storage, real_storage};
 
                 auto e1 = int_storage.create(true, 42u);
-                check(e1->components[0]) == 5u;
+                check(e1.mask(0)) == 5u;
                 auto e2 = int_storage.create(4, 46u);
-                check(e2->components[0]) == 6u;
+                check(e2.mask(0)) == 6u;
 
                 std::size_t count{};
                 int_storage.iterate(

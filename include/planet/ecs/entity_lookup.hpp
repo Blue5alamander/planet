@@ -39,6 +39,12 @@ namespace planet::ecs {
                     felspar::source_location const & =
                             felspar::source_location::current()) = 0;
 
+            [[nodiscard]] virtual mask_type &mask_for(
+                    std::size_t,
+                    std::size_t,
+                    std::size_t,
+                    felspar::source_location const & =
+                            felspar::source_location::current()) = 0;
 
           protected:
             virtual void release(std::size_t) {}
@@ -97,6 +103,9 @@ namespace planet::ecs {
     }
     inline detail::entity const *entity_id::operator->() const {
         return &owner->entity(id, generation);
+    }
+    inline mask_type &entity_id::mask(std::size_t const storage_index) {
+        return owner->mask_for(storage_index, id, generation);
     }
 
     inline entity_id::operator bool() const noexcept {

@@ -209,6 +209,16 @@ namespace planet::ecs {
 
 
       private:
+        mask_type &mask_for(
+                std::size_t const storage_index,
+                std::size_t const eid,
+                std::size_t const gen,
+                felspar::source_location const &loc) override {
+            auto &e = entity(eid, gen, loc);
+            return e.components[storage_index];
+        }
+
+
         void destroy(std::size_t const id) override {
             ++e_slots[id].generation;
             [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
@@ -218,6 +228,7 @@ namespace planet::ecs {
             auto &c = e_slots[id].components;
             std::fill(c.begin(), c.end(), 0);
         }
+
 
         template<typename T>
         struct lambda_tuple_type :

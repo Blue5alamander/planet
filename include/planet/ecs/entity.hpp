@@ -37,15 +37,15 @@ namespace planet::ecs::detail {
             return --weak_count;
         }
 
-      public:
-        explicit entity(std::size_t const component_count)
-        : components(component_count) {}
-
         /// Bitset of the components that this entity uses in each of the
         /// storages
         /// TODO Should be a std::array, or should it? Span is probably best and
         /// leave storage in the entities where this instance is also stored
         std::vector<mask_type> components = {};
+
+      public:
+        explicit entity(std::size_t const component_count)
+        : components(component_count) {}
 
         /**
         TODO Add in an awaitable system for the below

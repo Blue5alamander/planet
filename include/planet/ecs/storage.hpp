@@ -283,8 +283,7 @@ namespace planet::ecs {
             store.assert_entities();
             auto &hp = std::get<ci.value()>(store.components).at(eid.id);
             hp.reset();
-            eid->components[*store.entities_storage_index] &=
-                    ~(1 << ci.value());
+            eid.mask(*store.entities_storage_index) &= ~(1 << ci.value());
         } else {
             detail::throw_component_type_not_valid();
         }
