@@ -29,6 +29,7 @@ namespace planet::ecs {
         void decrement();
 
         std::size_t generation = {};
+        std::size_t m_id = {};
 
       public:
         entity_id() = default;
@@ -45,8 +46,7 @@ namespace planet::ecs {
         entity_id &operator=(entity_id &&);
         entity_id &operator=(entity_id const &);
 
-        /// TODO protect this value
-        std::size_t id = {};
+        std::size_t id() const noexcept { return m_id; };
 
         detail::entity *operator->();
         detail::entity const *operator->() const;

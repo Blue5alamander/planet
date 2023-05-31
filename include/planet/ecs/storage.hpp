@@ -90,7 +90,7 @@ namespace planet::ecs {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
                 assert_entities();
-                std::get<ci.value()>(components).at(eid.id) =
+                std::get<ci.value()>(components).at(eid.id()) =
                         std::move(component);
                 eid.mask(*entities_storage_index) |= (1 << ci.value());
                 return component_proxy<C, Components...>{*this, eid};
@@ -109,7 +109,7 @@ namespace planet::ecs {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
                 assert_entities();
-                std::get<ci.value()>(components).at(eid.id).reset();
+                std::get<ci.value()>(components).at(eid.id()).reset();
                 eid.mask(*entities_storage_index) &= ~(1 << ci.value());
             } else {
                 detail::throw_component_type_not_valid();
@@ -132,7 +132,7 @@ namespace planet::ecs {
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid)) {
-                return &std::get<ci>(components).at(eid.id).value(loc);
+                return &std::get<ci>(components).at(eid.id()).value(loc);
             } else {
                 return nullptr;
             }
@@ -267,7 +267,7 @@ namespace planet::ecs {
         static constexpr auto ci =
                 storage_type::template component_index<Component>();
         if (store.template has_component<Component>(eid)) {
-            return &std::get<ci>(store.components).at(eid.id).value();
+            return &std::get<ci>(store.components).at(eid.id()).value();
         } else {
             return nullptr;
         }
@@ -278,7 +278,7 @@ namespace planet::ecs {
                 storage_type::template maybe_component_index<Component>();
         if constexpr (ci) {
             store.assert_entities();
-            auto &hp = std::get<ci.value()>(store.components).at(eid.id);
+            auto &hp = std::get<ci.value()>(store.components).at(eid.id());
             hp.reset();
             eid.mask(*store.entities_storage_index) &= ~(1 << ci.value());
         } else {

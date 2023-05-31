@@ -73,10 +73,10 @@ namespace {
                 int_storage.iterate(
                         [&](planet::ecs::entity_id eid, unsigned const &u) {
                             if (count == 0) {
-                                check(eid.id) == 1u;
+                                check(eid.id()) == 1u;
                                 check(u) == 42u;
                             } else if (count == 1) {
-                                check(eid.id) == 2u;
+                                check(eid.id()) == 2u;
                                 check(u) == 46u;
                             } else {
                                 check(false) == true;
@@ -88,7 +88,7 @@ namespace {
                 count = {};
                 int_storage.iterate([&](planet::ecs::entity_id eid, int &i) {
                     if (count == 0) {
-                        check(eid.id) == 2u;
+                        check(eid.id()) == 2u;
                         check(i) == 4;
                     } else {
                         check(false) == true;
@@ -113,7 +113,7 @@ namespace {
                 std::size_t count{};
                 entities.iterate([&](planet::ecs::entity_id eid, unsigned &u,
                                      bool const &b) {
-                    check(eid.id) == 1u;
+                    check(eid.id()) == 1u;
                     check(u) == 42u;
                     check(b) == true;
                     ++count;
