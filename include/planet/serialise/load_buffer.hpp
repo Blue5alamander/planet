@@ -62,7 +62,10 @@ namespace planet::serialise {
         std::string_view name;
         load_buffer content;
 
-        void check_name_or_throw(std::string_view expected) const;
+        void check_name_or_throw(
+                std::string_view expected,
+                felspar::source_location const & =
+                        felspar::source_location::current()) const;
         void check_empty_or_throw(
                 felspar::source_location const & =
                         felspar::source_location::current()) const;

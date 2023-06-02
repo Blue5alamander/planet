@@ -15,9 +15,13 @@
 
 
 void planet::serialise::box::check_name_or_throw(
-        std::string_view expected) const {
+        std::string_view expected, felspar::source_location const &loc) const {
     if (name != expected) {
-        throw felspar::stdexcept::runtime_error{"Unexpected box name"};
+        throw felspar::stdexcept::runtime_error{
+                "Unexpected box name\n"
+                "Got '" + std::string{name}
+                        + "' and expected '" + std::string{expected} + "'",
+                loc};
     }
 }
 

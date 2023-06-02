@@ -333,4 +333,19 @@ namespace {
     });
 
 
+    auto const st = suite.test("std", [](auto check, auto &log) {
+        planet::serialise::save_buffer ab;
+
+        auto const ts = std::chrono::system_clock::now();
+        ab.save_box("std", ts);
+        auto bytes{ab.complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        std::chrono::system_clock::time_point tp;
+        lb.load_box("std", tp);
+        check(tp) == ts;
+    });
+
+
 }
