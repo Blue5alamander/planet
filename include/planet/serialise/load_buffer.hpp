@@ -87,6 +87,7 @@ namespace planet::serialise {
      */
     struct box {
         std::string_view name;
+        std::uint8_t version = {};
         load_buffer content;
 
         void check_name_or_throw(
@@ -124,7 +125,7 @@ namespace planet::serialise {
             b.name = {
                     reinterpret_cast<char const *>(name_bytes.data()),
                     name_bytes.size()};
-            [[maybe_unused]] auto const version = l.extract<std::uint8_t>();
+            b.version = l.extract<std::uint8_t>();
             auto const bytes = l.extract_size_t();
             b.content = load_buffer{l.split(bytes)};
         }
