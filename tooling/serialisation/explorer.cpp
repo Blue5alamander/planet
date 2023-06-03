@@ -31,17 +31,17 @@ namespace {
                 case serialise::marker::b_false: std::cout << "false\n"; break;
 
                 case serialise::marker::i32le:
-                    std::cout << lb.extract<std::int32_t>() << " (LE)\n";
+                    std::cout << lb.extract<std::int32_t>() << ' ' << to_string(m) << '\n';
                     break;
                 case serialise::marker::u64le:
-                    std::cout << lb.extract<std::uint64_t>() << " (LE)\n";
+                    std::cout << lb.extract<std::uint64_t>() << ' ' << to_string(m) << '\n';
                     break;
                 case serialise::marker::i64le:
-                    std::cout << lb.extract<std::int64_t>() << " (LE)\n";
+                    std::cout << lb.extract<std::int64_t>() << ' ' << to_string(m) << '\n';
                     break;
 
                 case serialise::marker::f128le:
-                    std::cout << lb.extract<long double>() << " (LE)\n";
+                    std::cout << lb.extract<long double>() << ' ' << to_string(m) << '\n';
                     break;
 
                 case serialise::marker::poly_list: {
