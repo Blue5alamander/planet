@@ -31,17 +31,21 @@ namespace {
                 case serialise::marker::b_false: std::cout << "false\n"; break;
 
                 case serialise::marker::i32le:
-                    std::cout << lb.extract<std::int32_t>() << ' ' << to_string(m) << '\n';
+                    std::cout << lb.extract<std::int32_t>() << ' '
+                              << to_string(m) << '\n';
                     break;
                 case serialise::marker::u64le:
-                    std::cout << lb.extract<std::uint64_t>() << ' ' << to_string(m) << '\n';
+                    std::cout << lb.extract<std::uint64_t>() << ' '
+                              << to_string(m) << '\n';
                     break;
                 case serialise::marker::i64le:
-                    std::cout << lb.extract<std::int64_t>() << ' ' << to_string(m) << '\n';
+                    std::cout << lb.extract<std::int64_t>() << ' '
+                              << to_string(m) << '\n';
                     break;
 
                 case serialise::marker::f128le:
-                    std::cout << lb.extract<long double>() << ' ' << to_string(m) << '\n';
+                    std::cout << lb.extract<long double>() << ' '
+                              << to_string(m) << '\n';
                     break;
 
                 case serialise::marker::poly_list: {
@@ -54,8 +58,9 @@ namespace {
                 }
 
                 default:
-                    std::cerr << "unknown marker " << to_string(m) << " - 0x" << std::hex
-                              << static_cast<unsigned>(m) << std::dec << '\n';
+                    std::cerr << "unknown marker " << to_string(m) << " - 0x"
+                              << std::hex << static_cast<unsigned>(m)
+                              << std::dec << '\n';
                     return;
                 }
             }
