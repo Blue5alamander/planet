@@ -6,6 +6,8 @@
 #include <planet/serialise/marker.hpp>
 
 #include <felspar/memory/shared_vector.hpp>
+#include <felspar/parse/extract.be.hpp>
+#include <felspar/parse/extract.le.hpp>
 #include <felspar/parse/extract.native.hpp>
 
 
@@ -20,6 +22,7 @@ namespace planet::serialise {
         explicit load_buffer(std::span<std::byte const> b) : buffer{b} {}
 
         bool empty() const noexcept { return buffer.empty(); }
+        auto size() const noexcept { return buffer.size(); }
         auto cmemory() const noexcept { return buffer; }
 
         auto split(std::size_t const bytecount) {
@@ -40,6 +43,30 @@ namespace planet::serialise {
                 throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
             } else {
                 return felspar::parse::binary::native::extract<T>(buffer, loc);
+            }
+        }
+        template<felspar::parse::concepts::numeric T>
+        T extract_non_native(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            if (buffer.size() < sizeof(T)) {
+                throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
+            } else {
+                auto const s = std::span<std::byte const, sizeof(T)>{
+                        buffer.data(), sizeof(T)};
+                auto const v = [&]() {
+                    if constexpr (
+                            felspar::parse::endian::native
+                            == felspar::parse::endian::big) {
+                        return felspar::parse::binary::le::unchecked_extract<T>(
+                                s);
+                    } else {
+                        return felspar::parse::binary::be::unchecked_extract<T>(
+                                s);
+                    }
+                }();
+                buffer = buffer.subspan(sizeof(T));
+                return v;
             }
         }
 

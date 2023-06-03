@@ -131,9 +131,114 @@ namespace planet::serialise {
     }
 
 
+    /// ### Classify this marker
+
     constexpr bool is_box_marker(marker const m) {
         auto const mm = static_cast<std::uint8_t>(m);
         return mm > 1 and mm < 0x80;
+    }
+
+
+    /// ### Endian modes
+
+    constexpr bool is_endian(marker const m) {
+        switch (m) {
+        case marker::empty:
+
+        case marker::std_byte_array:
+
+        case marker::u8:
+        case marker::i8:
+
+        case marker::b_true:
+        case marker::b_false:
+
+        case marker::string: return false;
+
+        case marker::u16be:
+        case marker::i16be:
+        case marker::u32be:
+        case marker::i32be:
+        case marker::u64be:
+        case marker::i64be:
+        case marker::u128be:
+        case marker::i128be:
+
+        case marker::f16be:
+        case marker::f32be:
+        case marker::f64be:
+        case marker::f80be:
+        case marker::f128be:
+
+        case marker::u16le:
+        case marker::i16le:
+        case marker::u32le:
+        case marker::i32le:
+        case marker::u64le:
+        case marker::i64le:
+        case marker::u128le:
+        case marker::i128le:
+
+        case marker::f16le:
+        case marker::f32le:
+        case marker::f64le:
+        case marker::f80le:
+        case marker::f128le: return true;
+        }
+        // gcc is confused about this
+        return false;
+    }
+
+    constexpr marker other_endian(marker const m) {
+        switch (m) {
+        case marker::empty:
+
+        case marker::std_byte_array:
+
+        case marker::u8:
+        case marker::i8:
+
+        case marker::b_true:
+        case marker::b_false:
+
+        case marker::string: return m;
+
+        case marker::u16be:
+        case marker::i16be:
+        case marker::u32be:
+        case marker::i32be:
+        case marker::u64be:
+        case marker::i64be:
+        case marker::u128be:
+        case marker::i128be:
+
+        case marker::f16be:
+        case marker::f32be:
+        case marker::f64be:
+        case marker::f80be:
+        case marker::f128be:
+            return marker{static_cast<std::uint8_t>(
+                    static_cast<std::uint8_t>(m) - 0x80 + 0xa0)};
+
+        case marker::u16le:
+        case marker::i16le:
+        case marker::u32le:
+        case marker::i32le:
+        case marker::u64le:
+        case marker::i64le:
+        case marker::u128le:
+        case marker::i128le:
+
+        case marker::f16le:
+        case marker::f32le:
+        case marker::f64le:
+        case marker::f80le:
+        case marker::f128le:
+            return marker{static_cast<std::uint8_t>(
+                    static_cast<std::uint8_t>(m) - 0xa0 + 0x80)};
+        }
+        // gcc is confused about this
+        return m;
     }
 
 

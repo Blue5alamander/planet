@@ -92,7 +92,8 @@ namespace {
 }
 std::size_t planet::serialise::load_buffer::extract_size_t(
         felspar::source_location const &loc) {
-    auto const bytes = extract<std::uint64_t>(loc);
+    auto const bytes =
+            felspar::parse::binary::be::extract<std::uint64_t>(buffer, loc);
     if constexpr (sizeof(std::size_t) < sizeof(std::uint64_t)) {
         if (not in_range<std::size_t>(bytes)) {
             throw felspar::stdexcept::runtime_error{
@@ -135,7 +136,8 @@ felspar::memory::shared_bytes planet::serialise::save_buffer::complete() {
 
 
 void planet::serialise::save_buffer::append_size_t(std::size_t const ss) {
-    append(std::uint64_t{ss});
+    auto const u64 = std::uint64_t{ss};
+    felspar::parse::binary::be::unchecked_insert(allocate_for(u64), u64);
 }
 void planet::serialise::save_buffer::append(std::span<std::byte const> sv) {
     auto const s = allocate(sv.size());
