@@ -35,7 +35,8 @@ namespace planet::map {
          * harder for the specialised loader we need to load the items back in.
          * So just keep things simple.
          */
-        ab.append_size_t(v.size());
+        ab.append(serialise::marker::poly_list);
+        ab.append_size_t(v.size() * 2);
         for (auto const &p : v) {
             save(ab, p.first);
             save(ab, *p.second);
@@ -59,13 +60,19 @@ namespace planet::map {
          */
         auto box = serialise::load_type<serialise::box>(lb);
         box.check_name_or_throw("_p:m:world");
-        auto const items = box.content.extract_size_t();
-        for (std::size_t index{}; index < items; ++index) {
-            auto const pos = serialise::load_type<coordinates>(box.content);
-            Chunk &chunk = w.chunk_at(pos);
-            load(box.content, chunk);
+        if (auto const m = box.content.extract_marker();
+            m != serialise::marker::poly_list) {
+            throw serialise::wrong_marker{
+                    box.content.cmemory(), serialise::marker::poly_list, m};
+        } else {
+            auto const items = box.content.extract_size_t();
+            for (std::size_t index{}; index * 2 < items; ++index) {
+                auto const pos = serialise::load_type<coordinates>(box.content);
+                Chunk &chunk = w.chunk_at(pos);
+                load(box.content, chunk);
+            }
+            box.check_empty_or_throw();
         }
-        box.check_empty_or_throw();
     }
 
 

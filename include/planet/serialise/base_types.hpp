@@ -78,29 +78,40 @@ namespace planet::serialise {
 
     template<typename T, std::size_t N>
     inline void save(save_buffer &ab, std::array<T, N> const &a) {
+        ab.append(marker::poly_list);
         ab.append_size_t(a.size());
         for (auto &&item : a) { save(ab, item); }
     }
     template<typename T, std::size_t N>
     void load(load_buffer &lb, std::array<T, N> &a) {
-        auto const items = lb.extract_size_t();
-        if (items > N) {
-            throw felspar::stdexcept::runtime_error{"Too many items for array"};
+        if (auto const m = lb.extract_marker(); m != marker::poly_list) {
+            throw wrong_marker{lb.cmemory(), marker::poly_list, m};
+        } else {
+            auto const items = lb.extract_size_t();
+            if (items > N) {
+                throw felspar::stdexcept::runtime_error{
+                        "Too many items for array"};
+            }
+            for (auto &item : a) { load(lb, item); }
         }
-        for (auto &item : a) { load(lb, item); }
     }
 
 
     template<typename T>
     inline void save(save_buffer &ab, std::vector<T> const &v) {
+        ab.append(marker::poly_list);
         ab.append_size_t(v.size());
         for (auto &&item : v) { save(ab, item); }
     }
     template<typename T>
     inline void load(load_buffer &lb, std::vector<T> &v) {
-        auto const items = lb.extract_size_t();
-        v = std::vector<T>(items);
-        for (auto &item : v) { load(lb, item); }
+        if (auto const m = lb.extract_marker(); m != marker::poly_list) {
+            throw wrong_marker{lb.cmemory(), marker::poly_list, m};
+        } else {
+            auto const items = lb.extract_size_t();
+            v = std::vector<T>(items);
+            for (auto &item : v) { load(lb, item); }
+        }
     }
 
 

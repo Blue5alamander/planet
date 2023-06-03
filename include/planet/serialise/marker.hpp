@@ -14,8 +14,10 @@ namespace planet::serialise {
     enum class marker : std::uint8_t {
         empty = 0x00,
 
-        // Between 0x01 and 0x7f are boxes (specifying the box name length in
-        // bytes)
+        /**
+         * Between 0x01 and 0x7f are boxes (specifying the box name length in
+         * bytes)
+         */
 
         std_byte_array = 0x80,
         u8,
@@ -31,13 +33,14 @@ namespace planet::serialise {
         b_true,
         b_false,
 
-        f16be = 0x91,
+        string = 0x90,
+        f16be,
         f32be,
         f64be,
         f80be,
         f128be,
 
-        string = 0xa0,
+        poly_list = 0xa0,
 
         u16le = 0xa3,
         i16le,
@@ -153,7 +156,8 @@ namespace planet::serialise {
         case marker::b_true:
         case marker::b_false:
 
-        case marker::string: return false;
+        case marker::string:
+        case marker::poly_list: return false;
 
         case marker::u16be:
         case marker::i16be:
@@ -201,7 +205,8 @@ namespace planet::serialise {
         case marker::b_true:
         case marker::b_false:
 
-        case marker::string: return m;
+        case marker::string:
+        case marker::poly_list: return m;
 
         case marker::u16be:
         case marker::i16be:
