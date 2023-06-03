@@ -6,7 +6,7 @@
 #include <planet/serialise/marker.hpp>
 
 #include <felspar/memory/shared_vector.hpp>
-#include <felspar/parse/extract.hpp>
+#include <felspar/parse/extract.native.hpp>
 
 
 namespace planet::serialise {
@@ -32,14 +32,14 @@ namespace planet::serialise {
         std::size_t extract_size_t(
                 felspar::source_location const & =
                         felspar::source_location::current());
-        template<felspar::parse::concepts::integral T>
+        template<felspar::parse::concepts::numeric T>
         T
                 extract(felspar::source_location const &loc =
                                 felspar::source_location::current()) {
             if (buffer.size() < sizeof(T)) {
                 throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
             } else {
-                return felspar::parse::binary::extract<T>(buffer, loc);
+                return felspar::parse::binary::native::extract<T>(buffer, loc);
             }
         }
 

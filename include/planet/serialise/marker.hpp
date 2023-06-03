@@ -2,6 +2,7 @@
 
 
 #include <felspar/parse/concepts.hpp>
+#include <felspar/parse/endian.hpp>
 
 #include <string_view>
 
@@ -36,7 +37,22 @@ namespace planet::serialise {
         f80be,
         f128be,
 
-        string = 0xa1,
+        string = 0xa0,
+
+        u16le = 0xa3,
+        i16le,
+        u32le,
+        i32le,
+        u64le,
+        i64le,
+        u128le,
+        i128le,
+
+        f16le = 0xb1,
+        f32le,
+        f64le,
+        f80le,
+        f128le,
     };
 
 
@@ -50,23 +66,62 @@ namespace planet::serialise {
 
     template<felspar::parse::concepts::unsigned_integral T>
     constexpr marker marker_for() {
-        switch (sizeof(T)) {
-        case 1: return marker::u8;
-        case 2: return marker::u16be;
-        case 4: return marker::u32be;
-        case 8: return marker::u64be;
-        case 16: return marker::u128be;
+        if constexpr (sizeof(T) == 1) {
+            return marker::u8;
+        } else if constexpr (
+                felspar::parse::endian::native == felspar::parse::endian::big) {
+            switch (sizeof(T)) {
+            case 2: return marker::u16be;
+            case 4: return marker::u32be;
+            case 8: return marker::u64be;
+            case 16: return marker::u128be;
+            }
+        } else {
+            switch (sizeof(T)) {
+            case 2: return marker::u16le;
+            case 4: return marker::u32le;
+            case 8: return marker::u64le;
+            case 16: return marker::u128le;
+            }
         }
     }
 
     template<felspar::parse::concepts::signed_integral T>
     constexpr marker marker_for() {
-        switch (sizeof(T)) {
-        case 1: return marker::i8;
-        case 2: return marker::i16be;
-        case 4: return marker::i32be;
-        case 8: return marker::i64be;
-        case 16: return marker::i128be;
+        if constexpr (sizeof(T) == 1) {
+            return marker::i8;
+        } else if constexpr (
+                felspar::parse::endian::native == felspar::parse::endian::big) {
+            switch (sizeof(T)) {
+            case 2: return marker::i16be;
+            case 4: return marker::i32be;
+            case 8: return marker::i64be;
+            case 16: return marker::i128be;
+            }
+        } else {
+            switch (sizeof(T)) {
+            case 2: return marker::i16le;
+            case 4: return marker::i32le;
+            case 8: return marker::i64le;
+            case 16: return marker::i128le;
+            }
+        }
+    }
+
+    template<felspar::parse::concepts::floating_point T>
+    constexpr marker marker_for() {
+        if constexpr (felspar::parse::endian::native == felspar::parse::endian::big) {
+            switch (sizeof(T)) {
+            case 4: return marker::f32be;
+            case 8: return marker::f64be;
+            case 16: return marker::f128be;
+            }
+        } else {
+            switch (sizeof(T)) {
+            case 4: return marker::f32le;
+            case 8: return marker::f64le;
+            case 16: return marker::f128le;
+            }
         }
     }
 

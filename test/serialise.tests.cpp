@@ -24,14 +24,22 @@ namespace {
         check(bytes.size()) == 15u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 't';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'y';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::int64_t>(span)) == 0u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 5u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'e';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'm';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'p';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 't';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'y';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 1u;
+        check(felspar::parse::binary::native::extract<std::int64_t>(span))
+                == 0u;
         check(span.empty()) == true;
     });
 
@@ -62,17 +70,26 @@ namespace {
         check(bytes.size()) == 20u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 5u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::int64_t>(span)) == 5u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::u32be);
-        check(felspar::parse::binary::extract<std::uint32_t>(span)) == 1234u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 5u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 's';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'm';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'a';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'l';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'l';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 1u;
+        check(felspar::parse::binary::native::extract<std::int64_t>(span))
+                == 5u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::u32le);
+        check(felspar::parse::binary::native::extract<std::uint32_t>(span))
+                == 1234u;
         check(span.empty()) == true;
 
         auto const ss = planet::serialise::load_type<small>(bytes);
@@ -102,27 +119,37 @@ namespace {
         check(bytes.size()) == 34u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'a';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'g';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 18u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 6u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'l';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'a';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'r';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'g';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'e';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'r';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 1u;
+        check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                == 18u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                 == static_cast<std::uint8_t>(planet::serialise::marker::b_true);
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::i32be);
-        check(felspar::parse::binary::extract<std::int32_t>(span))
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::i32le);
+        check(felspar::parse::binary::native::extract<std::int32_t>(span))
                 == -0x12345678;
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::i16be);
-        check(felspar::parse::binary::extract<std::int16_t>(span)) == 0x1234;
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
-                == static_cast<std::uint8_t>(planet::serialise::marker::u64be);
-        check(felspar::parse::binary::extract<std::uint64_t>(span))
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::i16le);
+        check(felspar::parse::binary::native::extract<std::int16_t>(span))
+                == 0x1234;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == static_cast<std::uint8_t>(planet::serialise::marker::u64le);
+        check(felspar::parse::binary::native::extract<std::uint64_t>(span))
                 == 0x12345678'90987654U;
         check(span.empty()) == true;
 
@@ -155,15 +182,24 @@ namespace {
         check(bytes.size()) == 70u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 6u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 's';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 't';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'e';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::int64_t>(span)) == 54u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 6u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'n';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'e';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 's';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 't';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'e';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'd';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 1u;
+        check(felspar::parse::binary::native::extract<std::int64_t>(span))
+                == 54u;
         check(span.size()) == 54u;
 
         auto const nn = planet::serialise::load_type<nested>(bytes);
@@ -187,20 +223,34 @@ namespace {
             check(bytes.size()) == 28u;
 
             auto span = bytes.cmemory();
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'w';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 8u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 0u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 10u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == '_';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'p';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'm';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'w';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'o';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'r';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'l';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'd';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 1u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 8u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 0u;
             check(span.empty()) == true;
 
             planet::map::world_type<bool, 2> nw{
@@ -219,67 +269,110 @@ namespace {
             check(bytes.size()) == 90u;
 
             auto span = bytes.cmemory();
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'w';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'l';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 70u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 1u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 10u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == '_';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'p';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'm';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'w';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'o';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'r';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'l';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'd';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 1u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 70u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 1u;
 
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'c';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'o';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'r';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'd';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 10u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 10u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == '_';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'p';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'm';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'c';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'o';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'o';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'r';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'd';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 1u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 10u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
-                            planet::serialise::marker::i32be);
-            check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+                            planet::serialise::marker::i32le);
+            check(felspar::parse::binary::native::extract<std::int32_t>(span))
+                    == 0;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
-                            planet::serialise::marker::i32be);
-            check(felspar::parse::binary::extract<std::int32_t>(span)) == 0;
+                            planet::serialise::marker::i32le);
+            check(felspar::parse::binary::native::extract<std::int32_t>(span))
+                    == 0;
 
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 10u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == '_';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'p';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'm';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == ':';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'c';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'h';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'u';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'k';
-            check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 12u;
-            check(felspar::parse::binary::extract<std::uint64_t>(span)) == 4u;
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 10u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == '_';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'p';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'm';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == ':';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'c';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'h';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'u';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'n';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 'k';
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                    == 1u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 12u;
+            check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                    == 4u;
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
                             planet::serialise::marker::b_false);
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
                             planet::serialise::marker::b_true);
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
                             planet::serialise::marker::b_true);
-            check(felspar::parse::binary::extract<std::uint8_t>(span))
+            check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                     == static_cast<std::uint8_t>(
                             planet::serialise::marker::b_true);
             check(span.empty()) == true;
@@ -312,16 +405,23 @@ namespace {
         check(bytes.size()) == 20480u + 3u + 16u + 2u + 1u;
 
         auto span = bytes.cmemory();
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 3u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'b';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'i';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 'n';
-        check(felspar::parse::binary::extract<std::uint8_t>(span)) == 1u;
-        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20489u;
-        check(felspar::parse::binary::extract<std::uint8_t>(span))
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 3u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'b';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'i';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 'n';
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
+                == 1u;
+        check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                == 20489u;
+        check(felspar::parse::binary::native::extract<std::uint8_t>(span))
                 == static_cast<std::uint8_t>(
                         planet::serialise::marker::std_byte_array);
-        check(felspar::parse::binary::extract<std::uint64_t>(span)) == 20480u;
+        check(felspar::parse::binary::native::extract<std::uint64_t>(span))
+                == 20480u;
         check(span.size()) == 20480u;
 
         binary bb{};

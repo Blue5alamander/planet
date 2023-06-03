@@ -174,7 +174,25 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::f80be: return "f80be";
         case marker::f128be: return "f128be";
 
+        case marker::u16le: return "u16le";
+        case marker::i16le: return "i16le";
+        case marker::u32le: return "u32le";
+        case marker::i32le: return "i32le";
+        case marker::u64le: return "u64le";
+        case marker::i64le: return "i64le";
+        case marker::u128le: return "u128le";
+        case marker::i128le: return "i128le";
+
         case marker::string: return "string";
+
+        case marker::f16le: return "f16le";
+        case marker::f32le: return "f32le";
+        case marker::f64le: return "f64le";
+        case marker::f80le: return "f80le";
+        case marker::f128le: return "f128le";
+        }
+        switch (v) {
+        case 0x80: return "string (deprecated)";
         }
     }
     return "Unknown marker";

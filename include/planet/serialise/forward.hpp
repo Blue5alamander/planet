@@ -15,11 +15,6 @@ namespace planet::serialise {
     class save_buffer;
 
 
-    template<felspar::parse::concepts::integral T>
-    void load(load_buffer &, T &);
-    void load(load_buffer &, std::string_view &);
-
-
     template<typename S>
     S load_type(load_buffer &);
 

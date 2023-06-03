@@ -6,7 +6,7 @@
 #include <planet/serialise/marker.hpp>
 
 #include <felspar/memory/shared_vector.hpp>
-#include <felspar/parse.binary.hpp>
+#include <felspar/parse/insert.native.hpp>
 
 #include <string_view>
 
@@ -33,7 +33,7 @@ namespace planet::serialise {
             auto const size_offset = allocate_offset(sizeof(std::uint64_t));
             (save(*this, std::forward<Args>(args)), ...);
             auto const length = written - size_offset - sizeof(std::uint64_t);
-            felspar::parse::binary::unchecked_insert(
+            felspar::parse::binary::native::unchecked_insert(
                     std::span<std::byte, sizeof(std::uint64_t)>{
                             buffer.data() + size_offset, sizeof(std::uint64_t)},
                     std::uint64_t(length));
@@ -45,7 +45,12 @@ namespace planet::serialise {
         void append(std::string_view);
         void append(std::span<std::byte const>);
         void append(felspar::parse::concepts::integral auto v) {
-            felspar::parse::binary::unchecked_insert(allocate_for(v), v);
+            felspar::parse::binary::native::unchecked_insert(
+                    allocate_for(v), v);
+        }
+        void append(felspar::parse::concepts::floating_point auto v) {
+            felspar::parse::binary::native::unchecked_insert(
+                    allocate_for(v), v);
         }
 
         felspar::memory::shared_bytes complete();

@@ -52,12 +52,12 @@ namespace planet::serialise {
     }
 
 
-    template<felspar::parse::concepts::integral T>
+    template<felspar::parse::concepts::numeric T>
     inline void save(save_buffer &ab, T const t) {
-        ab.append(static_cast<std::uint8_t>(marker_for<T>()));
+        ab.append(marker_for<T>());
         ab.append(t);
     }
-    template<felspar::parse::concepts::integral T>
+    template<felspar::parse::concepts::numeric T>
     inline void load(load_buffer &lb, T &s) {
         auto const m = lb.extract_marker();
         if (auto const want = marker_for<T>(); m != want) {
