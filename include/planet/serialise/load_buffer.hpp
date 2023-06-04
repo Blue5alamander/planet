@@ -100,14 +100,12 @@ namespace planet::serialise {
         void check_empty_or_throw(
                 felspar::source_location const & =
                         felspar::source_location::current()) const;
-
-        friend void load(load_buffer &, box &);
     };
     void load(load_buffer &, box &);
 
 
     template<typename... Args>
-    inline void load_buffer::load_box(std::string_view name, Args &...args) {
+    void load_buffer::load_box(std::string_view name, Args &...args) {
         try {
             auto b = load_type<box>(*this);
             b.check_name_or_throw(name);
@@ -136,13 +134,13 @@ namespace planet::serialise {
 
 
     template<typename S>
-    inline S load_type(load_buffer &v) {
+    S load_type(load_buffer &v) {
         S s;
         load(v, s);
         return s;
     }
     template<typename S>
-    inline S load_type(felspar::memory::shared_byte_view v) {
+    S load_type(felspar::memory::shared_byte_view v) {
         auto b = load_buffer{v.cmemory()};
         auto s{load_type<S>(b)};
         if (not b.empty()) {

@@ -12,12 +12,11 @@ namespace planet::map {
 
 
     template<typename Cell, std::size_t DimX, std::size_t DimY>
-    inline void
-            save(serialise::save_buffer &ab, chunk<Cell, DimX, DimY> const &c) {
+    void save(serialise::save_buffer &ab, chunk<Cell, DimX, DimY> const &c) {
         ab.save_box("_p:m:chunk", c.storage);
     }
     template<typename Cell, std::size_t DimX, std::size_t DimY>
-    inline void load(serialise::load_buffer &lb, chunk<Cell, DimX, DimY> &c) {
+    void load(serialise::load_buffer &lb, chunk<Cell, DimX, DimY> &c) {
         lb.load_box("_p:m:chunk", c.storage);
     }
 
@@ -26,7 +25,7 @@ namespace planet::map {
 
 
     template<typename Chunk>
-    inline void save(
+    void save(
             serialise::save_buffer &ab,
             std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> const
                     &v) {
@@ -43,11 +42,11 @@ namespace planet::map {
         }
     }
     template<typename Chunk>
-    inline void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+    void save(serialise::save_buffer &ab, world<Chunk> const &w) {
         ab.save_box("_p:m:world", w.storage);
     }
     template<typename Chunk>
-    inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
+    void load(serialise::load_buffer &lb, world<Chunk> &w) {
         /**
          * Because we don't have a default constructor for the chunk, and the
          * internal bookkeeping that we need in the world is a bit complicated
@@ -86,11 +85,11 @@ namespace planet::hexmap {
 
 
     template<typename Chunk>
-    inline void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+    void save(serialise::save_buffer &ab, world<Chunk> const &w) {
         ab.save_box("_p:h:world", w.grid);
     }
     template<typename Chunk>
-    inline void load(serialise::load_buffer &lb, world<Chunk> &w) {
+    void load(serialise::load_buffer &lb, world<Chunk> &w) {
         lb.load_box("_p:h:world", w.grid);
     }
 
