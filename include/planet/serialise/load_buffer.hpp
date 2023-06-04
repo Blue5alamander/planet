@@ -14,6 +14,7 @@
 namespace planet::serialise {
 
 
+    /// ## Buffer for loading data
     class load_buffer {
         std::span<std::byte const> buffer;
 
@@ -76,6 +77,8 @@ namespace planet::serialise {
 
 
     /**
+     * ### Loading boxes
+     *
      * Loading an instance of a box from a `load_buffer` allows a loader to
      * explicitly deal with various box loading needs. For example:
      *
