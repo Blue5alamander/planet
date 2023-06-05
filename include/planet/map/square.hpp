@@ -206,7 +206,10 @@ namespace planet::map {
         : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
 
         felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
-            for (auto &c : storage) { co_yield {c.first, c.second.get()}; }
+            for (std::size_t i{}; i < storage.size(); ++i) {
+                auto &c = storage[i];
+                co_yield {c.first, c.second.get()};
+            }
         }
 
         cell_type &operator[](coordinates const p) { return *cell_at(p); }
