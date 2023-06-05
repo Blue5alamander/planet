@@ -5,7 +5,7 @@
 #include <planet/serialise/forward.hpp>
 #include <planet/serialise/marker.hpp>
 
-#include <felspar/memory/shared_vector.hpp>
+#include <felspar/memory/accumulation_buffer.hpp>
 #include <felspar/parse/insert.native.hpp>
 #include <felspar/parse/insert.be.hpp>
 
@@ -17,10 +17,14 @@ namespace planet::serialise {
 
     /// ## Serialisation save buffer
     class save_buffer {
-        felspar::memory::shared_bytes buffer;
+        felspar::memory::accumulation_buffer<std::byte> buffer;
         std::size_t written = {};
 
       public:
+        using accumulation_buffer =
+                felspar::memory::accumulation_buffer<std::byte>;
+        using shared_bytes = accumulation_buffer::buffer_type;
+
         save_buffer();
 
         template<typename Lambda>
@@ -37,7 +41,8 @@ namespace planet::serialise {
             auto const length = written - size_offset - sizeof(std::uint64_t);
             felspar::parse::binary::be::unchecked_insert(
                     std::span<std::byte, sizeof(std::uint64_t)>{
-                            buffer.data() + size_offset, sizeof(std::uint64_t)},
+                            buffer.memory().data() + size_offset,
+                            sizeof(std::uint64_t)},
                     std::uint64_t(length));
             return *this;
         }
@@ -57,7 +62,7 @@ namespace planet::serialise {
                     allocate_for(v), v);
         }
 
-        felspar::memory::shared_bytes complete();
+        shared_bytes complete();
 
       private:
         /// Returns a span for the bytes that have been allocated

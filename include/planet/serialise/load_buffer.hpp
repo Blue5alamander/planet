@@ -151,7 +151,7 @@ namespace planet::serialise {
         return s;
     }
     template<typename S>
-    S load_type(felspar::memory::shared_byte_view v) {
+    S load_type(shared_byte_view v) {
         auto b = load_buffer{v.cmemory()};
         auto s{load_type<S>(b)};
         if (not b.empty()) {

@@ -113,24 +113,22 @@ std::size_t planet::serialise::load_buffer::extract_size_t(
 planet::serialise::save_buffer::save_buffer() : buffer(1 << 20) {}
 
 
-std::size_t planet::serialise::save_buffer::allocate_offset(std::size_t const b) {
-    if (written + b > buffer.size()) {
-        throw felspar::stdexcept::logic_error{"Not implemented"};
-    } else {
-        return std::exchange(written, written + b);
-    }
+std::size_t
+        planet::serialise::save_buffer::allocate_offset(std::size_t const b) {
+    buffer.ensure_length(written + b);
+    return std::exchange(written, written + b);
 }
 
 
 std::span<std::byte>
         planet::serialise::save_buffer::allocate(std::size_t const b) {
     allocate_offset(b);
-    return {buffer.data() + written - b, b};
+    return {buffer.memory().data() + written - b, b};
 }
 
 
-felspar::memory::shared_bytes planet::serialise::save_buffer::complete() {
-    return buffer.consume_first(written);
+auto planet::serialise::save_buffer::complete() -> shared_bytes {
+    return buffer.first(std::exchange(written, 0));
 }
 
 
@@ -282,8 +280,7 @@ planet::serialise::wanted_box::wanted_box(
         marker const m,
         felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"Expected a box marker\nGot "}
-                + std::string{to_string(m)},
+        std::string{"Expected a box marker\nGot "} + std::string{to_string(m)},
         remaining, loc} {}
 
 

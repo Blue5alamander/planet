@@ -20,7 +20,7 @@ namespace {
     auto const e = suite.test("empty", [](auto check, auto &log) {
         planet::serialise::save_buffer ab;
         auto const bytes{ab.save_box("empty").complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         check(bytes.size()) == 15u;
 
         auto span = bytes.cmemory();
@@ -66,7 +66,7 @@ namespace {
         planet::serialise::save_buffer ab;
 
         auto bytes{save(ab, s).complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         check(bytes.size()) == 20u;
 
         auto span = bytes.cmemory();
@@ -115,7 +115,7 @@ namespace {
         planet::serialise::save_buffer ab;
 
         auto bytes{save(ab, l).complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         check(bytes.size()) == 34u;
 
         auto span = bytes.cmemory();
@@ -177,7 +177,7 @@ namespace {
         planet::serialise::save_buffer ab;
 
         auto bytes{save(ab, n).complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         check(bytes.size()) == 70u;
 
         auto span = bytes.cmemory();
@@ -218,7 +218,7 @@ namespace {
                 planet::serialise::save_buffer ab;
                 save(ab, world);
                 auto bytes{ab.complete()};
-                felspar::memory::hexdump(log, bytes.memory());
+                felspar::memory::hexdump(log, bytes.cmemory());
                 check(bytes.size()) == 29u;
 
                 auto span = bytes.cmemory();
@@ -282,7 +282,7 @@ namespace {
                 planet::serialise::save_buffer ab;
                 save(ab, world);
                 auto bytes{ab.complete()};
-                felspar::memory::hexdump(log, bytes.memory());
+                felspar::memory::hexdump(log, bytes.cmemory());
                 check(bytes.size()) == 92u;
 
                 auto span = bytes.cmemory();
@@ -469,7 +469,7 @@ namespace {
         planet::serialise::save_buffer ab;
 
         auto bytes{save(ab, b).complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         check(bytes.size()) == 20480u + 3u + 16u + 2u + 1u;
 
         auto span = bytes.cmemory();
@@ -507,7 +507,7 @@ namespace {
         auto const ts = std::chrono::system_clock::now();
         ab.save_box("std", ts);
         auto bytes{ab.complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
 
         auto lb = planet::serialise::load_buffer{bytes.cmemory()};
         std::chrono::system_clock::time_point tp;
@@ -523,7 +523,7 @@ namespace {
         save(ab, p);
 
         auto bytes{ab.complete()};
-        felspar::memory::hexdump(log, bytes.memory());
+        felspar::memory::hexdump(log, bytes.cmemory());
         auto lb = planet::serialise::load_buffer{bytes.cmemory()};
 
         check(load_type<planet::affine::point2d>(lb)) == p;
