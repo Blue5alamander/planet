@@ -516,6 +516,20 @@ namespace {
     });
 
 
+    auto const af = suite.test("affine", [](auto check, auto &log) {
+        planet::serialise::save_buffer ab;
+
+        auto p = planet::affine::point2d{3.5f, 4.25f};
+        save(ab, p);
+
+        auto bytes{ab.complete()};
+        felspar::memory::hexdump(log, bytes.memory());
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+
+        check(load_type<planet::affine::point2d>(lb)) == p;
+    });
+
+
     auto const end = suite.test(
             "endian",
             [](auto check) {

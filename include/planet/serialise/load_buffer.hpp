@@ -162,4 +162,13 @@ namespace planet::serialise {
     }
 
 
+    template<typename T>
+    void load(load_buffer &lb, T &t)
+        requires(not felspar::parse::concepts::numeric<T>)
+    {
+        auto b = load_type<box>(lb);
+        load(b, t);
+    }
+
+
 }
