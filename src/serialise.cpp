@@ -113,8 +113,7 @@ std::size_t planet::serialise::load_buffer::extract_size_t(
 planet::serialise::save_buffer::save_buffer() : buffer(1 << 20) {}
 
 
-std::size_t
-        planet::serialise::save_buffer::allocate_offset(std::size_t const b) {
+std::size_t planet::serialise::save_buffer::allocate_offset(std::size_t const b) {
     if (written + b > buffer.size()) {
         throw felspar::stdexcept::logic_error{"Not implemented"};
     } else {
@@ -274,6 +273,16 @@ planet::serialise::wanted_boolean::wanted_boolean(
 : serialisation_error{
         std::string{"Expected b_true or b_false for a boolean\n"
                     "Got "}
+                + std::string{to_string(m)},
+        remaining, loc} {}
+
+
+planet::serialise::wanted_box::wanted_box(
+        std::span<std::byte const> remaining,
+        marker const m,
+        felspar::source_location const &loc)
+: serialisation_error{
+        std::string{"Expected a box marker\nGot "}
                 + std::string{to_string(m)},
         remaining, loc} {}
 

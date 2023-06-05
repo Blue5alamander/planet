@@ -125,7 +125,7 @@ namespace planet::serialise {
     inline void load(load_buffer &l, box &b) {
         auto const mark = l.extract_marker();
         if (not is_box_marker(mark)) {
-            throw felspar::stdexcept::runtime_error{"Wasn't a box marker"};
+            throw wanted_box{l.cmemory(), mark};
         } else {
             auto const name_bytes = l.split(static_cast<std::uint8_t>(mark));
             b.name = {

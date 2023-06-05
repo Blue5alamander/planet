@@ -68,6 +68,14 @@ namespace planet::serialise {
                 felspar::source_location const & =
                         felspar::source_location::current());
     };
+    class wanted_box : public serialisation_error {
+      public:
+        wanted_box(
+                std::span<std::byte const>,
+                marker got,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
     class wrong_marker : public serialisation_error {
       public:
         wrong_marker(
