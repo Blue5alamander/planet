@@ -10,3 +10,4 @@
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/map.hpp>
 #include <planet/serialise/marker.hpp>
+#include <planet/serialise/string.hpp>

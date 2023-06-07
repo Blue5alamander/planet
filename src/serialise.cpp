@@ -1,6 +1,7 @@
 #include <planet/serialise/exceptions.hpp>
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/save_buffer.hpp>
+#include <planet/serialise/string.hpp>
 
 #include <felspar/memory/hexdump.hpp>
 
@@ -167,7 +168,6 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::b_false: return "b_false";
         case marker::b_true: return "b_true";
 
-        case marker::string: return "string";
         case marker::f16be: return "f16be";
         case marker::f32be: return "f32be";
         case marker::f64be: return "f64be";
@@ -190,9 +190,27 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::f64le: return "f64le";
         case marker::f80le: return "f80le";
         case marker::f128le: return "f128le";
+
+        case marker::u8string8: return "u8string8";
         }
     }
     return "Unknown marker";
+}
+
+
+/// ## Types in `std::`
+
+
+void planet::serialise::save(save_buffer &ab, std::string const &s) {
+    ab.append(marker::u8string8);
+    ab.append_size_t(s.size());
+    ab.append(std::as_bytes(std::span{s.data(), s.size()}));
+}
+void planet::serialise::load(load_buffer &lb, std::string &s) {
+    lb.check_marker(marker::u8string8);
+    auto const sz = lb.extract_size_t();
+    auto const b = lb.split(sz);
+    s = {reinterpret_cast<char const *>(b.data()), b.size()};
 }
 
 

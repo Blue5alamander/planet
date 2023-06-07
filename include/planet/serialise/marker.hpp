@@ -33,8 +33,7 @@ namespace planet::serialise {
         b_true,
         b_false,
 
-        string = 0x90,
-        f16be,
+        f16be = 0x91,
         f32be,
         f64be,
         f80be,
@@ -56,6 +55,8 @@ namespace planet::serialise {
         f64le,
         f80le,
         f128le,
+
+        u8string8 = 0xc3,
     };
 
 
@@ -128,11 +129,6 @@ namespace planet::serialise {
         }
     }
 
-    template<>
-    constexpr marker marker_for<std::string_view>() {
-        return marker::string;
-    }
-
 
     /// ### Classify this marker
 
@@ -156,8 +152,9 @@ namespace planet::serialise {
         case marker::b_true:
         case marker::b_false:
 
-        case marker::string:
-        case marker::poly_list: return false;
+        case marker::poly_list:
+
+        case marker::u8string8: return false;
 
         case marker::u16be:
         case marker::i16be:
@@ -205,8 +202,9 @@ namespace planet::serialise {
         case marker::b_true:
         case marker::b_false:
 
-        case marker::string:
-        case marker::poly_list: return m;
+        case marker::poly_list:
+
+        case marker::u8string8: return m;
 
         case marker::u16be:
         case marker::i16be:
