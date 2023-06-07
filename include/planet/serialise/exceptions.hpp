@@ -79,6 +79,11 @@ namespace planet::serialise {
     class wrong_marker : public serialisation_error {
       public:
         wrong_marker(
+                marker exected,
+                marker got,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+        wrong_marker(
                 std::span<std::byte const>,
                 marker exected,
                 marker got,

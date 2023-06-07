@@ -285,6 +285,17 @@ planet::serialise::wanted_box::wanted_box(
 
 
 planet::serialise::wrong_marker::wrong_marker(
+        marker const expected,
+        marker const got,
+        felspar::source_location const &loc)
+: serialisation_error{
+        std::string{"The wrong type marker is in the save file\n"
+                    "Expected "}
+                + std::string{to_string(expected)} + " and got "
+                + std::string{to_string(got)} + " ("
+                + std::to_string(static_cast<std::uint8_t>(got)) + ")",
+        loc} {}
+planet::serialise::wrong_marker::wrong_marker(
         std::span<std::byte const> remaining,
         marker const expected,
         marker const got,

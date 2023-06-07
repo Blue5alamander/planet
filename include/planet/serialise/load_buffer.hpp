@@ -71,6 +71,14 @@ namespace planet::serialise {
             }
         }
 
+        void check_marker(
+                marker const m,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            auto const r = extract_marker();
+            if (r != m) { throw wrong_marker{m, r, loc}; }
+        }
+
         template<typename... Args>
         void load_box(std::string_view, Args &...);
     };
