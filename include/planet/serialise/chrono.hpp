@@ -15,10 +15,9 @@ namespace planet::serialise {
                  std::chrono::system_clock::time_point const &tp) {
         ab.save_box("_sc::system_clock::tp", tp.time_since_epoch().count());
     }
-    inline void
-            load(load_buffer &lb, std::chrono::system_clock::time_point &tp) {
+    inline void load(box &b, std::chrono::system_clock::time_point &tp) {
         decltype(tp.time_since_epoch().count()) c;
-        lb.load_box("_sc::system_clock::tp", c);
+        b.named("_sc::system_clock::tp", c);
         tp = std::chrono::system_clock::time_point{
                 std::chrono::system_clock::duration{c}};
     }
