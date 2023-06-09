@@ -202,6 +202,7 @@ namespace planet::map {
         using cell_type = typename chunk_type::cell_type;
         using init_function_type = std::function<cell_type(coordinates)>;
 
+        world() : init{[](coordinates) { return cell_type{}; }} {}
         world(coordinates const start, init_function_type const ift)
         : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
 
