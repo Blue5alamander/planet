@@ -201,6 +201,8 @@ namespace planet::map {
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
         using init_function_type = std::function<cell_type(coordinates)>;
+        static constexpr std::size_t chunk_width = Chunk::width,
+                                     chunk_height = Chunk::height;
 
         world() : init{[](coordinates) { return cell_type{}; }} {}
         world(coordinates const start, init_function_type const ift)
