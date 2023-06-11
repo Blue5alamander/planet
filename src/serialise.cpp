@@ -1,5 +1,6 @@
 #include <planet/serialise/exceptions.hpp>
 #include <planet/serialise/load_buffer.hpp>
+#include <planet/serialise/muxing.hpp>
 #include <planet/serialise/save_buffer.hpp>
 #include <planet/serialise/string.hpp>
 
@@ -7,9 +8,53 @@
 
 #include <cstring>
 #include <limits>
+#include <mutex>
 #include <ostream>
 #include <string>
 #include <utility>
+
+
+/// ## `planet::serialise::demuxer`
+
+
+planet::serialise::demuxer::demuxer() {}
+
+
+void planet::serialise::demuxer::start_manager() {
+    manager.post(*this, &demuxer::manage_simulation_subscriptions);
+}
+
+
+auto planet::serialise::demuxer::bus_for(std::string_view const n)
+        -> felspar::coro::bus<message> & {
+    if (auto pos = subscribers.find(n); pos == subscribers.end()) {
+        return subscribers.insert({std::string{n}, {}}).first->second;
+    } else {
+        return pos->second;
+    }
+}
+
+
+felspar::io::warden::task<void>
+        planet::serialise::demuxer::manage_simulation_subscriptions() {
+    try {
+        while (true) {
+            auto processing = co_await acquire();
+            for (auto &&b : processing) {
+                planet::serialise::load_buffer lb{b.cmemory()};
+                while (not lb.empty()) {
+                    auto box =
+                            planet::serialise::load_type<planet::serialise::box>(
+                                    lb);
+                    bus_for(box.name).push({std::move(box), b});
+                }
+            }
+        }
+    } catch (...) { std::terminate(); }
+}
+
+
+void planet::serialise::demuxer::send(shared_bytes b) { push(std::move(b)); }
 
 
 /// ## `planet::serialise::box`
