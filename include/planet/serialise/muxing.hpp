@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <planet/serialise/load_buffer.hpp>
+
 #include <felspar/coro/bus.hpp>
 #include <felspar/coro/eager.hpp>
 #include <felspar/io/warden.hpp>
