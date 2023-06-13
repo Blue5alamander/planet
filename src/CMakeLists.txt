@@ -1,4 +1,5 @@
 add_library(planet
+        audio.cpp
         affine.cpp
         asset_manager.cpp
         cameras.cpp
@@ -6,16 +7,12 @@ add_library(planet
         ecs.cpp
         files.audio.cpp
         files.drawing.cpp
-        gain.audio.cpp
         gravity.ui.cpp
         hex.map.cpp
         id.telemetry.cpp
         image.drawing.cpp
         map.cpp
-        mixer.audio.cpp
         mouse.events.cpp
-        music.audio.cpp
-        oscillator.audio.cpp
         panel.ui.cpp
         serialise.cpp
         scale.ui.cpp
