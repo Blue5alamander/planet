@@ -42,8 +42,8 @@ namespace {
 
 
     /**
-     * The first coroutine that wants to wake up at particular time also needs to
-     * be the first one that actually gets resumed.
+     * The first coroutine that wants to wake up at particular time also needs
+     * to be the first one that actually gets resumed.
      */
     felspar::coro::task<void>
             setter(planet::clock &clock,
