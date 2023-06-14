@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstring>
+#include <span>
 #include <vector>
 
 
@@ -77,13 +78,13 @@ namespace planet::serialise {
 
 
     template<typename T, std::size_t N>
-    inline void save(save_buffer &ab, std::array<T, N> const &a) {
+    inline void save(save_buffer &ab, std::span<T, N> const &a) {
         ab.append(marker::poly_list);
         ab.append_size_t(a.size());
         for (auto &&item : a) { save(ab, item); }
     }
     template<typename T, std::size_t N>
-    void load(load_buffer &lb, std::array<T, N> &a) {
+    void load(load_buffer &lb, std::span<T, N> a) {
         if (auto const m = lb.extract_marker(); m != marker::poly_list) {
             throw wrong_marker{lb.cmemory(), marker::poly_list, m};
         } else {
@@ -97,11 +98,19 @@ namespace planet::serialise {
     }
 
 
+    template<typename T, std::size_t N>
+    inline void save(save_buffer &ab, std::array<T, N> const &a) {
+        save(ab, std::span{a});
+    }
+    template<typename T, std::size_t N>
+    void load(load_buffer &lb, std::array<T, N> &a) {
+        load(lb, std::span{a});
+    }
+
+
     template<typename T>
     inline void save(save_buffer &ab, std::vector<T> const &v) {
-        ab.append(marker::poly_list);
-        ab.append_size_t(v.size());
-        for (auto &&item : v) { save(ab, item); }
+        save(ab, std::span{v});
     }
     template<typename T>
     inline void load(load_buffer &lb, std::vector<T> &v) {
