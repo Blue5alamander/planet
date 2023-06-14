@@ -4,6 +4,7 @@
 #include <planet/affine/point2d.hpp>
 
 #include <array>
+#include <span>
 
 
 namespace planet::affine {
@@ -52,6 +53,7 @@ namespace planet::affine {
         friend constexpr bool
                 operator==(matrix2d const &, matrix2d const &) = default;
 
+
         /// ### Named constructors
         static constexpr matrix2d reflect_y() {
             return {1, 0, 0, 0, -1, 0, 0, 0, 1};
@@ -80,11 +82,17 @@ namespace planet::affine {
                     1};
         }
 
+
         /// ### Access into the matrix
         constexpr float operator[](
                 std::pair<std::size_t, std::size_t> const p) const noexcept {
             return m[(p.first % 3) + (p.second % 3) * 3];
         }
+
+        constexpr std::span<float const, 9> cmemory() const noexcept {
+            return m;
+        }
+        constexpr std::span<float, 9> memory() noexcept { return m; }
     };
 
 
