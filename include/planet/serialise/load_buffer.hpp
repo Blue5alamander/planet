@@ -111,10 +111,10 @@ namespace planet::serialise {
 
         /// #### Check the provided name and then load the fields
         template<typename... Args>
-        void named(std::string_view const name, Args &...args) {
+        void named(std::string_view const name, Args &&...args) {
             try {
                 check_name_or_throw(name);
-                (load(content, args), ...);
+                (load(content, std::forward<Args>(args)), ...);
                 check_empty_or_throw();
             } catch (serialisation_error &e) {
                 e.inside_box(name);
