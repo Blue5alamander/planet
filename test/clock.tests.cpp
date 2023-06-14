@@ -42,7 +42,7 @@ namespace {
 
 
     /**
-     * The first coroutine that wants to wake up a particular time also needs to
+     * The first coroutine that wants to wake up at particular time also needs to
      * be the first one that actually gets resumed.
      */
     felspar::coro::task<void>
