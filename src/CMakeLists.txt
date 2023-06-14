@@ -3,6 +3,7 @@ add_library(planet
         affine.cpp
         asset_manager.cpp
         cameras.cpp
+        clock.cpp
         comms.cpp
         ecs.cpp
         files.audio.cpp
