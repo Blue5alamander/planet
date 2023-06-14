@@ -2,6 +2,7 @@
 
 
 #include <planet/affine/matrix2d.hpp>
+#include <planet/serialise/forward.hpp>
 
 
 namespace planet::affine {
@@ -12,13 +13,15 @@ namespace planet::affine {
         matrix2d in, out;
 
       public:
-        /// ### Reflect the y-axis, so up is down
+        /// ### Transformation
+
+        /// #### Reflect the y-axis, so up is down
         transform2d &reflect_y() {
             in = matrix2d::reflect_y() * in;
             out = out * matrix2d::reflect_y();
             return *this;
         }
-        /// ### Scale up by the provided factor
+        /// #### Scale up by the provided factor
         transform2d &scale(float const factor) {
             in = matrix2d::scale(factor) * in;
             out = out * matrix2d::scale(1.0f / factor);
@@ -29,18 +32,19 @@ namespace planet::affine {
             out = out * matrix2d::scale(1.0f / x, 1.0f / y);
             return *this;
         }
-        /// ### Translate by the provided amount
+        /// #### Translate by the provided amount
         transform2d &translate(point2d const by) {
             in = matrix2d::translate(by) * in;
             out = out * matrix2d::translate(-by);
             return *this;
         }
-        /// ### Rotate by the requested number of turns. One turn is τ radians
+        /// #### Rotate by the requested number of turns. One turn is τ radians
         transform2d &rotate(float const turns) {
             in = matrix2d::rotate(turns) * in;
             out = out * matrix2d::rotate(-turns);
             return *this;
         }
+
 
         /// ### Transform points into and out of co-ordinate space
         constexpr auto const &into() const noexcept { return in; }
@@ -51,7 +55,19 @@ namespace planet::affine {
         constexpr point2d outof(point2d const &p) const noexcept {
             return out * p;
         }
+
+
+        /// ### Queries
+        friend bool
+                operator==(transform2d const &, transform2d const &) = default;
+
+
+        /// ### Serialisation
+        friend void save(serialise::save_buffer &, transform2d const &);
+        friend void load(serialise::box &, transform2d &);
     };
+    void save(serialise::save_buffer &, transform2d const &);
+    void load(serialise::box &, transform2d &);
 
 
 }

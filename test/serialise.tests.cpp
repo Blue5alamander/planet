@@ -521,12 +521,16 @@ namespace {
 
         auto p = planet::affine::point2d{3.5f, 4.25f};
         save(ab, p);
+        auto t = planet::affine::transform2d{};
+        t.translate({-5, 10});
+        save(ab, t);
 
         auto bytes{ab.complete()};
         felspar::memory::hexdump(log, bytes.cmemory());
         auto lb = planet::serialise::load_buffer{bytes.cmemory()};
 
         check(load_type<planet::affine::point2d>(lb)) == p;
+        check(load_type<planet::affine::transform2d>(lb)) == t;
     });
 
 
