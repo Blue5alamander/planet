@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/base_types.hpp>
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
@@ -10,16 +11,17 @@
 namespace planet::serialise {
 
 
-    inline void
+    template<typename Clock, typename Duration>
+    void
             save(save_buffer &ab,
-                 std::chrono::system_clock::time_point const &tp) {
-        ab.save_box("_sc::system_clock::tp", tp.time_since_epoch().count());
+                 std::chrono::time_point<Clock, Duration> const &tp) {
+        ab.save_box("_sc::time_point", tp.time_since_epoch().count());
     }
-    inline void load(box &b, std::chrono::system_clock::time_point &tp) {
+    template<typename Clock, typename Duration>
+    void load(box &b, std::chrono::time_point<Clock, Duration> &tp) {
         decltype(tp.time_since_epoch().count()) c;
-        b.named("_sc::system_clock::tp", c);
-        tp = std::chrono::system_clock::time_point{
-                std::chrono::system_clock::duration{c}};
+        b.named("_sc::time_point", c);
+        tp = std::chrono::time_point<Clock, Duration>{Duration{c}};
     }
 
 

@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <planet/serialise/forward.hpp>
+
 #include <felspar/coro/task.hpp>
 
 #include <chrono>
@@ -16,7 +18,7 @@ namespace planet {
         using rep = std::uint64_t;
         using period = std::micro;
         using duration = std::chrono::duration<rep, period>;
-        using time_point = std::chrono::time_point<clock>;
+        using time_point = std::chrono::time_point<clock, duration>;
 
 
         /// ### Construct a new clock starting at time zero
@@ -53,6 +55,7 @@ namespace planet {
         }
         std::size_t advance_to(time_point);
 
+
       private:
         time_point time = {};
 
@@ -67,7 +70,14 @@ namespace planet {
             }
         };
         std::vector<event> time_line;
+
+
+        /// ### Serialisation
+        friend void save(serialise::save_buffer &, clock const &);
+        friend void load(serialise::box &, clock &);
     };
+    void save(serialise::save_buffer &, clock const &);
+    void load(serialise::box &, clock &);
 
 
 }

@@ -1,5 +1,18 @@
 #include <planet/clock.hpp>
 
+#include <planet/serialise/chrono.hpp>
+
+
+/// ## `planet`
+
+
+void planet::save(serialise::save_buffer &ab, clock const &c) {
+    ab.save_box("_p:clock", c.time);
+}
+void planet::load(serialise::box &box, clock &c) {
+    box.named("_p:clock", c.time);
+}
+
 
 /// ## `planet::clock`
 
