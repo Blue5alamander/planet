@@ -15,8 +15,15 @@ namespace planet::telemetry {
         virtual ~performance();
 
 
+        /// ### Save all non-zero performance counters
+        /**
+         * Values are saved into the buffer without a length prefix. The
+         * returned value is the number of items that were written.
+         */
+        static std::size_t current_values(serialise::save_buffer &);
+
       private:
-        virtual void save(serialise::save_buffer &) = 0;
+        virtual bool save(serialise::save_buffer &) = 0;
     };
 
 

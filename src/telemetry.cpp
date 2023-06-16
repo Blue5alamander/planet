@@ -1,4 +1,5 @@
 #include <planet/serialise/base_types.hpp>
+#include <planet/serialise/string.hpp>
 #include <planet/telemetry.hpp>
 
 #include <cmath>
@@ -9,8 +10,9 @@
 /// ## `planet::telemetry::counter`
 
 
-void planet::telemetry::counter::save(serialise::save_buffer &ab) {
-    serialise::save(ab, count.load());
+bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
+    ab.save_box("_p:t:counter", name(), count.load());
+    return true;
 }
 
 
@@ -37,7 +39,11 @@ planet::telemetry::id::id(std::string_view const n)
 namespace {
     std::mutex g_mtx;
     auto &g_perfs() {
-        static std::vector<planet::telemetry::performance *> p(128);
+        static auto p = []() {
+            std::vector<planet::telemetry::performance *> v;
+            v.reserve(128);
+            return v;
+        }();
         return p;
     }
 }
@@ -56,6 +62,15 @@ planet::telemetry::performance::~performance() {
 }
 
 
+std::size_t planet::telemetry::performance::current_values(
+        serialise::save_buffer &ab) {
+    std::scoped_lock _{g_mtx};
+    auto &p = g_perfs();
+    return std::count_if(
+            p.begin(), p.end(), [&](auto c) { return c->save(ab); });
+}
+
+
 /// ## `planet::telemetry::rate`
 
 
@@ -68,6 +83,7 @@ void planet::telemetry::rate::reading(
 }
 
 
-void planet::telemetry::rate::save(serialise::save_buffer &ab) {
-    serialise::save(ab, m_value.load());
+bool planet::telemetry::rate::save(serialise::save_buffer &ab) {
+    ab.save_box("_p:t:rate", name(), m_value.load());
+    return true;
 }

@@ -29,7 +29,7 @@ namespace planet::telemetry {
 
 
       private:
-        void save(serialise::save_buffer &) override;
+        bool save(serialise::save_buffer &) override;
     };
 
 
