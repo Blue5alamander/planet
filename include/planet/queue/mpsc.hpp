@@ -43,6 +43,7 @@ namespace planet::queue {
          * until the next call to `consume`.
          */
         std::span<value_type> consume() {
+            consuming.clear();
             {
                 std::scoped_lock _{mtx};
                 std::swap(queue, consuming);
