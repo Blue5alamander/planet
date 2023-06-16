@@ -10,6 +10,7 @@ add_library(planet
         gravity.ui.cpp
         hex.map.cpp
         image.drawing.cpp
+        log.cpp
         map.cpp
         mouse.events.cpp
         panel.ui.cpp
