@@ -164,7 +164,7 @@ namespace {
     }
 }
 void message::print() const {
-    std::cout << static_cast<double>((logged - g_start_time()).count() / 10e9)
+    std::cout << static_cast<double>((logged - g_start_time()).count() / 1e9)
               << ' ';
     switch (level) {
     case planet::log::level::debug:
