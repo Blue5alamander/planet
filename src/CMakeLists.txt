@@ -9,7 +9,6 @@ add_library(planet
         files.drawing.cpp
         gravity.ui.cpp
         hex.map.cpp
-        id.telemetry.cpp
         image.drawing.cpp
         map.cpp
         mouse.events.cpp
@@ -17,6 +16,7 @@ add_library(planet
         serialise.cpp
         scale.ui.cpp
         stdin.cpp
+        telemetry.cpp
         time.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
