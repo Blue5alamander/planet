@@ -18,14 +18,17 @@ namespace planet::log {
      * * `error` -- there is an error, but it is recoverable.
      * * `critical` -- a non-recoverable error has occurred.
      */
-    enum class level { debug, info, warning, error, critical };
+    enum class level : std::uint8_t { debug, info, warning, error, critical };
+    inline auto operator<=>(level const l, level const r) {
+        return static_cast<std::uint8_t>(l) <=> static_cast<std::uint8_t>(r);
+    }
 
 
     /// ## The currently active logging level
 
     /// ### Active logging level
     /// Any log messages below this level will always be discarded
-    inline std::atomic<level> active{level::info};
+    inline std::atomic<level> active{level::debug};
 
 
     /// ## Log a message
@@ -65,8 +68,10 @@ namespace planet::log {
 
     template<typename... Ms>
     void item(level const l, Ms &&...m) {
-        (save(detail::ab, std::forward<Ms>(m)), ...);
-        detail::write_log(l, detail::ab.complete());
+        if (l >= active.load()) {
+            (save(detail::ab, std::forward<Ms>(m)), ...);
+            detail::write_log(l, detail::ab.complete());
+        }
     }
 
 
