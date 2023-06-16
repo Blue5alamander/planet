@@ -246,7 +246,7 @@ std::string_view planet::serialise::to_string(marker const m) {
 /// ## Types in `std::`
 
 
-void planet::serialise::save(save_buffer &ab, std::string const &s) {
+void planet::serialise::save(save_buffer &ab, std::string_view const s) {
     ab.append(marker::u8string8);
     ab.append_size_t(s.size());
     ab.append(std::as_bytes(std::span{s.data(), s.size()}));
