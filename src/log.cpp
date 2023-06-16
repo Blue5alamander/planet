@@ -3,6 +3,9 @@
 #include <planet/queue/mpsc.hpp>
 #include <planet/serialise/chrono.hpp>
 #include <planet/serialise/load_buffer.hpp>
+#include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/rate.hpp>
+#include <planet/time/checkpointer.hpp>
 
 #include <felspar/io/warden.poll.hpp>
 
@@ -31,73 +34,6 @@ namespace {
     };
 
 
-    struct log_thread {
-        felspar::io::poll_warden warden;
-        planet::queue::mpsc<message> messages;
-        planet::comms::signal signal{warden};
-
-        std::thread thread{[this]() {
-            try {
-                {
-                    planet::serialise::save_buffer ab;
-                    save(ab, g_start_time());
-                    messages.push({planet::log::level::info, ab.complete()});
-                    signal.send({});
-                }
-                warden.run(
-                        +[](felspar::io::warden &, log_thread *ltp)
-                                -> felspar::io::warden::task<void> {
-                            co_await ltp->run_loops();
-                        },
-                        this);
-            } catch (...) { std::terminate(); }
-        }};
-        felspar::io::warden::task<void> run_loops() {
-            felspar::io::warden::starter<> tasks;
-            tasks.post(*this, &log_thread::display_performance_loop);
-            tasks.post(*this, &log_thread::display_log_messages_loop);
-            co_await tasks.wait_for_all();
-        }
-
-        felspar::io::warden::task<void> display_performance_loop() {
-            while (true) {
-                co_await warden.sleep(1s);
-                std::cout << "Performance counters\n";
-            }
-        }
-        felspar::io::warden::task<void> display_log_messages_loop() {
-            while (true) {
-                auto block = messages.consume();
-                if (block.empty()) {
-                    std::array<std::byte, 16> buffer;
-                    co_await signal.read_some(buffer);
-                } else {
-                    for (auto const &message : block) {
-                        message.print();
-                        if (message.level == planet::log::level::critical) {
-                            std::terminate();
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    auto &g_log_thread() {
-        static log_thread lt;
-        return lt;
-    }
-}
-
-
-void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
-    auto &lt = g_log_thread();
-    lt.messages.push({l, std::move(b)});
-    lt.signal.send({});
-}
-
-
-namespace {
     void show(planet::serialise::load_buffer &lb, std::size_t const depth) {
         if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
@@ -131,6 +67,9 @@ namespace {
                     std::cout << lb.extract<std::int64_t>();
                     break;
 
+                case planet::serialise::marker::f32le:
+                    std::cout << lb.extract<float>();
+                    break;
                 case planet::serialise::marker::f128le:
                     std::cout << lb.extract<long double>();
                     break;
@@ -162,7 +101,88 @@ namespace {
             if (not lb.empty()) { std::cout << ' '; }
         }
     }
+
+
+    struct log_thread {
+        felspar::io::poll_warden warden;
+        planet::queue::mpsc<message> messages;
+        planet::comms::signal signal{warden};
+
+        std::thread thread{[this]() {
+            try {
+                {
+                    planet::serialise::save_buffer ab;
+                    save(ab, g_start_time());
+                    messages.push({planet::log::level::info, ab.complete()});
+                    signal.send({});
+                }
+                warden.run(
+                        +[](felspar::io::warden &, log_thread *ltp)
+                                -> felspar::io::warden::task<void> {
+                            co_await ltp->run_loops();
+                        },
+                        this);
+            } catch (...) { std::terminate(); }
+        }};
+        felspar::io::warden::task<void> run_loops() {
+            felspar::io::warden::starter<> tasks;
+            tasks.post(*this, &log_thread::display_performance_loop);
+            tasks.post(*this, &log_thread::display_log_messages_loop);
+            co_await tasks.wait_for_all();
+        }
+
+        felspar::io::warden::task<void> display_performance_loop() {
+            planet::serialise::save_buffer ab;
+            while (true) {
+                co_await warden.sleep(1s);
+                planet::telemetry::performance::current_values(ab);
+                std::cout << "\33[0;32mPerformance counters\33[0;39m";
+                auto const bytes = ab.complete();
+                planet::serialise::load_buffer lb{bytes.cmemory()};
+                show(lb, 0);
+                std::cout << std::endl;
+            }
+        }
+        felspar::io::warden::task<void> display_log_messages_loop() {
+            while (true) {
+                auto block = messages.consume();
+                if (block.empty()) {
+                    std::array<std::byte, 16> buffer;
+                    co_await signal.read_some(buffer);
+                } else {
+                    for (auto const &message : block) {
+                        message.print();
+                        if (message.level == planet::log::level::critical) {
+                            std::terminate();
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    auto &g_log_thread() {
+        static log_thread lt;
+        return lt;
+    }
 }
+
+
+namespace {
+    planet::time::checkpointer message_time;
+    planet::telemetry::counter message_count{"log_message_count"};
+    planet::telemetry::rate message_rate{"log_message_rate", 2s};
+}
+void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
+    auto &lt = g_log_thread();
+    lt.messages.push({l, std::move(b)});
+    lt.signal.send({});
+
+    ++message_count;
+    message_rate.reading(1, message_time.checkpoint());
+}
+
+
 void message::print() const {
     std::cout << static_cast<double>((logged - g_start_time()).count() / 1e9)
               << ' ';
