@@ -106,21 +106,17 @@ namespace {
                     break;
 
                 case planet::serialise::marker::i32le:
-                    std::cout << lb.extract<std::int32_t>() << ' '
-                              << to_string(m) << '\n';
+                    std::cout << lb.extract<std::int32_t>() << '\n';
                     break;
                 case planet::serialise::marker::u64le:
-                    std::cout << lb.extract<std::uint64_t>() << ' '
-                              << to_string(m) << '\n';
+                    std::cout << lb.extract<std::uint64_t>() << '\n';
                     break;
                 case planet::serialise::marker::i64le:
-                    std::cout << lb.extract<std::int64_t>() << ' '
-                              << to_string(m) << '\n';
+                    std::cout << lb.extract<std::int64_t>() << '\n';
                     break;
 
                 case planet::serialise::marker::f128le:
-                    std::cout << lb.extract<long double>() << ' '
-                              << to_string(m) << '\n';
+                    std::cout << lb.extract<long double>() << '\n';
                     break;
 
                 case planet::serialise::marker::poly_list: {
@@ -134,7 +130,9 @@ namespace {
 
                 case planet::serialise::marker::u8string8: {
                     auto const buffer = lb.split(lb.extract_size_t());
-                    std::cout << std::string_view{reinterpret_cast<char const *>(buffer.data()), buffer.size()} << '\n';
+                    std::cout
+                            << std::string_view{reinterpret_cast<char const *>(buffer.data()), buffer.size()}
+                            << '\n';
                     break;
                 }
 
@@ -149,13 +147,24 @@ namespace {
     }
 }
 void message::print() const {
-    std::cout << static_cast<double>((logged - g_start_time()).count() / 10e9) << ' ';
+    std::cout << static_cast<double>((logged - g_start_time()).count() / 10e9)
+              << ' ';
     switch (level) {
-    case planet::log::level::debug: std::cout << "\33[0;37mDEBUG\33[0;39m "; break;
-    case planet::log::level::info: std::cout << "\33[0;32mINFO\33[0;39m "; break;
-    case planet::log::level::warning: std::cout << "\33[1;33mWARNING\33[0;39m "; break;
-    case planet::log::level::error: std::cout << "\33[0;31mERROR\33[0;39m "; break;
-    case planet::log::level::critical: std::cout << "\33[0;31mCRITICAL\33[0;39m "; break;
+    case planet::log::level::debug:
+        std::cout << "\33[0;37mDEBUG\33[0;39m ";
+        break;
+    case planet::log::level::info:
+        std::cout << "\33[0;32mINFO\33[0;39m ";
+        break;
+    case planet::log::level::warning:
+        std::cout << "\33[1;33mWARNING\33[0;39m ";
+        break;
+    case planet::log::level::error:
+        std::cout << "\33[0;31mERROR\33[0;39m ";
+        break;
+    case planet::log::level::critical:
+        std::cout << "\33[0;31mCRITICAL\33[0;39m ";
+        break;
     }
     planet::serialise::load_buffer buffer{payload.cmemory()};
     show(buffer, 0);
