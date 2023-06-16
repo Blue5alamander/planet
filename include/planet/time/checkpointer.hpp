@@ -19,14 +19,14 @@ namespace planet::time {
 
       public:
         /// ### The amount of time since the last check point
-        auto time_difference() {
+        auto checkpoint() {
             auto old = std::exchange(last, clock::now());
             return last - old;
         }
 
         /// ### The number of seconds since the last check point
         auto per_second() {
-            return static_cast<double>(time_difference().count())
+            return static_cast<double>(checkpoint().count())
                     / clock::period::den;
         }
     };
