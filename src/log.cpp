@@ -10,6 +10,9 @@
 #include <thread>
 
 
+using namespace std::literals;
+
+
 namespace {
     auto g_start_time() {
         static auto st = std::chrono::steady_clock::now();
@@ -44,26 +47,40 @@ namespace {
                 warden.run(
                         +[](felspar::io::warden &, log_thread *ltp)
                                 -> felspar::io::warden::task<void> {
-                            auto &lt = *ltp;
-                            while (true) {
-                                auto messages = lt.messages.consume();
-                                if (messages.empty()) {
-                                    std::array<std::byte, 16> buffer;
-                                    co_await lt.signal.read_some(buffer);
-                                } else {
-                                    for (auto const &message : messages) {
-                                        message.print();
-                                        if (message.level
-                                            == planet::log::level::critical) {
-                                            std::terminate();
-                                        }
-                                    }
-                                }
-                            }
+                            co_await ltp->run_loops();
                         },
                         this);
             } catch (...) { std::terminate(); }
         }};
+        felspar::io::warden::task<void> run_loops() {
+            felspar::io::warden::starter<> tasks;
+            tasks.post(*this, &log_thread::display_performance_loop);
+            tasks.post(*this, &log_thread::display_log_messages_loop);
+            co_await tasks.wait_for_all();
+        }
+
+        felspar::io::warden::task<void> display_performance_loop() {
+            while (true) {
+                co_await warden.sleep(1s);
+                std::cout << "Performance counters\n";
+            }
+        }
+        felspar::io::warden::task<void> display_log_messages_loop() {
+            while (true) {
+                auto block = messages.consume();
+                if (block.empty()) {
+                    std::array<std::byte, 16> buffer;
+                    co_await signal.read_some(buffer);
+                } else {
+                    for (auto const &message : block) {
+                        message.print();
+                        if (message.level == planet::log::level::critical) {
+                            std::terminate();
+                        }
+                    }
+                }
+            }
+        }
     };
 
     auto &g_log_thread() {
@@ -136,9 +153,9 @@ namespace {
                 }
 
                 default:
-                    std::cerr << "unknown marker " << to_string(m) << " - 0x"
+                    std::cerr << "unknown marker [" << to_string(m) << " - 0x"
                               << std::hex << static_cast<unsigned>(m)
-                              << std::dec << '\n';
+                              << std::dec << ']';
                     return;
                 }
             }
