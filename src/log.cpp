@@ -82,9 +82,8 @@ void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
 
 namespace {
     void show(planet::serialise::load_buffer &lb, std::size_t const depth) {
+        if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
-            std::cout << std::string(depth, ' ');
-
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
             if (mv > 0 and mv < 80) {
                 auto b = load_type<planet::serialise::box>(lb);
@@ -95,28 +94,28 @@ namespace {
                 auto const m = lb.extract_marker();
                 switch (m) {
                 case planet::serialise::marker::empty:
-                    std::cout << "empty\n";
+                    std::cout << "empty";
                     break;
 
                 case planet::serialise::marker::b_true:
-                    std::cout << "true\n";
+                    std::cout << "true";
                     break;
                 case planet::serialise::marker::b_false:
-                    std::cout << "false\n";
+                    std::cout << "false";
                     break;
 
                 case planet::serialise::marker::i32le:
-                    std::cout << lb.extract<std::int32_t>() << '\n';
+                    std::cout << lb.extract<std::int32_t>();
                     break;
                 case planet::serialise::marker::u64le:
-                    std::cout << lb.extract<std::uint64_t>() << '\n';
+                    std::cout << lb.extract<std::uint64_t>();
                     break;
                 case planet::serialise::marker::i64le:
-                    std::cout << lb.extract<std::int64_t>() << '\n';
+                    std::cout << lb.extract<std::int64_t>();
                     break;
 
                 case planet::serialise::marker::f128le:
-                    std::cout << lb.extract<long double>() << '\n';
+                    std::cout << lb.extract<long double>();
                     break;
 
                 case planet::serialise::marker::poly_list: {
@@ -130,9 +129,9 @@ namespace {
 
                 case planet::serialise::marker::u8string8: {
                     auto const buffer = lb.split(lb.extract_size_t());
-                    std::cout
-                            << std::string_view{reinterpret_cast<char const *>(buffer.data()), buffer.size()}
-                            << '\n';
+                    std::cout << std::string_view{
+                            reinterpret_cast<char const *>(buffer.data()),
+                            buffer.size()};
                     break;
                 }
 
@@ -143,6 +142,7 @@ namespace {
                     return;
                 }
             }
+            if (not lb.empty()) { std::cout << ' '; }
         }
     }
 }
