@@ -51,8 +51,10 @@ namespace planet::log {
         item(level::error, std::forward<Ms>(m)...);
     }
     template<typename... Ms>
-    void critical(Ms &&...m) {
+    [[noreturn]] void critical(Ms &&...m) {
         item(level::critical, std::forward<Ms>(m)...);
+        ::sleep(2);
+        std::terminate();
     }
 
 

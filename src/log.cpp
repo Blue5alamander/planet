@@ -55,6 +55,10 @@ namespace {
                                               << " messages" << std::endl;
                                     for (auto const &message : messages) {
                                         message.print();
+                                        if (message.level
+                                            == planet::log::level::critical) {
+                                            std::terminate();
+                                        }
                                     }
                                 }
                             }
