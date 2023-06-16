@@ -20,9 +20,10 @@ namespace planet::time {
       public:
         /// ### The amount of time since the last check point
         auto time_difference() {
-            auto now = std::exchange(last, clock::now());
-            return now - last;
+            auto old = std::exchange(last, clock::now());
+            return last - old;
         }
+
         /// ### The number of seconds since the last check point
         auto per_second() {
             return static_cast<double>(time_difference().count())
