@@ -169,9 +169,8 @@ namespace {
 
 
 namespace {
-    planet::time::checkpointer message_time;
     planet::telemetry::counter message_count{"log_message_count"};
-    planet::telemetry::rate message_rate{"log_message_rate", 2s};
+    planet::telemetry::real_time_rate message_rate{"log_message_rate", 2s};
 }
 void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
     auto &lt = g_log_thread();
@@ -179,7 +178,7 @@ void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
     lt.signal.send({});
 
     ++message_count;
-    message_rate.reading(1, message_time.checkpoint());
+    message_rate.reading(1);
 }
 
 
