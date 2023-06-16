@@ -1,4 +1,4 @@
-#include <planet/clock.hpp>
+#include <planet/time/clock.hpp>
 #include <felspar/test.hpp>
 
 #include <felspar/coro/eager.hpp>
@@ -14,19 +14,19 @@ namespace {
 
 
     auto const basic = suite.test("basic", [](auto check) {
-        planet::clock clock;
-        check(clock.now()) == planet::clock::time_point{};
+        planet::time::clock clock;
+        check(clock.now()) == planet::time::clock::time_point{};
     });
 
 
-    felspar::coro::task<void> sleeper(planet::clock &clock, bool &flag) {
+    felspar::coro::task<void> sleeper(planet::time::clock &clock, bool &flag) {
         co_await clock.sleep(10ms);
         flag = true;
     }
     auto const sleep = suite.test("sleep", [](auto check) {
         [](auto check) -> felspar::coro::task<void> {
             bool woke_up = false;
-            planet::clock clock;
+            planet::time::clock clock;
 
             felspar::coro::eager<> sub_task;
             sub_task.post(sleeper, std::ref(clock), std::ref(woke_up));
@@ -46,16 +46,16 @@ namespace {
      * to be the first one that actually gets resumed.
      */
     felspar::coro::task<void>
-            setter(planet::clock &clock,
+            setter(planet::time::clock &clock,
                    std::vector<std::size_t> &output,
-                   planet::clock::duration const d,
+                   planet::time::clock::duration const d,
                    std::size_t const v) {
         co_await clock.sleep(d);
         output.push_back(v);
     }
     auto const ordering = suite.test("ordering", [](auto check) {
         std::vector<std::size_t> run_order;
-        planet::clock clock;
+        planet::time::clock clock;
 
         std::array<felspar::coro::eager<>, 4> sub_tasks;
         sub_tasks[0].post(
@@ -83,8 +83,8 @@ namespace {
      */
     auto const sleeping = suite.test("sleeping", [](auto check, auto &log) {
         std::vector<std::size_t> run_order;
-        planet::clock clock;
-        constexpr planet::clock::time_point epoch{};
+        planet::time::clock clock;
+        constexpr planet::time::clock::time_point epoch{};
 
         std::array<felspar::coro::eager<>, 4> sub_tasks;
         sub_tasks[0].post(

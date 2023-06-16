@@ -3,7 +3,6 @@ add_library(planet
         affine.cpp
         asset_manager.cpp
         cameras.cpp
-        clock.cpp
         comms.cpp
         ecs.cpp
         files.audio.cpp
@@ -18,6 +17,7 @@ add_library(planet
         serialise.cpp
         scale.ui.cpp
         stdin.cpp
+        time.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
 target_link_libraries(planet

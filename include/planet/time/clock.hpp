@@ -9,7 +9,7 @@
 #include <vector>
 
 
-namespace planet {
+namespace planet::time {
 
 
     /// ## Clock
@@ -29,8 +29,8 @@ namespace planet {
 
         /// ### Have a coroutine wait for a given time
         struct awaitable {
-            planet::clock &clock;
-            planet::clock::time_point wake_up_time;
+            time::clock &clock;
+            time::clock::time_point wake_up_time;
 
             bool await_ready() const noexcept { return false; }
             void await_suspend(felspar::coro::coroutine_handle<>);

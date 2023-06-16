@@ -1,31 +1,31 @@
-#include <planet/clock.hpp>
+#include <planet/time/clock.hpp>
 
 #include <planet/serialise/chrono.hpp>
 
 
-/// ## `planet`
+/// ## `planet::time`
 
 
-void planet::save(serialise::save_buffer &ab, clock const &c) {
+void planet::time::save(serialise::save_buffer &ab, clock const &c) {
     ab.save_box("_p:clock", c.time);
 }
-void planet::load(serialise::box &box, clock &c) {
+void planet::time::load(serialise::box &box, clock &c) {
     box.named("_p:clock", c.time);
 }
 
 
-/// ## `planet::clock`
+/// ## `planet::time::clock`
 
 
-planet::clock::clock() {}
+planet::time::clock::clock() {}
 
 
-auto planet::clock::sleep(duration const d) -> awaitable {
+auto planet::time::clock::sleep(duration const d) -> awaitable {
     return {*this, now() + d};
 }
 
 
-auto planet::clock::advance_one(time_point const latest) -> duration {
+auto planet::time::clock::advance_one(time_point const latest) -> duration {
     if (not time_line.empty() and time_line.front().when <= latest) {
         auto const d = time_line.front().when - time;
         advance_to(time_line.front().when);
@@ -36,7 +36,7 @@ auto planet::clock::advance_one(time_point const latest) -> duration {
 }
 
 
-std::size_t planet::clock::advance_to(time_point const latest) {
+std::size_t planet::time::clock::advance_to(time_point const latest) {
     std::size_t run{};
     while (not time_line.empty() and time_line.front().when <= latest) {
         time = time_line.front().when;
@@ -49,10 +49,10 @@ std::size_t planet::clock::advance_to(time_point const latest) {
 }
 
 
-/// ## `planet::clock::awaitable`
+/// ## `planet::time::clock::awaitable`
 
 
-void planet::clock::awaitable::await_suspend(
+void planet::time::clock::awaitable::await_suspend(
         felspar::coro::coroutine_handle<> const h) {
     auto const pos = std::upper_bound(
             clock.time_line.begin(), clock.time_line.end(), wake_up_time);

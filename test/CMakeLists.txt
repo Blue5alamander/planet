@@ -5,7 +5,6 @@ add_test_run(check planet TESTS
         baseplate.ui.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
-        clock.tests.cpp
         column.layout.tests.cpp
         constrained.tests.cpp
         entities.tests.cpp
@@ -20,4 +19,5 @@ add_test_run(check planet TESTS
         row.layout.tests.cpp
         serialise.tests.cpp
         scaling.tests.cpp
+        time.tests.cpp
     )
