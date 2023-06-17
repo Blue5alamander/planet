@@ -11,8 +11,13 @@
 
 
 bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
-    ab.save_box("_p:t:counter", name(), count.load());
-    return true;
+    auto const c = count.load();
+    if (c != 0) {
+        ab.save_box("_p:t:counter", name(), count.load());
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
@@ -86,6 +91,11 @@ void planet::telemetry::real_time_rate::tick() {
 
 
 bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
-    ab.save_box("_p:t:rate", name(), m_value.load());
-    return true;
+    auto const v = m_value.load();
+    if (v != 0.0f) {
+        ab.save_box("_p:t:rate", name(), m_value.load());
+        return true;
+    } else {
+        return false;
+    }
 }
