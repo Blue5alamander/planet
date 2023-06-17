@@ -27,7 +27,10 @@ namespace planet::log {
     /// ## The currently active logging level
 
     /// ### Active logging level
-    /// Any log messages below this level will always be discarded
+    /**
+     * Any log messages below this level will always be discarded. The value can
+     * be updated at any time and the change will have immediate effect.
+     */
     inline std::atomic<level> active{level::debug};
 
 
@@ -56,6 +59,14 @@ namespace planet::log {
     template<typename... Ms>
     [[noreturn]] void critical(Ms &&...m) {
         item(level::critical, std::forward<Ms>(m)...);
+        /**
+         * Wait for a bit here.
+         *
+         * The terminate that is actually meaningful is the one in the
+         * [implementation file](../../src/log.cpp) which will cause the program
+         * to terminate after dealing with this log message. The one here is
+         * just to ensure that this function doesn't actually return.
+         */
         ::sleep(2);
         std::terminate();
     }
