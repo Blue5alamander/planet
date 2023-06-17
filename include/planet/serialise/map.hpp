@@ -59,19 +59,14 @@ namespace planet::map {
          */
         auto box = serialise::load_type<serialise::box>(lb);
         box.check_name_or_throw("_p:m:world");
-        if (auto const m = box.content.extract_marker();
-            m != serialise::marker::poly_list) {
-            throw serialise::wrong_marker{
-                    box.content.cmemory(), serialise::marker::poly_list, m};
-        } else {
-            auto const items = box.content.extract_size_t();
-            for (std::size_t index{}; index * 2 < items; ++index) {
-                auto const pos = serialise::load_type<coordinates>(box.content);
-                Chunk &chunk = w.chunk_at(pos);
-                load(box.content, chunk);
-            }
-            box.check_empty_or_throw();
+        box.content.check_marker(serialise::marker::poly_list);
+        auto const items = box.content.extract_size_t();
+        for (std::size_t index{}; index * 2 < items; ++index) {
+            auto const pos = serialise::load_type<coordinates>(box.content);
+            Chunk &chunk = w.chunk_at(pos);
+            load(box.content, chunk);
         }
+        box.check_empty_or_throw();
     }
 
 
