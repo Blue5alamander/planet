@@ -74,9 +74,11 @@ std::size_t planet::telemetry::performance::current_values(
 /// ## `planet::telemetry::real_time_rate`
 
 
-void planet::telemetry::real_time_rate::reading(float const m) {
+void planet::telemetry::real_time_rate::tick() {
     std::chrono::nanoseconds ns{last.checkpoint()};
-    auto const rt = std::pow(2.0, -static_cast<double>(ns.count()) / half_life);
+    auto const ts = static_cast<double>(ns.count());
+    auto const m = 1e9 / ts;
+    auto const rt = std::pow(2.0, -ts / half_life);
     auto const a = m * (1.0 - rt);
     auto ov = m_value.load();
     while (not m_value.compare_exchange_weak(ov, ov * rt + a)) {}
@@ -84,7 +86,6 @@ void planet::telemetry::real_time_rate::reading(float const m) {
 
 
 bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
-    reading({});
     ab.save_box("_p:t:rate", name(), m_value.load());
     return true;
 }

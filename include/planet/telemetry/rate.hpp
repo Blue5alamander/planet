@@ -17,6 +17,7 @@ namespace planet::telemetry {
         time::checkpointer last;
         double const half_life;
 
+        float calculate_decay();
 
       public:
         real_time_rate(
@@ -29,10 +30,10 @@ namespace planet::telemetry {
         : performance{n}, m_value{v}, half_life{static_cast<double>(hl.count())} {}
 
 
-        float value() const noexcept { return m_value.load(); }
+        float value() const noexcept;
 
 
-        void reading(float);
+        void tick();
 
 
       private:

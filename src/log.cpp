@@ -178,7 +178,7 @@ void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
     lt.signal.send({});
 
     ++message_count;
-    message_rate.reading(1);
+    message_rate.tick();
 }
 
 
