@@ -169,8 +169,8 @@ namespace {
 
 
 namespace {
-    planet::telemetry::counter message_count{"log_message_count"};
-    planet::telemetry::real_time_rate message_rate{"log_message_rate", 2s};
+    planet::telemetry::counter message_count{"planet_log_message"};
+    planet::telemetry::real_time_rate message_rate{"planet_log_message", 2s};
 }
 void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
     auto &lt = g_log_thread();
