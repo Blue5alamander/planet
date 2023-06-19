@@ -86,4 +86,13 @@ namespace planet::log {
     }
 
 
+    /// ## Log messages
+    struct message {
+        planet::log::level level;
+        planet::serialise::shared_bytes payload;
+        std::chrono::steady_clock::time_point logged =
+                std::chrono::steady_clock::now();
+    };
+
+
 }

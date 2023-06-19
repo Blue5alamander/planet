@@ -24,16 +24,6 @@ namespace {
     [[maybe_unused]] auto const g_started = g_start_time();
 
 
-    struct message {
-        planet::log::level level;
-        planet::serialise::shared_bytes payload;
-        std::chrono::steady_clock::time_point logged =
-                std::chrono::steady_clock::now();
-
-        void print() const;
-    };
-
-
     void show(planet::serialise::load_buffer &lb, std::size_t const depth) {
         if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
@@ -103,9 +93,36 @@ namespace {
     }
 
 
+    void print(planet::log::message const &m) {
+        std::cout << static_cast<double>(
+                (m.logged - g_start_time()).count() / 1e9)
+                  << ' ';
+        switch (m.level) {
+        case planet::log::level::debug:
+            std::cout << "\33[0;37mDEBUG\33[0;39m ";
+            break;
+        case planet::log::level::info:
+            std::cout << "\33[0;32mINFO\33[0;39m ";
+            break;
+        case planet::log::level::warning:
+            std::cout << "\33[1;33mWARNING\33[0;39m ";
+            break;
+        case planet::log::level::error:
+            std::cout << "\33[0;31mERROR\33[0;39m ";
+            break;
+        case planet::log::level::critical:
+            std::cout << "\33[0;31mCRITICAL\33[0;39m ";
+            break;
+        }
+        planet::serialise::load_buffer buffer{m.payload.cmemory()};
+        show(buffer, 0);
+        std::cout << std::endl;
+    }
+
+
     struct log_thread {
         felspar::io::poll_warden warden;
-        planet::queue::mpsc<message> messages;
+        planet::queue::mpsc<planet::log::message> messages;
         planet::comms::signal signal{warden};
 
         std::thread thread{[this]() {
@@ -151,7 +168,7 @@ namespace {
                     co_await signal.read_some(buffer);
                 } else {
                     for (auto const &message : block) {
-                        message.print();
+                        print(message);
                         if (message.level == planet::log::level::critical) {
                             std::terminate();
                         }
@@ -179,30 +196,4 @@ void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
 
     ++message_count;
     message_rate.tick();
-}
-
-
-void message::print() const {
-    std::cout << static_cast<double>((logged - g_start_time()).count() / 1e9)
-              << ' ';
-    switch (level) {
-    case planet::log::level::debug:
-        std::cout << "\33[0;37mDEBUG\33[0;39m ";
-        break;
-    case planet::log::level::info:
-        std::cout << "\33[0;32mINFO\33[0;39m ";
-        break;
-    case planet::log::level::warning:
-        std::cout << "\33[1;33mWARNING\33[0;39m ";
-        break;
-    case planet::log::level::error:
-        std::cout << "\33[0;31mERROR\33[0;39m ";
-        break;
-    case planet::log::level::critical:
-        std::cout << "\33[0;31mCRITICAL\33[0;39m ";
-        break;
-    }
-    planet::serialise::load_buffer buffer{payload.cmemory()};
-    show(buffer, 0);
-    std::cout << std::endl;
 }
