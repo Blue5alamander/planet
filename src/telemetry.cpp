@@ -1,3 +1,4 @@
+#include <planet/log.hpp>
 #include <planet/serialise/base_types.hpp>
 #include <planet/serialise/string.hpp>
 #include <planet/telemetry.hpp>
@@ -13,11 +14,21 @@
 bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
     auto const c = count.load();
     if (c != 0) {
-        ab.save_box("_p:t:counter", name(), count.load());
+        ab.save_box(box, name(), count.load());
         return true;
     } else {
         return false;
     }
+}
+namespace {
+    auto const counter_print = planet::log::format(
+            planet::telemetry::counter::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::int64_t count;
+                box.named(planet::telemetry::counter::box, name, count);
+                os << name << " = " << count;
+            });
 }
 
 
@@ -93,9 +104,19 @@ void planet::telemetry::real_time_rate::tick() {
 bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
     auto const v = m_value.load();
     if (v != 0.0f) {
-        ab.save_box("_p:t:rate", name(), m_value.load());
+        ab.save_box(box, name(), m_value.load());
         return true;
     } else {
         return false;
     }
+}
+namespace {
+    auto const real_time_rate_print = planet::log::format(
+            planet::telemetry::real_time_rate::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                float value;
+                box.named(planet::telemetry::real_time_rate::box, name, value);
+                os << name << " = " << value << "Hz";
+            });
 }

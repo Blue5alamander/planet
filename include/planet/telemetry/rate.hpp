@@ -20,6 +20,8 @@ namespace planet::telemetry {
         float calculate_decay();
 
       public:
+        static constexpr std::string_view box{"_p:t:real_time_rate"};
+
         real_time_rate(
                 std::string_view const n, std::chrono::nanoseconds const hl)
         : performance{n}, half_life{static_cast<double>(hl.count())} {}

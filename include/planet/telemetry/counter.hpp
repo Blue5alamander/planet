@@ -15,6 +15,8 @@ namespace planet::telemetry {
 
 
       public:
+        static constexpr std::string_view box{"_p:t:counter"};
+
         counter(std::string_view const n) : performance{n} {}
         counter(std::string_view const n, std::int64_t const v)
         : performance{n}, count{v} {}

@@ -86,13 +86,36 @@ namespace planet::log {
     }
 
 
-    /// ## Log messages
+    /// ## Log messagesstd
     struct message {
         planet::log::level level;
         planet::serialise::shared_bytes payload;
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
     };
+
+
+    /// ## Custom log message formatter
+    namespace detail {
+        struct formatter {
+            formatter(std::string_view);
+            ~formatter();
+            std::string_view const box_name;
+            virtual void print(std::ostream &, serialise::box &) const = 0;
+        };
+    }
+    template<typename Lambda>
+    auto format(std::string_view const box_name, Lambda lambda) {
+        struct printer : public detail::formatter {
+            printer(std::string_view const n, Lambda l)
+            : formatter{n}, lambda{std::move(l)} {}
+            Lambda lambda;
+            void print(std::ostream &os, serialise::box &box) const override {
+                lambda(os, box);
+            }
+        };
+        return printer{box_name, std::move(lambda)};
+    }
 
 
 }

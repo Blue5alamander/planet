@@ -23,16 +23,34 @@ namespace {
     }
     [[maybe_unused]] auto const g_started = g_start_time();
 
+    auto &printers_mutex() {
+        static std::mutex m;
+        return m;
+    }
+    auto &printers() {
+        static std::map<std::string_view, planet::log::detail::formatter const *>
+                m;
+        return m;
+    }
 
-    void show(planet::serialise::load_buffer &lb, std::size_t const depth) {
+
+    void
+            show(planet::serialise::load_buffer &lb,
+                 std::size_t const depth,
+                 char const separator) {
         if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
             if (mv > 0 and mv < 80) {
                 auto b = load_type<planet::serialise::box>(lb);
-                std::cout << b.name << " v" << int(b.version) << " size "
-                          << b.content.size() << " bytes\n";
-                show(b.content, depth + 1);
+                if (auto printer = printers().find(b.name);
+                    printer == printers().end()) {
+                    std::cout << b.name << " v" << int(b.version) << " size "
+                              << b.content.size() << " bytes\n";
+                    show(b.content, depth + 1, separator);
+                } else {
+                    printer->second->print(std::cout, b);
+                }
             } else {
                 auto const m = lb.extract_marker();
                 switch (m) {
@@ -68,7 +86,7 @@ namespace {
                     auto const count = lb.extract_size_t();
                     std::cout << "poly-list with " << count << " items\n";
                     for (std::size_t index{}; index < count; ++index) {
-                        show(lb, depth + 1);
+                        show(lb, depth + 1, separator);
                     }
                     break;
                 }
@@ -88,7 +106,7 @@ namespace {
                     return;
                 }
             }
-            if (not lb.empty()) { std::cout << ' '; }
+            if (not lb.empty()) { std::cout << separator; }
         }
     }
 
@@ -115,7 +133,7 @@ namespace {
             break;
         }
         planet::serialise::load_buffer buffer{m.payload.cmemory()};
-        show(buffer, 0);
+        show(buffer, 0, ' ');
         std::cout << std::endl;
     }
 
@@ -153,10 +171,11 @@ namespace {
             while (true) {
                 co_await warden.sleep(1s);
                 planet::telemetry::performance::current_values(ab);
-                std::cout << "\33[0;32mPerformance counters\33[0;39m";
+                std::cout << "\33[0;32mPerformance counters\33[0;39m\n";
                 auto const bytes = ab.complete();
                 planet::serialise::load_buffer lb{bytes.cmemory()};
-                show(lb, 0);
+                std::scoped_lock _{printers_mutex()};
+                show(lb, 0, '\n');
                 std::cout << std::endl;
             }
         }
@@ -167,6 +186,7 @@ namespace {
                     std::array<std::byte, 16> buffer;
                     co_await signal.read_some(buffer);
                 } else {
+                    std::scoped_lock _{printers_mutex()};
                     for (auto const &message : block) {
                         print(message);
                         if (message.level == planet::log::level::critical) {
@@ -193,7 +213,22 @@ void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
     auto &lt = g_log_thread();
     lt.messages.push({l, std::move(b)});
     lt.signal.send({});
-
     ++message_count;
     message_rate.tick();
+}
+
+
+/// ## `planet::log::detail::formatter`
+
+
+planet::log::detail::formatter::formatter(std::string_view const n)
+: box_name{n} {
+    std::scoped_lock _{printers_mutex()};
+    printers()[box_name] = this;
+}
+
+
+planet::log::detail::formatter::~formatter() {
+    std::scoped_lock _{printers_mutex()};
+    printers().erase(printers().find(box_name));
 }
