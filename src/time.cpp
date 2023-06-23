@@ -1,4 +1,5 @@
 #include <planet/time/clock.hpp>
+#include <planet/time/rate-limiter.hpp>
 
 #include <planet/serialise/chrono.hpp>
 
@@ -57,4 +58,18 @@ void planet::time::clock::awaitable::await_suspend(
     auto const pos = std::upper_bound(
             clock.time_line.begin(), clock.time_line.end(), wake_up_time);
     clock.time_line.insert(pos, {wake_up_time, h});
+}
+
+
+// ## `planet::time::time_limiter`
+
+
+planet::time::time_limiter::time_limiter(std::chrono::nanoseconds const ns)
+: frame_time{ns} {}
+
+
+std::chrono::nanoseconds planet::time::time_limiter::wait_time() {
+    ++frame_number;
+    auto const wait_until = base_time + frame_time * frame_number;
+    return wait_until - std::chrono::steady_clock::now();
 }
