@@ -8,13 +8,21 @@
 #include <vector>
 
 
+namespace {
+    double decay_factor(std::chrono::nanoseconds const ns, double half_life) {
+        auto const ts = static_cast<double>(ns.count());
+        return std::pow(2.0, -ts / half_life);
+    }
+}
+
+
 /// ## `planet::telemetry::counter`
 
 
 bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
     auto const c = count.load();
     if (c != 0) {
-        ab.save_box(box, name(), count.load());
+        ab.save_box(box, name(), c);
         return true;
     } else {
         return false;
@@ -28,6 +36,46 @@ namespace {
                 std::int64_t count;
                 box.named(planet::telemetry::counter::box, name, count);
                 os << name << " = " << count;
+            });
+}
+
+
+/// ## `planet::telemetry::exponential_decay`
+
+
+planet::telemetry::exponential_decay::exponential_decay(
+        std::string_view const n, std::size_t const half_life)
+: performance{n},
+  decay_rate{std::pow(2.0, -1.0 / static_cast<double>(half_life))} {}
+
+
+void planet::telemetry::exponential_decay::add_measurement(double const m) {
+    auto const a = (1.0 - decay_rate) * m;
+    auto ov = m_value.load();
+    while (not m_value.compare_exchange_weak(ov, ov * decay_rate + a)) {}
+}
+
+
+bool planet::telemetry::exponential_decay::save(serialise::save_buffer &ab) {
+    auto const c = m_value.load();
+    if (c) {
+        ab.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+namespace {
+    auto const exponential_decay_print = planet::log::format(
+            planet::telemetry::exponential_decay::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                double value;
+                box.named(
+                        planet::telemetry::exponential_decay::box, name, value);
+                os << name << " = " << value;
             });
 }
 
@@ -87,6 +135,40 @@ std::size_t planet::telemetry::performance::current_values(
 }
 
 
+/// ## `planet::telemetry::real_time_decay`
+
+
+void planet::telemetry::real_time_decay::add_measurement(double const m) {
+    auto const decay = decay_factor(last.checkpoint(), half_life);
+    auto const a = m * (1 - decay);
+    auto ov = m_value.load();
+    while (not m_value.compare_exchange_weak(ov, ov * decay + a)) {}
+}
+
+
+bool planet::telemetry::real_time_decay::save(serialise::save_buffer &ab) {
+    auto const decay = decay_factor(last.checkpoint(), half_life);
+    auto ov = m_value.load();
+    while (not m_value.compare_exchange_weak(ov, ov * decay)) {}
+    if (ov != 0.0) {
+        ab.save_box(box, name(), ov);
+        return true;
+    } else {
+        return false;
+    }
+}
+namespace {
+    auto const real_time_decay_print = planet::log::format(
+            planet::telemetry::real_time_decay::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                double value;
+                box.named(planet::telemetry::real_time_decay::box, name, value);
+                os << name << " = " << value;
+            });
+}
+
+
 /// ## `planet::telemetry::real_time_rate`
 
 
@@ -103,7 +185,7 @@ void planet::telemetry::real_time_rate::tick() {
 
 bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
     auto const v = m_value.load();
-    if (v != 0.0f) {
+    if (v != 0.0) {
         ab.save_box(box, name(), m_value.load());
         return true;
     } else {
@@ -115,7 +197,7 @@ namespace {
             planet::telemetry::real_time_rate::box,
             [](std::ostream &os, planet::serialise::box &box) {
                 std::string name;
-                float value;
+                double value;
                 box.named(planet::telemetry::real_time_rate::box, name, value);
                 os << name << " = " << value << "Hz";
             });
