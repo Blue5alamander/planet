@@ -142,6 +142,13 @@ namespace {
         felspar::io::poll_warden warden;
         planet::queue::mpsc<planet::log::message> messages;
         planet::comms::signal signal{warden};
+        planet::comms::signal terminate{warden};
+
+        log_thread() {}
+        ~log_thread() {
+            terminate.send({});
+            thread.join();
+        }
 
         std::thread thread{[this]() {
             try {
@@ -163,7 +170,8 @@ namespace {
             felspar::io::warden::starter<> tasks;
             tasks.post(*this, &log_thread::display_performance_loop);
             tasks.post(*this, &log_thread::display_log_messages_loop);
-            co_await tasks.wait_for_all();
+            std::array<std::byte, 1> buffer;
+            co_await terminate.read_some(buffer);
         }
 
         felspar::io::warden::task<void> display_performance_loop() {
