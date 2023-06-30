@@ -7,6 +7,7 @@ Boxes always start with a single byte marker.
 * [`planet/serialise/base_types.hpp`](./base_types.hpp) -- Serialisation implementations for various simple types.
 * [`planet/serialise/exceptions.hpp`](./exceptions.hpp) -- Exceptions that can be throw during serialisation and de-serialisation.
 * [`planet/serialise/events.hpp`](./events.hpp) -- Serialisation implementations for the event types.
+* [`planet/serialise/felspar.hpp`](./felspar.hpp) -- Serialisation for containers in various [Felspar libraries](https://felspar.com/).
 * [`planet/serialise/forward.hpp`](./forward.hpp) -- Forward declarations.
 * [`planet/serialise/load_buffer.hpp`](./load_buffer.hpp) -- A view into underlying memory that contains the binary serialisation data.
 * [`planet/serialise/map.hpp`](./map.hpp) -- Serialisation implementations for the types in the `planet::map` and `planet::hexmap` name spaces.

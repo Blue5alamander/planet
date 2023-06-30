@@ -85,16 +85,12 @@ namespace planet::serialise {
     }
     template<typename T, std::size_t N>
     void load(load_buffer &lb, std::span<T, N> a) {
-        if (auto const m = lb.extract_marker(); m != marker::poly_list) {
-            throw wrong_marker{lb.cmemory(), marker::poly_list, m};
-        } else {
-            auto const items = lb.extract_size_t();
-            if (items > N) {
-                throw felspar::stdexcept::runtime_error{
-                        "Too many items for array"};
-            }
-            for (auto &item : a) { load(lb, item); }
+        lb.check_marker(marker::poly_list);
+        auto const items = lb.extract_size_t();
+        if (items > N) {
+            throw felspar::stdexcept::runtime_error{"Too many items for array"};
         }
+        for (auto &item : a) { load(lb, item); }
     }
 
 
