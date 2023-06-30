@@ -62,6 +62,10 @@ namespace planet::serialise {
                     allocate_for(v), v);
         }
 
+        /// ### The number of bytes currently in the save
+        std::size_t size() const noexcept { return written; }
+
+        /// ### Complete this save and return the save data
         shared_bytes complete();
 
       private:
