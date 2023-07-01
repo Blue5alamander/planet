@@ -58,6 +58,10 @@ namespace {
                     std::cout << "empty";
                     break;
 
+                case planet::serialise::marker::u8:
+                    std::cout << static_cast<int>(lb.extract<std::uint8_t>());
+                    break;
+
                 case planet::serialise::marker::b_true:
                     std::cout << "true";
                     break;
