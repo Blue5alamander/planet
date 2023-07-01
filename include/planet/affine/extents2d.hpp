@@ -11,7 +11,8 @@ namespace planet::affine {
     struct extents2d {
         float width, height;
 
-        explicit extents2d() : width{}, height{} {}
+        /// ### Construction
+        explicit constexpr extents2d() : width{}, height{} {}
         constexpr extents2d(float const w, float const h)
         : width{w}, height{h} {}
         explicit constexpr extents2d(point2d const p)
