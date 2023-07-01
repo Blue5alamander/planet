@@ -9,13 +9,17 @@ namespace planet::affine {
 
     /// ## Axis aligned 2D rectangle
     struct rectangle2d {
-        point2d top_left;
-        extents2d extents;
+        point2d top_left{};
+        extents2d extents{};
 
+
+        /// ###  Construction
+        constexpr rectangle2d() {}
         constexpr rectangle2d(point2d const tl, extents2d const ex)
         : top_left{tl}, extents{ex} {}
         constexpr rectangle2d(point2d const tl, point2d const br)
         : top_left{tl}, extents{br - tl} {}
+
 
         /// ### Determine position
         point2d bottom_right() const noexcept { return top_left + extents; }
@@ -34,6 +38,7 @@ namespace planet::affine {
 
         friend bool operator==(rectangle2d const &l, rectangle2d const &r) =
                 default;
+
 
         /// ### Move the rectangle
         friend rectangle2d operator+(rectangle2d const r, point2d const p) {
