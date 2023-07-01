@@ -18,12 +18,15 @@ namespace planet::affine {
         explicit constexpr extents2d(point2d const p)
         : width{p.x()}, height{p.y()} {}
 
-        constexpr std::size_t zwidth() const noexcept {
+
+        /// ### Query size
+        constexpr std::size_t uzwidth() const noexcept {
             return std::size_t(width);
         }
-        constexpr std::size_t zheight() const noexcept {
+        constexpr std::size_t uzheight() const noexcept {
             return std::size_t(height);
         }
+
 
         /// ### An extents is smaller only if both axes are
         constexpr bool fits_within(extents2d const r) const noexcept {
@@ -32,11 +35,13 @@ namespace planet::affine {
 
         friend bool operator==(extents2d const &, extents2d const &) = default;
 
+
         /// ### Scaling with a scalar
         friend constexpr extents2d
                 operator*(extents2d const e, float const f) noexcept {
             return {e.width * f, e.height * f};
         }
+
 
         /// ### Addition and subtraction
         friend constexpr point2d
