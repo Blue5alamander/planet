@@ -29,8 +29,11 @@ namespace planet::ui {
         layout_type elements;
 
         template<typename Renderer>
-        void draw(Renderer &r) {
-            for (auto &item : items) { item.draw(r); }
+        void
+                draw(Renderer &r,
+                     felspar::source_location const &loc =
+                             felspar::source_location::current()) {
+            for (auto &item : items) { item.draw(r, loc); }
         }
 
       protected:

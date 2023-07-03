@@ -51,7 +51,10 @@ namespace planet::ui {
 
 
         /// ### Draw the widget
-        void draw(Renderer &r) {
+        void
+                draw(Renderer &r,
+                     felspar::source_location const & =
+                             felspar::source_location::current()) {
             if (visible) { do_draw(r); }
         }
 
