@@ -25,8 +25,13 @@ namespace planet::telemetry {
         std::int64_t value() const noexcept { return count.load(); }
 
 
+        /// ### Changing the value
         std::int64_t operator++() { return ++count; }
         std::int64_t operator--() { return --count; }
+        void operator+=(std::int64_t const c) { count += c; }
+        void operator-=(std::int64_t const c) { count -= c; }
+
+        /// #### Set to a specific value
         void value(std::int64_t const v) { return count.store(v); }
 
 
