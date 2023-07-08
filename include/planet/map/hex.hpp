@@ -199,28 +199,45 @@ namespace planet::hexmap {
         static_assert(
                 (Chunk::width bitand 1) == 0,
                 "Width of chunks storage must be even");
-        map::world<Chunk> grid;
+        map::world<Chunk> grid{};
 
       public:
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
         using init_function_type = std::function<cell_type(coordinates)>;
 
-        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
-            for (auto c : grid.chunks()) {
-                co_yield {coordinates::from_compressed(c.first), c.second};
-            }
-        }
 
+        /// ### Construction
+        world() {}
+        world(coordinates const start) : grid{start} {}
         world(coordinates const start, init_function_type const ift)
         : grid{start.compressed(), [f = std::move(ift)](map::coordinates p) {
                    return f(coordinates::from_compressed(p));
                }} {}
 
-        cell_type &operator[](coordinates p) { return grid[p.compressed()]; }
-        cell_type const &operator[](coordinates p) const {
+
+        /// ### Access into chunks
+        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
+            for (auto c : grid.chunks()) {
+                co_yield {coordinates::from_compressed(c.first), c.second};
+            }
+        }
+        chunk_type &chunk_at(coordinates const p) {
+            return grid.chunk_at(p.compressed());
+        }
+        chunk_type const &chunk_at(coordinates const p) const {
+            return grid.chunk_at(p.compressed());
+        }
+
+
+        /// ### Access into hexes
+        cell_type &operator[](coordinates const p) {
             return grid[p.compressed()];
         }
+        cell_type const &operator[](coordinates const p) const {
+            return grid[p.compressed()];
+        }
+
 
         /// ### Serialise
         template<typename C>

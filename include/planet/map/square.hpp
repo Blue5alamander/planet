@@ -134,16 +134,7 @@ namespace planet::map {
         mutable std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>>
                 storage;
 
-        auto &chunk_at(coordinates const p) {
-            cell_at(p);
-            for (auto &cc : storage) {
-                if (cc.first == p) { return *cc.second; }
-            }
-            throw felspar::stdexcept::logic_error{
-                    "Looking for chunk didn't find coordinates"};
-        }
-
-        auto *cell_at(coordinates const p) const {
+        std::pair<Chunk *, row const *> chunk_ptr(coordinates const p) const {
             auto const rows_inserted = coordinates::insert_count(
                     bottom_edge, p.row(), chunk_type::height);
             rows.insert(rows.begin(), rows_inserted, row{});
@@ -188,13 +179,15 @@ namespace planet::map {
                         })});
                 chunk = storage.back().second.get();
             }
-
+            return {chunk, &row};
+        }
+        auto *cell_at(coordinates const p) const {
+            auto const [cp, rp] = chunk_ptr(p);
             auto const inx = coordinates::inside_chunk(
-                    row.left_edge, p.column(), chunk_type::width);
+                    rp->left_edge, p.column(), chunk_type::width);
             auto const iny = coordinates::inside_chunk(
                     bottom_edge, p.row(), chunk_type::height);
-
-            return &(*chunk)[{inx, iny}];
+            return &(*cp)[{inx, iny}];
         }
 
       public:
@@ -204,21 +197,36 @@ namespace planet::map {
         static constexpr std::size_t chunk_width = Chunk::width,
                                      chunk_height = Chunk::height;
 
-        world() : init{[](coordinates) { return cell_type{}; }} {}
-        world(coordinates const start, init_function_type const ift)
-        : bottom_edge{start.row()}, rows{row{start.column()}}, init{ift} {}
 
+        /// ### Construction
+        world() {}
+        world(coordinates const start)
+        : bottom_edge{start.row()}, rows{row{start.column()}} {}
+        world(coordinates const start, init_function_type const ift)
+        : world{start} {
+            init = std::move(ift);
+        }
+
+
+        /// ### Access into chunks
         felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
             for (std::size_t i{}; i < storage.size(); ++i) {
                 auto &c = storage[i];
                 co_yield {c.first, c.second.get()};
             }
         }
+        auto &chunk_at(coordinates const p) { return *chunk_ptr(p).first; }
+        auto const &chunk_at(coordinates const p) const {
+            return *chunk_ptr(p).first;
+        }
 
+
+        /// ### Access to cells
         cell_type &operator[](coordinates const p) { return *cell_at(p); }
         cell_type const &operator[](coordinates const p) const {
             return *cell_at(p);
         }
+
 
         /// ### Serialise
         template<typename C>
@@ -227,7 +235,7 @@ namespace planet::map {
         friend void load(serialise::load_buffer &, world<C> &);
 
       private:
-        init_function_type init;
+        init_function_type init{[](coordinates) { return cell_type{}; }};
     };
 
     template<typename C, std::size_t X, std::size_t Y = X>
