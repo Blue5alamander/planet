@@ -4,6 +4,7 @@
 #include <planet/serialise/forward.hpp>
 #include <planet/to_string.hpp>
 
+#include <felspar/coro/bus.hpp>
 #include <felspar/coro/generator.hpp>
 
 #include <array>
@@ -60,9 +61,9 @@ namespace planet::map {
 
     /// ## Cell & Super-cell Co-ordinates
     /**
-     * Directions when looking at the map
-     * x-axis is right to left -- increases left
-     * y-axis is bottom to top -- increases up
+     * Directions when looking at the map:
+     * * x-axis is right to left -- increases left
+     * * y-axis is bottom to top -- increases up
      */
     class coordinates {
         friend class hexmap::coordinates;
@@ -178,6 +179,7 @@ namespace planet::map {
                                              + coordinates::value_type(rely)});
                         })});
                 chunk = storage.back().second.get();
+                on_chunk_created.push({storage.back().first, chunk});
             }
             return {chunk, &row};
         }
@@ -209,7 +211,8 @@ namespace planet::map {
 
 
         /// ### Access into chunks
-        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
+        using chunk_position = std::pair<coordinates, chunk_type *>;
+        felspar::coro::generator<chunk_position> chunks() {
             for (std::size_t i{}; i < storage.size(); ++i) {
                 auto &c = storage[i];
                 co_yield {c.first, c.second.get()};
@@ -219,6 +222,7 @@ namespace planet::map {
         auto const &chunk_at(coordinates const p) const {
             return *chunk_ptr(p).first;
         }
+        mutable felspar::coro::bus<chunk_position> on_chunk_created;
 
 
         /// ### Access to cells

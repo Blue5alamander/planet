@@ -1,6 +1,8 @@
 #include <planet/map.hpp>
 #include <felspar/test.hpp>
 
+#include <felspar/coro/eager.hpp>
+
 
 namespace {
 
@@ -52,33 +54,53 @@ namespace {
             });
 
 
-    auto const world = felspar::testsuite("map/world", [](auto check) {
-        std::size_t calls{};
-        planet::map::world<planet::map::chunk<std::pair<long, long>, 4>> w{
-                {0, 0}, [&calls](auto const p) mutable {
-                    ++calls;
-                    return std::pair{p.column(), p.row()};
-                }};
-        check(calls) == 0u;
+    auto const world = felspar::testsuite(
+            "map/world",
+            [](auto check) {
+                std::size_t calls{};
+                planet::map::world<planet::map::chunk<std::pair<long, long>, 4>>
+                        w{{0, 0}, [&calls](auto const p) mutable {
+                              ++calls;
+                              return std::pair{p.column(), p.row()};
+                          }};
+                check(calls) == 0u;
 
-        check(w[{0, 0}]) == std::pair{0L, 0L};
-        check(calls) == 16u;
+                check(w[{0, 0}]) == std::pair{0L, 0L};
+                check(calls) == 16u;
 
-        check(w[{0, 3}]) == std::pair{0L, 3L};
-        check(calls) == 16u;
+                check(w[{0, 3}]) == std::pair{0L, 3L};
+                check(calls) == 16u;
 
-        check(w[{5, 7}]) == std::pair(5L, 7L);
-        check(calls) == 32u;
+                check(w[{5, 7}]) == std::pair(5L, 7L);
+                check(calls) == 32u;
 
-        check(w[{345, 127}]) == std::pair(345L, 127L);
-        check(calls) == 48u;
+                check(w[{345, 127}]) == std::pair(345L, 127L);
+                check(calls) == 48u;
 
-        auto pos = w.chunks();
-        check(pos.next()->first) == planet::map::coordinates{0, 0};
-        check(pos.next()->first) == planet::map::coordinates{4, 4};
-        check(pos.next()->first) == planet::map::coordinates{344, 124};
-        check(pos.next()).is_falsey();
-    });
+                auto pos = w.chunks();
+                check(pos.next()->first) == planet::map::coordinates{0, 0};
+                check(pos.next()->first) == planet::map::coordinates{4, 4};
+                check(pos.next()->first) == planet::map::coordinates{344, 124};
+                check(pos.next()).is_falsey();
+            },
+            [](auto check) {
+                std::size_t cell_number{};
+                planet::map::world_type<std::size_t, 8> numbers{
+                        {}, [&](auto) { return cell_number++; }};
+                check(cell_number) == 0u;
+
+                felspar::coro::eager<> on_chunk_created;
+                on_chunk_created.post(
+                        +[](planet::map::world_type<std::size_t, 8> &n)
+                                -> felspar::coro::eager<>::task_type {
+                            co_await n.on_chunk_created.next();
+                        },
+                        std::ref(numbers));
+
+                numbers[{0, 0}];
+                check(cell_number) == 64u;
+                std::move(on_chunk_created).release().get();
+            });
 
 
 }
