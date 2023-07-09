@@ -36,6 +36,8 @@ namespace planet::map {
         using cell_type = Cell;
         static constexpr std::size_t width = DimX, height = DimY;
 
+
+        /// ### Construction
         template<typename Init>
         explicit constexpr chunk(Init cell) {
             for (std::size_t x{}; x < width; ++x) {
@@ -45,11 +47,16 @@ namespace planet::map {
             }
         }
 
+
         /// ### Access into the cells within the chunk
         constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
             return storage.at(p.first * height + p.second);
         }
-        std::span<Cell, DimX * DimY> cells() { return storage; }
+        std::span<Cell, DimX * DimY> cells() noexcept { return storage; }
+        std::span<Cell const, DimX * DimY> cells() const noexcept {
+            return storage;
+        }
+
 
         /// ### Serialise
         template<typename C, std::size_t X, std::size_t Y>
