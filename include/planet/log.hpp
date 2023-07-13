@@ -23,6 +23,13 @@ namespace planet::log {
         return static_cast<std::uint8_t>(l) <=> static_cast<std::uint8_t>(r);
     }
 
+    inline void save(serialise::save_buffer &sb, level const l) {
+        sb.append(static_cast<std::uint8_t>(l));
+    }
+    inline void load(serialise::load_buffer &lb, level &l) {
+        l = level{lb.extract<std::uint8_t>()};
+    }
+
 
     /// ## The currently active logging level
 
