@@ -11,13 +11,16 @@ namespace planet::log {
 
     /// ## Log levels
     /**
-     * Define a log level.
+     * Defined log levels:
+     *
      * * `debug` -- intended for development or debugging logs.
      * * `info` -- informative logs.
      * * `warning` -- something is wrong.
      * * `error` -- there is an error, but it is recoverable.
      * * `critical` -- a non-recoverable error has occurred.
      *
+     * Critical errors will result in the termination of the process sending the
+     * log message.
      */
     enum class level : std::uint8_t { debug, info, warning, error, critical };
     inline auto operator<=>(level const l, level const r) {
