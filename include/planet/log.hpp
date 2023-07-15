@@ -17,6 +17,7 @@ namespace planet::log {
      * * `warning` -- something is wrong.
      * * `error` -- there is an error, but it is recoverable.
      * * `critical` -- a non-recoverable error has occurred.
+     *
      */
     enum class level : std::uint8_t { debug, info, warning, error, critical };
     inline auto operator<=>(level const l, level const r) {
@@ -33,10 +34,13 @@ namespace planet::log {
 
     /// ## The currently active logging level
 
+
     /// ### Active logging level
     /**
-     * Any log messages below this level will always be discarded. The value can
-     * be updated at any time and the change will have immediate effect.
+     * Any log messages below this level will always be discarded.
+     *
+     * The value can be updated at any time and the change will have immediate
+     * effect. Any log messages already in flight will still arrive.
      */
     inline std::atomic<level> active{level::debug};
 
@@ -93,7 +97,7 @@ namespace planet::log {
     }
 
 
-    /// ## Log messagesstd
+    /// ## Log messages
     struct message {
         log::level level;
         serialise::shared_bytes payload;
