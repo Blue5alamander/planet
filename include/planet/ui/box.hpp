@@ -48,7 +48,7 @@ namespace planet::ui {
      * box.
      */
     template<typename C>
-    struct box : public reflowable {
+    struct box final : public reflowable {
         /// What is inside the box
         using content_type = C;
         content_type content;
