@@ -13,7 +13,7 @@ namespace planet::debug {
 
     /// ## Generic printable component
     template<typename AS>
-    struct printable : public AS {
+    struct printable final : public AS {
         using AS::AS;
 
       private:
@@ -24,7 +24,7 @@ namespace planet::debug {
 
 
     /// ## Fixed size UI element
-    struct fixed_element : public ui::reflowable {
+    struct fixed_element final : public ui::reflowable {
         affine::extents2d size;
 
         fixed_element(affine::extents2d const s)
