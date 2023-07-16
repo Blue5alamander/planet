@@ -77,6 +77,10 @@ namespace planet::ui {
         struct layouts<std::array<V, N>, E> {
             using layout_type = layout<std::array<element<E>, N>>;
         };
+        template<typename E, typename V>
+        struct layouts<std::vector<V>, E> {
+            using layout_type = layout<std::vector<element<E>>>;
+        };
         template<typename E, typename V, std::size_t N>
         struct layouts<felspar::memory::small_vector<V, N>, E> {
             using layout_type =
