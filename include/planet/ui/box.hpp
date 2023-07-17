@@ -84,7 +84,7 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
-            return padding.add(content.reflow(padding.remove(ex)), ex);
+            return add(content.reflow(padding.remove(ex)), ex);
         }
         void move_sub_elements(affine::rectangle2d const &outer) override {
             affine::point2d const offset{padding.hpad, padding.vpad};
@@ -94,6 +94,17 @@ namespace planet::ui {
                     {outer.top_left + offset, padding.remove(outer.extents)},
                     inner_size);
             content.move_to(area);
+        }
+        constrained_type
+                add(constrained_type const &inner,
+                    constrained_type const &outer) const noexcept {
+            auto const min_width = inner.width.min() + 2 * padding.hpad;
+            auto const min_height = inner.height.min() + 2 * padding.vpad;
+            return {{outer.width.value(),
+                     std::max(min_width, outer.width.min()), outer.width.max()},
+                    {outer.height.value(),
+                     std::max(min_height, outer.height.min()),
+                     outer.height.max()}};
         }
     };
 

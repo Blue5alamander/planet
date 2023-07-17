@@ -42,17 +42,6 @@ namespace planet::ui {
          * Use the `add` function to calculate the correct sizes to
          * return to the outer element.
          */
-        constrained_type
-                add(constrained_type const &inner,
-                    constrained_type const &outer) const noexcept {
-            auto const min_width = inner.width.min() + 2 * hpad;
-            auto const min_height = inner.height.min() + 2 * vpad;
-            return {{outer.width.value(),
-                     std::max(min_width, outer.width.min()), outer.width.max()},
-                    {outer.height.value(),
-                     std::max(min_height, outer.height.min()),
-                     outer.height.max()}};
-        }
     };
 
 
