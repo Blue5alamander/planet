@@ -4,6 +4,7 @@
 #include <planet/affine2d.hpp>
 #include <planet/ui/helpers.hpp>
 #include <planet/ui/reflowable.hpp>
+#include <planet/ui/padding.hpp>
 
 
 namespace planet::ui {
@@ -57,22 +58,18 @@ namespace planet::ui {
                 gravity::left | gravity::right | gravity::top
                 | gravity::bottom};
         /// The amount of padding to be added around the content.
-        float hpadding = {}, vpadding = {};
+        ui::padding padding = {};
 
         box() : reflowable{"planet::ui::box"} {}
         explicit box(content_type c)
         : reflowable{"planet::ui::box"}, content{std::move(c)} {}
         explicit box(content_type c, float const hp, float const vp)
-        : reflowable{"planet::ui::box"},
-          content{std::move(c)},
-          hpadding{hp},
-          vpadding{vp} {}
+        : reflowable{"planet::ui::box"}, content{std::move(c)}, padding{hp, vp} {}
         explicit box(content_type c, gravity const g, float const p = {})
         : reflowable{"planet::ui::box"},
           content{std::move(c)},
           inner{g},
-          hpadding{p},
-          vpadding{p} {}
+          padding{p} {}
         explicit box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
@@ -87,37 +84,16 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
-            constrained_type inside{ex};
-            inside.width.min(inside.width.min() + hpadding);
-            inside.width.max(inside.width.max() - hpadding);
-            inside.height.min(inside.height.min() + vpadding);
-            inside.height.max(inside.height.max() - vpadding);
-            auto const needs = content.reflow(inside);
-            auto const min_width = needs.width.min() + 2 * hpadding;
-            auto const min_height = needs.height.min() + 2 * hpadding;
-            return constrained_type{
-                    {ex.width.value(), std::max(min_width, ex.width.min()),
-                     ex.width.max()},
-                    {ex.height.value(), std::max(min_height, ex.height.min()),
-                     ex.height.max()}};
+            return padding.add(content.reflow(padding.remove(ex)), ex);
         }
         void move_sub_elements(affine::rectangle2d const &outer) override {
-            affine::point2d const padding{hpadding, vpadding};
+            affine::point2d const offset{padding.hpad, padding.vpad};
             auto const inner_size = content.constraints().extents();
             auto const area = within(
                     inner,
-                    {outer.top_left + padding, remove_padding(outer.extents)},
+                    {outer.top_left + offset, padding.remove(outer.extents)},
                     inner_size);
             content.move_to(area);
-        }
-
-        affine::extents2d
-                remove_padding(affine::extents2d const ex) const noexcept {
-            return {ex.width - 2 * hpadding, ex.height - 2 * vpadding};
-        }
-        affine::extents2d
-                add_padding(affine::extents2d const ex) const noexcept {
-            return {ex.width + 2 * hpadding, ex.height + 2 * vpadding};
         }
     };
 

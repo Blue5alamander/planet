@@ -16,6 +16,7 @@
 #include <planet/ui/layout.grid.hpp>
 #include <planet/ui/layout.row.hpp>
 #include <planet/ui/pack.reflowable.hpp>
+#include <planet/ui/padding.hpp>
 #include <planet/ui/panel.hpp>
 #include <planet/ui/range.hpp>
 #include <planet/ui/reflowable.hpp>
