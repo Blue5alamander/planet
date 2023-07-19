@@ -18,7 +18,7 @@ namespace planet::ui {
         using constrained_type = constrained2d<float>;
 
 
-        float hpad = {}, vpad = hpad;
+        float left = {}, top = left, right = left, bottom = top;
 
 
         /// ### Remove padding
@@ -28,16 +28,15 @@ namespace planet::ui {
          * inner ones.
          */
         constrained_type remove(constrained_type ex) const noexcept {
-            ex.width.max(ex.width.max() - 2 * hpad);
-            ex.height.max(ex.height.max() - 2 * vpad);
+            ex.width.max(ex.width.max() - left - right);
+            ex.height.max(ex.height.max() - top - bottom);
             return ex;
         }
         affine::extents2d remove(affine::extents2d const ex) const noexcept {
-            return {ex.width - 2 * hpad, ex.height - 2 * vpad};
+            return {ex.width - left - right, ex.height - top - bottom};
         }
         affine::rectangle2d remove(affine::rectangle2d const &r) const noexcept {
-            return {r.top_left + affine::point2d{hpad, vpad},
-                    remove(r.extents)};
+            return {r.top_left + affine::point2d{left, top}, remove(r.extents)};
         }
     };
 
