@@ -89,10 +89,7 @@ namespace planet::ui {
         void move_sub_elements(affine::rectangle2d const &outer) override {
             affine::point2d const offset{padding.hpad, padding.vpad};
             auto const inner_size = content.constraints().extents();
-            auto const area = within(
-                    inner,
-                    {outer.top_left + offset, padding.remove(outer.extents)},
-                    inner_size);
+            auto const area = within(inner, padding.remove(outer), inner_size);
             content.move_to(area);
         }
         constrained_type
