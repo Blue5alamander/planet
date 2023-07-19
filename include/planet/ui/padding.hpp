@@ -35,11 +35,10 @@ namespace planet::ui {
         affine::extents2d remove(affine::extents2d const ex) const noexcept {
             return {ex.width - 2 * hpad, ex.height - 2 * vpad};
         }
-        /// ### Add padding
-        /**
-         * Use the `add` function to calculate the correct sizes to
-         * return to the outer element.
-         */
+        affine::rectangle2d remove(affine::rectangle2d const &r) const noexcept {
+            return {r.top_left + affine::point2d{hpad, vpad},
+                    remove(r.extents)};
+        }
     };
 
 
