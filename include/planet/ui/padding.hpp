@@ -28,10 +28,8 @@ namespace planet::ui {
          * inner ones.
          */
         constrained_type remove(constrained_type ex) const noexcept {
-            ex.width.min(ex.width.min() + hpad);
-            ex.width.max(ex.width.max() - hpad);
-            ex.height.min(ex.height.min() + vpad);
-            ex.height.max(ex.height.max() - vpad);
+            ex.width.max(ex.width.max() - 2 * hpad);
+            ex.height.max(ex.height.max() - 2 * vpad);
             return ex;
         }
         affine::extents2d remove(affine::extents2d const ex) const noexcept {
