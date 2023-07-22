@@ -84,6 +84,15 @@ namespace planet::ui {
     };
 
 
+    /// ## Maximum constraints
+    template<typename T>
+    constrained1d<T>
+            maximum_of(constrained1d<T> const &l, constrained1d<T> const &r) {
+        return {std::max(l.value(), r.value()), std::max(l.min(), r.min()),
+                std::max(l.max(), r.max())};
+    }
+
+
     /// ## Constrained area
     template<typename T>
     struct constrained2d {
