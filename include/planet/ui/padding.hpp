@@ -18,6 +18,10 @@ namespace planet::ui {
         using constrained_type = constrained2d<float>;
 
 
+        /**
+         * TODO Probably best to follow the padding order that CSS makes use of
+         * <https://developer.mozilla.org/en-US/docs/Web/CSS/padding>
+         */
         float left = {}, top = left, right = left, bottom = top;
 
 
