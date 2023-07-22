@@ -8,6 +8,7 @@
 #include <planet/ui/constrained.hpp>
 #include <planet/ui/draggable.hpp>
 #include <planet/ui/element.hpp>
+#include <planet/ui/gravity.hpp>
 #include <planet/ui/forward.hpp>
 #include <planet/ui/layout.hpp>
 #include <planet/ui/layout.breakable_row.hpp>
