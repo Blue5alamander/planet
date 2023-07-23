@@ -32,8 +32,16 @@ namespace planet::ui {
          * inner ones.
          */
         constrained_type remove(constrained_type ex) const noexcept {
-            ex.width.max(ex.width.max() - left - right);
-            ex.height.max(ex.height.max() - top - bottom);
+            auto const wpad = left + right, hpad = top + bottom;
+
+            ex.width.min(std::max(0.0f, ex.width.min() - wpad));
+            ex.width.desire(ex.width.value() - wpad);
+            ex.width.max(ex.width.max() - wpad);
+
+            ex.height.min(std::max(0.0f, ex.height.min() - hpad));
+            ex.height.desire(ex.height.value() - hpad);
+            ex.height.max(ex.height.max() - hpad);
+
             return ex;
         }
         affine::extents2d remove(affine::extents2d const ex) const noexcept {
