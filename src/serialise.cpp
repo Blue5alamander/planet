@@ -1,4 +1,6 @@
+#include <planet/log.hpp>
 #include <planet/serialise/exceptions.hpp>
+#include <planet/serialise/felspar.hpp>
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/muxing.hpp>
 #include <planet/serialise/save_buffer.hpp>
@@ -257,6 +259,23 @@ void planet::serialise::load(load_buffer &lb, std::string &s) {
     auto const b = lb.split(sz);
     s = {reinterpret_cast<char const *>(b.data()), b.size()};
 }
+
+
+/// ## Types in `felspar::`
+
+
+void planet::serialise::save(
+        save_buffer &ab, felspar::source_location const &loc) {
+    ab.save_box(
+            "_s:sl", std::string_view{loc.file_name()},
+            std::string_view{loc.function_name()}, loc.line(), loc.column());
+}
+auto const fsl = planet::log::format("_s:sl", [](auto &os, auto &box) {
+    std::string file_name, function_name;
+    unsigned line, column;
+    box.named("_s:sl", file_name, function_name, line, column);
+    os << function_name << '@' << file_name << ':' << line << ':' << column;
+});
 
 
 /// ## `planet::serialise::serialisation_error`

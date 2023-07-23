@@ -28,4 +28,7 @@ namespace planet::serialise {
     }
 
 
+    void save(save_buffer &, felspar::source_location const &);
+
+
 }
