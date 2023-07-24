@@ -53,8 +53,18 @@ std::size_t planet::time::clock::advance_to(time_point const latest) {
 /// ## `planet::time::clock::awaitable`
 
 
+planet::time::clock::awaitable::~awaitable() {
+    if (continuation) {
+        std::erase(
+                clock.time_line,
+                time::clock::event{wake_up_time, continuation});
+    }
+}
+
+
 void planet::time::clock::awaitable::await_suspend(
         felspar::coro::coroutine_handle<> const h) {
+    continuation = h;
     auto const pos = std::upper_bound(
             clock.time_line.begin(), clock.time_line.end(), wake_up_time);
     clock.time_line.insert(pos, {wake_up_time, h});

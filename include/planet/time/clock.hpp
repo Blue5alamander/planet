@@ -29,12 +29,18 @@ namespace planet::time {
 
         /// ### Have a coroutine wait for a given time
         struct awaitable {
-            time::clock &clock;
-            time::clock::time_point wake_up_time;
+            awaitable(time::clock &c, time::clock::time_point tp)
+            : clock{c}, wake_up_time{tp} {}
+            ~awaitable();
 
             bool await_ready() const noexcept { return false; }
             void await_suspend(felspar::coro::coroutine_handle<>);
-            void await_resume() {}
+            void await_resume() { continuation = {}; }
+
+          private:
+            time::clock &clock;
+            time::clock::time_point wake_up_time;
+            felspar::coro::coroutine_handle<> continuation;
         };
         awaitable sleep(duration);
 
@@ -68,6 +74,7 @@ namespace planet::time {
             friend bool operator<(time_point const tp, event const &e) {
                 return tp < e.when;
             }
+            friend bool operator==(event const &, event const &) = default;
         };
         std::vector<event> time_line;
 
