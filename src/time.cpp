@@ -53,6 +53,12 @@ std::size_t planet::time::clock::advance_to(time_point const latest) {
 /// ## `planet::time::clock::awaitable`
 
 
+planet::time::clock::awaitable::awaitable(awaitable &&a)
+: clock{a.clock},
+  wake_up_time{a.wake_up_time},
+  continuation{std::exchange(a.continuation, {})} {}
+
+
 planet::time::clock::awaitable::~awaitable() {
     if (continuation) {
         std::erase(

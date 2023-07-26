@@ -33,6 +33,12 @@ namespace planet::time {
             : clock{c}, wake_up_time{tp} {}
             ~awaitable();
 
+            awaitable(awaitable const &) = delete;
+            awaitable(awaitable &&);
+
+            awaitable &operator=(awaitable const &) = delete;
+            awaitable &operator=(awaitable &&) = delete;
+
             bool await_ready() const noexcept { return false; }
             void await_suspend(felspar::coro::coroutine_handle<>);
             void await_resume() { continuation = {}; }
