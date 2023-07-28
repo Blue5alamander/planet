@@ -241,6 +241,12 @@ planet::log::detail::formatter::formatter(std::string_view const n)
 
 
 planet::log::detail::formatter::~formatter() {
-    std::scoped_lock _{printers_mutex()};
-    printers().erase(printers().find(box_name));
+    /**
+     * Because we don't control the destruction order it's possible for a
+     * formatter to be destroyed after the global in this translation unit has
+     * gone. Because these are all static functions anyway it's fine to just let
+     * this "leak".
+     */
+    // std::scoped_lock _{printers_mutex()};
+    // printers().erase(printers().find(box_name));
 }
