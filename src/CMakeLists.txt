@@ -8,7 +8,6 @@ add_library(planet
         files.audio.cpp
         files.drawing.cpp
         gravity.ui.cpp
-        hex.map.cpp
         image.drawing.cpp
         log.cpp
         map.cpp
