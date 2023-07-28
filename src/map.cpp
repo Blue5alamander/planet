@@ -1,3 +1,4 @@
+#include <planet/log.hpp>
 #include <planet/map/square.hpp>
 #include <planet/serialise.hpp>
 
@@ -10,6 +11,13 @@ void planet::map::save(serialise::save_buffer &ab, coordinates const c) {
 }
 void planet::map::load(serialise::load_buffer &lb, coordinates &c) {
     lb.load_box("_p:m:coord", c.x, c.y);
+}
+namespace {
+    auto const sc = planet::log::format("_p:h:coord", [](auto &os, auto &box) {
+        std::int32_t c, r;
+        box.named("_p:h:coord", c, r);
+        os << "square@(" << c << ", " << r << ')';
+    });
 }
 
 
@@ -94,4 +102,11 @@ void planet::hexmap::load(serialise::load_buffer &lb, coordinates &c) {
     coordinates::value_type col{}, row{};
     lb.load_box("_p:h:coord", col, row);
     c = {col, row};
+}
+namespace {
+    auto const hc = planet::log::format("_p:h:coord", [](auto &os, auto &box) {
+        std::int32_t c, r;
+        box.named("_p:h:coord", c, r);
+        os << "hex@(" << c << ", " << r << ')';
+    });
 }
