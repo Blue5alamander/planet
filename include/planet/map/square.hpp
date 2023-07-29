@@ -218,6 +218,7 @@ namespace planet::map {
 
 
         /// ### Access into chunks
+        std::size_t chunk_count() const noexcept { return storage.size(); }
         using chunk_position = std::pair<coordinates, chunk_type *>;
         felspar::coro::generator<chunk_position> chunks() {
             for (std::size_t i{}; i < storage.size(); ++i) {
