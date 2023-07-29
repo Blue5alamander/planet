@@ -217,7 +217,8 @@ namespace planet::hexmap {
 
 
         /// ### Access into chunks
-        felspar::coro::generator<std::pair<coordinates, chunk_type *>> chunks() {
+        using chunk_position = std::pair<coordinates, chunk_type *>;
+        felspar::coro::generator<chunk_position> chunks() {
             for (auto c : grid.chunks()) {
                 co_yield {coordinates::from_compressed(c.first), c.second};
             }
