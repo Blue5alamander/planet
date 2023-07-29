@@ -13,9 +13,9 @@ void planet::map::load(serialise::load_buffer &lb, coordinates &c) {
     lb.load_box("_p:m:coord", c.x, c.y);
 }
 namespace {
-    auto const sc = planet::log::format("_p:h:coord", [](auto &os, auto &box) {
+    auto const sc = planet::log::format("_p:m:coord", [](auto &os, auto &box) {
         std::int32_t c, r;
-        box.named("_p:h:coord", c, r);
+        box.named("_p:m:coord", c, r);
         os << "square@(" << c << ", " << r << ')';
     });
 }
