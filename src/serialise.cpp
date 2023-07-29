@@ -30,7 +30,9 @@ void planet::serialise::demuxer::start_manager() {
 auto planet::serialise::demuxer::bus_for(std::string_view const n)
         -> felspar::coro::bus<message> & {
     if (auto pos = subscribers.find(n); pos == subscribers.end()) {
-        return subscribers.insert({std::string{n}, {}}).first->second;
+        return subscribers
+                .emplace(std::string{n}, felspar::coro::bus<message>{})
+                .first->second;
     } else {
         return pos->second;
     }
