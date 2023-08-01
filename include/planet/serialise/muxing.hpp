@@ -51,4 +51,11 @@ namespace planet::serialise {
     };
 
 
+    /// ### Load an instance of a type from a demuxer message
+    template<typename T>
+    T load_type(demuxer::message m) {
+        return serialise::load_type<T>(m.box);
+    }
+
+
 }
