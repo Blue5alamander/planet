@@ -183,7 +183,13 @@ namespace {
             while (true) {
                 co_await warden.sleep(1s);
                 planet::telemetry::performance::current_values(ab);
-                std::cout << "\33[0;32mPerformance counters\33[0;39m\n";
+                std::cout << "\33[0;32mPerformance counters "
+                          << static_cast<double>(
+                                     (std::chrono::steady_clock::now()
+                                      - g_start_time())
+                                             .count()
+                                     / 1e9)
+                          << "\33[0;39m\n";
                 auto const bytes = ab.complete();
                 planet::serialise::load_buffer lb{bytes.cmemory()};
                 std::scoped_lock _{printers_mutex()};
