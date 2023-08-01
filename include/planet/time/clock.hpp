@@ -16,7 +16,7 @@ namespace planet::time {
     class clock {
       public:
         using rep = std::uint64_t;
-        using period = std::micro;
+        using period = std::nano;
         using duration = std::chrono::duration<rep, period>;
         using time_point = std::chrono::time_point<clock, duration>;
 
