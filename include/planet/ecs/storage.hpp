@@ -235,10 +235,12 @@ namespace planet::ecs {
         struct types : public types<decltype(&T::operator())> {};
         template<typename R, typename C, typename... Cs>
         struct types<R (C::*)(entity_id, Cs...) const> {
+            template<typename CsT>
+            using ctype_for = std::remove_const_t<std::remove_reference_t<CsT>>;
+
             static constexpr mask_type mask = {[]() {
                 constexpr std::array<std::size_t, sizeof...(Cs)> args = {
-                        component_index<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>()...,
+                        component_index<ctype_for<Cs>>()...,
                 };
                 mask_type m{};
                 for (auto const &i : args) { m |= (1 << i); }
@@ -252,18 +254,26 @@ namespace planet::ecs {
                            storage &s,
                            felspar::source_location const &loc =
                                    felspar::source_location::current()) {
-                return l(
-                        eid,
-                        s.get_component<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>(eid, loc)...);
+                return l(eid, s.get_component<ctype_for<Cs>>(eid, loc)...);
             }
         };
     };
 
 
     template<typename Component, typename... Components>
-    inline auto component_proxy<Component, Components...>::get() const
+    inline auto component_proxy<Component, Components...>::get()
             -> component_type * {
+        static constexpr auto ci =
+                storage_type::template component_index<Component>();
+        if (store.template has_component<Component>(eid)) {
+            return &std::get<ci>(store.components).at(eid.id()).value();
+        } else {
+            return nullptr;
+        }
+    }
+    template<typename Component, typename... Components>
+    inline auto component_proxy<Component, Components...>::get() const
+            -> component_type const * {
         static constexpr auto ci =
                 storage_type::template component_index<Component>();
         if (store.template has_component<Component>(eid)) {

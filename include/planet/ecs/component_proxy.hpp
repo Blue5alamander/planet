@@ -28,11 +28,24 @@ namespace planet::ecs {
 
 
         /// ### Fetch the component
-        component_type *operator->() const {
+        [[nodiscard]] component_type *get();
+        [[nodiscard]] component_type const *get() const;
+        [[nodiscard]] component_type *operator->() {
             /// TODO Check for nullptr being returned
             return get();
         }
-        [[nodiscard]] component_type *get() const;
+        [[nodiscard]] component_type const *operator->() const {
+            /// TODO Check for nullptr being returned
+            return get();
+        }
+        [[nodiscard]] component_type &operator*() {
+            /// TODO Check for nullptr being returned
+            return *get();
+        }
+        [[nodiscard]] component_type const &operator*() const {
+            /// TODO Check for nullptr being returned
+            return *get();
+        }
 
 
         /// ### Destroy the component
