@@ -3,13 +3,19 @@
 
 #include <planet/ecs/entity_lookup.hpp>
 #include <planet/ecs/storage_base.hpp>
-
+#include <planet/telemetry/counter.hpp>
 #include <felspar/exceptions.hpp>
 
 #include <tuple>
 
 
 namespace planet::ecs {
+
+
+    namespace detail {
+        void count_create_entity();
+        void count_destroy_entity();
+    }
 
 
     /// ## Entities
@@ -75,6 +81,8 @@ namespace planet::ecs {
                 (std::get<Is>(stores).emplace_back(), ...);
             }
             (indexes{});
+
+            detail::count_create_entity();
 
             return entity_id{
                     this, e_slots.size() - 1,
@@ -255,6 +263,7 @@ namespace planet::ecs {
             (indexes{});
             auto &c = e_slots[id].masks;
             std::fill(c.begin(), c.end(), 0);
+            detail::count_destroy_entity();
         }
 
 

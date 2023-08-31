@@ -27,3 +27,11 @@ void planet::ecs::detail::throw_component_not_present(
     throw felspar::stdexcept::logic_error{
             "This entity doesn't have that component at this time", loc};
 }
+
+
+namespace {
+    planet::telemetry::counter create_count{"planet_ecs_entities_created"};
+    planet::telemetry::counter destroy_count{"planet_ecs_entities_destroyed"};
+}
+void planet::ecs::detail::count_create_entity() { ++create_count; }
+void planet::ecs::detail::count_destroy_entity() { ++destroy_count; }
