@@ -143,6 +143,43 @@ namespace {
                             ++count;
                         });
                 check(count) == 2u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(84u, 6.0f);
+
+                planet::ecs::weak_entity_id we1{e1};
+                e1 = {};
+
+                std::size_t count{};
+                entities.iterate(
+                        [&](planet::ecs::entity_id, unsigned int &u, float &f) {
+                            if (count == 0u) {
+                                check(u) == 84u;
+                                check(f) == 6.0f;
+                            } else {
+                                check(true) == false;
+                            }
+                            ++count;
+                        });
+                check(count) == 1u;
+
+                count = 0;
+                e1 = we1.lock();
+                entities.iterate(
+                        [&](planet::ecs::entity_id, unsigned int &u, float &f) {
+                            if (count == 0u) {
+                                check(u) == 84u;
+                                check(f) == 6.0f;
+                            } else {
+                                check(true) == false;
+                            }
+                            ++count;
+                        });
             });
 
 
