@@ -30,16 +30,26 @@ namespace planet::serialise {
       public:
         demuxer();
 
+        /// ### Message envolope
         struct message {
             planet::serialise::box box;
             planet::serialise::shared_bytes keep_alive;
+
+            /// #### Helper for loading a type out of the message
+            template<typename T>
+            T load_type() {
+                return serialise::load_type<T>(box);
+            }
         };
 
-        /// Return the bus for a given box name
+
+        /// ### Return the bus for a given box name
         felspar::coro::bus<message> &bus_for(std::string_view);
 
-        /// Send/receive data to the subscribers
+
+        /// ### Send/receive data to the subscribers
         void send(shared_bytes);
+
 
       private:
         /// ### Manage subscriptions
@@ -51,7 +61,8 @@ namespace planet::serialise {
     };
 
 
-    /// ### Load an instance of a type from a demuxer message
+    /// ## Load an instance of a type from a demuxer message
+    /// Or use the member function in the `demuxer::message`
     template<typename T>
     T load_type(demuxer::message m) {
         return serialise::load_type<T>(m.box);
