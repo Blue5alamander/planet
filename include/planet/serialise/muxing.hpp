@@ -32,8 +32,8 @@ namespace planet::serialise {
 
         /// ### Message envolope
         struct message {
-            planet::serialise::box box;
-            planet::serialise::shared_bytes keep_alive;
+            serialise::box box;
+            shared_bytes keep_alive;
 
             /// #### Helper for loading a type out of the message
             template<typename T>
