@@ -1,0 +1,92 @@
+#pragma once
+
+
+#include <felspar/coro/coroutine.hpp>
+
+#include <set>
+#include <vector>
+
+
+namespace planet::queue {
+
+
+    /// ## Push producer, multi-consumer queue
+    /**
+     * A queue which can hold an unlimited number of un-consumed items and
+     * provide them to each of the consumers. Once a consumer subscribes to the
+     * queue then they are guaranteed to see every value.
+     *
+     * The value type must be copyable. This type is not thread safe.
+     */
+    template<typename T>
+    class pmc {
+        using internal_buffer_type = std::vector<T>;
+
+
+      public:
+        using value_type = T;
+
+        pmc() = default;
+        pmc(pmc const &) = delete;
+        pmc(pmc &&) = delete;
+        pmc &operator=(pmc const &) = delete;
+        pmc &operator=(pmc &&) = delete;
+
+
+        void push(T t) {
+            for (auto &s : consumers) {
+                s->values.push_back(t);
+                for (auto *consumer : consumers) {
+                    if (auto h{std::exchange(consumer->continuation, {})}; h) {
+                        h.resume();
+                    }
+                }
+            }
+        }
+
+
+        class consumer {
+            friend class pmc;
+
+            consumer(pmc *s) : self{s} { self->consumers.insert(this); }
+            ~consumer() { self->consumers.erase(this); }
+
+            consumer(consumer const &) = delete;
+            consumer(consumer &&) = delete;
+            consumer &operator=(consumer const &) = delete;
+            consumer &operator=(consumer &&) = delete;
+
+            pmc *self;
+            felspar::coro::coroutine_handle<> continuation;
+            internal_buffer_type values;
+
+
+          public:
+            auto next() {
+                struct awaitable {
+                    consumer *dr;
+                    bool await_ready() const noexcept {
+                        return not dr->values.empty();
+                    }
+                    void await_suspend(
+                            felspar::coro::coroutine_handle<> h) noexcept {
+                        dr->continuation = h;
+                    }
+                    T await_resume() {
+                        T t = std::move(dr->values.front());
+                        dr->values.erase(dr->values.begin());
+                        return t;
+                    }
+                };
+                return awaitable{this};
+            }
+        };
+
+        auto values() { return consumer{this}; }
+
+      private:
+        std::set<consumer *> consumers;
+    };
+
+
+}
