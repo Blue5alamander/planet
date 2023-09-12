@@ -1,6 +1,6 @@
 #include <planet/comms/signal.hpp>
 #include <planet/log.hpp>
-#include <planet/queue/mpsc.hpp>
+#include <planet/queue/tspsc.hpp>
 #include <planet/serialise/chrono.hpp>
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/telemetry/counter.hpp>
@@ -144,7 +144,7 @@ namespace {
 
     struct log_thread {
         felspar::io::poll_warden warden;
-        planet::queue::mpsc<planet::log::message> messages;
+        planet::queue::tspsc<planet::log::message> messages;
         planet::comms::signal signal{warden};
         planet::comms::signal terminate{warden};
 

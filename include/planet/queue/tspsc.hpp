@@ -17,9 +17,8 @@ namespace planet::queue {
      * the mutex for long enough to do a pointer swap on the vector which acts
      * as a queue.
      */
-
     template<typename T>
-    class mpsc {
+    class tspsc {
         std::mutex mtx;
         std::vector<T> queue, consuming;
 
