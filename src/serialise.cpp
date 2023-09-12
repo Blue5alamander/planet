@@ -27,11 +27,13 @@ void planet::serialise::demuxer::start_manager() {
 }
 
 
-auto planet::serialise::demuxer::bus_for(std::string_view const n)
-        -> felspar::coro::bus<message> & {
+auto planet::serialise::demuxer::queue_for(std::string_view const n)
+        -> queue::pmc<message> & {
     if (auto pos = subscribers.find(n); pos == subscribers.end()) {
         return subscribers
-                .emplace(std::string{n}, felspar::coro::bus<message>{})
+                .emplace(
+                        std::piecewise_construct, std::forward_as_tuple(n),
+                        std::forward_as_tuple())
                 .first->second;
     } else {
         return pos->second;
@@ -50,7 +52,7 @@ felspar::io::warden::task<void>
                     auto box =
                             planet::serialise::load_type<planet::serialise::box>(
                                     lb);
-                    bus_for(box.name).push({std::move(box), b});
+                    queue_for(box.name).push({std::move(box), b});
                 }
             }
         }

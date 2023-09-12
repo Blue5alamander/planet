@@ -34,14 +34,14 @@ namespace planet::queue {
 
 
         void push(T t) {
-            for (auto &s : consumers) {
+            std::vector<felspar::coro::coroutine_handle<>> continuations;
+            for (auto *s : consumers) {
                 s->values.push_back(t);
-                for (auto *consumer : consumers) {
-                    if (auto h{std::exchange(consumer->continuation, {})}; h) {
-                        h.resume();
-                    }
+                if (auto h{std::exchange(s->continuation, {})}; h) {
+                    continuations.push_back(h);
                 }
             }
+            for (auto h : continuations) { h.resume(); }
         }
 
 
@@ -49,7 +49,6 @@ namespace planet::queue {
             friend class pmc;
 
             consumer(pmc *s) : self{s} { self->consumers.insert(this); }
-            ~consumer() { self->consumers.erase(this); }
 
             consumer(consumer const &) = delete;
             consumer(consumer &&) = delete;
@@ -62,6 +61,8 @@ namespace planet::queue {
 
 
           public:
+            ~consumer() { self->consumers.erase(this); }
+
             auto next() {
                 struct awaitable {
                     consumer *dr;

@@ -1,9 +1,9 @@
 #pragma once
 
 
+#include <planet/queue/pmc.hpp>
 #include <planet/serialise/load_buffer.hpp>
 
-#include <felspar/coro/bus.hpp>
 #include <felspar/coro/eager.hpp>
 #include <felspar/io/warden.hpp>
 
@@ -43,8 +43,8 @@ namespace planet::serialise {
         };
 
 
-        /// ### Return the bus for a given box name
-        felspar::coro::bus<message> &bus_for(std::string_view);
+        /// ### Return the queue for a given box name
+        queue::pmc<message> &queue_for(std::string_view);
 
 
         /// ### Send/receive data to the subscribers
@@ -54,8 +54,7 @@ namespace planet::serialise {
       private:
         /// ### Manage subscriptions
         /// TODO There's probably a better data structure for this
-        std::map<std::string, felspar::coro::bus<message>, std::less<>>
-                subscribers;
+        std::map<std::string, queue::pmc<message>, std::less<>> subscribers;
         felspar::io::warden::eager<> manager;
         felspar::io::warden::task<void> manage_simulation_subscriptions();
     };
