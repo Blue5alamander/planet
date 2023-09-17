@@ -1,43 +1,44 @@
 #pragma once
 
 
+#include <planet/queue/pmc.hpp>
 #include <planet/ui/widget.hpp>
 
 
 namespace planet::ui {
 
 
-    template<typename Renderer, typename Return, typename Texture>
+    template<
+            typename Renderer,
+            typename Return,
+            typename Texture,
+            typename Queue = queue::pmc<Return>>
     class button : public planet::ui::widget<Renderer> {
         using superclass = planet::ui::widget<Renderer>;
         Return press_value;
-        felspar::coro::bus<Return> &output_to;
+        Queue &output_to;
+
 
       public:
+        using queue_type = Queue;
         using constrained_type = typename superclass::constrained_type;
         using superclass::name;
         using superclass::position;
 
 
-        explicit button(felspar::coro::bus<Return> &o, Return v)
+        explicit button(queue_type &o, Return v)
         : superclass{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o} {}
-        explicit button(
-                std::string_view const n,
-                felspar::coro::bus<Return> &o,
-                Return v)
+        explicit button(std::string_view const n, queue_type &o, Return v)
         : superclass{n}, press_value{std::move(v)}, output_to{o} {}
-        explicit button(Texture g, felspar::coro::bus<Return> &o, Return v)
+        explicit button(Texture g, queue_type &o, Return v)
         : superclass{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o},
           graphic{std::move(g)} {}
         explicit button(
-                std::string_view const n,
-                Texture g,
-                felspar::coro::bus<Return> &o,
-                Return v)
+                std::string_view const n, Texture g, queue_type &o, Return v)
         : superclass{n},
           press_value{std::move(v)},
           output_to{o},
