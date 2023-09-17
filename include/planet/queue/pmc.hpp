@@ -34,7 +34,6 @@ namespace planet::queue {
 
 
         void push(T t) {
-            std::vector<felspar::coro::coroutine_handle<>> continuations;
             for (auto *s : consumers) {
                 s->values.push_back(t);
                 if (auto h{std::exchange(s->continuation, {})}; h) {
@@ -42,6 +41,7 @@ namespace planet::queue {
                 }
             }
             for (auto h : continuations) { h.resume(); }
+            continuations.clear();
         }
 
 
@@ -87,6 +87,8 @@ namespace planet::queue {
 
       private:
         std::set<consumer *> consumers;
+        /// Cached memory used by `push`
+        std::vector<felspar::coro::coroutine_handle<>> continuations;
     };
 
 
