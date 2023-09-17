@@ -19,7 +19,8 @@
 /// ## `planet::serialise::demuxer`
 
 
-planet::serialise::demuxer::demuxer() {}
+planet::serialise::demuxer::demuxer() : id{"demuxer"} {}
+planet::serialise::demuxer::demuxer(std::string_view const n) : id{n} {}
 
 
 void planet::serialise::demuxer::start_manager() {
@@ -30,6 +31,7 @@ void planet::serialise::demuxer::start_manager() {
 auto planet::serialise::demuxer::queue_for(std::string_view const n)
         -> queue::pmc<message> & {
     if (auto pos = subscribers.find(n); pos == subscribers.end()) {
+        planet::log::debug("New subscriber for", n, "in demuxer", name());
         return subscribers
                 .emplace(
                         std::piecewise_construct, std::forward_as_tuple(n),
@@ -53,6 +55,7 @@ felspar::io::warden::task<void>
                             planet::serialise::load_type<planet::serialise::box>(
                                     lb);
                     queue_for(box.name).push({std::move(box), b});
+                    ++enqueued;
                 }
             }
         }
@@ -60,7 +63,10 @@ felspar::io::warden::task<void>
 }
 
 
-void planet::serialise::demuxer::send(shared_bytes b) { push(std::move(b)); }
+void planet::serialise::demuxer::send(shared_bytes b) {
+    push(std::move(b));
+    ++sends;
+}
 
 
 /// ## `planet::serialise::box`

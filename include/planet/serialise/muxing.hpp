@@ -3,6 +3,8 @@
 
 #include <planet/queue/pmc.hpp>
 #include <planet/serialise/load_buffer.hpp>
+#include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/id.hpp>
 
 #include <felspar/coro/eager.hpp>
 #include <felspar/io/warden.hpp>
@@ -14,7 +16,7 @@ namespace planet::serialise {
 
 
     /// ## Demuxing of data
-    class demuxer {
+    class demuxer : public telemetry::id {
       protected:
         /// ### Implemented by the sub-class
 
@@ -29,6 +31,7 @@ namespace planet::serialise {
 
       public:
         demuxer();
+        demuxer(std::string_view);
 
         /// ### Message envolope
         struct message {
@@ -57,6 +60,10 @@ namespace planet::serialise {
         std::map<std::string, queue::pmc<message>, std::less<>> subscribers;
         felspar::io::warden::eager<> manager;
         felspar::io::warden::task<void> manage_simulation_subscriptions();
+
+
+        telemetry::counter sends{name() + "__sends"},
+                enqueued{name() + "__enqueued"};
     };
 
 
