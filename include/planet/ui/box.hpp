@@ -29,16 +29,16 @@ namespace planet::ui {
         ui::padding padding = {};
 
         box() : reflowable{"planet::ui::box"} {}
-        explicit box(content_type c)
+        box(content_type c)
         : reflowable{"planet::ui::box"}, content{std::move(c)} {}
-        explicit box(content_type c, float const hp, float const vp)
+        box(content_type c, float const hp, float const vp)
         : reflowable{"planet::ui::box"}, content{std::move(c)}, padding{hp, vp} {}
-        explicit box(content_type c, gravity const g, float const p = {})
+        box(content_type c, gravity const g, float const p = {})
         : reflowable{"planet::ui::box"},
           content{std::move(c)},
           inner{g},
           padding{p} {}
-        explicit box(std::string_view const n, content_type c)
+        box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
         /// ### Drawing the box content

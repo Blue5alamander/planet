@@ -20,10 +20,9 @@ namespace planet::ui {
         /// Padding between items in the row
         float padding = {};
 
-        explicit row(collection_type c, float const p = {})
+        row(collection_type c, float const p = {})
         : superclass{"planet::ui::row<>", std::move(c)}, padding{p} {}
-        explicit row(
-                std::string_view const n, collection_type c, float const p = {})
+        row(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
 
       private:
@@ -63,11 +62,10 @@ namespace planet::ui {
         /// Padding between items in the row
         float padding = {};
 
-        explicit row(collection_type c, float const p = {})
+        row(collection_type c, float const p = {})
         : superclass{"planet::ui::row<std::tuple<Pack...>>", std::move(c)},
           padding{p} {}
-        explicit row(
-                std::string_view const n, collection_type c, float const p = {})
+        row(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
 
       private:

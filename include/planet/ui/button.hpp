@@ -30,15 +30,14 @@ namespace planet::ui {
         : superclass{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o} {}
-        explicit button(std::string_view const n, queue_type &o, Return v)
+        button(std::string_view const n, queue_type &o, Return v)
         : superclass{n}, press_value{std::move(v)}, output_to{o} {}
-        explicit button(Texture g, queue_type &o, Return v)
+        button(Texture g, queue_type &o, Return v)
         : superclass{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o},
           graphic{std::move(g)} {}
-        explicit button(
-                std::string_view const n, Texture g, queue_type &o, Return v)
+        button(std::string_view const n, Texture g, queue_type &o, Return v)
         : superclass{n},
           press_value{std::move(v)},
           output_to{o},

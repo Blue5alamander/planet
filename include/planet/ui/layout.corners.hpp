@@ -22,8 +22,7 @@ namespace planet::ui {
         using bottom_left_type = BL;
         using bottom_right_type = BR;
 
-        explicit corners(
-                affine::rectangle2d const &w,
+        corners(affine::rectangle2d const &w,
                 top_left_type tl,
                 top_right_type tr,
                 bottom_left_type bl,

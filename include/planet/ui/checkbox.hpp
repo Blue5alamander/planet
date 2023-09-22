@@ -12,8 +12,7 @@ namespace planet::ui {
         using superclass = planet::ui::widget<Renderer>;
 
       public:
-        explicit checkbox(
-                std::string_view const n, Texture on, Texture off, bool &v)
+        checkbox(std::string_view const n, Texture on, Texture off, bool &v)
         : superclass{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
 
         using constrained_type =

@@ -20,20 +20,19 @@ namespace planet::ui {
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
 
-        explicit breakable_row(collection_type c, float const hp, float const vp)
+        breakable_row(collection_type c, float const hp, float const vp)
         : superclass{"planet::ui::breakable_row<C>", std::move(c)},
           hpadding{hp},
           vpadding{vp} {}
-        explicit breakable_row(
+        breakable_row(
                 std::string_view const n,
                 collection_type c,
                 float const hp,
                 float const vp)
         : superclass{n, std::move(c)}, hpadding{hp}, vpadding{vp} {}
-        explicit breakable_row(collection_type c, float const p)
+        breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
-        explicit breakable_row(
-                std::string_view const n, collection_type c, float const p)
+        breakable_row(std::string_view const n, collection_type c, float const p)
         : breakable_row{n, std::move(c), p, p} {}
 
       private:

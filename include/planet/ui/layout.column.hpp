@@ -21,10 +21,9 @@ namespace planet::ui {
         float padding = {};
 
         column() : superclass{"planet::ui::column<>"} {}
-        explicit column(collection_type c, float const p = {})
+        column(collection_type c, float const p = {})
         : superclass{"planet::ui::column<>", std::move(c)}, padding{p} {}
-        explicit column(
-                std::string_view const n, collection_type c, float const p = {})
+        column(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
 
       private:
@@ -73,19 +72,17 @@ namespace planet::ui {
         /// Padding between items
         float padding = {};
 
-        explicit column(
-                collection_type i,
-                float const p = {},
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
+        column(collection_type i,
+               float const p = {},
+               felspar::source_location const &loc =
+                       felspar::source_location::current())
         : superclass{"planet::ui::column<std::tuple<Pack...>>", std::move(i), loc},
           padding{p} {}
-        explicit column(
-                std::string_view const n,
-                collection_type i,
-                float const p = {},
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
+        column(std::string_view const n,
+               collection_type i,
+               float const p = {},
+               felspar::source_location const &loc =
+                       felspar::source_location::current())
         : superclass{n, std::move(i), loc}, padding{p} {}
 
       private:
