@@ -2,6 +2,8 @@
 
 
 #include <felspar/coro/coroutine.hpp>
+#include <felspar/coro/stream.hpp>
+#include <felspar/coro/task.hpp>
 
 #include <set>
 #include <vector>
@@ -82,8 +84,21 @@ namespace planet::queue {
                 return awaitable{this};
             }
         };
-
         auto values() { return consumer{this}; }
+
+
+        felspar::coro::stream<value_type> stream() {
+            auto s = values();
+            while (true) { co_yield co_await s.next(); }
+        }
+
+
+        template<typename F = value_type>
+        felspar::coro::task<void> forward(pmc<F> &q) {
+            auto v = values();
+            while (true) { q.push(co_await v.next()); }
+        }
+
 
       private:
         std::set<consumer *> consumers;
