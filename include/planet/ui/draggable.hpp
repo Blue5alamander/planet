@@ -56,8 +56,9 @@ namespace planet::ui {
             hotspot.move_to({r.top_left, hotspot.constraints().extents()});
         }
         felspar::coro::task<void> behaviour() override {
+            auto mouse = superclass::events.mouse.values();
             while (true) {
-                auto event = co_await superclass::events.mouse.next();
+                auto event = co_await mouse.next();
                 if (target and event.button == events::button::left) {
                     if (event.action == events::action::down) {
                         drag_last = event.location;

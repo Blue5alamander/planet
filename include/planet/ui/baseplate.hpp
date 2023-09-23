@@ -4,8 +4,7 @@
 #include <planet/log.hpp>
 #include <planet/ui/widget.hpp>
 
-#include <felspar/coro/start.hpp>
-
+#include <felspar/coro/starter.hpp>
 
 
 namespace planet::ui {
@@ -105,8 +104,9 @@ namespace planet::ui {
         felspar::coro::starter<> forwarders;
         felspar::coro::starter<>::task_type forward_mouse() {
             try {
+                auto mouse = events.mouse.values();
                 while (true) {
-                    auto const m = co_await events.mouse.next();
+                    auto const m = co_await mouse.next();
                     /// Look for the widget that should now have soft focus
                     soft_focus = nullptr;
                     for (auto &w : widgets) {
@@ -128,8 +128,9 @@ namespace planet::ui {
         }
         felspar::coro::starter<>::task_type forward_keys() {
             try {
+                auto key = events.key.values();
                 while (true) {
-                    auto const k = co_await events.key.next();
+                    auto const k = co_await key.next();
                     if (auto *send_to = find_focused_widget(); send_to) {
                         send_to->ptr->events.key.push(k);
                     }
@@ -140,8 +141,9 @@ namespace planet::ui {
         }
         felspar::coro::starter<>::task_type forward_scroll() {
             try {
+                auto scroll = events.scroll.values();
                 while (true) {
-                    auto const s = co_await events.scroll.next();
+                    auto const s = co_await scroll.next();
                     if (auto *send_to = find_focused_widget(); send_to) {
                         send_to->ptr->events.scroll.push(s);
                     }
