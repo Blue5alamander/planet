@@ -12,12 +12,12 @@ namespace planet::events {
 
 
     /// ## Events bus
-    struct bus {
-        /// ### Raw event busses
-        queue::pmc<events::key> key;
-        queue::pmc<events::mouse> mouse;
-        queue::pmc<events::quit> quit;
-        queue::pmc<events::scroll> scroll;
+    struct queue {
+        /// ### Raw event queues
+        planet::queue::pmc<events::key> key;
+        planet::queue::pmc<events::mouse> mouse;
+        planet::queue::pmc<events::quit> quit;
+        planet::queue::pmc<events::scroll> scroll;
     };
 
 

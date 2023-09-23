@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/events/bus.hpp>
+#include <planet/events/queue.hpp>
 #include <planet/ui/reflowable.hpp>
 #include <planet/ui/panel.hpp>
 
@@ -33,7 +33,7 @@ namespace planet::ui {
 
 
         /// ### Events going to this widget
-        events::bus events;
+        events::queue events;
 
 
         /// ### Add a widget to a base plate so it can receive events

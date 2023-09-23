@@ -23,6 +23,7 @@ namespace planet::ui {
         };
         std::vector<widget_> widgets;
 
+
       public:
         /// ### Construction
         baseplate() {
@@ -40,13 +41,14 @@ namespace planet::ui {
         /// ### Base panel for local transformations
         panel pixels;
 
+
         /// ### Meta-data
         std::size_t widget_count() const noexcept { return widgets.size(); }
 
 
         /// ### Event inputs and settings
         events::mouse_settings mouse_settings;
-        events::bus events;
+        events::queue events;
 
 
         /// ### Register and remove widgets from event routing
