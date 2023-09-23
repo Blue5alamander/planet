@@ -1,11 +1,11 @@
 #pragma once
 
 
+#include <planet/log.hpp>
 #include <planet/ui/widget.hpp>
 
 #include <felspar/coro/start.hpp>
 
-#include <iostream>
 
 
 namespace planet::ui {
@@ -123,9 +123,7 @@ namespace planet::ui {
                     }
                 }
             } catch (std::exception const &e) {
-                std::cerr << "Baseplate mouse forwarding exception: "
-                          << e.what() << '\n';
-                std::terminate();
+                log::critical("Baseplate mouse forwarding exception", e.what());
             }
         }
         felspar::coro::starter<>::task_type forward_keys() {
@@ -137,9 +135,7 @@ namespace planet::ui {
                     }
                 }
             } catch (std::exception const &e) {
-                std::cerr << "Baseplate key forwarding exception: " << e.what()
-                          << '\n';
-                std::terminate();
+                log::critical("Baseplate key forwarding exception", e.what());
             }
         }
         felspar::coro::starter<>::task_type forward_scroll() {
@@ -151,9 +147,8 @@ namespace planet::ui {
                     }
                 }
             } catch (std::exception const &e) {
-                std::cerr << "Baseplate scroll forwarding exception: "
-                          << e.what() << '\n';
-                std::terminate();
+                log::critical(
+                        "Baseplate scroll forwarding exception", e.what());
             }
         }
     };
