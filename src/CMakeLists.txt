@@ -20,6 +20,8 @@ add_library(planet
         time.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
+target_compile_definitions(planet PRIVATE
+    LOG_ROOT_DIRECTORY="${PLANET_LOG_ROOT_DIRECTORY}")
 target_link_libraries(planet
         felspar-io
         felspar-parse

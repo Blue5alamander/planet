@@ -17,6 +17,8 @@ using namespace std::literals;
 
 
 namespace {
+    constexpr std::string_view log_root_directory = LOG_ROOT_DIRECTORY;
+
     auto g_start_time() {
         static auto st = std::chrono::steady_clock::now();
         return st;
@@ -138,9 +140,14 @@ namespace {
         }
         planet::serialise::load_buffer buffer{m.payload.cmemory()};
         show(buffer, 0, ' ');
-        std::cout << " \33[0;37m" << m.location.function_name() << ' '
-                  << m.location.file_name() << ':' << m.location.line() << ':'
-                  << m.location.column() << "\33[0;39m" << std::endl;
+        std::string_view fn{m.location.file_name()};
+        if (not log_root_directory.empty()
+            and fn.starts_with(log_root_directory)) {
+            fn.remove_prefix(log_root_directory.size() + 1);
+        }
+        std::cout << " \33[0;37m" << m.location.function_name() << ' ' << fn
+                  << ':' << m.location.line() << ':' << m.location.column()
+                  << "\33[0;39m" << std::endl;
     }
 
 
