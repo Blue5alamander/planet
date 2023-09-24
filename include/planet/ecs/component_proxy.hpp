@@ -28,8 +28,12 @@ namespace planet::ecs {
 
 
         /// ### Fetch the component
-        [[nodiscard]] component_type *get();
-        [[nodiscard]] component_type const *get() const;
+        [[nodiscard]] component_type *
+                get(felspar::source_location const & =
+                            felspar::source_location::current());
+        [[nodiscard]] component_type const *
+                get(felspar::source_location const & =
+                            felspar::source_location::current()) const;
         [[nodiscard]] component_type *operator->() {
             /// TODO Check for nullptr being returned
             return get();
@@ -49,7 +53,9 @@ namespace planet::ecs {
 
 
         /// ### Destroy the component
-        void remove();
+        void
+                remove(felspar::source_location const & =
+                               felspar::source_location::current());
 
 
       private:

@@ -29,6 +29,12 @@ void planet::ecs::detail::throw_component_not_present(
 }
 
 
+void planet::ecs::detail::throw_entity_not_valid(
+        felspar::source_location const &loc) {
+    throw felspar::stdexcept::logic_error{"This entity is not valid", loc};
+}
+
+
 namespace {
     planet::telemetry::counter create_count{"planet_ecs_entities_created"};
     planet::telemetry::counter destroy_count{"planet_ecs_entities_destroyed"};

@@ -21,6 +21,9 @@ namespace planet::ecs {
         [[noreturn]] void throw_component_not_present(
                 felspar::source_location const & =
                         felspar::source_location::current());
+        [[noreturn]] void throw_entity_not_valid(
+                felspar::source_location const & =
+                        felspar::source_location::current());
     }
 
 
@@ -32,10 +35,19 @@ namespace planet::ecs {
         template<typename... Storages>
         friend class entities;
 
-        void assert_entities() const {
+        void assert_entities(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
             if (not entities or not entities_storage_index) {
-                detail::throw_no_entities_instance();
+                detail::throw_no_entities_instance(loc);
             }
+        }
+        void assert_entities(
+                entity_id const &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            assert_entities();
+            if (not eid) { detail::throw_entity_not_valid(loc); }
         }
 
       public:
@@ -89,7 +101,7 @@ namespace planet::ecs {
                         felspar::source_location::current()) {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
-                assert_entities();
+                assert_entities(eid, loc);
                 std::get<ci.value()>(components).at(eid.id()) =
                         std::move(component);
                 eid.mask(*entities_storage_index) |= (1 << ci.value());
@@ -108,7 +120,7 @@ namespace planet::ecs {
         void remove_component(entity_id &eid) {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
-                assert_entities();
+                assert_entities(eid);
                 std::get<ci.value()>(components).at(eid.id()).reset();
                 eid.mask(*entities_storage_index) &= ~(1 << ci.value());
             } else {
@@ -118,9 +130,12 @@ namespace planet::ecs {
 
         /// #### Check if a component is present
         template<typename C>
-        [[nodiscard]] bool has_component(entity_id const &eid) const {
+        [[nodiscard]] bool has_component(
+                entity_id const &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
             static constexpr auto ci = component_index<C>();
-            assert_entities();
+            assert_entities(eid, loc);
             return eid.mask(*entities_storage_index) bitand (1 << ci);
         }
 
@@ -131,7 +146,7 @@ namespace planet::ecs {
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
-            if (has_component<C>(eid)) {
+            if (has_component<C>(eid, loc)) {
                 return &std::get<ci>(components).at(eid.id()).value(loc);
             } else {
                 return nullptr;
@@ -164,7 +179,7 @@ namespace planet::ecs {
                 iterate(L &&lambda,
                         felspar::source_location const &loc =
                                 felspar::source_location::current()) {
-            assert_entities();
+            assert_entities(loc);
             types<L> traits;
             for (std::size_t idx{}; idx < std::get<0>(components).size();
                  ++idx) {
@@ -183,7 +198,7 @@ namespace planet::ecs {
                         L &&lambda,
                         felspar::source_location const &loc =
                                 felspar::source_location::current()) {
-            assert_entities();
+            assert_entities(loc);
             types<L> traits;
             for (auto &&w : range) {
                 auto eid = w.lock();
@@ -261,33 +276,35 @@ namespace planet::ecs {
 
 
     template<typename Component, typename... Components>
-    inline auto component_proxy<Component, Components...>::get()
-            -> component_type * {
+    inline auto component_proxy<Component, Components...>::get(
+            felspar::source_location const &loc) -> component_type * {
         static constexpr auto ci =
                 storage_type::template component_index<Component>();
-        if (store.template has_component<Component>(eid)) {
+        if (store.template has_component<Component>(eid, loc)) {
             return &std::get<ci>(store.components).at(eid.id()).value();
         } else {
             return nullptr;
         }
     }
     template<typename Component, typename... Components>
-    inline auto component_proxy<Component, Components...>::get() const
+    inline auto component_proxy<Component, Components...>::get(
+            felspar::source_location const &loc) const
             -> component_type const * {
         static constexpr auto ci =
                 storage_type::template component_index<Component>();
-        if (store.template has_component<Component>(eid)) {
+        if (store.template has_component<Component>(eid, loc)) {
             return &std::get<ci>(store.components).at(eid.id()).value();
         } else {
             return nullptr;
         }
     }
     template<typename Component, typename... Components>
-    inline void component_proxy<Component, Components...>::remove() {
+    inline void component_proxy<Component, Components...>::remove(
+            felspar::source_location const &loc) {
         static constexpr auto ci =
                 storage_type::template maybe_component_index<Component>();
         if constexpr (ci) {
-            store.assert_entities();
+            store.assert_entities(eid, loc);
             auto &hp = std::get<ci.value()>(store.components).at(eid.id());
             hp.reset();
             eid.mask(*store.entities_storage_index) &= ~(1 << ci.value());
