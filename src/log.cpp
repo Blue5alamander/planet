@@ -138,7 +138,9 @@ namespace {
         }
         planet::serialise::load_buffer buffer{m.payload.cmemory()};
         show(buffer, 0, ' ');
-        std::cout << std::endl;
+        std::cout << " \33[0;37m" << m.location.function_name() << ' '
+                  << m.location.file_name() << ':' << m.location.line() << ':'
+                  << m.location.column() << "\33[0;39m" << std::endl;
     }
 
 
@@ -159,7 +161,9 @@ namespace {
                 {
                     planet::serialise::save_buffer ab;
                     save(ab, g_start_time());
-                    messages.push({planet::log::level::info, ab.complete()});
+                    messages.push(
+                            {planet::log::level::info, ab.complete(),
+                             felspar::source_location::current()});
                     signal.send({});
                 }
                 warden.run(
@@ -229,9 +233,12 @@ namespace {
     planet::telemetry::counter message_count{"planet_log_message"};
     planet::telemetry::real_time_rate message_rate{"planet_log_message", 2s};
 }
-void planet::log::detail::write_log(level const l, serialise::shared_bytes b) {
+void planet::log::detail::write_log(
+        level const l,
+        serialise::shared_bytes b,
+        felspar::source_location const &loc) {
     auto &lt = g_log_thread();
-    lt.messages.push({l, std::move(b)});
+    lt.messages.push({l, std::move(b), loc});
     lt.signal.send({});
     ++message_count;
     message_rate.tick();

@@ -48,62 +48,118 @@ namespace planet::log {
     inline std::atomic<level> active{level::debug};
 
 
+    namespace detail {
+        inline thread_local serialise::save_buffer ab;
+        void write_log(
+                level,
+                serialise::shared_bytes,
+                felspar::source_location const &);
+    }
+
+
     /// ## Log a message
     template<typename... Ms>
-    void item(level, Ms &&...);
+    struct item {
+        item(level const l,
+             Ms &&...m,
+             felspar::source_location const &loc =
+                     felspar::source_location::current()) {
+            if (l >= active.load()) {
+                (save(detail::ab, std::forward<Ms>(m)), ...);
+                detail::write_log(l, detail::ab.complete(), loc);
+            }
+        }
+    };
+    template<typename... Ms>
+    item(level, Ms...) -> item<Ms...>;
 
 
     /// ## Log messages at a given level
     template<typename... Ms>
-    void debug(Ms &&...m) {
-        item(level::debug, std::forward<Ms>(m)...);
-    }
-    template<typename... Ms>
-    void info(Ms &&...m) {
-        item(level::info, std::forward<Ms>(m)...);
-    }
-    template<typename... Ms>
-    void warning(Ms &&...m) {
-        item(level::warning, std::forward<Ms>(m)...);
-    }
-    template<typename... Ms>
-    void error(Ms &&...m) {
-        item(level::error, std::forward<Ms>(m)...);
-    }
-    template<typename... Ms>
-    [[noreturn]] void critical(Ms &&...m) {
-        item(level::critical, std::forward<Ms>(m)...);
-        /**
-         * Wait for a bit here.
-         *
-         * The terminate that is actually meaningful is the one in the
-         * [implementation file](../../src/log.cpp) which will cause the program
-         * to terminate after dealing with this log message. The one here is
-         * just to ensure that this function doesn't actually return.
-         */
-        ::sleep(2);
-        std::terminate();
-    }
-
-
-    namespace detail {
-        inline thread_local serialise::save_buffer ab;
-        void write_log(level, serialise::shared_bytes);
-    }
-
-    template<typename... Ms>
-    void item(level const l, Ms &&...m) {
-        if (l >= active.load()) {
-            (save(detail::ab, std::forward<Ms>(m)), ...);
-            detail::write_log(l, detail::ab.complete());
+    struct debug {
+        debug(Ms const &...m,
+              felspar::source_location const &loc =
+                      felspar::source_location::current()) {
+            if (level::debug >= active.load()) {
+                (save(detail::ab, m), ...);
+                detail::write_log(level::debug, detail::ab.complete(), loc);
+            }
         }
-    }
+    };
+    template<typename... Ms>
+    debug(Ms...) -> debug<Ms...>;
+
+    template<typename... Ms>
+    struct info {
+        info(Ms const &...m,
+             felspar::source_location const &loc =
+                     felspar::source_location::current()) {
+            if (level::info >= active.load()) {
+                (save(detail::ab, m), ...);
+                detail::write_log(level::info, detail::ab.complete(), loc);
+            }
+        }
+    };
+    template<typename... Ms>
+    info(Ms...) -> info<Ms...>;
+
+    template<typename... Ms>
+    struct warning {
+        warning(Ms const &...m,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            if (level::warning >= active.load()) {
+                (save(detail::ab, m), ...);
+                detail::write_log(level::warning, detail::ab.complete(), loc);
+            }
+        }
+    };
+    template<typename... Ms>
+    warning(Ms...) -> warning<Ms...>;
+
+    template<typename... Ms>
+    struct error {
+        error(Ms const &...m,
+              felspar::source_location const &loc =
+                      felspar::source_location::current()) {
+            if (level::error >= active.load()) {
+                (save(detail::ab, m), ...);
+                detail::write_log(level::error, detail::ab.complete(), loc);
+            }
+        }
+    };
+    template<typename... Ms>
+    error(Ms...) -> error<Ms...>;
+
+    template<typename... Ms>
+    struct critical {
+        [[noreturn]] critical(
+                Ms const &...m,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            (save(detail::ab, m), ...);
+            detail::write_log(level::critical, detail::ab.complete(), loc);
+            /**
+             * Wait for a bit here.
+             *
+             * The terminate that is actually meaningful is the one in the
+             * [implementation file](../../src/log.cpp) which will cause the
+             * program to terminate after dealing with this log message. The one
+             * here is just to ensure that this function doesn't actually return.
+             */
+            ::sleep(2);
+            std::exit(121);
+        }
+    };
+    template<typename... Ms>
+    critical(Ms...) -> critical<Ms...>;
 
 
-    /// ## Log messages
+    /// ## Log message storage
     struct message {
         log::level level;
         serialise::shared_bytes payload;
+        felspar::source_location location;
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
     };
