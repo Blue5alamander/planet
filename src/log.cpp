@@ -208,7 +208,9 @@ namespace {
                     for (auto const &message : block) {
                         print(message);
                         if (message.level == planet::log::level::critical) {
-                            std::terminate();
+                            std::cout << "\33[0;31mCritical log message "
+                                         "forcing unclean shutdown\33[0;39m\n";
+                            std::exit(120);
                         }
                     }
                 }
