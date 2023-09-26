@@ -6,6 +6,7 @@
 #include <planet/ecs/type_index.hpp>
 
 #include <felspar/memory/holding_pen.hpp>
+#include <felspar/memory/stable_vector.hpp>
 
 
 namespace planet::ecs {
@@ -224,8 +225,8 @@ namespace planet::ecs {
          * raw memory type here instead.
          */
         template<typename C>
-        using component_storage_type =
-                std::vector<felspar::memory::holding_pen<C>>;
+        using component_storage_type = felspar::memory::
+                stable_vector<felspar::memory::holding_pen<C>, 32>;
         using storage_type = std::tuple<component_storage_type<Components>...>;
 
         /// The index of this storage
@@ -236,14 +237,6 @@ namespace planet::ecs {
         }
         detail::entity_lookup *entities = nullptr;
         std::optional<std::size_t> entities_storage_index;
-
-        /// TODO Use a ring so we can chain (like a rope data structure)
-        // struct ring {
-        //     ring(std::size_t);
-        //
-        //     storage_type storage;
-        // };
-        // std::unordered_map<std::size_t, ring> chain;
         storage_type components;
 
         template<typename T>
