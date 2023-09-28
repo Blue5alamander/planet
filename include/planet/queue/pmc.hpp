@@ -30,9 +30,18 @@ namespace planet::queue {
 
         pmc() = default;
         pmc(pmc const &) = delete;
-        pmc(pmc &&) = delete;
+        pmc(pmc &&p)
+        : consumers{std::move(p.consumers)},
+          continuations{std::move(p.continuations)} {
+            for (auto &c : consumers) { c->self = this; }
+        }
         pmc &operator=(pmc const &) = delete;
-        pmc &operator=(pmc &&) = delete;
+        pmc &operator=(pmc &&p) {
+            consumers = std::move(p.consumers);
+            for (auto &c : consumers) { c->self = this; }
+            continuations = std::move(p.continuations);
+            return *this;
+        }
 
 
         void push(T t) {
