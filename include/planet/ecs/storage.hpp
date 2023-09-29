@@ -192,7 +192,7 @@ namespace planet::ecs {
                 }
             }
         }
-        /// #### Iterate over a range of `weak_entity_id`s
+        /// #### Iterate over a range of `entity_id`s
         template<typename Range, typename L>
         void
                 iterate(Range &&range,
@@ -201,11 +201,9 @@ namespace planet::ecs {
                                 felspar::source_location::current()) {
             assert_entities(loc);
             types<L> traits;
-            for (auto &&w : range) {
-                auto eid = w.lock();
-                if (eid
-                    and eid.mask(*entities_storage_index) bitand traits.mask) {
-                    traits.invoke(std::move(eid), lambda, *this, loc);
+            for (auto &&eid : range) {
+                if (eid.mask(*entities_storage_index) bitand traits.mask) {
+                    traits.invoke(eid, lambda, *this, loc);
                 }
             }
         }
