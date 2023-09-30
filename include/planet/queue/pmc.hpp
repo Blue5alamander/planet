@@ -42,6 +42,9 @@ namespace planet::queue {
             continuations = std::move(p.continuations);
             return *this;
         }
+        ~pmc() {
+            for (auto &c : consumers) { c->self = nullptr; }
+        }
 
 
         void push(T t) {
@@ -72,7 +75,9 @@ namespace planet::queue {
 
 
           public:
-            ~consumer() { self->consumers.erase(this); }
+            ~consumer() {
+                if (self) { self->consumers.erase(this); }
+            }
 
             auto next() {
                 struct awaitable {
