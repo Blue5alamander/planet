@@ -27,6 +27,12 @@ namespace planet::ecs {
         using storage_type = storage<Components...>;
 
 
+        /// ### Queries
+        entity_id const &id() const noexcept { return eid; }
+
+        explicit operator bool() const noexcept { return get() != nullptr; }
+
+
         /// ### Fetch the component
         [[nodiscard]] component_type *
                 get(felspar::source_location const & =
