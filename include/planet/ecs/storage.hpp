@@ -58,6 +58,9 @@ namespace planet::ecs {
         static constexpr std::size_t component_count = sizeof...(Components);
         using indexes = std::index_sequence_for<Components...>;
 
+        template<typename C>
+        using proxy_for = component_proxy<C, Components...>;
+
         template<typename L>
         static constexpr std::optional<std::size_t> maybe_component_index() {
             return detail::component_index_sequence<L, Components...>(
@@ -106,15 +109,15 @@ namespace planet::ecs {
                 std::get<ci.value()>(components).at(eid.id()) =
                         std::move(component);
                 eid.mask(*entities_storage_index) |= (1 << ci.value());
-                return component_proxy<C, Components...>{*this, eid};
+                return proxy_for<C>{*this, eid};
             } else {
                 detail::throw_component_type_not_valid(loc);
             }
         }
         /// #### Provide a component proxy
         template<typename C>
-        [[nodiscard]] auto get_proxy_for(entity_id const &eid) {
-            return component_proxy<C, Components...>{*this, eid};
+        [[nodiscard]] auto get_proxy_for(entity_id eid) {
+            return proxy_for<C>{*this, std::move(eid)};
         }
         /// #### Remove a component from the entity
         template<typename C>
