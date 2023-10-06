@@ -3,6 +3,8 @@
 
 #include <planet/ecs/entity_id.hpp>
 
+#include <felspar/exceptions.hpp>
+
 
 namespace planet::ecs {
 
@@ -17,14 +19,24 @@ namespace planet::ecs {
      */
     template<typename Component, typename... Components>
     class component_proxy {
-        friend class storage<Components...>;
+        using storage_type = storage<Components...>;
+        friend storage_type;
 
-        storage<Components...> &store;
+        storage_type &store;
         entity_id eid;
+
+        template<typename C>
+        static C *assert_not_null(C *p) {
+            if (p == nullptr) {
+                throw felspar::stdexcept::logic_error{
+                        "The component that this proxies does not exist"};
+            } else {
+                return p;
+            }
+        }
 
       public:
         using component_type = Component;
-        using storage_type = storage<Components...>;
 
 
         /// ### Queries
@@ -41,20 +53,16 @@ namespace planet::ecs {
                 get(felspar::source_location const & =
                             felspar::source_location::current()) const;
         [[nodiscard]] component_type *operator->() {
-            /// TODO Check for nullptr being returned
-            return get();
+            return assert_not_null(get());
         }
         [[nodiscard]] component_type const *operator->() const {
-            /// TODO Check for nullptr being returned
-            return get();
+            return assert_not_null(get());
         }
         [[nodiscard]] component_type &operator*() {
-            /// TODO Check for nullptr being returned
-            return *get();
+            return *assert_not_null(get());
         }
         [[nodiscard]] component_type const &operator*() const {
-            /// TODO Check for nullptr being returned
-            return *get();
+            return *assert_not_null(get());
         }
 
 
