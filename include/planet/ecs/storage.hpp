@@ -127,8 +127,8 @@ namespace planet::ecs {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
                 assert_entities(eid);
+                eid.mask(*entities_storage_index, loc) &= ~(1 << ci.value());
                 std::get<ci.value()>(components).at(eid.id()).reset();
-                eid.mask(*entities_storage_index) &= ~(1 << ci.value());
             } else {
                 detail::throw_component_type_not_valid(loc);
             }
