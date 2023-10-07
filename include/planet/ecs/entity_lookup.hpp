@@ -111,11 +111,15 @@ namespace planet::ecs {
     inline detail::entity const *entity_id::operator->() const {
         return &owner->entity(m_id, generation);
     }
-    inline mask_type &entity_id::mask(std::size_t const storage_index) {
-        return owner->mask_for(storage_index, m_id, generation);
+    inline mask_type &entity_id::mask(
+            std::size_t const storage_index,
+            felspar::source_location const &loc) {
+        return owner->mask_for(storage_index, m_id, generation, loc);
     }
-    inline mask_type entity_id::mask(std::size_t const storage_index) const {
-        return owner->mask_for(storage_index, m_id, generation);
+    inline mask_type entity_id::mask(
+            std::size_t const storage_index,
+            felspar::source_location const &loc) const {
+        return owner->mask_for(storage_index, m_id, generation, loc);
     }
 
     inline entity_id::operator bool() const noexcept {

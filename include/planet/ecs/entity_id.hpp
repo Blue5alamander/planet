@@ -51,8 +51,14 @@ namespace planet::ecs {
         detail::entity *operator->();
         detail::entity const *operator->() const;
 
-        mask_type &mask(std::size_t);
-        mask_type mask(std::size_t) const;
+        mask_type &
+                mask(std::size_t,
+                     felspar::source_location const & =
+                             felspar::source_location::current());
+        mask_type
+                mask(std::size_t,
+                     felspar::source_location const & =
+                             felspar::source_location::current()) const;
 
         friend bool operator==(entity_id const &, entity_id const &) noexcept =
                 default;
