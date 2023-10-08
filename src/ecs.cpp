@@ -23,9 +23,22 @@ void planet::ecs::detail::throw_component_type_not_valid(
 
 
 void planet::ecs::detail::throw_component_not_present(
+        entity_id const &eid,
+        std::type_info const &ti,
         felspar::source_location const &loc) {
-    throw felspar::stdexcept::logic_error{
-            "This entity doesn't have that component at this time", loc};
+    struct component_not_present : public felspar::stdexcept::logic_error {
+        component_not_present(
+                entity_id const eid,
+                std::type_info const &ti,
+                felspar::source_location const &loc)
+        : felspar::stdexcept::logic_error{
+                "This entity doesn't have that component at this time\n"
+                "Entity id "
+                        + std::to_string(eid.id())
+                        + " type index: " + std::string{ti.name()},
+                loc} {}
+    };
+    throw component_not_present{eid, ti, loc};
 }
 
 

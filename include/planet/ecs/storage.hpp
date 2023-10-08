@@ -20,6 +20,8 @@ namespace planet::ecs {
                 felspar::source_location const & =
                         felspar::source_location::current());
         [[noreturn]] void throw_component_not_present(
+                entity_id const &,
+                std::type_info const &,
                 felspar::source_location const & =
                         felspar::source_location::current());
         [[noreturn]] void throw_entity_not_valid(
@@ -167,7 +169,7 @@ namespace planet::ecs {
             if (auto *p = maybe_get_component<C>(eid, loc); p) {
                 return *p;
             } else {
-                detail::throw_component_not_present(loc);
+                detail::throw_component_not_present(eid, typeid(C), loc);
             }
         }
 
