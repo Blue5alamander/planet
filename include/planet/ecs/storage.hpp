@@ -121,8 +121,9 @@ namespace planet::ecs {
         }
         /// #### Remove a component from the entity
         template<typename C>
-        void remove_component(entity_id &eid,
-                              felspar::source_location const &loc =
+        void remove_component(
+                entity_id &eid,
+                felspar::source_location const &loc =
                         felspar::source_location::current()) {
             static constexpr auto ci = maybe_component_index<C>();
             if constexpr (ci) {
