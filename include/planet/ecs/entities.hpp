@@ -36,6 +36,7 @@ namespace planet::ecs {
             /// storages
             std::array<mask_type, sizeof...(Storages)> masks{};
         };
+        /// TODO Use a stable vector
         std::vector<e_slot> e_slots;
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
