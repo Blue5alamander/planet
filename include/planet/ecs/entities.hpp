@@ -256,15 +256,36 @@ namespace planet::ecs {
         }
 
 
-        void destroy(std::size_t const id) override {
-            ++e_slots[id].entity.generation;
-            [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
-                (std::get<Is>(stores).destroy(id), ...);
+        void
+                acquire(entity_id const &eid,
+                        felspar::source_location const &) override {
+            auto &entity = e_slots[eid.m_id].entity;
+            if (entity.generation == eid.generation) {
+                entity.increment_strong();
             }
-            (indexes{});
-            auto &c = e_slots[id].masks;
-            std::fill(c.begin(), c.end(), 0);
-            detail::count_destroy_entity();
+        }
+        void release(entity_id const &eid) override {
+            auto &entity = e_slots[eid.m_id].entity;
+            if (entity.generation == eid.generation) {
+                if (entity.decrement_strong() == 0) { destroy(eid); }
+            }
+        }
+
+        void destroy(entity_id const &eid) override {
+            auto &entity = e_slots[eid.m_id].entity;
+            if (entity.generation == eid.generation) {
+                entity.generation = eid.generation + 1;
+                entity.strong_count = {};
+                [ this, id = eid.m_id ]<std::size_t... Is>(
+                        std::index_sequence<Is...>) {
+                    (std::get<Is>(stores).destroy(id), ...);
+                }
+                (indexes{});
+                auto &c = e_slots[eid.m_id].masks;
+                std::fill(c.begin(), c.end(), 0);
+                detail::count_destroy_entity();
+                /// TODO Add to free list
+            }
         }
 
 

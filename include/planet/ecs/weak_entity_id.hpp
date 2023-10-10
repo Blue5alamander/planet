@@ -13,43 +13,27 @@ namespace planet::ecs {
      */
     class weak_entity_id final {
         detail::entity_lookup *owner = nullptr;
-
-        void increment() {
-            if (owner) { owner->entity(m_id, generation).increment_weak(); }
-        }
-        void decrement() {
-            if (owner
-                and owner->entity(m_id).decrement_weak(generation) == 0u) {
-                owner->release(m_id);
-            }
-        }
-
-        std::size_t generation = {};
         std::size_t m_id = {};
+        std::size_t generation = {};
 
       public:
         weak_entity_id() = default;
         weak_entity_id(entity_id const &eid)
-        : owner{eid.owner}, generation{eid.generation}, m_id{eid.m_id} {
-            increment();
-        }
+        : owner{eid.owner}, m_id{eid.m_id}, generation{eid.generation} {}
         weak_entity_id(weak_entity_id &&w)
         : owner{std::exchange(w.owner, nullptr)},
-          generation{std::exchange(w.generation, {})},
-          m_id{std::exchange(w.m_id, {})} {}
+          m_id{std::exchange(w.m_id, {})},
+          generation{std::exchange(w.generation, {})} {}
         weak_entity_id(weak_entity_id const &w)
-        : owner{w.owner}, generation{w.generation}, m_id{w.m_id} {
-            increment();
-        }
-        ~weak_entity_id() { decrement(); }
+        : owner{w.owner}, m_id{w.m_id}, generation{w.generation} {}
+        ~weak_entity_id() {}
 
         std::size_t id() const noexcept { return m_id; }
 
         weak_entity_id &operator=(weak_entity_id &&w) {
-            decrement();
             owner = std::exchange(w.owner, nullptr);
-            generation = std::exchange(w.generation, {});
             m_id = std::exchange(w.m_id, {});
+            generation = std::exchange(w.generation, {});
             return *this;
         }
         weak_entity_id &operator=(weak_entity_id const &);

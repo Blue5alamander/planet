@@ -29,14 +29,6 @@ namespace planet::ecs::detail {
         void increment_strong() { ++strong_count; }
         auto decrement_strong() { return --strong_count; }
 
-        /// ### Weak reference count
-        std::size_t weak_count = 0;
-        void increment_weak() { ++weak_count; }
-        auto decrement_weak(std::size_t) {
-            /// TODO Check generation
-            return --weak_count;
-        }
-
       public:
         explicit entity() {}
 

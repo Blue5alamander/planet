@@ -52,9 +52,19 @@ namespace planet::ecs {
                     felspar::source_location const & =
                             felspar::source_location::current()) const = 0;
 
+
           protected:
-            virtual void release(std::size_t) {}
-            virtual void destroy(std::size_t) = 0;
+            /// ### Lifetime
+
+            /// #### Acquire/release strong/weak counts
+            virtual void
+                    acquire(entity_id const &,
+                            felspar::source_location const & =
+                                    felspar::source_location::current()) = 0;
+            virtual void release(entity_id const &) = 0;
+
+            /// #### Force destroy the entity
+            virtual void destroy(entity_id const &) = 0;
         };
     }
 
@@ -80,13 +90,10 @@ namespace planet::ecs {
     inline entity_id::~entity_id() { decrement(); }
 
     inline void entity_id::increment(felspar::source_location const &loc) {
-        if (owner) { owner->entity(m_id, generation, loc).increment_strong(); }
+        if (owner) { owner->acquire(*this, loc); }
     }
     inline void entity_id::decrement() {
-        if (owner
-            and owner->entity(m_id, generation).decrement_strong() == 0u) {
-            owner->destroy(m_id);
-        }
+        if (owner) { owner->release(*this); }
     }
 
     inline entity_id &entity_id::operator=(entity_id &&eid) {
