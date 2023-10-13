@@ -3,6 +3,7 @@
 
 #include <planet/ecs/component_proxy.hpp>
 #include <planet/ecs/entities.hpp>
+#include <planet/ecs/exceptions.hpp>
 #include <planet/ecs/type_index.hpp>
 
 #include <felspar/memory/holding_pen.hpp>
@@ -10,24 +11,6 @@
 
 
 namespace planet::ecs {
-
-
-    namespace detail {
-        [[noreturn]] void throw_no_entities_instance(
-                felspar::source_location const & =
-                        felspar::source_location::current());
-        [[noreturn]] void throw_component_type_not_valid(
-                felspar::source_location const & =
-                        felspar::source_location::current());
-        [[noreturn]] void throw_component_not_present(
-                entity_id const &,
-                std::type_info const &,
-                felspar::source_location const & =
-                        felspar::source_location::current());
-        [[noreturn]] void throw_entity_not_valid(
-                felspar::source_location const & =
-                        felspar::source_location::current());
-    }
 
 
     /// ## Holder for all entities

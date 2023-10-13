@@ -5,6 +5,7 @@
 * [`planet/ecs/entity.hpp`](./entity.hpp) -- An entity.
 * [`planet/ecs/entity_id.hpp`](./entity_id.hpp) -- A strong reference counted identifier for an entity.
 * [`planet/ecs/entity_lookup`](./entity_lookup.hpp) -- An abstract type used by component storage to find the entities. This is an internal implementation detail.
+* [`planet/ecs/exceptions.hpp`](./exceptions.hpp) -- Exception types than can be thrown by the ECS.
 * [`planet/ecs/forward.hpp`](./forward.hpp) -- Forward references to ECS types.
 * [`planet/ecs/storage.hpp`](./storage.hpp) -- Component storage. Games should group components into individual storages.
 * [`planet/ecs/storage_base`](./storage_base.hpp) -- Base class for component storages. An internal implementation detail.

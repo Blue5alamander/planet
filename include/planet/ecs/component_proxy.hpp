@@ -2,8 +2,7 @@
 
 
 #include <planet/ecs/entity_id.hpp>
-
-#include <felspar/exceptions.hpp>
+#include <planet/ecs/exceptions.hpp>
 
 
 namespace planet::ecs {
@@ -26,10 +25,13 @@ namespace planet::ecs {
         entity_id eid;
 
         template<typename C>
-        static C *assert_not_null(C *p) {
+        static C *assert_not_null(
+                C *p,
+                entity_id const &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
             if (p == nullptr) {
-                throw felspar::stdexcept::logic_error{
-                        "The component that this proxies does not exist"};
+                detail::throw_component_not_present(eid, typeid(C), loc);
             } else {
                 return p;
             }
@@ -50,19 +52,19 @@ namespace planet::ecs {
                 get(felspar::source_location const & =
                             felspar::source_location::current());
         [[nodiscard]] component_type const *
-                get(felspar::source_location const & =
+                get(felspar::source_location const &loc =
                             felspar::source_location::current()) const;
         [[nodiscard]] component_type *operator->() {
-            return assert_not_null(get());
+            return assert_not_null(get(), eid);
         }
         [[nodiscard]] component_type const *operator->() const {
-            return assert_not_null(get());
+            return assert_not_null(get(), eid);
         }
         [[nodiscard]] component_type &operator*() {
-            return *assert_not_null(get());
+            return *assert_not_null(get(), eid);
         }
         [[nodiscard]] component_type const &operator*() const {
-            return *assert_not_null(get());
+            return *assert_not_null(get(), eid);
         }
 
 
