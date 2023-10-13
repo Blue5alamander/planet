@@ -36,11 +36,12 @@ namespace planet::camera {
         felspar::coro::task<void> updates(felspar::io::warden &warden);
 
         /// ### Targets
+
+        /// #### Targets used by `updates`
         planet::affine::point2d target_looking_at{{}, {}};
         float target_scale{1};
         float target_rotation{};
-
-      private:
+        /// #### Values used for the projections matrix
         planet::affine::point2d current_looking_at = target_looking_at;
         float current_scale = target_scale;
         float current_rotation = target_rotation;
