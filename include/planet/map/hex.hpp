@@ -122,6 +122,16 @@ namespace planet::hexmap {
             auto const y = p.y();
             return x * x + y * y;
         }
+        /// #### Distance measured in moves
+        /**
+         * The distance between this position and the origin measured by the
+         * number of moves it would take to go from one to the other.
+         */
+        std::size_t move_distance() const noexcept {
+            auto const r = std::abs(row()), c = std::abs(column());
+            auto const same = std::min(r, c);
+            return same + std::abs(r - same) + std::abs(c - same) / 2;
+        }
         /// #### Vertex positions
         /**
          * Return the 6 vertices for the hex, starting at the top going

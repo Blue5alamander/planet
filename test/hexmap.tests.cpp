@@ -5,8 +5,11 @@
 namespace {
 
 
-    auto const coords = felspar::testsuite(
-            "hexmap/coordinates",
+    auto const suite = felspar::testsuite("hexmap");
+
+
+    auto const coords = suite.test(
+            "coordinates",
             [](auto check) {
                 check(planet::hexmap::east.column()) == 2;
                 check(planet::hexmap::east.row()) == 0;
@@ -80,8 +83,8 @@ namespace {
             });
 
 
-    auto const col_iter = felspar::testsuite(
-            "hexmap/coordinates/by_columns",
+    auto const col_iter = suite.test(
+            "coordinates/by_columns",
             [](auto check) {
                 auto even =
                         planet::hexmap::coordinates::by_column({0, 0}, {0, 0});
@@ -150,7 +153,7 @@ namespace {
             });
 
 
-    auto const dirs = felspar::testsuite("hexmap/directions", [](auto check) {
+    auto const dirs = suite.test("directions", [](auto check) {
         planet::hexmap::coordinates from{5, 7}, to{11, 7};
         check(best_direction(from, to)) == planet::hexmap::east;
         to = {11, 13};
@@ -166,34 +169,43 @@ namespace {
     });
 
 
-    auto const world =
-            felspar::testsuite("hexmap/world", [](auto check, auto &log) {
-                std::size_t calls{};
-                planet::hexmap::world_type<std::pair<long, long>, 4> w{
-                        {0, 0}, [&calls](auto const p) mutable {
-                            ++calls;
-                            return std::pair{p.column(), p.row()};
-                        }};
-                check(calls) == 0u;
+    auto const world = suite.test("world", [](auto check, auto &log) {
+        std::size_t calls{};
+        planet::hexmap::world_type<std::pair<long, long>, 4> w{
+                {0, 0}, [&calls](auto const p) mutable {
+                    ++calls;
+                    return std::pair{p.column(), p.row()};
+                }};
+        check(calls) == 0u;
 
-                check(w[{0, 0}]) == std::pair{0L, 0L};
-                check(calls) == 8u;
+        check(w[{0, 0}]) == std::pair{0L, 0L};
+        check(calls) == 8u;
 
-                check(w[{5, 7}]) == std::pair{5L, 7L};
-                check(calls) == 16u;
+        check(w[{5, 7}]) == std::pair{5L, 7L};
+        check(calls) == 16u;
 
-                auto pos = w.chunks();
-                auto p1 = pos.next()->first;
-                log << "p1 " << p1.column() << ", " << p1.row() << '\n';
-                check(p1) == planet::hexmap::coordinates{0, 0};
-                auto p2 = pos.next()->first;
-                log << "p2 " << p2.column() << ", " << p2.row() << '\n';
-                check(p2) == planet::hexmap::coordinates{4, 4};
-                check(pos.next()).is_falsey();
-            });
+        auto pos = w.chunks();
+        auto p1 = pos.next()->first;
+        log << "p1 " << p1.column() << ", " << p1.row() << '\n';
+        check(p1) == planet::hexmap::coordinates{0, 0};
+        auto p2 = pos.next()->first;
+        log << "p2 " << p2.column() << ", " << p2.row() << '\n';
+        check(p2) == planet::hexmap::coordinates{4, 4};
+        check(pos.next()).is_falsey();
+    });
 
 
-    auto const distances = felspar::testsuite("hexmap/signed_distance", [](auto check) {
+    auto const moves = suite.test("moves", [](auto check) {
+        check(planet::hexmap::coordinates{0, 0}.move_distance()) == 0u;
+        check(planet::hexmap::coordinates{1, 1}.move_distance()) == 1u;
+        check(planet::hexmap::coordinates{2, 0}.move_distance()) == 1u;
+        check(planet::hexmap::coordinates{3, 1}.move_distance()) == 2u;
+        check(planet::hexmap::coordinates{5, 1}.move_distance()) == 3u;
+        check(planet::hexmap::coordinates{6, 2}.move_distance()) == 4u;
+    });
+
+
+    auto const distances = suite.test("signed_distance", [](auto check) {
         check(planet::hexmap::signed_distance({0, 0})) == -1.0f;
         check(planet::hexmap::signed_distance({0.5f, 0})) == -0.5f;
         check(std::abs(planet::hexmap::signed_distance({1.0f, 0}))) <= 0.0e-5f;
