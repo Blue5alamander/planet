@@ -108,7 +108,7 @@ namespace planet::hexmap {
             /**
              * Given a hexagon, which is point up, with an inner radius `r`,
              * then the centre of the hex to the north-east of one centred on
-             * the origin is at location `(r, h)`. We now that the two centres
+             * the origin is at location `(r, h)`. We know that the two centres
              * are `2r` from each other, so by Pythagoras we can work out that
              * `h` must be `√3r`.
              */
