@@ -41,6 +41,10 @@ namespace planet::affine {
                 operator*(extents2d const e, float const f) noexcept {
             return {e.width * f, e.height * f};
         }
+        friend constexpr extents2d
+                operator/(extents2d const e, float const f) noexcept {
+            return {e.width / f, e.height / f};
+        }
 
 
         /// ### Addition and subtraction
