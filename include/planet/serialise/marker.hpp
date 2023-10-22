@@ -4,6 +4,7 @@
 #include <felspar/parse/concepts.hpp>
 #include <felspar/parse/endian.hpp>
 
+#include <cstdint>
 #include <string_view>
 
 
