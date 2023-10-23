@@ -1,7 +1,12 @@
 #include <planet/affine/matrix3d.hpp>
+#include <planet/affine/point3d.hpp>
 #include <felspar/test.hpp>
 
 
+static_assert(
+        sizeof(planet::affine::point3d) == sizeof(float) * 4,
+        "There must be zero extra data in the 3d point for Vulkan "
+        "compatibility");
 static_assert(
         sizeof(planet::affine::matrix3d) == sizeof(float) * 16,
         "There must be zero extra data in the matrix for Vulkan compatibility");
@@ -10,7 +15,27 @@ static_assert(
 namespace {
 
 
-    auto const mat3 = felspar::testsuite("affine3d/matrix", [](auto check) {
+    auto const suite = felspar::testsuite("affine3d");
+
+
+    auto const p3 = suite.test(
+            "point3d",
+            [](auto check) {
+                auto const p = planet::affine::point3d{2, 4, 8, 2};
+                check(p.x()) == 1.0f;
+                check(p.y()) == 2.0f;
+                check(p.z()) == 4.0f;
+            },
+            [](auto check) {
+                auto const p = planet::affine::point3d{2, 4, 8, 2}
+                        + planet::affine::point3d{3, 5, 0};
+                check(p.x()) == 4.0f;
+                check(p.y()) == 7.0f;
+                check(p.z()) == 4.0f;
+            });
+
+
+    auto const mat3 = suite.test("matrix", [](auto check) {
         auto const tr = planet::affine::matrix3d::translate(1, 2, 3);
         check(tr[{3, 0}]) == 1.0f;
         check(tr[{3, 1}]) == 2.0f;
