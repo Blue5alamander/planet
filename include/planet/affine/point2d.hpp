@@ -74,13 +74,15 @@ namespace planet::affine {
 
         /// ### Operations
         friend constexpr point2d operator+(point2d const l, point2d const r) {
-            return {l.x() + r.x(), l.y() + r.y()};
+            return {l.xh * r.h + r.xh * l.h, l.yh * r.h + r.yh * l.h,
+                    l.h * r.h};
         }
         friend constexpr point2d operator-(point2d const p) {
             return {p.xh, p.yh, -p.h};
         }
         friend constexpr point2d operator-(point2d const l, point2d const r) {
-            return {l.x() - r.x(), l.y() - r.y()};
+            return {l.xh * r.h - r.xh * l.h, l.yh * r.h - r.yh * l.h,
+                    l.h * r.h};
         }
         friend constexpr point2d operator*(point2d const p, float const s) {
             return {p.xh, p.yh, p.h / s};
