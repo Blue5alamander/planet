@@ -19,7 +19,8 @@ namespace planet::affine {
         constexpr point3d(
                 float const x, float const y, float const z, float const h)
         : xh{x}, yh{y}, zh{z}, h{h} {}
-        constexpr point3d(point2d const &p) : xh{p.xh}, yh{p.yh}, h{p.h} {}
+        constexpr point3d(point2d const &p, float const z = {})
+        : xh{p.xh}, yh{p.yh}, zh{z * p.h}, h{p.h} {}
 
 
         /// ### Queries
