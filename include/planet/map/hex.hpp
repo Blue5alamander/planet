@@ -5,6 +5,8 @@
 #include <planet/map/square.hpp>
 #include <planet/numbers.hpp>
 
+#include <algorithm>
+
 
 namespace planet::hexmap {
 
