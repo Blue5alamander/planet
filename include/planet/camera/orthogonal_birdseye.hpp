@@ -38,7 +38,7 @@ namespace planet::camera {
         /// ### Targets
 
         /// #### Targets used by `updates`
-        planet::affine::point2d target_looking_at{{}, {}};
+        planet::affine::point2d target_looking_at{};
         float target_scale{1};
         float target_rotation{};
         /// #### Values used for the projections matrix

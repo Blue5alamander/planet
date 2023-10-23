@@ -18,14 +18,14 @@ namespace planet::affine {
         /// ### Construction
         constexpr point2d() {}
         constexpr point2d(float const x, float const y) : xh{x}, yh{y} {}
-        constexpr point2d(float const x, float const y, float const h)
-        : xh{x}, yh{y}, h{h} {}
+        constexpr point2d(float const xh, float const yh, float const h)
+        : xh{xh}, yh{yh}, h{h} {}
 
         constexpr static point2d from_polar(float const mag, float const turns) {
             float const r = turns * τ;
             float const x = std::cos(r);
             float const y = std::sin(r);
-            return {x, y, 1.0f / mag};
+            return {x * mag, y * mag};
         }
 
 
@@ -74,15 +74,17 @@ namespace planet::affine {
 
         /// ### Operations
         friend constexpr point2d operator+(point2d const l, point2d const r) {
-            return {l.xh * r.h + r.xh * l.h, l.yh * r.h + r.yh * l.h,
-                    l.h * r.h};
+            return {l.x() + r.x(), l.y() + r.y()};
+            // return {l.xh * r.h + r.xh * l.h, l.yh * r.h + r.yh * l.h,
+            //         l.h * r.h};
         }
         friend constexpr point2d operator-(point2d const p) {
             return {p.xh, p.yh, -p.h};
         }
         friend constexpr point2d operator-(point2d const l, point2d const r) {
-            return {l.xh * r.h - r.xh * l.h, l.yh * r.h - r.yh * l.h,
-                    l.h * r.h};
+            return {l.x() - r.x(), l.y() - r.y()};
+            // return {l.xh * r.h - r.xh * l.h, l.yh * r.h - r.yh * l.h,
+            //         l.h * r.h};
         }
         friend constexpr point2d operator*(point2d const p, float const s) {
             return {p.xh, p.yh, p.h / s};
