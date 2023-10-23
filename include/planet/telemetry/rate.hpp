@@ -88,7 +88,9 @@ namespace planet::telemetry {
                 std::string_view const n,
                 std::chrono::nanoseconds const hl,
                 double const v)
-        : performance{n}, m_value{v}, half_life{static_cast<double>(hl.count())} {}
+        : performance{n},
+          m_value{v},
+          half_life{static_cast<double>(hl.count())} {}
 
 
         double value() const noexcept;

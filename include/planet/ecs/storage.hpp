@@ -64,8 +64,7 @@ namespace planet::ecs {
         void emplace_back() {
             [this]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(components).emplace_back(), ...);
-            }
-            (indexes{});
+            }(indexes{});
         }
 
 
@@ -202,10 +201,9 @@ namespace planet::ecs {
 
       private:
         void destroy(std::size_t const id) {
-            [ this, id ]<std::size_t... Is>(std::index_sequence<Is...>) {
+            [this, id]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(components).at(id).reset(), ...);
-            }
-            (indexes{});
+            }(indexes{});
         }
 
         /**

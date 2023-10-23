@@ -20,20 +20,20 @@ namespace planet::ui {
         template<typename Renderer, typename Item>
         void draw(Renderer &r, Item &item, felspar::source_location const &loc)
             requires requires {
-                         std::declval<Item>().draw(
-                                 std::declval<Renderer>(),
-                                 std::declval<felspar::source_location>());
-                     }
+                std::declval<Item>().draw(
+                        std::declval<Renderer>(),
+                        std::declval<felspar::source_location>());
+            }
         {
             item.draw(r, loc);
         }
         template<typename Renderer, typename Item>
         void draw(Renderer &r, Item &item, felspar::source_location const &loc)
             requires(not requires {
-                             std::declval<Item>().draw(
-                                     std::declval<Renderer>(),
-                                     std::declval<felspar::source_location>());
-                         })
+                std::declval<Item>().draw(
+                        std::declval<Renderer>(),
+                        std::declval<felspar::source_location>());
+            })
         {
             try {
                 item.draw(r);

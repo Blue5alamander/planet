@@ -47,8 +47,7 @@ namespace planet::ecs {
             [this]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).set_entities_storage_index(this, Is),
                  ...);
-            }
-            (indexes{});
+            }(indexes{});
             /**
              * We want entity ID zero to be invalid so that a default
              * constructed `entity_id` can take on an invalid value. We can do
@@ -80,8 +79,7 @@ namespace planet::ecs {
 
             [this]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).emplace_back(), ...);
-            }
-            (indexes{});
+            }(indexes{});
 
             detail::count_create_entity();
 
@@ -276,11 +274,10 @@ namespace planet::ecs {
             if (entity.generation == eid.generation) {
                 entity.generation = eid.generation + 1;
                 entity.strong_count = {};
-                [ this, id = eid.m_id ]<std::size_t... Is>(
-                        std::index_sequence<Is...>) {
+                [this,
+                 id = eid.m_id]<std::size_t... Is>(std::index_sequence<Is...>) {
                     (std::get<Is>(stores).destroy(id), ...);
-                }
-                (indexes{});
+                }(indexes{});
                 auto &c = e_slots[eid.m_id].masks;
                 std::fill(c.begin(), c.end(), 0);
                 detail::count_destroy_entity();

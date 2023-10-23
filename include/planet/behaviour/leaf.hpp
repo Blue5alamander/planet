@@ -45,8 +45,7 @@ namespace planet::behaviour {
                              and compatible_parameters<
                                      std::tuple_element_t<Is, param_types>,
                                      std::tuple_element_t<Is, arg_types>>));
-                }
-                (std::index_sequence_for<Param...>{});
+                }(std::index_sequence_for<Param...>{});
 
                 std::tuple<context &, run_fn> cr{ctx, run};
                 return std::apply(impl::dispatch, std::tuple_cat(cr, args));

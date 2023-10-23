@@ -17,7 +17,9 @@ namespace planet::ui {
 
         target_size(content_type c, affine::extents2d const s)
             requires(not std::is_lvalue_reference_v<content_type>)
-        : reflowable{"planet::ui::target_size"}, content{std::move(c)}, size{s} {}
+        : reflowable{"planet::ui::target_size"},
+          content{std::move(c)},
+          size{s} {}
         target_size(content_type c, affine::extents2d const s)
             requires std::is_lvalue_reference_v<content_type>
         : reflowable{"planet::ui::target_size"}, content{c}, size{s} {}
