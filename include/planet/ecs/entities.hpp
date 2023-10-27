@@ -223,6 +223,15 @@ namespace planet::ecs {
         }
 
 
+        /// ### Clear all entities and components
+        void clear() {
+            for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
+                auto &entity = e_slots[idx].entity;
+                if (entity.strong_count) { destroy(idx, entity); }
+            }
+        }
+
+
       private:
         mask_type &mask_for(
                 std::size_t const storage_index,
@@ -269,19 +278,21 @@ namespace planet::ecs {
             }
         }
 
+        void destroy(std::size_t idx, detail::entity &entity) {
+            ++entity.generation;
+            entity.strong_count = {};
+            [this, id = idx]<std::size_t... Is>(std::index_sequence<Is...>) {
+                (std::get<Is>(stores).destroy(id), ...);
+            }(indexes{});
+            auto &c = e_slots[idx].masks;
+            std::fill(c.begin(), c.end(), 0);
+            detail::count_destroy_entity();
+            /// TODO Add to free list
+        }
         void destroy(entity_id const &eid) override {
             auto &entity = e_slots[eid.m_id].entity;
             if (entity.generation == eid.generation) {
-                entity.generation = eid.generation + 1;
-                entity.strong_count = {};
-                [this,
-                 id = eid.m_id]<std::size_t... Is>(std::index_sequence<Is...>) {
-                    (std::get<Is>(stores).destroy(id), ...);
-                }(indexes{});
-                auto &c = e_slots[eid.m_id].masks;
-                std::fill(c.begin(), c.end(), 0);
-                detail::count_destroy_entity();
-                /// TODO Add to free list
+                destroy(eid.m_id, entity);
             }
         }
 
