@@ -30,16 +30,13 @@ namespace planet::queue {
 
         pmc() = default;
         pmc(pmc const &) = delete;
-        pmc(pmc &&p)
-        : consumers{std::move(p.consumers)},
-          continuations{std::move(p.continuations)} {
+        pmc(pmc &&p) : consumers{std::move(p.consumers)} {
             for (auto &c : consumers) { c->self = this; }
         }
         pmc &operator=(pmc const &) = delete;
         pmc &operator=(pmc &&p) {
             consumers = std::move(p.consumers);
             for (auto &c : consumers) { c->self = this; }
-            continuations = std::move(p.continuations);
             return *this;
         }
         ~pmc() {
@@ -48,21 +45,23 @@ namespace planet::queue {
 
 
         void push(T t) {
-            for (auto *s : consumers) {
-                s->values.push_back(t);
-                if (auto h{std::exchange(s->continuation, {})}; h) {
-                    continuations.push_back(h);
+            for (std::size_t idx{}; idx < consumers.size();) {
+                auto *consumer = consumers[idx];
+                consumer->values.push_back(t);
+                if (auto h{std::exchange(consumer->continuation, {})}; h) {
+                    h.resume();
+                }
+                if (idx < consumers.size() and consumers[idx] == consumer) {
+                    ++idx;
                 }
             }
-            for (auto h : continuations) { h.resume(); }
-            continuations.clear();
         }
 
 
         class consumer {
             friend class pmc;
 
-            consumer(pmc *s) : self{s} { self->consumers.insert(this); }
+            consumer(pmc *s) : self{s} { self->consumers.push_back(this); }
 
             consumer(consumer const &) = delete;
             consumer(consumer &&) = delete;
@@ -76,7 +75,7 @@ namespace planet::queue {
 
           public:
             ~consumer() {
-                if (self) { self->consumers.erase(this); }
+                if (self) { std::erase(self->consumers, this); }
             }
 
             auto next() {
@@ -115,9 +114,7 @@ namespace planet::queue {
 
 
       private:
-        std::set<consumer *> consumers;
-        /// Cached memory used by `push`
-        std::vector<felspar::coro::coroutine_handle<>> continuations;
+        std::vector<consumer *> consumers;
     };
 
 
