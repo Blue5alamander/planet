@@ -5,6 +5,7 @@
 #include <planet/ui/widget.hpp>
 
 #include <felspar/coro/starter.hpp>
+#include <felspar/memory/stable_vector.hpp>
 
 
 namespace planet::ui {
@@ -21,7 +22,7 @@ namespace planet::ui {
             widget<Renderer> *ptr = nullptr;
             float z_layer = {};
         };
-        std::vector<widget_> widgets;
+        felspar::memory::stable_vector<widget_, 128> widgets;
 
 
       public:
@@ -60,7 +61,7 @@ namespace planet::ui {
         void remove(widget<Renderer> *const w) {
             if (hard_focus and hard_focus->ptr == w) { hard_focus = nullptr; }
             if (soft_focus and soft_focus->ptr == w) { soft_focus = nullptr; }
-            std::erase_if(widgets, [&](auto const &i) { return i.ptr == w; });
+            widgets.erase_if([&](auto const &i) { return i.ptr == w; });
         }
 
 
