@@ -33,6 +33,7 @@ namespace planet::ecs {
         std::size_t generation = {};
         std::size_t m_id = {};
 
+
       public:
         entity_id() = default;
         explicit entity_id(

@@ -41,6 +41,7 @@ namespace planet::ecs {
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
 
+
       public:
         /// ### Construction
         entities(Storages &...s) : stores{s...} {
@@ -144,6 +145,12 @@ namespace planet::ecs {
         }
 
 
+        /// ### Check if an entity ID is still a valid entity
+        bool is_valid(entity_id const &eid) {
+            return e_slots.at(eid.m_id).entity.generation == eid.generation;
+        }
+
+
         /// ### Add a component
         template<typename Component>
         auto add_component(entity_id &eid, Component &&component) {
@@ -222,6 +229,12 @@ namespace planet::ecs {
             }
         }
 
+
+        /// ### Kill a single entity
+        void kill(entity_id const &eid) {
+            auto *entity = maybe_entity(eid.id(), eid.generation);
+            if (entity) { destroy(eid.id(), *entity); }
+        }
 
         /// ### Clear all entities and components
         void clear() {

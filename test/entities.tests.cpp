@@ -38,6 +38,9 @@ namespace {
         auto e1 = entities.create();
         check(e1.mask(0)) == 0u;
         check(e1.mask(1)) == 0u;
+        check(e1).is_truthy();
+
+        check(planet::ecs::entity_id{}).is_falsey();
     });
 
 
@@ -210,19 +213,32 @@ namespace {
                 real_storage.remove_component<float>(e1);
                 check(real_storage.has_component<float>(e1)) == false;
             },
-            []() {
+            [](auto check) {
                 integral int_storage;
                 vectors vector_storage;
                 planet::ecs::entities entities{int_storage, vector_storage};
                 auto e1 = entities.create(42u, std::vector{1, 2, 3});
                 vector_storage.remove_component<std::vector<int>>(e1);
+                check(entities.maybe_get_component<std::vector<int>>(e1))
+                        == nullptr;
             },
-            []() {
+            [](auto check) {
+                integral int_storage;
+                vectors vector_storage;
+                planet::ecs::entities entities{int_storage, vector_storage};
+                auto e1 = entities.create(42u, std::vector{1, 2, 3});
+                check(entities.is_valid(e1)) == true;
+                check(e1).is_truthy();
+                entities.kill(e1);
+                check(entities.is_valid(e1)) == false;
+            },
+            [](auto check) {
                 integral int_storage;
                 vectors vector_storage;
                 planet::ecs::entities entities{int_storage, vector_storage};
                 auto e1 = entities.create(42u, std::vector{1, 2, 3});
                 entities.clear();
+                check(entities.is_valid(e1)) == false;
             });
 
 
