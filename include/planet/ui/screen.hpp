@@ -23,8 +23,8 @@ namespace planet::ui {
         using superclass = widget<Renderer>;
 
       public:
-        screen() : widget<Renderer>{"planet::ui::screen"} {}
-        screen(std::string_view const n) : widget<Renderer>{n} {}
+        screen() : widget<Renderer>{"planet::ui::screen", -1} {}
+        screen(std::string_view const n) : widget<Renderer>{n, -1} {}
 
         using constrained_type = typename superclass::constrained_type;
         using superclass::events;

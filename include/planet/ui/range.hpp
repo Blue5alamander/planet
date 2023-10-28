@@ -41,11 +41,11 @@ namespace planet::ui {
         using planet::ui::widget<Renderer>::add_to;
         void
                 add_to(planet::ui::baseplate<Renderer> &bp,
-                       planet::ui::panel &parent,
-                       float z_layer = {}) override {
-            planet::ui::widget<Renderer>::add_to(bp, parent, z_layer);
+                       planet::ui::panel &parent) override {
+            planet::ui::widget<Renderer>::add_to(bp, parent);
             slider.target = this;
-            slider.add_to(bp, widget<Renderer>::panel, z_layer + 1);
+            slider.z_layer = widget<Renderer>::z_layer + 1;
+            slider.add_to(bp, widget<Renderer>::panel);
         }
 
 
