@@ -281,11 +281,11 @@ namespace planet::ecs {
         void destroy(std::size_t idx, detail::entity &entity) {
             ++entity.generation;
             entity.strong_count = {};
+            auto &c = e_slots[idx].masks;
+            std::fill(c.begin(), c.end(), 0);
             [this, id = idx]<std::size_t... Is>(std::index_sequence<Is...>) {
                 (std::get<Is>(stores).destroy(id), ...);
             }(indexes{});
-            auto &c = e_slots[idx].masks;
-            std::fill(c.begin(), c.end(), 0);
             detail::count_destroy_entity();
             /// TODO Add to free list
         }
