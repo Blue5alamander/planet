@@ -41,21 +41,30 @@ namespace {
     });
 
 
-    auto const components = suite.test("components", [](auto check) {
-        integral int_storage;
-        planet::ecs::entities entities{int_storage};
+    auto const components = suite.test(
+            "components",
+            [](auto check) {
+                integral int_storage;
+                planet::ecs::entities entities{int_storage};
 
-        auto e1 = int_storage.create(42u);
+                auto e1 = int_storage.create(42u);
 
-        int_storage.add_component(e1, true);
-        check(e1.mask(0)) == 5u;
-        int_storage.add_component(e1, 23);
-        check(e1.mask(0)) == 7u;
+                int_storage.add_component(e1, true);
+                check(e1.mask(0)) == 5u;
+                int_storage.add_component(e1, 23);
+                check(e1.mask(0)) == 7u;
 
-        check(int_storage.get_component<bool>(e1)) == true;
-        check(int_storage.get_component<int>(e1)) == 23;
-        check(int_storage.get_component<unsigned>(e1)) == 42u;
-    });
+                check(int_storage.get_component<bool>(e1)) == true;
+                check(int_storage.get_component<int>(e1)) == 23;
+                check(int_storage.get_component<unsigned>(e1)) == 42u;
+            },
+            []() {
+                integral int_storage;
+                vectors vector_storage;
+                planet::ecs::entities entities{int_storage, vector_storage};
+                auto e1 = entities.create(42u, std::vector{1, 2, 3});
+                vector_storage.add_component(e1, std::vector{4, 5, 6});
+            });
 
 
     auto const iteration = suite.test(
@@ -200,6 +209,13 @@ namespace {
 
                 real_storage.remove_component<float>(e1);
                 check(real_storage.has_component<float>(e1)) == false;
+            },
+            []() {
+                integral int_storage;
+                vectors vector_storage;
+                planet::ecs::entities entities{int_storage, vector_storage};
+                auto e1 = entities.create(42u, std::vector{1, 2, 3});
+                vector_storage.remove_component<std::vector<int>>(e1);
             },
             []() {
                 integral int_storage;
