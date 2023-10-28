@@ -10,6 +10,7 @@ namespace {
 
     using integral = planet::ecs::storage<bool, int, unsigned>;
     using real = planet::ecs::storage<float, double>;
+    using vectors = planet::ecs::storage<std::vector<int>>;
 
     static_assert(not integral::maybe_component_index<float>().has_value());
     static_assert(integral::maybe_component_index<bool>().value() == 0);
@@ -183,21 +184,30 @@ namespace {
             });
 
 
-    auto const remove = suite.test("remove", [](auto check) {
-        integral int_storage;
-        real real_storage;
-        planet::ecs::entities entities{int_storage, real_storage};
+    auto const remove = suite.test(
+            "remove",
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
 
-        auto e1 = entities.create(42u, 4.0f);
-        check(int_storage.has_component<int>(e1)) == false;
-        check(real_storage.has_component<float>(e1)) == true;
+                auto e1 = entities.create(42u, 4.0f);
+                check(int_storage.has_component<int>(e1)) == false;
+                check(real_storage.has_component<float>(e1)) == true;
 
-        int_storage.remove_component<int>(e1);
-        check(int_storage.has_component<int>(e1)) == false;
+                int_storage.remove_component<int>(e1);
+                check(int_storage.has_component<int>(e1)) == false;
 
-        real_storage.remove_component<float>(e1);
-        check(real_storage.has_component<float>(e1)) == false;
-    });
+                real_storage.remove_component<float>(e1);
+                check(real_storage.has_component<float>(e1)) == false;
+            },
+            []() {
+                integral int_storage;
+                vectors vector_storage;
+                planet::ecs::entities entities{int_storage, vector_storage};
+                auto e1 = entities.create(42u, std::vector{1, 2, 3});
+                entities.clear();
+            });
 
 
     auto const proxy = suite.test("component_proxy", [](auto check) {
