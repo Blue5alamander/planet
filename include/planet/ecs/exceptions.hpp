@@ -21,6 +21,7 @@ namespace planet::ecs::detail {
             felspar::source_location const & =
                     felspar::source_location::current());
     [[noreturn]] void throw_entity_not_valid(
+            entity_id const &,
             felspar::source_location const & =
                     felspar::source_location::current());
 

@@ -33,7 +33,7 @@ namespace planet::ecs {
                 felspar::source_location const &loc =
                         felspar::source_location::current()) const {
             assert_entities();
-            if (not eid) { detail::throw_entity_not_valid(loc); }
+            if (not eid) { detail::throw_entity_not_valid(eid, loc); }
         }
 
       public:

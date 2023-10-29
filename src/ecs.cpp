@@ -43,8 +43,10 @@ void planet::ecs::detail::throw_component_not_present(
 
 
 void planet::ecs::detail::throw_entity_not_valid(
-        felspar::source_location const &loc) {
-    throw felspar::stdexcept::logic_error{"This entity is not valid", loc};
+        entity_id const &eid, felspar::source_location const &loc) {
+    throw felspar::stdexcept::logic_error{
+            "This entity is not valid\nEntity ID: " + std::to_string(eid.id()),
+            loc};
 }
 
 
