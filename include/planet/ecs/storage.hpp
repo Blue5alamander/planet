@@ -5,12 +5,21 @@
 #include <planet/ecs/entities.hpp>
 #include <planet/ecs/exceptions.hpp>
 #include <planet/ecs/type_index.hpp>
+#include <planet/queue/pmc.hpp>
 
 #include <felspar/memory/holding_pen.hpp>
 #include <felspar/memory/stable_vector.hpp>
 
 
 namespace planet::ecs {
+
+
+    /// #### Description of the component being removed
+    template<typename C>
+    struct component_removal {
+        entity_id eid;
+        C *component;
+    };
 
 
     /// ## Holder for all entities
@@ -113,7 +122,7 @@ namespace planet::ecs {
             if constexpr (ci) {
                 assert_entities(eid);
                 eid.mask(*entities_storage_index, loc) &= ~(1 << ci.value());
-                std::get<ci.value()>(components).at(eid.id()).reset();
+                destroy_component<ci.value()>(eid);
             } else {
                 detail::throw_component_type_not_valid(loc);
             }
@@ -156,12 +165,14 @@ namespace planet::ecs {
         }
 
 
-        /// ### Coroutine awaitable triggered when a component is destroyed
-        // template<typename C>
-        // auto on_destroy(entity_id &eid) {
-        //     constexpr auto ci = component_index<C>();
-        //     return eid->co_on_destroy(1 << ci);
-        // }
+        /// ### Watching for removal of component
+
+        /// #### Access to the queue which will describe removals
+        template<typename C>
+        queue::pmc<component_removal<C>> &on_destroy_queue_for() {
+            static constexpr auto ci = component_index<C>();
+            return std::get<ci>(removal_queues);
+        }
 
 
         /// ### Iterate over entities with the requested components
@@ -200,11 +211,28 @@ namespace planet::ecs {
 
 
       private:
-        void destroy(std::size_t const id) {
-            [this, id]<std::size_t... Is>(std::index_sequence<Is...>) {
-                (std::get<Is>(components).at(id).reset(), ...);
+        template<std::size_t C>
+        void destroy_component(entity_id const &eid) {
+            auto &chp = std::get<C>(components).at(eid.id());
+            if (chp) {
+                std::get<C>(removal_queues).push({eid, &*chp});
+                chp.reset();
+            }
+        }
+        void destroy(entity_id const &eid) {
+            [this, &eid]<std::size_t... Is>(std::index_sequence<Is...>) {
+                (this->destroy_component<Is>(eid), ...);
             }(indexes{});
         }
+
+        /// The index of this storage
+        void set_entities_storage_index(
+                detail::entity_lookup *el, std::size_t const si) {
+            entities = el;
+            entities_storage_index = si;
+        }
+        detail::entity_lookup *entities = nullptr;
+        std::optional<std::size_t> entities_storage_index;
 
         /**
          * TODO We should use the mask that's already stored in the entities to
@@ -215,16 +243,13 @@ namespace planet::ecs {
         using component_storage_type = felspar::memory::
                 stable_vector<felspar::memory::holding_pen<C>, 32>;
         using storage_type = std::tuple<component_storage_type<Components>...>;
-
-        /// The index of this storage
-        void set_entities_storage_index(
-                detail::entity_lookup *el, std::size_t const si) {
-            entities = el;
-            entities_storage_index = si;
-        }
-        detail::entity_lookup *entities = nullptr;
-        std::optional<std::size_t> entities_storage_index;
         storage_type components;
+
+        template<typename C>
+        using removal_queue_type = queue::pmc<component_removal<C>>;
+        using removal_queues_type =
+                std::tuple<removal_queue_type<Components>...>;
+        removal_queues_type removal_queues;
 
         template<typename T>
         struct types : public types<decltype(&T::operator())> {};
