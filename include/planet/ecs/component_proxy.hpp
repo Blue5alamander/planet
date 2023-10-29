@@ -42,8 +42,7 @@ namespace planet::ecs {
 
 
         /// ### Queries
-        entity_id const &id() const noexcept { return eid; }
-
+        [[nodiscard]] entity_id const &id() const noexcept { return eid; }
         explicit operator bool() const noexcept { return get() != nullptr; }
 
 
@@ -54,17 +53,15 @@ namespace planet::ecs {
         [[nodiscard]] component_type const *
                 get(felspar::source_location const &loc =
                             felspar::source_location::current()) const;
-        [[nodiscard]] component_type *operator->() {
-            return assert_not_null(get(), eid);
+        [[nodiscard]] component_type &operator()(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            return *assert_not_null(get(loc), eid, loc);
         }
-        [[nodiscard]] component_type const *operator->() const {
-            return assert_not_null(get(), eid);
-        }
-        [[nodiscard]] component_type &operator*() {
-            return *assert_not_null(get(), eid);
-        }
-        [[nodiscard]] component_type const &operator*() const {
-            return *assert_not_null(get(), eid);
+        [[nodiscard]] component_type const &operator()(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            return *assert_not_null(get(loc), eid, loc);
         }
 
 
