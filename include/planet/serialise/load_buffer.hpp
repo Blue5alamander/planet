@@ -10,6 +10,9 @@
 #include <felspar/parse/extract.le.hpp>
 #include <felspar/parse/extract.native.hpp>
 
+#include <filesystem>
+#include <fstream>
+
 
 namespace planet::serialise {
 
@@ -176,6 +179,20 @@ namespace planet::serialise {
     {
         auto b = load_type<box>(lb);
         load(b, t);
+    }
+
+
+    /// ### Load directly from a file
+    template<typename T>
+    void load(std::filesystem::path const &fn, T &t) {
+        std::vector<char> buffer(std::filesystem::file_size(fn));
+        std::ifstream{fn}.read(buffer.data(), buffer.size());
+        load_buffer lb{std::as_bytes(std::span{buffer})};
+        load(lb, t);
+        if (not lb.empty()) {
+            throw felspar::stdexcept::runtime_error{
+                    "There is still data in the buffer after loading the type"};
+        }
     }
 
 
