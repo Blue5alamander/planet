@@ -64,7 +64,6 @@ namespace planet::queue {
             consumer(pmc *s) : self{s} { self->consumers.push_back(this); }
 
             consumer(consumer const &) = delete;
-            consumer(consumer &&) = delete;
             consumer &operator=(consumer const &) = delete;
             consumer &operator=(consumer &&) = delete;
 
@@ -74,6 +73,16 @@ namespace planet::queue {
 
 
           public:
+            consumer(consumer &&other)
+            : self{std::exchange(other.self, nullptr)},
+              continuation{std::exchange(other.continuation, {})},
+              values{std::move(other.values)} {
+                if (self) {
+                    for (auto &c : self->consumers) {
+                        if (c == &other) { c = this; }
+                    }
+                }
+            }
             ~consumer() {
                 if (self) { std::erase(self->consumers, this); }
             }
