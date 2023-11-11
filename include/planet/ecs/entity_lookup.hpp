@@ -3,6 +3,7 @@
 
 #include <planet/ecs/entity.hpp>
 #include <planet/ecs/entity_id.hpp>
+#include <planet/telemetry/id.hpp>
 
 #include <felspar/test/source.hpp>
 
@@ -17,6 +18,7 @@ namespace planet::ecs {
             friend class ecs::weak_entity_id;
 
             [[nodiscard]] virtual entity_id create() = 0;
+            [[nodiscard]] virtual entity_id create(std::string) = 0;
 
             [[nodiscard]] virtual detail::entity &
                     entity(std::size_t,
@@ -51,6 +53,9 @@ namespace planet::ecs {
                     std::size_t,
                     felspar::source_location const & =
                             felspar::source_location::current()) const = 0;
+
+            [[nodiscard]] virtual std::optional<telemetry::id> const &
+                    id(std::size_t) const = 0;
 
             virtual void
                     kill(entity_id const &,
@@ -117,6 +122,16 @@ namespace planet::ecs {
         return *this;
     }
 
+    inline std::variant<std::size_t, std::string_view>
+            entity_id::name_or_id() const {
+        if (not owner) {
+            return m_id;
+        } else if (auto const &name = owner->id(m_id); name) {
+            return std::string_view{name->name()};
+        } else {
+            return m_id;
+        }
+    }
     inline detail::entity *entity_id::operator->() {
         return &owner->entity(m_id, generation);
     }

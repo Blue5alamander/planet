@@ -4,6 +4,7 @@
 #include <planet/ecs/entity_lookup.hpp>
 #include <planet/ecs/storage_base.hpp>
 #include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/id.hpp>
 #include <felspar/exceptions.hpp>
 
 #include <tuple>
@@ -35,6 +36,9 @@ namespace planet::ecs {
             /// Bitset of the components that this entity uses in each of the
             /// storages
             std::array<mask_type, sizeof...(Storages)> masks{};
+            /// Store an optional id that can be used to the latest incarnation
+            /// of this entity
+            std::optional<telemetry::id> id;
         };
         /// TODO Use a stable vector
         std::vector<e_slot> e_slots;
@@ -89,13 +93,39 @@ namespace planet::ecs {
                     this, e_slots.size() - 1,
                     ++e_slots.back().entity.generation};
         }
+        [[nodiscard]] entity_id create(std::string n) override {
+            auto const eid = create();
+            n += std::string{"__id_"};
+            n += std::to_string(eid.id());
+            e_slots.back().id.emplace(std::move(n));
+            return eid;
+        }
         template<typename... Components>
         [[nodiscard]] entity_id create(Components &&...components) {
             auto eid = create();
             (add_component(eid, std::forward<Components>(components)), ...);
             return eid;
         }
+        template<typename... Components>
+        [[nodiscard]] entity_id
+                create(std::string n, Components &&...components) {
+            auto eid = create(std::move(n));
+            (add_component(eid, std::forward<Components>(components)), ...);
+            return eid;
+        }
+        template<typename... Components>
+        [[nodiscard]] entity_id
+                create(char const *const n, Components &&...components) {
+            return create(
+                    std::string{n}, std::forward<Components>(components)...);
+        }
 
+
+        /// ### Return the name (if any)
+        std::optional<telemetry::id> const &
+                id(std::size_t const eid) const override {
+            return e_slots.at(eid).id;
+        }
 
         /// ### Return the entity
         detail::entity &

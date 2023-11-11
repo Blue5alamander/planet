@@ -5,7 +5,9 @@
 
 #include <felspar/test/source.hpp>
 
+#include <string_view>
 #include <utility>
+#include <variant>
 
 
 namespace planet::ecs {
@@ -50,6 +52,8 @@ namespace planet::ecs {
         entity_id &operator=(entity_id const &);
 
         std::size_t id() const noexcept { return m_id; };
+
+        std::variant<std::size_t, std::string_view> name_or_id() const;
 
         detail::entity *operator->();
         detail::entity const *operator->() const;

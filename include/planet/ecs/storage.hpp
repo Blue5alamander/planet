@@ -85,6 +85,17 @@ namespace planet::ecs {
             (add_component(eid, std::forward<Cs>(cs)), ...);
             return eid;
         }
+        template<typename... Cs>
+        [[nodiscard]] entity_id create(std::string n, Cs &&...cs) {
+            assert_entities();
+            auto eid = entities->create(std::move(n));
+            (add_component(eid, std::forward<Cs>(cs)), ...);
+            return eid;
+        }
+        template<typename... Cs>
+        [[nodiscard]] auto create(char const *const n, Cs &&...cs) {
+            return create(std::string{n}, std::forward<Cs>(cs)...);
+        }
 
 
         /// ### Access to components
