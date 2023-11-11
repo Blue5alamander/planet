@@ -39,7 +39,7 @@ namespace {
     void
             show(planet::serialise::load_buffer &lb,
                  std::size_t const depth,
-                 char const separator) {
+                 char const *const separator) {
         if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
@@ -139,7 +139,7 @@ namespace {
             break;
         }
         planet::serialise::load_buffer buffer{m.payload.cmemory()};
-        show(buffer, 0, ' ');
+        show(buffer, 0, " ");
         std::string_view fn{m.location.file_name()};
         if (not log_root_directory.empty()
             and fn.starts_with(log_root_directory)) {
@@ -200,11 +200,11 @@ namespace {
                                       - g_start_time())
                                              .count()
                                      / 1e9)
-                          << "\33[0;39m\n";
+                          << "\33[0;39m\n  ";
                 auto const bytes = ab.complete();
                 planet::serialise::load_buffer lb{bytes.cmemory()};
                 std::scoped_lock _{printers_mutex()};
-                show(lb, 0, '\n');
+                show(lb, 0, "\n  ");
                 std::cout << std::endl;
             }
         }
