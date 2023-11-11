@@ -41,6 +41,17 @@ namespace planet::ecs {
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
 
+        /// ### Keep entity ID zero alive
+        /**
+         * We want entity ID zero to be invalid so that a default constructed
+         * `entity_id` can take on an invalid value. We can do this by just
+         * creating an entity and never use it.
+         *
+         * By denying access to it this first entity will never have any
+         * components, and thus it is safe to dereference or iterate over as
+         * well.
+         */
+        entity_id zero;
 
       public:
         /// ### Construction
@@ -49,17 +60,7 @@ namespace planet::ecs {
                 (std::get<Is>(stores).set_entities_storage_index(this, Is),
                  ...);
             }(indexes{});
-            /**
-             * We want entity ID zero to be invalid so that a default
-             * constructed `entity_id` can take on an invalid value. We can do
-             * this by just creating an entity and throwing away the `entity_id`
-             * which will have had the value zero.
-             *
-             * Because it has been thrown away this first entity will never have
-             * any components, and thus it is safe to dereference or iterate
-             * over as well.
-             */
-            auto discard [[maybe_unused]] = create();
+            zero = create();
         }
 
         /// #### Not movable, not copyable
