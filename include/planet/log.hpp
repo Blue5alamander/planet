@@ -54,6 +54,15 @@ namespace planet::log {
                 level,
                 serialise::shared_bytes,
                 felspar::source_location const &);
+
+        template<typename T>
+        void log(serialise::save_buffer &sb, T const &v) {
+            save(sb, v);
+        }
+        template<typename... Ts>
+        void log(serialise::save_buffer &sb, std::variant<Ts...> const &t) {
+            std::visit([&sb](auto const &v) { save(sb, v); }, t);
+        }
     }
 
 
@@ -65,7 +74,7 @@ namespace planet::log {
              felspar::source_location const &loc =
                      felspar::source_location::current()) {
             if (l >= active.load()) {
-                (save(detail::ab, std::forward<Ms>(m)), ...);
+                (detail::log(detail::ab, std::forward<Ms>(m)), ...);
                 detail::write_log(l, detail::ab.complete(), loc);
             }
         }
@@ -81,7 +90,7 @@ namespace planet::log {
               felspar::source_location const &loc =
                       felspar::source_location::current()) {
             if (level::debug >= active.load()) {
-                (save(detail::ab, m), ...);
+                (detail::log(detail::ab, m), ...);
                 detail::write_log(level::debug, detail::ab.complete(), loc);
             }
         }
@@ -95,7 +104,7 @@ namespace planet::log {
              felspar::source_location const &loc =
                      felspar::source_location::current()) {
             if (level::info >= active.load()) {
-                (save(detail::ab, m), ...);
+                (detail::log(detail::ab, m), ...);
                 detail::write_log(level::info, detail::ab.complete(), loc);
             }
         }
@@ -109,7 +118,7 @@ namespace planet::log {
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
             if (level::warning >= active.load()) {
-                (save(detail::ab, m), ...);
+                (detail::log(detail::ab, m), ...);
                 detail::write_log(level::warning, detail::ab.complete(), loc);
             }
         }
@@ -123,7 +132,7 @@ namespace planet::log {
               felspar::source_location const &loc =
                       felspar::source_location::current()) {
             if (level::error >= active.load()) {
-                (save(detail::ab, m), ...);
+                (detail::log(detail::ab, m), ...);
                 detail::write_log(level::error, detail::ab.complete(), loc);
             }
         }
@@ -137,7 +146,7 @@ namespace planet::log {
                 Ms const &...m,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            (save(detail::ab, m), ...);
+            (detail::log(detail::ab, m), ...);
             detail::write_log(level::critical, detail::ab.complete(), loc);
             /**
              * Wait for a bit here.
