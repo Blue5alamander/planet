@@ -124,7 +124,7 @@ namespace planet::ecs {
                 eid.mask(*entities_storage_index, loc) &= ~(1 << ci.value());
                 destroy_component<ci.value()>(eid);
             } else {
-                detail::throw_component_type_not_valid(loc);
+                detail::throw_component_type_not_valid(eid, typeid(C), loc);
             }
         }
 
@@ -324,7 +324,7 @@ namespace planet::ecs {
             hp.reset();
             eid.mask(*store.entities_storage_index) &= ~(1 << ci.value());
         } else {
-            detail::throw_component_type_not_valid();
+            detail::throw_component_type_not_valid(eid, typeid(Component), loc);
         }
     }
 
