@@ -6,6 +6,21 @@
 /// ## `planet::ecs::detail`
 
 
+namespace {
+    struct eid_and_type_info : public felspar::stdexcept::logic_error {
+        eid_and_type_info(
+                std::string_view const m,
+                planet::ecs::entity_id const eid,
+                std::type_info const &ti,
+                felspar::source_location const &loc)
+        : felspar::stdexcept::logic_error{
+                std::string{m} + "\nEntity id " + std::to_string(eid.id())
+                        + " type index: " + std::string{ti.name()},
+                loc} {}
+    };
+}
+
+
 void planet::ecs::detail::throw_no_entities_instance(
         felspar::source_location const &loc) {
     throw felspar::stdexcept::logic_error{
@@ -16,9 +31,11 @@ void planet::ecs::detail::throw_no_entities_instance(
 
 
 void planet::ecs::detail::throw_component_type_not_valid(
+        entity_id const &eid,
+        std::type_info const &ti,
         felspar::source_location const &loc) {
-    throw felspar::stdexcept::logic_error{
-            "The provided type doesn't match a component type", loc};
+    throw eid_and_type_info{
+            "The provided type doesn't match a component type", eid, ti, loc};
 }
 
 
@@ -26,19 +43,9 @@ void planet::ecs::detail::throw_component_not_present(
         entity_id const &eid,
         std::type_info const &ti,
         felspar::source_location const &loc) {
-    struct component_not_present : public felspar::stdexcept::logic_error {
-        component_not_present(
-                entity_id const eid,
-                std::type_info const &ti,
-                felspar::source_location const &loc)
-        : felspar::stdexcept::logic_error{
-                "This entity doesn't have that component at this time\n"
-                "Entity id "
-                        + std::to_string(eid.id())
-                        + " type index: " + std::string{ti.name()},
-                loc} {}
-    };
-    throw component_not_present{eid, ti, loc};
+    throw eid_and_type_info{
+            "This entity doesn't have that component at this time", eid, ti,
+            loc};
 }
 
 

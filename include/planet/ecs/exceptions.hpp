@@ -13,6 +13,8 @@ namespace planet::ecs::detail {
             felspar::source_location const & =
                     felspar::source_location::current());
     [[noreturn]] void throw_component_type_not_valid(
+            entity_id const &,
+            std::type_info const &,
             felspar::source_location const & =
                     felspar::source_location::current());
     [[noreturn]] void throw_component_not_present(
