@@ -96,16 +96,11 @@ namespace planet::ecs {
                 C &&component,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            static constexpr auto ci = maybe_component_index<C>();
-            if constexpr (ci) {
-                assert_entities(eid, loc);
-                std::get<ci.value()>(components).at(eid.id()) =
-                        std::move(component);
-                eid.mask(*entities_storage_index) |= (1 << ci.value());
-                return proxy_for<C>{*this, eid};
-            } else {
-                detail::throw_component_type_not_valid(loc);
-            }
+            static constexpr auto ci = component_index<C>();
+            assert_entities(eid, loc);
+            std::get<ci>(components).at(eid.id()) = std::move(component);
+            eid.mask(*entities_storage_index) |= (1 << ci);
+            return proxy_for<C>{*this, eid};
         }
         /// #### Provide a component proxy
         template<typename C>
