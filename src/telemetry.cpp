@@ -85,7 +85,6 @@ namespace {
 
 namespace {
     std::atomic<std::uint64_t> next_id = {};
-
     std::string suffix() { return std::to_string(++next_id); }
 }
 
@@ -93,8 +92,7 @@ namespace {
 planet::telemetry::id::id() : m_name{suffix()} {}
 
 
-planet::telemetry::id::id(std::string_view const n)
-: m_name{std::string{n} + "__" + suffix()} {}
+planet::telemetry::id::id(std::string n) : m_name{n + "__" + suffix()} {}
 
 
 /// ## `planet::telemetry::performance`

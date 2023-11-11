@@ -24,7 +24,9 @@ namespace planet::telemetry {
       public:
         /// ### Construction
         explicit id();
-        explicit id(std::string_view);
+        explicit id(char const *n) : id{std::string_view{n}} {}
+        explicit id(std::string_view const n) : id{std::string{n}} {}
+        explicit id(std::string);
 
         id(id const &) = delete;
         id(id &&) = default;
