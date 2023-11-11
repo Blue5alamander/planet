@@ -210,6 +210,16 @@ namespace planet::ecs {
         }
 
 
+        /// ### Force kill the entity
+        void
+                kill(entity_id const &eid,
+                     felspar::source_location const &loc =
+                             felspar::source_location::current()) {
+            assert_entities(eid, loc);
+            entities->kill(eid, loc);
+        }
+
+
       private:
         template<std::size_t C>
         void destroy_component(entity_id const &eid) {

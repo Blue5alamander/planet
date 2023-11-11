@@ -52,6 +52,11 @@ namespace planet::ecs {
                     felspar::source_location const & =
                             felspar::source_location::current()) const = 0;
 
+            virtual void
+                    kill(entity_id const &,
+                         felspar::source_location const & =
+                                 felspar::source_location::current()) = 0;
+
 
           protected:
             /// ### Lifetime

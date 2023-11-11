@@ -231,7 +231,10 @@ namespace planet::ecs {
 
 
         /// ### Kill a single entity
-        void kill(entity_id const &eid) {
+        void
+                kill(entity_id const &eid,
+                     felspar::source_location const & =
+                             felspar::source_location::current()) override {
             auto *entity = maybe_entity(eid.id(), eid.generation);
             if (entity) { destroy(eid, *entity); }
         }
