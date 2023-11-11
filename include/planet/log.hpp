@@ -56,12 +56,17 @@ namespace planet::log {
                 felspar::source_location const &);
 
         template<typename T>
+        concept has_own_log_implementation =
+                requires(serialise::save_buffer sb, T const &t) {
+                    { t.log(sb) };
+                };
+        template<typename T>
         void log(serialise::save_buffer &sb, T const &v) {
             save(sb, v);
         }
-        template<typename... Ts>
-        void log(serialise::save_buffer &sb, std::variant<Ts...> const &t) {
-            std::visit([&sb](auto const &v) { save(sb, v); }, t);
+        template<has_own_log_implementation T>
+        void log(serialise::save_buffer &sb, T const &v) {
+            v.log(sb);
         }
     }
 

@@ -2,6 +2,7 @@
 
 
 #include <planet/ecs/forward.hpp>
+#include <planet/serialise.hpp>
 
 #include <felspar/test/source.hpp>
 
@@ -71,6 +72,11 @@ namespace planet::ecs {
                 default;
 
         explicit operator bool() const noexcept;
+
+
+        void log(serialise::save_buffer &sb) const {
+            std::visit([&sb](auto const &v) { save(sb, v); }, name_or_id());
+        }
     };
 
 
