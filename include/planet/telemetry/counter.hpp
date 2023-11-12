@@ -4,6 +4,7 @@
 #include <planet/telemetry/performance.hpp>
 
 #include <atomic>
+#include <cstdint>
 
 
 namespace planet::telemetry {
