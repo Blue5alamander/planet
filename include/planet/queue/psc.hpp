@@ -18,8 +18,10 @@ namespace planet::queue {
      *
      * The type may be move only.
      *
-     * Like the bus, it is important that the consumption not kill the producer
-     * that just pushed a value.
+     * Like with the
+     * [bus](https://felspar.com/coro/include/felspar/coro/bus.hpp), it is
+     * important that the consumption not kill the producer that just pushed a
+     * value.
      */
     template<typename T>
     class psc final {
@@ -27,7 +29,15 @@ namespace planet::queue {
         felspar::coro::coroutine_handle<> waiting = {};
 
       public:
+        using value_type = T;
+
+
         psc() = default;
+        psc(psc &&) = default;
+        psc(psc const &) = delete;
+
+        psc &operator=(psc &&) = default;
+        psc &operator=(psc const &) = delete;
 
 
         bool empty() const noexcept { return values.empty(); }
