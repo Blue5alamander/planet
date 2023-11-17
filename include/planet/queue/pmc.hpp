@@ -19,6 +19,9 @@ namespace planet::queue {
      * queue then they are guaranteed to see every value.
      *
      * The value type must be copyable. This type is not thread safe.
+     *
+     * This type cannot be used to create a coroutine, but rather is used to
+     * facilitate communication to coroutines.
      */
     template<typename T>
     class pmc {

@@ -18,6 +18,9 @@ namespace planet::queue {
      *
      * The type may be move only.
      *
+     * This type cannot be used to create a coroutine, but rather is used to
+     * facilitate communication to coroutines.
+     *
      * Like with the
      * [bus](https://felspar.com/coro/include/felspar/coro/bus.hpp), it is
      * important that the consumption not kill the producer that just pushed a
