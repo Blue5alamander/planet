@@ -26,6 +26,11 @@ auto planet::time::clock::sleep(duration const d) -> awaitable {
 }
 
 
+auto planet::time::clock::wake_at(time_point const tp) -> awaitable {
+    return {*this, tp};
+}
+
+
 auto planet::time::clock::advance_one(time_point const latest) -> duration {
     if (not time_line.empty() and time_line.front().when <= latest) {
         auto const d = time_line.front().when - time;

@@ -49,6 +49,7 @@ namespace planet::time {
             felspar::coro::coroutine_handle<> continuation;
         };
         awaitable sleep(duration);
+        awaitable wake_at(time_point);
 
 
         /// ### Advance time
