@@ -8,6 +8,27 @@
 namespace planet::ecs {
 
 
+    namespace detail {
+        template<typename Component>
+        struct abstract_lookup {
+            virtual void
+                    lookup(entity_id const &,
+                           Component **,
+                           felspar::source_location const & =
+                                   felspar::source_location::current()) = 0;
+            virtual void lookup(
+                    entity_id const &,
+                    Component const **,
+                    felspar::source_location const & =
+                            felspar::source_location::current()) const = 0;
+            virtual void
+                    remove(entity_id &,
+                           felspar::source_location const & =
+                                   felspar::source_location::current()) = 0;
+        };
+    }
+
+
     /// ## Component proxy
     /**
      * The proxy allows for terser code to do ECS component look-ups against the
@@ -16,12 +37,9 @@ namespace planet::ecs {
      * It is modelled on a raw pointer (but will be slower) so `const` does not
      * propagate.
      */
-    template<typename Component, typename... Components>
+    template<typename Component>
     class component_proxy {
-        using storage_type = storage<Components...>;
-        friend storage_type;
-
-        storage_type &store;
+        detail::abstract_lookup<Component> &store;
         entity_id eid;
 
         template<typename C>
@@ -41,6 +59,12 @@ namespace planet::ecs {
         using component_type = Component;
 
 
+        /// ### Construction
+        component_proxy(
+                detail::abstract_lookup<Component> &s, entity_id const &e)
+        : store{s}, eid{e} {}
+
+
         /// ### Queries
         [[nodiscard]] entity_id const &id() const noexcept { return eid; }
         explicit operator bool() const noexcept { return get() != nullptr; }
@@ -48,11 +72,19 @@ namespace planet::ecs {
 
         /// ### Fetch the component
         [[nodiscard]] component_type *
-                get(felspar::source_location const & =
-                            felspar::source_location::current());
+                get(felspar::source_location const &loc =
+                            felspar::source_location::current()) {
+            component_type *component = nullptr;
+            store.lookup(eid, &component, loc);
+            return component;
+        }
         [[nodiscard]] component_type const *
                 get(felspar::source_location const &loc =
-                            felspar::source_location::current()) const;
+                            felspar::source_location::current()) const {
+            component_type const *component = nullptr;
+            store.lookup(eid, &component, loc);
+            return component;
+        }
         [[nodiscard]] component_type &operator()(
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
@@ -67,14 +99,10 @@ namespace planet::ecs {
 
         /// ### Destroy the component
         void
-                remove(felspar::source_location const & =
-                               felspar::source_location::current());
-
-
-      private:
-        /// ### Construction
-        component_proxy(storage_type &s, entity_id const &e)
-        : store{s}, eid{e} {}
+                remove(felspar::source_location const &loc =
+                               felspar::source_location::current()) {
+            store.remove(eid, loc);
+        }
     };
 
 

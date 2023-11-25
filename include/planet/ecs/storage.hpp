@@ -22,10 +22,27 @@ namespace planet::ecs {
     };
 
 
+    namespace detail {
+        template<typename Component, typename Storage>
+        struct concrete_lookup : public abstract_lookup<Component> {
+            void
+                    lookup(entity_id const &,
+                           Component **,
+                           felspar::source_location const &) override;
+            void
+                    lookup(entity_id const &,
+                           Component const **,
+                           felspar::source_location const &) const override;
+            void remove(entity_id &, felspar::source_location const &) override;
+        };
+    }
+
+
     /// ## Holder for all entities
     template<typename... Components>
-    class storage final {
-        template<typename Component, typename... Cs>
+    class storage final :
+    public detail::concrete_lookup<Components, storage<Components...>>... {
+        template<typename Component>
         friend class component_proxy;
         template<typename... Storages>
         friend class entities;
@@ -53,7 +70,7 @@ namespace planet::ecs {
         using indexes = std::index_sequence_for<Components...>;
 
         template<typename C>
-        using proxy_for = component_proxy<C, Components...>;
+        using proxy_for = component_proxy<C>;
 
         template<typename L>
         static constexpr std::optional<std::size_t> maybe_component_index() {
@@ -151,6 +168,18 @@ namespace planet::ecs {
                 entity_id const &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
+            static constexpr auto ci = component_index<C>();
+            if (has_component<C>(eid, loc)) {
+                return &std::get<ci>(components).at(eid.id()).value(loc);
+            } else {
+                return nullptr;
+            }
+        }
+        template<typename C>
+        [[nodiscard]] C const *maybe_get_component(
+                entity_id const &eid,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid, loc)) {
                 return &std::get<ci>(components).at(eid.id()).value(loc);
@@ -296,41 +325,30 @@ namespace planet::ecs {
     };
 
 
-    template<typename Component, typename... Components>
-    inline auto component_proxy<Component, Components...>::get(
-            felspar::source_location const &loc) -> component_type * {
-        static constexpr auto ci =
-                storage_type::template component_index<Component>();
-        if (store.template has_component<Component>(eid, loc)) {
-            return &std::get<ci>(store.components).at(eid.id()).value();
-        } else {
-            return nullptr;
+    namespace detail {
+        template<typename Component, typename Storage>
+        void concrete_lookup<Component, Storage>::lookup(
+                entity_id const &eid,
+                Component **component,
+                felspar::source_location const &loc) {
+            Storage &store = dynamic_cast<Storage &>(*this);
+            *component =
+                    store.template maybe_get_component<Component>(eid, loc);
         }
-    }
-    template<typename Component, typename... Components>
-    inline auto component_proxy<Component, Components...>::get(
-            felspar::source_location const &loc) const
-            -> component_type const * {
-        static constexpr auto ci =
-                storage_type::template component_index<Component>();
-        if (store.template has_component<Component>(eid, loc)) {
-            return &std::get<ci>(store.components).at(eid.id()).value();
-        } else {
-            return nullptr;
+        template<typename Component, typename Storage>
+        void concrete_lookup<Component, Storage>::lookup(
+                entity_id const &eid,
+                Component const **component,
+                felspar::source_location const &loc) const {
+            Storage const &store = dynamic_cast<Storage const &>(*this);
+            *component =
+                    store.template maybe_get_component<Component>(eid, loc);
         }
-    }
-    template<typename Component, typename... Components>
-    inline void component_proxy<Component, Components...>::remove(
-            felspar::source_location const &loc) {
-        static constexpr auto ci =
-                storage_type::template maybe_component_index<Component>();
-        if constexpr (ci) {
-            store.assert_entities(eid, loc);
-            auto &hp = std::get<ci.value()>(store.components).at(eid.id());
-            hp.reset();
-            eid.mask(*store.entities_storage_index) &= ~(1 << ci.value());
-        } else {
-            detail::throw_component_type_not_valid(eid, typeid(Component), loc);
+        template<typename Component, typename Storage>
+        void concrete_lookup<Component, Storage>::remove(
+                entity_id &eid, felspar::source_location const &loc) {
+            Storage &store = dynamic_cast<Storage &>(*this);
+            store.template remove_component<Component>(eid, loc);
         }
     }
 
