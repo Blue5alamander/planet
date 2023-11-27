@@ -33,9 +33,6 @@ namespace planet::ecs {
     /**
      * The proxy allows for terser code to do ECS component look-ups against the
      * storage.
-     *
-     * It is modelled on a raw pointer (but will be slower) so `const` does not
-     * propagate.
      */
     template<typename Component>
     class component_proxy {
