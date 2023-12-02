@@ -36,8 +36,8 @@ namespace planet::ecs {
      */
     template<typename Component>
     class component_proxy {
-        detail::abstract_lookup<Component> &store;
-        entity_id eid;
+        detail::abstract_lookup<Component> *store = nullptr;
+        entity_id eid = {};
 
         template<typename C>
         static C *assert_not_null(
@@ -57,14 +57,17 @@ namespace planet::ecs {
 
 
         /// ### Construction
+        component_proxy() {}
         component_proxy(
                 detail::abstract_lookup<Component> &s, entity_id const &e)
-        : store{s}, eid{e} {}
+        : store{&s}, eid{e} {}
 
 
         /// ### Queries
         [[nodiscard]] entity_id const &id() const noexcept { return eid; }
-        explicit operator bool() const noexcept { return get() != nullptr; }
+        explicit operator bool() const noexcept {
+            return store != nullptr and get() != nullptr;
+        }
 
 
         /// ### Fetch the component
@@ -72,14 +75,14 @@ namespace planet::ecs {
                 get(felspar::source_location const &loc =
                             felspar::source_location::current()) {
             component_type *component = nullptr;
-            store.lookup(eid, &component, loc);
+            store->lookup(eid, &component, loc);
             return component;
         }
         [[nodiscard]] component_type const *
                 get(felspar::source_location const &loc =
                             felspar::source_location::current()) const {
             component_type const *component = nullptr;
-            store.lookup(eid, &component, loc);
+            store->lookup(eid, &component, loc);
             return component;
         }
         [[nodiscard]] component_type &operator()(
@@ -98,7 +101,7 @@ namespace planet::ecs {
         void
                 remove(felspar::source_location const &loc =
                                felspar::source_location::current()) {
-            store.remove(eid, loc);
+            store->remove(eid, loc);
         }
     };
 
