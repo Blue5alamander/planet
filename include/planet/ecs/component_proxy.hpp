@@ -61,6 +61,11 @@ namespace planet::ecs {
         component_proxy(
                 detail::abstract_lookup<Component> &s, entity_id const &e)
         : store{&s}, eid{e} {}
+        component_proxy(component_proxy const &) = default;
+        component_proxy(component_proxy &&) = default;
+
+        component_proxy &operator=(component_proxy const &) = default;
+        component_proxy &operator=(component_proxy &&) = default;
 
 
         /// ### Queries
