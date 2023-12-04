@@ -81,13 +81,13 @@ namespace planet::ecs {
         template<typename L>
         static constexpr std::optional<std::size_t> maybe_component_index() {
             return detail::component_index_sequence<L, Components...>(
-                    std::make_index_sequence<sizeof...(Components)>{});
+                    indexes{});
         }
         template<typename L>
         static constexpr std::size_t component_index() {
             constexpr auto ci =
                     detail::component_index_sequence<L, Components...>(
-                            std::make_index_sequence<sizeof...(Components)>{});
+                            indexes{});
             static_assert(ci.has_value());
             return *ci;
         }
