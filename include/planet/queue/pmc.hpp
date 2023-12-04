@@ -47,6 +47,9 @@ namespace planet::queue {
         }
 
 
+        std::size_t consumer_count() const { return consumers.size(); }
+
+
         void push(T t) {
             for (std::size_t idx{}; idx < consumers.size();) {
                 auto *consumer = consumers[idx];
