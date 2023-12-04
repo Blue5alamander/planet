@@ -38,6 +38,12 @@ namespace planet::ecs {
     }
 
 
+    template<typename Component>
+    concept connectable = requires(Component c, entity_id eid) {
+        { c.connect(eid) };
+    };
+
+
     /// ## Holder for all entities
     template<typename... Components>
     class storage final :
@@ -126,8 +132,11 @@ namespace planet::ecs {
                         felspar::source_location::current()) {
             static constexpr auto ci = component_index<C>();
             assert_entities(eid, loc);
-            std::get<ci>(components).at(eid.id()) = std::move(component);
+            auto &nc =
+                    (std::get<ci>(components).at(eid.id()) =
+                             std::move(component));
             eid.mask(*entities_storage_index) |= (1 << ci);
+            connect_component(eid, *nc);
             return proxy_for<C>{*this, eid};
         }
         /// #### Provide a component proxy
@@ -256,6 +265,18 @@ namespace planet::ecs {
 
 
       private:
+        template<typename C>
+        static void connect_component(entity_id const &eid, C &component)
+            requires connectable<C>
+        {
+            component.connect(eid);
+        }
+        template<typename C>
+        static void connect_component(entity_id const &, C &)
+            requires(not connectable<C>)
+        {}
+
+
         template<std::size_t C>
         void destroy_component(entity_id const &eid) {
             auto &chp = std::get<C>(components).at(eid.id());
