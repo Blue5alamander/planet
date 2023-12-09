@@ -128,6 +128,12 @@ namespace planet::ecs {
         }
         template<typename... Components>
         [[nodiscard]] entity_id
+                create(std::string_view const n, Components &&...components) {
+            return create(
+                    std::string{n}, std::forward<Components>(components)...);
+        }
+        template<typename... Components>
+        [[nodiscard]] entity_id
                 create(char const *const n, Components &&...components) {
             return create(
                     std::string{n}, std::forward<Components>(components)...);
