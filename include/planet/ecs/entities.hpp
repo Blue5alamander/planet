@@ -15,6 +15,7 @@ namespace planet::ecs {
 
     namespace detail {
         void count_create_entity();
+        void count_recycled_entity();
         void count_destroy_entity();
     }
 
@@ -40,10 +41,11 @@ namespace planet::ecs {
             /// of this entity
             std::optional<telemetry::id> id;
         };
-        /// TODO Use a stable vector
         std::vector<e_slot> e_slots;
         std::tuple<Storages &...> stores;
         using indexes = std::index_sequence_for<Storages...>;
+
+        std::vector<std::size_t> free_list;
 
         /// ### Keep entity ID zero alive
         /**
@@ -80,24 +82,35 @@ namespace planet::ecs {
 
         /// ### Create and return new entity
         [[nodiscard]] entity_id create() override {
-            /// TODO Search for a free slot in e_slots
-            e_slots.emplace_back();
+            if (free_list.empty()) {
+                e_slots.emplace_back();
 
-            [this]<std::size_t... Is>(std::index_sequence<Is...>) {
-                (std::get<Is>(stores).emplace_back(), ...);
-            }(indexes{});
+                [this]<std::size_t... Is>(std::index_sequence<Is...>) {
+                    (std::get<Is>(stores).emplace_back(), ...);
+                }(indexes{});
 
-            detail::count_create_entity();
+                detail::count_create_entity();
 
-            return entity_id{
-                    this, e_slots.size() - 1,
-                    ++e_slots.back().entity.generation};
+                return entity_id{
+                        this, e_slots.size() - 1,
+                        ++e_slots.back().entity.generation};
+            } else {
+                auto const id = free_list.back();
+                free_list.pop_back();
+
+                auto &e = e_slots.at(id);
+                ++e.entity.generation;
+                e.id.reset();
+                detail::count_recycled_entity();
+
+                return entity_id{this, id, e.entity.generation};
+            }
         }
         [[nodiscard]] entity_id create(std::string n) override {
             auto const eid = create();
-            n += std::string{"__id_"};
+            n += "__id_";
             n += std::to_string(eid.id());
-            e_slots.back().id.emplace(std::move(n));
+            e_slots.at(eid.id()).id.emplace(std::move(n));
             return eid;
         }
         template<typename... Components>
@@ -336,7 +349,7 @@ namespace planet::ecs {
                 (std::get<Is>(stores).destroy(eid), ...);
             }(indexes{});
             detail::count_destroy_entity();
-            /// TODO Add to free list
+            free_list.push_back(eid.id());
         }
         void destroy(entity_id const &eid) override {
             auto &entity = e_slots[eid.m_id].entity;

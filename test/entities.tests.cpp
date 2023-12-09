@@ -231,6 +231,10 @@ namespace {
                 check(e1).is_truthy();
                 entities.kill(e1);
                 check(entities.is_valid(e1)) == false;
+
+                auto e2 = entities.create();
+                check(e2.id()) == e1.id();
+                check(e1) != e2;
             },
             [](auto check) {
                 integral int_storage;

@@ -59,7 +59,9 @@ void planet::ecs::detail::throw_entity_not_valid(
 
 namespace {
     planet::telemetry::counter create_count{"planet_ecs_entities_created"};
+    planet::telemetry::counter recycle_count{"planet_ecs_entities_recycled"};
     planet::telemetry::counter destroy_count{"planet_ecs_entities_destroyed"};
 }
 void planet::ecs::detail::count_create_entity() { ++create_count; }
+void planet::ecs::detail::count_recycled_entity() { ++recycle_count; }
 void planet::ecs::detail::count_destroy_entity() { ++destroy_count; }
