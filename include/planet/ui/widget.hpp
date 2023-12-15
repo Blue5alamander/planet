@@ -25,14 +25,25 @@ namespace planet::ui {
         : reflowable{std::move(w)},
           events{std::move(w.events)},
           baseplate{std::exchange(w.baseplate, nullptr)},
-          visible{w.visible},
-          response{std::move(w.response)} {}
+          visible{w.visible} {
+            if (baseplate) {
+                /**
+                 * If a widget is moved when the baseplate is active then it's
+                 * likely that a `response` coroutine should also be running.
+                 * Because the `behaviour` is abstract this coroutine must be
+                 * re-started in a sub-class.
+                 */
+                w.response.destroy();
+                baseplate->update_ptr(&w, this);
+            }
+        }
         widget(std::string_view const n, float const z = {})
         : reflowable{n}, z_layer{z} {}
         virtual ~widget() { deregister(baseplate, this); }
 
         widget &operator=(widget const &) = delete;
-        widget &operator=(widget &&);
+        /// TODO We could allow move assignment
+        widget &operator=(widget &&) = delete;
 
 
         /// ### Events going to this widget
