@@ -269,6 +269,12 @@ void planet::serialise::load(load_buffer &lb, std::string &s) {
     auto const b = lb.split(sz);
     s = {reinterpret_cast<char const *>(b.data()), b.size()};
 }
+void planet::serialise::load(load_buffer &lb, std::string_view &s) {
+    lb.check_marker(marker::u8string8);
+    auto const sz = lb.extract_size_t();
+    auto const b = lb.split(sz);
+    s = {reinterpret_cast<char const *>(b.data()), b.size()};
+}
 
 
 /// ## Types in `felspar::`

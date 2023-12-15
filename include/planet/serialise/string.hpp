@@ -18,6 +18,7 @@ namespace planet::serialise {
         save(ab, std::string_view(s));
     }
     void load(load_buffer &, std::string &);
+    void load(load_buffer &, std::string_view &);
 
 
 }
