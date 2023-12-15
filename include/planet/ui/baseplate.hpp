@@ -63,6 +63,16 @@ namespace planet::ui {
         }
 
 
+        /// ### Update a widget pointer
+        void update_ptr(widget_ptr const was, widget_ptr const now) {
+            if (hard_focus == was) { hard_focus = now; }
+            if (soft_focus == was) { soft_focus = now; }
+            for (widget_ptr &w : widgets) {
+                if (w == was) { w = now; }
+            }
+        }
+
+
         /// ### Set and remove hard focus
         void hard_focus_on(widget<Renderer> *const wp) {
             /// TODO Check that wp is already in the set of widgets
