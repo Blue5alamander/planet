@@ -19,6 +19,7 @@ namespace planet::ui {
     template<typename Renderer>
     class baseplate final {
         using widget_ptr = widget<Renderer> *;
+        using const_widget_ptr = widget<Renderer> const *;
         std::vector<widget_ptr> widgets;
 
 
@@ -31,8 +32,13 @@ namespace planet::ui {
         }
         baseplate(baseplate const &) = delete;
         baseplate(baseplate &&) = delete;
+        /**
+         * TODO A destructor should clear any baseplate pointers in remaining
+         * widgets
+         */
 
         baseplate &operator=(baseplate const &) = delete;
+        /// TODO The move assignment could be allowed
         baseplate &operator=(baseplate &&) = delete;
 
 
@@ -50,13 +56,13 @@ namespace planet::ui {
 
 
         /// ### Register and remove widgets from event routing
-        void add(widget<Renderer> *const w) {
+        void add(widget_ptr const w) {
             w->baseplate = this;
-            /// TODO Ideally the widget isn't already in the set of widgets
+            // TODO Ideally the widget isn't already in the set of widgets
             widgets.push_back(w);
         }
         void add(widget<Renderer> &w) { add(&w); }
-        void remove(widget<Renderer> *const w) {
+        void remove(widget_ptr const w) {
             if (hard_focus == w) { hard_focus = nullptr; }
             if (soft_focus == w) { soft_focus = nullptr; }
             std::erase(widgets, w);
@@ -74,17 +80,17 @@ namespace planet::ui {
 
 
         /// ### Set and remove hard focus
-        void hard_focus_on(widget<Renderer> *const wp) {
-            /// TODO Check that wp is already in the set of widgets
+        void hard_focus_on(widget_ptr const wp) {
+            // TODO Check that wp is already in the set of widgets
             hard_focus = wp;
         }
-        void hard_focus_off(widget<Renderer> *const w) {
+        void hard_focus_off(widget_ptr const w) {
             if (hard_focus == w) { hard_focus = nullptr; }
         }
 
 
         /// ### Does this widget have focus
-        bool has_focus(widget<Renderer> const *const wp) const noexcept {
+        bool has_focus(const_widget_ptr const wp) const noexcept {
             return wp == find_focused_widget();
         }
         bool has_focus(widget<Renderer> const &wp) const noexcept {
@@ -105,6 +111,7 @@ namespace planet::ui {
         widget_ptr find_focused_widget() const noexcept {
             return hard_focus ? hard_focus : soft_focus;
         }
+
 
         /// ### Event forwarding
         felspar::coro::starter<> forwarders;
@@ -179,5 +186,5 @@ inline void planet::ui::widget<Renderer>::add_to(
     parent.add_child(panel);
     bp.add(this);
     visible = true;
-    response.post(*this, &widget::behaviour);
+    response.post(behaviour());
 }
