@@ -81,6 +81,9 @@ namespace planet::ui {
                 self->output_to.set_value(self->press_value);
             }
         };
+
+
+      protected:
         felspar::coro::task<void> behaviour() override {
             return handle<output_type>::press(
                     this,
