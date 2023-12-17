@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstring>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -116,6 +117,34 @@ namespace planet::serialise {
             auto const items = lb.extract_size_t();
             v = std::vector<T>(items);
             for (auto &item : v) { load(lb, item); }
+        }
+    }
+
+
+    template<typename T>
+    inline void save(save_buffer &ab, std::optional<T> const &v) {
+        if (v) {
+            ab.save_box("_s:opt", true, *v);
+        } else {
+            ab.save_box("_s:opt", false);
+        }
+    }
+    template<typename T>
+    inline void load(box &b, std::optional<T> &v) {
+        try {
+            b.check_name_or_throw("_s:opt");
+            bool has_value = {};
+            load(b.content, has_value);
+            if (has_value) {
+                v.emplace();
+                load(b.content, *v);
+            } else {
+                v.reset();
+            }
+            b.check_empty_or_throw();
+        } catch (serialisation_error &e) {
+            e.inside_box("_s:opt");
+            throw;
         }
     }
 
