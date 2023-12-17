@@ -352,18 +352,22 @@ namespace planet::ecs {
                 entity_id const &eid,
                 Component **component,
                 felspar::source_location const &loc) {
-            Storage &store = dynamic_cast<Storage &>(*this);
-            *component =
-                    store.template maybe_get_component<Component>(eid, loc);
+            if (eid) {
+                Storage &store = dynamic_cast<Storage &>(*this);
+                *component =
+                        store.template maybe_get_component<Component>(eid, loc);
+            }
         }
         template<typename Component, typename Storage>
         void concrete_lookup<Component, Storage>::lookup(
                 entity_id const &eid,
                 Component const **component,
                 felspar::source_location const &loc) const {
-            Storage const &store = dynamic_cast<Storage const &>(*this);
-            *component =
-                    store.template maybe_get_component<Component>(eid, loc);
+            if (eid) {
+                Storage const &store = dynamic_cast<Storage const &>(*this);
+                *component =
+                        store.template maybe_get_component<Component>(eid, loc);
+            }
         }
         template<typename Component, typename Storage>
         void concrete_lookup<Component, Storage>::remove(
