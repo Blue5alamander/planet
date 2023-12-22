@@ -33,8 +33,11 @@ namespace planet::ui {
             content.draw_within(t, {bounds.top_left, size});
         }
         template<typename Renderer>
-        void draw(Renderer &r) {
-            content.draw(r);
+        void
+                draw(Renderer &r,
+                     felspar::source_location const &loc =
+                             felspar::source_location::current()) {
+            content.draw(r, loc);
         }
 
       private:
