@@ -64,7 +64,14 @@ namespace planet::ui {
         }
 
         template<typename Q>
-        struct handle;
+        struct handle {
+            static felspar::coro::task<void> press(button *self, auto clicks) {
+                while (true) {
+                    co_await clicks.next();
+                    self->output_to = self->press_value;
+                }
+            }
+        };
         template<typename R>
         struct handle<queue::pmc<R>> {
             static felspar::coro::task<void> press(button *self, auto clicks) {
