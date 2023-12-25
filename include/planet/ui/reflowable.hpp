@@ -41,6 +41,14 @@ namespace planet::ui {
 
         /// #### The size of the item
         affine::extents2d const &size() { return position().extents; }
+        /// #### Does the reflowable contain the given location
+        bool contains_global_coordinate(affine::point2d const &p) const {
+            if (m_position) {
+                return m_position->contains(p);
+            } else {
+                return false;
+            }
+        }
         /// #### The position that it has
         affine::rectangle2d const &position(
                 felspar::source_location const &loc =
@@ -70,6 +78,7 @@ namespace planet::ui {
             }
         }
 
+
         /// ### Calculate position
         /**
          * Calculates the correct position for this element given the
@@ -91,6 +100,7 @@ namespace planet::ui {
             return *m_constraints;
         }
 
+
         /// ### Move the widget to a new position
         /**
          * For widgets (or other UI items that have a `panel`) the parent must
@@ -100,6 +110,7 @@ namespace planet::ui {
             m_position = {r.top_left, constraints().extents()};
             move_sub_elements(*m_position);
         }
+
 
       protected:
         /// ### Reflow implementation
