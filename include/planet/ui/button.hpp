@@ -56,13 +56,6 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            return graphic.reflow(ex);
-        }
-        void do_move_sub_elements(affine::rectangle2d const &r) override {
-            graphic.move_to(r);
-        }
-
         template<typename Q>
         struct handle {
             static felspar::coro::task<void> press(button *self, auto clicks) {
@@ -91,6 +84,14 @@ namespace planet::ui {
 
 
       protected:
+        constrained_type do_reflow(constrained_type const &ex) override {
+            return graphic.reflow(ex);
+        }
+        void do_move_sub_elements(affine::rectangle2d const &r) override {
+            graphic.move_to(r);
+        }
+
+
         felspar::coro::task<void> behaviour() override {
             return handle<output_type>::press(
                     this,
