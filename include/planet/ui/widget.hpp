@@ -2,6 +2,7 @@
 
 
 #include <planet/events/queue.hpp>
+#include <planet/ui/baseplate.hpp>
 #include <planet/ui/reflowable.hpp>
 #include <planet/ui/panel.hpp>
 
@@ -10,9 +11,9 @@ namespace planet::ui {
 
 
     /// ## User interface widget
-    template<typename Renderer>
     class widget : public reflowable {
-        friend class baseplate<Renderer>;
+        friend class baseplate;
+
 
       public:
         /// ### Construction
@@ -65,8 +66,8 @@ namespace planet::ui {
          * This member is implemented near the bottom of
          * [`baseplate.hpp`](./baseplate.hpp).
          */
-        virtual void add_to(ui::baseplate<Renderer> &, ui::panel &parent);
-        void add_to(ui::baseplate<Renderer> &bp) { add_to(bp, bp.pixels); }
+        virtual void add_to(ui::baseplate &, ui::panel &parent);
+        void add_to(ui::baseplate &bp) { add_to(bp, bp.pixels); }
 
 
         /// ### Draw the widget
@@ -94,8 +95,8 @@ namespace planet::ui {
 
       protected:
         ui::panel panel;
-        ui::baseplate<Renderer> *baseplate = nullptr;
-        static void deregister(ui::baseplate<Renderer> *, widget *);
+        ui::baseplate *baseplate = nullptr;
+        static void deregister(ui::baseplate *, widget *);
         bool visible = false;
 
         virtual felspar::coro::task<void> behaviour() = 0;

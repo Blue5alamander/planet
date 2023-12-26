@@ -16,13 +16,8 @@ namespace planet::ui {
      * inside its area. The button is customised with a graphical element. The
      * value of the mouse press is always the same, and is passed to the output.
      */
-    template<
-            typename Renderer,
-            typename Return,
-            typename Texture,
-            typename Output = queue::pmc<Return>>
-    class button : public planet::ui::widget<Renderer> {
-        using superclass = planet::ui::widget<Renderer>;
+    template<typename Return, typename Texture, typename Output = queue::pmc<Return>>
+    class button : public widget {
         Return press_value;
         Output &output_to;
 
@@ -30,24 +25,24 @@ namespace planet::ui {
       public:
         using value_type = Return;
         using output_type = Output;
-        using constrained_type = typename superclass::constrained_type;
-        using superclass::name;
-        using superclass::position;
+        using constrained_type = widget::constrained_type;
+        using widget::name;
+        using widget::position;
 
 
         explicit button(output_type &o, value_type v)
-        : superclass{"planet::sdl::ui::button"},
+        : widget{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o} {}
         button(std::string_view const n, output_type &o, value_type v)
-        : superclass{n}, press_value{std::move(v)}, output_to{o} {}
+        : widget{n}, press_value{std::move(v)}, output_to{o} {}
         button(Texture g, output_type &o, value_type v)
-        : superclass{"planet::sdl::ui::button"},
+        : widget{"planet::sdl::ui::button"},
           press_value{std::move(v)},
           output_to{o},
           graphic{std::move(g)} {}
         button(std::string_view const n, Texture g, output_type &o, value_type v)
-        : superclass{n},
+        : widget{n},
           press_value{std::move(v)},
           output_to{o},
           graphic{std::move(g)} {}
@@ -96,8 +91,8 @@ namespace planet::ui {
             return handle<output_type>::press(
                     this,
                     events::identify_clicks(
-                            superclass::baseplate->mouse_settings,
-                            superclass::events.mouse.stream()));
+                            widget::baseplate->mouse_settings,
+                            widget::events.mouse.stream()));
         }
     };
 

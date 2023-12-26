@@ -53,13 +53,12 @@ namespace planet::debug {
 
     /// ## Button
     template<typename C = void>
-    struct button final : public ui::widget<std::ostream &> {
-        using superclass = ui::widget<std::ostream &>;
+    struct button final : public ui::widget {
         using content_type = C;
 
 
         button(content_type c)
-        : superclass{"planet::debug::button"}, content{std::move(c)} {}
+        : ui::widget{"planet::debug::button"}, content{std::move(c)} {}
 
 
         content_type content;
@@ -85,11 +84,8 @@ namespace planet::debug {
         }
     };
     template<>
-    struct button<void> final : public ui::widget<std::ostream &> {
-        using superclass = ui::widget<std::ostream &>;
-
-
-        button(std::ostream &o) : superclass{"planet::debug::button"}, os{&o} {}
+    struct button<void> final : public ui::widget {
+        button(std::ostream &o) : ui::widget{"planet::debug::button"}, os{&o} {}
 
 
         std::ostream *os;

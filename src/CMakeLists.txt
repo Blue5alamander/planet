@@ -2,6 +2,7 @@ add_library(planet
         audio.cpp
         affine.cpp
         asset_manager.cpp
+        baseplate.ui.cpp
         cameras.cpp
         comms.cpp
         ecs.cpp
@@ -18,6 +19,7 @@ add_library(planet
         stdin.cpp
         telemetry.cpp
         time.cpp
+        widget.ui.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
 target_compile_definitions(planet PRIVATE

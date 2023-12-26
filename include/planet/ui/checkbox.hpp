@@ -8,15 +8,13 @@ namespace planet::ui {
 
 
     template<typename Renderer, typename Texture>
-    class checkbox : public planet::ui::widget<Renderer> {
-        using superclass = planet::ui::widget<Renderer>;
-
+    class checkbox : public widget {
       public:
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
-        : superclass{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
+        : widget{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
 
-        using constrained_type =
-                typename planet::ui::widget<Renderer>::constrained_type;
+
+        using constrained_type = widget::constrained_type;
 
 
         Texture on, off;
@@ -44,8 +42,8 @@ namespace planet::ui {
 
         felspar::coro::task<void> behaviour() override {
             for (auto clicks = events::identify_clicks(
-                         superclass::baseplate->mouse_settings,
-                         superclass::events.mouse.stream());
+                         widget::baseplate->mouse_settings,
+                         widget::events.mouse.stream());
                  co_await clicks.next();) {
                 value = not value;
             }

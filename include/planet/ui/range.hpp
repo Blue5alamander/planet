@@ -8,13 +8,13 @@ namespace planet::ui {
 
 
     /// ## Range/slide control
-    template<typename Renderer, typename Background, typename Draggable>
-    class range : public widget<Renderer>, public drop_target {
+    template<typename Background, typename Draggable>
+    class range : public widget, public drop_target {
       public:
         range(Background bg,
               Draggable ctrl,
               planet::ui::constrained1d<float> const &position)
-        : widget<Renderer>{"planet::ui::range<>"},
+        : widget{"planet::ui::range<>"},
           background{std::move(bg)},
           slider{std::move(ctrl)},
           slider_position{position} {
@@ -24,28 +24,28 @@ namespace planet::ui {
               Background bg,
               Draggable ctrl,
               planet::ui::constrained1d<float> const &position)
-        : widget<Renderer>{n},
+        : widget{n},
           background{std::move(bg)},
           slider{std::move(ctrl)},
           slider_position{position} {
             slider.offset = {fully_constrained, fully_constrained};
         }
 
+
         Background background;
         Draggable slider;
         planet::ui::constrained1d<float> slider_position = {};
 
-        using constrained_type =
-                typename planet::ui::widget<Renderer>::constrained_type;
 
-        using planet::ui::widget<Renderer>::add_to;
-        void
-                add_to(planet::ui::baseplate<Renderer> &bp,
-                       planet::ui::panel &parent) override {
-            planet::ui::widget<Renderer>::add_to(bp, parent);
+        using constrained_type = widget::constrained_type;
+
+
+        using widget::add_to;
+        void add_to(ui::baseplate &bp, ui::panel &parent) override {
+            widget::add_to(bp, parent);
             slider.target = this;
-            slider.z_layer = widget<Renderer>::z_layer + 1;
-            slider.add_to(bp, widget<Renderer>::panel);
+            slider.z_layer = widget::z_layer + 1;
+            slider.add_to(bp, widget::panel);
         }
 
 

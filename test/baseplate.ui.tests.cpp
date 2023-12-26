@@ -17,7 +17,7 @@ namespace {
 
     auto const ordering = suite.test("ordering", [](auto check, auto &log) {
         planet::ui::panel panel;
-        planet::ui::baseplate<std::ostream &> bp;
+        planet::ui::baseplate bp;
         planet::debug::button<> btn{log};
 
         check(bp.widget_count()) == 0u;
@@ -41,7 +41,7 @@ namespace {
     auto const events = suite.test(
             "events",
             [](auto check, auto &log) {
-                planet::ui::baseplate<std::ostream &> bp;
+                planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 planet::debug::button<> btn{log};
 
@@ -81,7 +81,7 @@ namespace {
                 check(btn.clicks) == 2u;
             },
             [](auto check, auto &log) {
-                planet::ui::baseplate<std::ostream &> bp;
+                planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 auto ui = planet::ui::column{std::tuple{
                         planet::ui::row{std::tuple{planet::debug::button{

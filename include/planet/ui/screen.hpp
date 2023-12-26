@@ -18,17 +18,16 @@ namespace planet::ui {
      * to ensure that events are routed to any other widget that overlays the
      * screen.
      */
-    template<typename Renderer>
-    class screen final : public widget<Renderer> {
-        using superclass = widget<Renderer>;
-
+    class screen final : public widget {
       public:
-        screen() : widget<Renderer>{"planet::ui::screen", -1} {}
-        screen(std::string_view const n) : widget<Renderer>{n, -1} {}
+        screen() : widget{"planet::ui::screen", -1} {}
+        screen(std::string_view const n) : widget{n, -1} {}
 
-        using constrained_type = typename superclass::constrained_type;
-        using superclass::events;
-        using superclass::panel;
+
+        using constrained_type = typename widget::constrained_type;
+        using widget::events;
+        using widget::panel;
+
 
       private:
         constrained_type do_reflow(constrained_type const &c) override {
