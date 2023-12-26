@@ -44,13 +44,7 @@ namespace planet::ui {
         : reflowable{n}, content{std::move(c)} {}
 
         /// ### Drawing the box content
-        template<typename Renderer>
-        void
-                draw(Renderer &r,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
-            detail::draw(r, content, loc);
-        }
+        void draw() { content.draw(); }
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {

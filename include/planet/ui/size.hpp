@@ -32,13 +32,7 @@ namespace planet::ui {
         void draw_within(Target &t, affine::rectangle2d const bounds) {
             content.draw_within(t, {bounds.top_left, size});
         }
-        template<typename Renderer>
-        void
-                draw(Renderer &r,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
-            content.draw(r, loc);
-        }
+        void draw() { content.draw(); }
 
       private:
         constrained_type do_reflow(constrained_type const &) override {

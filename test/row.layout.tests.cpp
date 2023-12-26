@@ -15,9 +15,10 @@ namespace {
 
     auto const arf1 = rsuite.test(
             "reflow/array",
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::row{
-                        std::array{planet::debug::fixed_element{{4, 3}}}, 2};
+                        std::array{planet::debug::fixed_element{log, {4, 3}}},
+                        2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
@@ -28,11 +29,11 @@ namespace {
                         == planet::affine::rectangle2d{
                                 {15, 20}, planet::affine::extents2d{4, 3}};
             },
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::row{
                         std::array{
-                                planet::debug::fixed_element{{4, 3}},
-                                planet::debug::fixed_element{{4, 3}}},
+                                planet::debug::fixed_element{log, {4, 3}},
+                                planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
@@ -49,9 +50,9 @@ namespace {
             });
 
 
-    auto const rf1 = rsuite.test("reflow/tuple", [](auto check) {
+    auto const rf1 = rsuite.test("reflow/tuple", [](auto check, auto &log) {
         auto c = planet::ui::row{
-                std::tuple{planet::debug::fixed_element{{4, 3}}}, 2};
+                std::tuple{planet::debug::fixed_element{log, {4, 3}}}, 2};
         c.reflow({{100, 0, 100}, {100, 0, 100}});
         c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 

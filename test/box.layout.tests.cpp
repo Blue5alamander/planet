@@ -16,12 +16,12 @@ namespace {
 
     auto const rf = suite.test(
             "reflow",
-            [](auto check) {
+            [](auto check, auto &log) {
                 constexpr planet::affine::extents2d size{4, 3};
                 constexpr planet::affine::extents2d bounds{400, 300};
 
                 auto b = planet::ui::box{
-                        planet::debug::fixed_element{size}, 2, 2};
+                        planet::debug::fixed_element{log, size}, 2, 2};
                 b.reflow({{400, 0, 400}, {300, 0, 300}});
                 b.move_to({{15, 20}, bounds});
 
@@ -33,12 +33,12 @@ namespace {
                 check(b.constraints().extents()) == bounds;
                 check(b.constraints().max()) == bounds;
             },
-            [](auto check) {
+            [](auto check, auto &log) {
                 constexpr planet::affine::extents2d target_size{40, 30};
                 constexpr planet::affine::extents2d bounds{400, 300};
 
                 auto b = planet::ui::box{planet::ui::target_size{
-                        planet::debug::fixed_element{{4, 3}}, target_size}};
+                        planet::debug::fixed_element{log, {4, 3}}, target_size}};
                 b.reflow({{400, 0, 400}, {300, 0, 300}});
 
                 check(b.content.size) == target_size;
@@ -56,10 +56,11 @@ namespace {
                         == planet::affine::rectangle2d{
                                 {180, 135}, planet::affine::extents2d{4, 3}};
             },
-            [](auto check) {
+            [](auto check, auto &log) {
                 constexpr planet::affine::extents2d target_size{40, 30};
                 auto b = planet::ui::box{planet::ui::target_size{
-                        planet::ui::box{planet::debug::fixed_element{{4, 3}}},
+                        planet::ui::box{
+                                planet::debug::fixed_element{log, {4, 3}}},
                         target_size}};
                 b.reflow({{400, 0, 400}, {300, 0, 300}});
                 b.move_to({{0, 0}, planet::affine::extents2d{400, 300}});

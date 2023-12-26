@@ -18,7 +18,7 @@ namespace {
     auto const ordering = suite.test("ordering", [](auto check, auto &log) {
         planet::ui::panel panel;
         planet::ui::baseplate<std::ostream &> bp;
-        planet::debug::button<> btn;
+        planet::debug::button<> btn{log};
 
         check(bp.widget_count()) == 0u;
         check(btn.is_visible()) == false;
@@ -29,7 +29,7 @@ namespace {
         check(btn.is_visible()) == true;
 
         check([&]() {
-            btn.draw(log);
+            btn.draw();
         }).throws(std::logic_error{"Reflowable position has not been set"});
 
         check([&]() {
@@ -40,10 +40,10 @@ namespace {
 
     auto const events = suite.test(
             "events",
-            [](auto check) {
+            [](auto check, auto &log) {
                 planet::ui::baseplate<std::ostream &> bp;
                 planet::ui::panel panel;
-                planet::debug::button<> btn;
+                planet::debug::button<> btn{log};
 
                 btn.add_to(bp, panel);
                 btn.reflow({{40, 0, 40}, {30, 0, 30}});
@@ -85,7 +85,7 @@ namespace {
                 planet::ui::panel panel;
                 auto ui = planet::ui::column{std::tuple{
                         planet::ui::row{std::tuple{planet::debug::button{
-                                planet::debug::fixed_element{{4, 3}}}}}}};
+                                planet::debug::fixed_element{log, {4, 3}}}}}}};
 
                 auto &btn = std::get<0>(std::get<0>(ui.items).items);
                 btn.add_to(bp, panel);

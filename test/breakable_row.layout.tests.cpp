@@ -15,9 +15,10 @@ namespace {
 
     auto const arf = bsuite.test(
             "reflow/array",
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::breakable_row{
-                        std::array{planet::debug::fixed_element{{4, 3}}}, 2};
+                        std::array{planet::debug::fixed_element{log, {4, 3}}},
+                        2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
@@ -28,11 +29,11 @@ namespace {
                         == planet::affine::rectangle2d{
                                 {15, 20}, planet::affine::extents2d{4, 3}};
             },
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::breakable_row{
                         std::array{
-                                planet::debug::fixed_element{{4, 3}},
-                                planet::debug::fixed_element{{4, 3}}},
+                                planet::debug::fixed_element{log, {4, 3}},
+                                planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
@@ -51,9 +52,10 @@ namespace {
 
     auto const trf = bsuite.test(
             "reflow/tuple",
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::breakable_row{
-                        std::tuple{planet::debug::fixed_element{{4, 3}}}, 2};
+                        std::tuple{planet::debug::fixed_element{log, {4, 3}}},
+                        2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
@@ -64,11 +66,11 @@ namespace {
                         == planet::affine::rectangle2d{
                                 {15, 20}, planet::affine::extents2d{4, 3}};
             },
-            [](auto check) {
+            [](auto check, auto &log) {
                 auto c = planet::ui::breakable_row{
                         std::tuple{
-                                planet::debug::fixed_element{{4, 3}},
-                                planet::debug::fixed_element{{4, 3}}},
+                                planet::debug::fixed_element{log, {4, 3}},
+                                planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({{100, 0, 100}, {100, 0, 100}});
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});

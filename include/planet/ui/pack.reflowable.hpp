@@ -41,13 +41,7 @@ namespace planet::ui {
 
 
         /// ### Draw the contained items
-        template<typename Renderer>
-        void
-                draw(Renderer &r,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
-            draw_items(r, items, loc);
-        }
+        void draw() { draw_items(items); }
 
       protected:
         /// ### Return an array of constraints for all of the included items

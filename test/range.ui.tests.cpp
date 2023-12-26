@@ -10,16 +10,16 @@ namespace {
     auto const suite = felspar::testsuite("range.ui");
 
 
-    auto const reflow = suite.test("reflow", [](auto check) {
+    auto const reflow = suite.test("reflow", [](auto check, auto &log) {
         planet::ui::baseplate<std::ostream &> bp;
         auto r = planet::debug::printable<planet::ui::range<
                 std::ostream &, planet::debug::fixed_element,
                 planet::debug::printable<planet::ui::draggable<
                         std::ostream &, planet::debug::fixed_element>>>>{
-                planet::debug::fixed_element{{50, 10}},
+                planet::debug::fixed_element{log, {50, 10}},
                 planet::debug::printable<planet::ui::draggable<
                         std::ostream &, planet::debug::fixed_element>>{
-                        "hs", {{10, 10}}},
+                        "hs", planet::debug::fixed_element{log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
         r.reflow({{50, 0, 100}, {50, 0, 100}});
@@ -52,16 +52,16 @@ namespace {
     });
 
 
-    auto const slide = suite.test("slide", [](auto check) {
+    auto const slide = suite.test("slide", [](auto check, auto &log) {
         planet::ui::baseplate<std::ostream &> bp;
         auto r = planet::debug::printable<planet::ui::range<
                 std::ostream &, planet::debug::fixed_element,
                 planet::debug::printable<planet::ui::draggable<
                         std::ostream &, planet::debug::fixed_element>>>>{
-                planet::debug::fixed_element{{50, 10}},
+                planet::debug::fixed_element{log, {50, 10}},
                 planet::debug::printable<planet::ui::draggable<
                         std::ostream &, planet::debug::fixed_element>>{
-                        "hs", {{10, 10}}},
+                        "hs", {log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
         r.reflow({{50, 0, 100}, {50, 0, 100}});

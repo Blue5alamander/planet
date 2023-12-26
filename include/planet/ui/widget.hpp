@@ -70,11 +70,8 @@ namespace planet::ui {
 
 
         /// ### Draw the widget
-        void
-                draw(Renderer &r,
-                     felspar::source_location const & =
-                             felspar::source_location::current()) {
-            if (visible) { do_draw(r); }
+        void draw() {
+            if (visible) { do_draw(); }
         }
 
 
@@ -102,7 +99,7 @@ namespace planet::ui {
         bool visible = false;
 
         virtual felspar::coro::task<void> behaviour() = 0;
-        virtual void do_draw(Renderer &r) = 0;
+        virtual void do_draw() = 0;
 
 
         /// ### Move the widget's panel

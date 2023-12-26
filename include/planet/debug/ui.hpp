@@ -16,23 +16,32 @@ namespace planet::debug {
     struct printable final : public AS {
         using AS::AS;
 
+
+        printable(std::ostream &s) : os{&s} {}
+
+
+        std::ostream *os;
+
+
       private:
-        void do_draw(std::ostream &os) {
-            os << AS::name() << " do_draw @ " << AS::position() << '\n';
+        void do_draw() override {
+            *os << AS::name() << " do_draw @ " << AS::position() << '\n';
         }
     };
 
 
     /// ## Fixed size UI element
     struct fixed_element final : public ui::reflowable {
+        std::ostream *os;
         affine::extents2d size;
 
-        fixed_element(affine::extents2d const s)
-        : reflowable{"planet::debug::fixed_element"}, size{s} {}
 
-        void draw(std::ostream &os) {
-            os << name() << " draw @ " << position() << '\n';
-        }
+        fixed_element(std::ostream &ss, affine::extents2d const sz)
+        : reflowable{"planet::debug::fixed_element"}, os{&ss}, size{sz} {}
+
+
+        void draw() { *os << name() << " draw @ " << position() << '\n'; }
+
 
       private:
         constrained_type do_reflow(constrained_type const &) override {
@@ -48,13 +57,17 @@ namespace planet::debug {
         using superclass = ui::widget<std::ostream &>;
         using content_type = C;
 
+
         button(content_type c)
         : superclass{"planet::debug::button"}, content{std::move(c)} {}
 
+
         content_type content;
+
 
         /// ### The number of times the button has been pressed
         std::size_t clicks = {};
+
 
         constrained_type do_reflow(constrained_type const &c) {
             return content.reflow(c);
@@ -66,7 +79,7 @@ namespace planet::debug {
                 ++clicks;
             }
         }
-        void do_draw(std::ostream &os) { content.draw(os); }
+        void do_draw() { content.draw(); }
         void do_move_sub_elements(affine::rectangle2d const &c) {
             content.move_to(c);
         }
@@ -75,8 +88,11 @@ namespace planet::debug {
     struct button<void> final : public ui::widget<std::ostream &> {
         using superclass = ui::widget<std::ostream &>;
 
-        button() : superclass{"planet::debug::button"} {}
 
+        button(std::ostream &o) : superclass{"planet::debug::button"}, os{&o} {}
+
+
+        std::ostream *os;
         /// ### The number of times the button has been pressed
         std::size_t clicks = {};
 
@@ -88,9 +104,7 @@ namespace planet::debug {
                 ++clicks;
             }
         }
-        void do_draw(std::ostream &os) {
-            os << name() << " do_draw @ " << position() << '\n';
-        }
+        void do_draw() { *os << name() << " do_draw @ " << position() << '\n'; }
         void do_move_sub_elements(affine::rectangle2d const &) {}
     };
 

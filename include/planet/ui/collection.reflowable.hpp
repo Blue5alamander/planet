@@ -16,7 +16,9 @@ namespace planet::ui {
     template<typename CT, typename ET>
     struct collection_reflowable : public reflowable {
         using collection_type = CT;
-        collection_type items;
+        using layout_type = planet::ui::layout_for<collection_type>;
+        using constrained_type = typename layout_type::constrained_type;
+
 
         explicit collection_reflowable(std::string_view const n)
         : reflowable{n} {}
@@ -24,17 +26,15 @@ namespace planet::ui {
                 std::string_view const n, collection_type c)
         : reflowable{n}, items{std::move(c)} {}
 
-        using layout_type = planet::ui::layout_for<collection_type>;
-        using constrained_type = typename layout_type::constrained_type;
+
+        collection_type items;
         layout_type elements;
 
-        template<typename Renderer>
-        void
-                draw(Renderer &r,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
-            for (auto &item : items) { item.draw(r, loc); }
+
+        void draw() {
+            for (auto &item : items) { item.draw(); }
         }
+
 
       protected:
         void move_sub_elements(affine::rectangle2d const &r) override {
