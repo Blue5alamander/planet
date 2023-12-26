@@ -84,4 +84,57 @@ namespace planet::queue {
     };
 
 
+    template<>
+    class psc<void> final {
+        std::size_t pushes = {};
+        felspar::coro::coroutine_handle<> waiting = {};
+
+
+      public:
+        using value_type = void;
+
+
+        psc() = default;
+        psc(psc &&) = default;
+        psc(psc const &) = delete;
+
+        psc &operator=(psc &&) = default;
+        psc &operator=(psc const &) = delete;
+
+
+        bool empty() const noexcept { return pushes == 0u; }
+
+
+        auto next() {
+            struct awaitable {
+                psc &q;
+
+                bool await_ready() const noexcept { return not q.empty(); }
+                void await_suspend(felspar::coro::coroutine_handle<> h) {
+                    if (q.waiting) {
+                        throw felspar::stdexcept::logic_error{
+                                "There is already a coroutine waiting on this "
+                                "queue"};
+                    } else {
+                        q.waiting = h;
+                    }
+                }
+                void await_resume() { --q.pushes; }
+            };
+            return awaitable{*this};
+        }
+
+
+        bool push() {
+            ++pushes;
+            if (waiting) {
+                std::exchange(waiting, {}).resume();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+
+
 }
