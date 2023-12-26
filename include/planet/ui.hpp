@@ -7,6 +7,7 @@
 #include <planet/ui/checkbox.hpp>
 #include <planet/ui/constrained.hpp>
 #include <planet/ui/draggable.hpp>
+#include <planet/ui/drawable.hpp>
 #include <planet/ui/element.hpp>
 #include <planet/ui/gravity.hpp>
 #include <planet/ui/forward.hpp>
