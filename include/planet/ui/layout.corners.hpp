@@ -21,6 +21,8 @@ namespace planet::ui {
         using top_right_type = TR;
         using bottom_left_type = BL;
         using bottom_right_type = BR;
+        using constrained_type = planet::ui::reflowable::constrained_type;
+
 
         corners(affine::rectangle2d const &w,
                 top_left_type tl,
@@ -34,21 +36,21 @@ namespace planet::ui {
           bottom_left{std::move(bl)},
           bottom_right{std::move(br)} {}
 
+
         affine::rectangle2d within;
         top_left_type top_left;
         top_right_type top_right;
         bottom_left_type bottom_left;
         bottom_right_type bottom_right;
 
-        using constrained_type = planet::ui::reflowable::constrained_type;
 
-        template<typename Renderer>
-        void draw(Renderer &r) {
-            top_left.draw(r);
-            top_right.draw(r);
-            bottom_left.draw(r);
-            bottom_right.draw(r);
+        void draw() {
+            top_left.draw();
+            top_right.draw();
+            bottom_left.draw();
+            bottom_right.draw();
         }
+
 
       private:
         constrained_type do_reflow(constrained_type const &c) override {
