@@ -7,7 +7,7 @@
 namespace planet::ui {
 
 
-    template<typename Renderer, typename Texture>
+    template<typename Texture>
     class checkbox : public widget {
       public:
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
