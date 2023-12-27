@@ -12,16 +12,7 @@ namespace planet::ui {
     /// ## Reflowable implementation for tuple based layouts
     template<typename ET, typename... Pack>
     struct pack_reflowable : public reflowable {
-
         using collection_type = std::tuple<Pack...>;
-        collection_type items;
-
-
-        /// ### Meta-data
-        static constexpr std::size_t item_count = sizeof...(Pack);
-        static constexpr auto item_sequence =
-                std::make_index_sequence<item_count>{};
-        static_assert(item_count > 0, "There must be at least one UI element");
 
 
         /// ### Construction
@@ -31,6 +22,16 @@ namespace planet::ui {
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : reflowable{n}, items{std::move(c)}, created_loc{loc} {}
+
+
+        collection_type items;
+
+
+        /// ### Meta-data
+        static constexpr std::size_t item_count = sizeof...(Pack);
+        static constexpr auto item_sequence =
+                std::make_index_sequence<item_count>{};
+        static_assert(item_count > 0, "There must be at least one UI element");
 
 
         /// ### Information about the layout of the contained items
@@ -43,15 +44,19 @@ namespace planet::ui {
         /// ### Draw the contained items
         void draw() { draw_items(items); }
 
+
       protected:
         /// ### Return an array of constraints for all of the included items
         auto items_reflow(constrained_type const &c) {
             return items_reflow_sequence(c, item_sequence);
         }
 
-        void move_sub_elements(affine::rectangle2d const &r) {
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
             move_elements(r, item_sequence);
+            return {r.top_left, constraints().extents()};
         }
+
 
       private:
         felspar::source_location created_loc;

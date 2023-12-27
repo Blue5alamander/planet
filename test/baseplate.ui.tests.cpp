@@ -58,6 +58,9 @@ namespace {
                         {planet::events::button::left,
                          planet::events::action::up,
                          {18, 21}});
+                check(btn.position())
+                        == planet::affine::rectangle2d{
+                                {15, 20}, planet::affine::extents2d{4, 3}};
                 check(btn.clicks) == 1u;
 
                 bp.events.mouse.push(

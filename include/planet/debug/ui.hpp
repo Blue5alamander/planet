@@ -47,7 +47,10 @@ namespace planet::debug {
         constrained_type do_reflow(constrained_type const &) override {
             return constrained_type{size};
         }
-        void move_sub_elements(affine::rectangle2d const &) override {}
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            return {r.top_left, size};
+        }
     };
 
 
@@ -79,8 +82,8 @@ namespace planet::debug {
             }
         }
         void do_draw() { content.draw(); }
-        void do_move_sub_elements(affine::rectangle2d const &c) {
-            content.move_to(c);
+        affine::rectangle2d do_move_sub_elements(affine::rectangle2d const &c) {
+            return content.move_to(c);
         }
     };
     template<>
@@ -101,7 +104,9 @@ namespace planet::debug {
             }
         }
         void do_draw() { *os << name() << " do_draw @ " << position() << '\n'; }
-        void do_move_sub_elements(affine::rectangle2d const &) {}
+        affine::rectangle2d do_move_sub_elements(affine::rectangle2d const &r) {
+            return r;
+        }
     };
 
 

@@ -50,10 +50,12 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &ex) override {
             return add(content.reflow(padding.remove(ex)), ex);
         }
-        void move_sub_elements(affine::rectangle2d const &outer) override {
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &outer) override {
             auto const inner_size = content.constraints().extents();
             auto const area = within(inner, padding.remove(outer), inner_size);
             content.move_to(area);
+            return outer;
         }
         constrained_type
                 add(constrained_type const &inner,

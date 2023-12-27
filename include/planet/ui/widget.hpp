@@ -104,13 +104,14 @@ namespace planet::ui {
 
 
         /// ### Move the widget's panel
-        void move_sub_elements(affine::rectangle2d const &r) override {
-            /// TODO Panel should be moving within the parent's coordinate
-            /// space, not the global one
-            panel.move_to(r);
-            do_move_sub_elements(r);
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            auto const se = do_move_sub_elements(r);
+            panel.move_to(se);
+            return se;
         }
-        virtual void do_move_sub_elements(affine::rectangle2d const &) = 0;
+        virtual affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &) = 0;
 
         felspar::coro::eager<> response;
     };

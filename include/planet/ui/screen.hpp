@@ -33,7 +33,10 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &c) override {
             return c;
         }
-        void do_move_sub_elements(affine::rectangle2d const &) override {}
+        affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &r) override {
+            return r;
+        }
         void do_draw() override{};
         bool contains_global_coordinate(
                 affine::point2d const &,

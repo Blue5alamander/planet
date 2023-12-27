@@ -17,14 +17,17 @@ namespace planet::ui {
         using superclass::elements;
         using superclass::items;
 
-        /// ### Padding between items in the column
-        float padding = {};
 
         column() : superclass{"planet::ui::column<>"} {}
         column(collection_type c, float const p = {})
         : superclass{"planet::ui::column<>", std::move(c)}, padding{p} {}
         column(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
+
+
+        /// ### Padding between items in the column
+        float padding = {};
+
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
@@ -45,11 +48,15 @@ namespace planet::ui {
                 for (std::size_t index{}; auto &item : items) {
                     auto const item_ex = item.reflow(row_space);
                     elements.at(index).size = item_ex;
-                    elements.at(index).position = {
-                            {{}, top}, item_ex.extents()};
-                    top += item_ex.height.value() + padding;
                     max_width = std::max(max_width, item_ex.width.value());
                     ++index;
+                }
+                for (auto &element : elements) {
+                    element.position = {
+                            {{}, top},
+                            affine::extents2d{
+                                    max_width, element.size.extents().height}};
+                    top += element.size.height.value() + padding;
                 }
                 elements.extents = {max_width, top - padding};
                 return constrained_type{*elements.extents};
@@ -69,8 +76,6 @@ namespace planet::ui {
         using superclass::item_count;
         using superclass::items;
 
-        /// Padding between items
-        float padding = {};
 
         column(collection_type i,
                float const p = {},
@@ -85,6 +90,11 @@ namespace planet::ui {
                        felspar::source_location::current())
         : superclass{n, std::move(i), loc}, padding{p} {}
 
+
+        /// Padding between items
+        float padding = {};
+
+
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
             float const unused = ex.height.value() - (item_count - 1) * padding;
@@ -93,10 +103,16 @@ namespace planet::ui {
             constrained_type const row_space = {
                     ex.width, {ex.height.min(), item_height, ex.height.max()}};
             auto const sizes = superclass::items_reflow(row_space);
+            for (auto &item : sizes) {
+                max_width = std::max(max_width, item.width.value());
+            }
             for (std::size_t index{}; auto &element : elements) {
-                element.position = {{{}, top}, sizes[index].extents()};
+                element.size = sizes[index];
+                element.position = {
+                        {{}, top},
+                        affine::extents2d{
+                                max_width, sizes[index].extents().height}};
                 top += sizes[index].height.value() + padding;
-                max_width = std::max(max_width, sizes[index].width.value());
                 ++index;
             }
             return constrained_type{max_width, top - padding};

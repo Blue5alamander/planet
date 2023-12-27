@@ -52,8 +52,9 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &constraint) override {
             return hotspot.reflow(constraint);
         }
-        void do_move_sub_elements(affine::rectangle2d const &r) override {
-            hotspot.move_to({r.top_left, hotspot.constraints().extents()});
+        affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &r) override {
+            return hotspot.move_to(r);
         }
         felspar::coro::task<void> behaviour() override {
             auto mouse = widget::events.mouse.values();

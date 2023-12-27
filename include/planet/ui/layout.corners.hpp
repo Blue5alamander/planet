@@ -61,7 +61,8 @@ namespace planet::ui {
             /// TODO Calculate a better min based on the corner constraints
             return constrained_type{c.max()};
         }
-        void move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
             auto const tlex = top_left.constraints().extents(),
                        trex = top_right.constraints().extents(),
                        blex = bottom_left.constraints().extents(),
@@ -76,6 +77,8 @@ namespace planet::ui {
                     {{r.extents.width - brex.width,
                       r.extents.height - brex.height},
                      brex});
+
+            return r;
         }
     };
 

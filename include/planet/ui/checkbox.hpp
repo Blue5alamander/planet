@@ -35,9 +35,11 @@ namespace planet::ui {
                     std::min(on_size.height.max(), off_size.height.max())};
             return {w, h};
         }
-        void do_move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &r) override {
+            /// TODO Should be the union of the two returned rectangles
             on.move_to(r);
-            off.move_to(r);
+            return off.move_to(r);
         }
 
         felspar::coro::task<void> behaviour() override {

@@ -12,8 +12,7 @@ namespace planet::ui {
     template<typename C>
     struct target_size : public reflowable {
         using content_type = C;
-        content_type content;
-        affine::extents2d size;
+
 
         target_size(content_type c, affine::extents2d const s)
             requires(not std::is_lvalue_reference_v<content_type>)
@@ -23,6 +22,12 @@ namespace planet::ui {
         target_size(content_type c, affine::extents2d const s)
             requires std::is_lvalue_reference_v<content_type>
         : reflowable{"planet::ui::target_size"}, content{c}, size{s} {}
+
+
+        content_type content;
+        affine::extents2d size;
+        /// TODO Add `gravity` like box has
+
 
         affine::extents2d extents(affine::extents2d const &) const noexcept {
             return size;
@@ -41,10 +46,13 @@ namespace planet::ui {
             return csize;
         }
 
-        void move_sub_elements(affine::rectangle2d const &r) override {
-            content.move_to({r.top_left, content.constraints().extents()});
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            content.move_to({r.top_left, size});
+            return {r.top_left, size};
         }
     };
+
     template<typename C>
     target_size(C, affine::extents2d) -> target_size<C>;
 

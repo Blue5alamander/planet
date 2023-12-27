@@ -83,8 +83,9 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &ex) override {
             return graphic.reflow(ex);
         }
-        void do_move_sub_elements(affine::rectangle2d const &r) override {
-            graphic.move_to(r);
+        affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &r) override {
+            return graphic.move_to(r);
         }
 
 
@@ -147,8 +148,9 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &ex) override {
             return graphic.reflow(ex);
         }
-        void do_move_sub_elements(affine::rectangle2d const &r) override {
-            graphic.move_to(r);
+        affine::rectangle2d
+                do_move_sub_elements(affine::rectangle2d const &r) override {
+            return graphic.move_to(r);
         }
 
 

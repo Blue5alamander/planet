@@ -36,6 +36,7 @@ namespace planet::ui {
             return not m_constraints.has_value() or not m_position.has_value();
         }
 
+
         /// ### Calculated position and constraints
         /// `reflow` and `move_to` must have been called before these are available
 
@@ -105,10 +106,15 @@ namespace planet::ui {
         /**
          * For widgets (or other UI items that have a `panel`) the parent must
          * tell the child what the new position is going to be.
+         *
+         * Either the widget is to be placed at a given top left position at
+         * whatever its natural size is, or it is to be placed at a given
+         * location covering the entire rectangle it's told to use.
          */
-        void move_to(affine::rectangle2d const &r) {
-            m_position = {r.top_left, constraints().extents()};
-            move_sub_elements(*m_position);
+        affine::rectangle2d move_to(affine::rectangle2d const &r) {
+            constraints(); // Reflow must have been called first
+            m_position = move_sub_elements(r);
+            return *m_position;
         }
 
 
@@ -116,15 +122,18 @@ namespace planet::ui {
         /// ### Reflow implementation
         virtual constrained_type do_reflow(constrained_type const &) = 0;
 
+
         /// ### Move sub-elements to final positions
         /**
          * Implement this in order to set the positions for any sub-elements
-         * that the reflowable may have.
+         * that the reflowable may have. Return the rectangle that the
+         * `reflowable` covers.
          *
          * For widgets this method name changes slightly. See
          * [widget.hpp](./widget.hpp) for more details.
          */
-        virtual void move_sub_elements(affine::rectangle2d const &) = 0;
+        virtual affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &) = 0;
 
       private:
         std::optional<constrained_type> m_constraints;
