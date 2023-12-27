@@ -2,6 +2,7 @@
 
 
 #include <felspar/coro/coroutine.hpp>
+#include <felspar/exceptions/logic_error.hpp>
 
 #include <vector>
 
