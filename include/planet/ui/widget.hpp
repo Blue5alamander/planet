@@ -26,7 +26,7 @@ namespace planet::ui {
         : reflowable{std::move(w)},
           events{std::move(w.events)},
           baseplate{std::exchange(w.baseplate, nullptr)},
-          visible{w.visible} {
+          m_visible{w.m_visible} {
             if (baseplate) {
                 /**
                  * If a widget is moved when the baseplate is active then it's
@@ -61,18 +61,20 @@ namespace planet::ui {
         float z_layer = {};
 
 
+        /// ### Manually set the visibility state
+        /// The widget starts invisible.
+        void visible(bool v) { m_visible = v; }
+
+
         /// ### Add a widget to a base plate so it can receive events
-        /**
-         * This member is implemented near the bottom of
-         * [`baseplate.hpp`](./baseplate.hpp).
-         */
+        /// This will also set the widget to visible.
         virtual void add_to(ui::baseplate &, ui::panel &parent);
         void add_to(ui::baseplate &bp) { add_to(bp, bp.pixels); }
 
 
         /// ### Draw the widget
         void draw() {
-            if (visible) { do_draw(); }
+            if (m_visible) { do_draw(); }
         }
 
 
@@ -86,18 +88,18 @@ namespace planet::ui {
             return position(loc).contains(p);
         }
         /// #### Will we try to draw the widget
-        bool is_visible() const noexcept { return visible; }
+        bool is_visible() const noexcept { return m_visible; }
 
 
         /// ### Return true if this widget can take focus
-        virtual bool wants_focus() const { return visible; }
+        virtual bool wants_focus() const { return m_visible; }
 
 
       protected:
         ui::panel panel;
         ui::baseplate *baseplate = nullptr;
         static void deregister(ui::baseplate *, widget *);
-        bool visible = false;
+        bool m_visible = false;
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw() = 0;
