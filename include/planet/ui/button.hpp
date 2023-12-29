@@ -24,11 +24,14 @@ namespace planet::ui {
 
 
       public:
-        using value_type = Return;
-        using output_type = Output;
         using constrained_type = widget::constrained_type;
+        using output_type = Output;
+        using value_type = Return;
+
+        using widget::enable;
         using widget::name;
         using widget::position;
+        using widget::visible;
 
 
         explicit button(output_type &o, value_type v)

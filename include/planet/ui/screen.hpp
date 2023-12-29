@@ -43,7 +43,7 @@ namespace planet::ui {
                 felspar::source_location const &) const override {
             return true;
         }
-        bool wants_focus() const override { return true; }
+        bool wants_focus() const noexcept override { return true; }
         felspar::coro::task<void> behaviour() override { co_return; }
     };
 

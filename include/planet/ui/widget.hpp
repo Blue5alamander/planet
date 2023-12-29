@@ -20,13 +20,20 @@ namespace planet::ui {
         /**
          * TODO Have the widget take a `baseplate` in the constructor, which is
          * then the one that the widget is to appear on.
+         *
+         * Invisible widgets are not drawn. The widget will default to invisible
+         * until it is added to a baseplate.
+         *
+         * Enabled widgets will accept input from the baseplate. Widgets are by
+         * default enabled.
          */
         widget(widget const &) = delete;
         widget(widget &&w)
         : reflowable{std::move(w)},
           events{std::move(w.events)},
           baseplate{std::exchange(w.baseplate, nullptr)},
-          m_visible{w.m_visible} {
+          m_visible{w.m_visible},
+          m_enabled{w.m_enabled} {
             if (baseplate) {
                 /**
                  * If a widget is moved when the baseplate is active then it's
@@ -61,9 +68,14 @@ namespace planet::ui {
         float z_layer = {};
 
 
-        /// ### Manually set the visibility state
+        /// ### Manually set the state
+
+        /// #### Visibility
         /// The widget starts invisible.
-        void visible(bool v) { m_visible = v; }
+        void visible(bool const v) noexcept { m_visible = v; }
+
+        /// #### Enable
+        void enable(bool const v) noexcept { m_enabled = v; }
 
 
         /// ### Add a widget to a base plate so it can receive events
@@ -89,10 +101,14 @@ namespace planet::ui {
         }
         /// #### Will we try to draw the widget
         bool is_visible() const noexcept { return m_visible; }
+        /// #### Whether the widget will accept input
+        bool is_enabled() const noexcept { return m_enabled; }
 
 
         /// ### Return true if this widget can take focus
-        virtual bool wants_focus() const { return m_visible; }
+        virtual bool wants_focus() const noexcept {
+            return m_visible and m_enabled;
+        }
 
 
       protected:
@@ -100,6 +116,7 @@ namespace planet::ui {
         ui::baseplate *baseplate = nullptr;
         static void deregister(ui::baseplate *, widget *);
         bool m_visible = false;
+        bool m_enabled = true;
 
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw() = 0;
