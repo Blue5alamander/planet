@@ -65,7 +65,7 @@ namespace planet::ui {
             }
         }
         /// #### The constraints that the item has
-        constrained_type constraints(
+        constrained_type const &constraints(
                 felspar::source_location const &loc =
                         felspar::source_location::current()) const {
             if (m_constraints) {
