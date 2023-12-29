@@ -49,7 +49,20 @@ namespace planet::queue {
 
         auto next() {
             struct awaitable {
+                explicit awaitable(psc &qq) : q{qq} {}
+                awaitable(awaitable const &) = delete;
+                awaitable(awaitable &&) = delete;
+                ~awaitable() {
+                    if (mine and q.waiting == mine) { q.waiting = {}; }
+                }
+
+                awaitable &operator=(awaitable const &) = delete;
+                awaitable &operator=(awaitable &&) = delete;
+
+
                 psc &q;
+                felspar::coro::coroutine_handle<> mine = {};
+
 
                 bool await_ready() const noexcept {
                     return not q.values.empty();
@@ -60,10 +73,12 @@ namespace planet::queue {
                                 "There is already a coroutine waiting on this "
                                 "queue"};
                     } else {
+                        mine = h;
                         q.waiting = h;
                     }
                 }
                 T await_resume() {
+                    mine = {};
                     T ret = std::move(q.values.front());
                     q.values.erase(q.values.begin());
                     return ret;
@@ -108,7 +123,20 @@ namespace planet::queue {
 
         auto next() {
             struct awaitable {
+                explicit awaitable(psc &qq) : q{qq} {}
+                awaitable(awaitable const &) = delete;
+                awaitable(awaitable &&) = delete;
+                ~awaitable() {
+                    if (mine and q.waiting == mine) { q.waiting = {}; }
+                }
+
+                awaitable &operator=(awaitable const &) = delete;
+                awaitable &operator=(awaitable &&) = delete;
+
+
                 psc &q;
+                felspar::coro::coroutine_handle<> mine = {};
+
 
                 bool await_ready() const noexcept { return not q.empty(); }
                 void await_suspend(felspar::coro::coroutine_handle<> h) {
@@ -117,10 +145,14 @@ namespace planet::queue {
                                 "There is already a coroutine waiting on this "
                                 "queue"};
                     } else {
+                        mine = h;
                         q.waiting = h;
                     }
                 }
-                void await_resume() { --q.pushes; }
+                void await_resume() {
+                    mine = {};
+                    --q.pushes;
+                }
             };
             return awaitable{*this};
         }
