@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ui/concepts.hpp>
 #include <planet/ui/gravity.hpp>
 #include <planet/ui/helpers.hpp>
 #include <planet/ui/reflowable.hpp>
@@ -18,15 +19,8 @@ namespace planet::ui {
      */
     template<typename C>
     struct box final : public reflowable {
-        /// What is inside the box
         using content_type = C;
-        content_type content;
-        /// The size of the box in its container's coordinate system
-        gravity inner = {
-                gravity::left | gravity::right | gravity::top
-                | gravity::bottom};
-        /// The amount of padding to be added around the content.
-        ui::padding padding = {};
+
 
         box() : reflowable{"planet::ui::box"} {}
         box(content_type c)
@@ -43,8 +37,33 @@ namespace planet::ui {
         box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
 
+
+        /// ### What is inside the box
+        content_type content;
+        /// #### The size of the box in its container's coordinate system
+        gravity inner = {
+                gravity::left | gravity::right | gravity::top
+                | gravity::bottom};
+        /// #### The amount of padding to be added around the content.
+        ui::padding padding = {};
+
+
         /// ### Drawing the box content
         void draw() { content.draw(); }
+
+
+        /// ### Forwarders
+        void visible(bool const v)
+            requires(visibility<content_type>)
+        {
+            content.visible(v);
+        }
+        bool is_visible() const noexcept
+            requires(visibility<content_type>)
+        {
+            return content.is_visible();
+        }
+
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
