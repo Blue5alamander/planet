@@ -16,6 +16,8 @@ namespace planet::ui {
         { v.visible(b) };
         { cv.is_visible() } -> std::same_as<bool>;
     };
+    template<typename... Pack>
+    concept any_visibility = (... or visibility<Pack>);
 
 
 }
