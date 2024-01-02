@@ -37,13 +37,13 @@ namespace planet::ui {
     namespace detail {
         template<typename Item>
         void visible(Item &item, bool const v)
-            requires visibility<Item>
+            requires visibility<std::decay_t<Item>>
         {
             item.visible(v);
         }
         template<typename Item>
         void visible(Item &, bool)
-            requires(not visibility<Item>)
+            requires(not visibility<std::decay_t<Item>>)
         {}
     }
     template<typename... Pack, std::size_t... I>
@@ -57,13 +57,13 @@ namespace planet::ui {
     namespace detail {
         template<typename Item>
         bool is_visible(Item const &item) noexcept
-            requires visibility<Item>
+            requires visibility<std::decay_t<Item>>
         {
             return item.is_visible();
         }
         template<typename Item>
         bool is_visible(Item const &) noexcept
-            requires(not visibility<Item>)
+            requires(not visibility<std::decay_t<Item>>)
         {
             return true;
         }
