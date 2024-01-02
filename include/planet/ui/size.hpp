@@ -2,6 +2,7 @@
 
 
 #include <planet/affine/extents2d.hpp>
+#include <planet/ui/concepts.hpp>
 #include <planet/ui/reflowable.hpp>
 
 
@@ -32,12 +33,26 @@ namespace planet::ui {
         affine::extents2d extents(affine::extents2d const &) const noexcept {
             return size;
         }
-
+        /// TODO This looks like it should go
         template<typename Target>
         void draw_within(Target &t, affine::rectangle2d const bounds) {
             content.draw_within(t, {bounds.top_left, size});
         }
         void draw() { content.draw(); }
+
+
+        /// ### Visibility
+        void visible(bool const v)
+            requires(visibility<content_type>)
+        {
+            content.visible(v);
+        }
+        bool is_visible() const noexcept
+            requires(visibility<content_type>)
+        {
+            return content.is_visible();
+        }
+
 
       private:
         constrained_type do_reflow(constrained_type const &) override {
