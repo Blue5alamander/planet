@@ -52,7 +52,7 @@ namespace planet::ui {
         void draw() { content.draw(); }
 
 
-        /// ### Forwarders
+        /// ### Visibility
         void visible(bool const v)
             requires(visibility<content_type>)
         {
