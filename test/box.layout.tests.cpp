@@ -1,7 +1,7 @@
 #include <planet/debug/ui.hpp>
 #include <planet/ostream.hpp>
 #include <planet/ui/box.hpp>
-#include <planet/ui/size.hpp>
+#include <planet/ui/target_size.hpp>
 #include <felspar/test.hpp>
 
 

@@ -25,4 +25,4 @@
 #include <planet/ui/reflowable.hpp>
 #include <planet/ui/scale.hpp>
 #include <planet/ui/screen.hpp>
-#include <planet/ui/size.hpp>
+#include <planet/ui/target_size.hpp>
