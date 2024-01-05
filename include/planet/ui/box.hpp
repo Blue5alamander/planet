@@ -84,9 +84,9 @@ namespace planet::ui {
                     inner.width.min() + padding.left + padding.right;
             auto const min_height =
                     inner.height.min() + padding.top + padding.bottom;
-            return {{outer.width.value(),
+            return {{inner.width.value() + padding.left + padding.right,
                      std::max(min_width, outer.width.min()), outer.width.max()},
-                    {outer.height.value(),
+                    {inner.height.value() + padding.top + padding.bottom,
                      std::max(min_height, outer.height.min()),
                      outer.height.max()}};
         }

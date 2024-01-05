@@ -30,7 +30,8 @@ namespace {
                 check(b.content.constraints().max()) == size;
 
                 check(b.constraints().min()) == planet::affine::extents2d{8, 7};
-                check(b.constraints().extents()) == bounds;
+                check(b.constraints().extents())
+                        == planet::affine::extents2d{8, 7};
                 check(b.constraints().max()) == bounds;
             },
             [](auto check, auto &log) {
