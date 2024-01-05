@@ -17,13 +17,16 @@ namespace planet::ui {
         using superclass::elements;
         using superclass::items;
 
+
         /// Padding between items in the row
         float padding = {};
+
 
         row(collection_type c, float const p = {})
         : superclass{"planet::ui::row<>", std::move(c)}, padding{p} {}
         row(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
+
 
       private:
         constrained_type do_reflow(constrained_type const &bounds) override {
@@ -39,10 +42,16 @@ namespace planet::ui {
             float left = 0, max_height = 0;
             for (std::size_t index{}; auto &item : items) {
                 auto const ex = item.reflow(space);
-                elements.at(index).position = {{left, 0}, ex.extents()};
-                left += ex.width.value() + padding;
+                elements.at(index).size = ex;
                 max_height = std::max(max_height, ex.height.value());
                 ++index;
+            }
+            for (auto &element : elements) {
+                element.position = {
+                        {left, 0},
+                        affine::extents2d{
+                                element.size.extents().width, max_height}};
+                left += element.size.width.value() + padding;
             }
             return constrained_type{left - padding, max_height};
         }
@@ -59,14 +68,17 @@ namespace planet::ui {
         using superclass::item_count;
         using superclass::items;
 
-        /// Padding between items in the row
+
+        /// ### Padding between items in the row
         float padding = {};
+
 
         row(collection_type c, float const p = {})
         : superclass{"planet::ui::row<std::tuple<Pack...>>", std::move(c)},
           padding{p} {}
         row(std::string_view const n, collection_type c, float const p = {})
         : superclass{n, std::move(c)}, padding{p} {}
+
 
       private:
         constrained_type do_reflow(constrained_type const &constraint) override {
@@ -79,13 +91,17 @@ namespace planet::ui {
                     constraint.height};
             float left = 0, max_height = {};
             auto const sizes = superclass::items_reflow(space);
+            for (auto &item : sizes) {
+                max_height = std::max(max_height, item.height.value());
+            }
             for (std::size_t index{}; auto &element : elements) {
-                element.position = {{left, {}}, sizes[index].extents()};
+                element.position = {
+                        {left, {}},
+                        affine::extents2d{
+                                sizes[index].extents().width, max_height}};
                 left += sizes[index].width.value() + padding;
-                max_height = std::max(max_height, sizes[index].height.value());
                 ++index;
             }
-            /// TODO Calculate better constraints here
             return constrained_type{
                     affine::extents2d{left - padding, max_height}};
         }
