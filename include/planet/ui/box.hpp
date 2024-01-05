@@ -67,7 +67,15 @@ namespace planet::ui {
 
       private:
         constrained_type do_reflow(constrained_type const &ex) override {
-            return add(content.reflow(padding.remove(ex)), ex);
+            auto const inner = content.reflow(padding.remove(ex));
+            auto const min_width =
+                    inner.width.min() + padding.left + padding.right;
+            auto const min_height =
+                    inner.height.min() + padding.top + padding.bottom;
+            return {{inner.width.value() + padding.left + padding.right,
+                     std::max(min_width, ex.width.min()), ex.width.max()},
+                    {inner.height.value() + padding.top + padding.bottom,
+                     std::max(min_height, ex.height.min()), ex.height.max()}};
         }
         affine::rectangle2d
                 move_sub_elements(affine::rectangle2d const &outer) override {
@@ -76,19 +84,6 @@ namespace planet::ui {
                     within(gravity, padding.remove(outer), inner_size);
             content.move_to(area);
             return outer;
-        }
-        constrained_type
-                add(constrained_type const &inner,
-                    constrained_type const &outer) const noexcept {
-            auto const min_width =
-                    inner.width.min() + padding.left + padding.right;
-            auto const min_height =
-                    inner.height.min() + padding.top + padding.bottom;
-            return {{inner.width.value() + padding.left + padding.right,
-                     std::max(min_width, outer.width.min()), outer.width.max()},
-                    {inner.height.value() + padding.top + padding.bottom,
-                     std::max(min_height, outer.height.min()),
-                     outer.height.max()}};
         }
     };
 
