@@ -29,10 +29,10 @@ namespace planet::ui {
         : reflowable{"planet::ui::box"},
           content{std::move(c)},
           padding{hp, vp} {}
-        box(content_type c, gravity const g, float const p = {})
+        box(content_type c, ui::gravity const g, float const p = {})
         : reflowable{"planet::ui::box"},
           content{std::move(c)},
-          inner{g},
+          gravity{g},
           padding{p} {}
         box(std::string_view const n, content_type c)
         : reflowable{n}, content{std::move(c)} {}
@@ -41,9 +41,9 @@ namespace planet::ui {
         /// ### What is inside the box
         content_type content;
         /// #### The size of the box in its container's coordinate system
-        gravity inner = {
-                gravity::left | gravity::right | gravity::top
-                | gravity::bottom};
+        ui::gravity gravity = {
+                ui::gravity::left | ui::gravity::right | ui::gravity::top
+                | ui::gravity::bottom};
         /// #### The amount of padding to be added around the content.
         ui::padding padding = {};
 
@@ -72,7 +72,8 @@ namespace planet::ui {
         affine::rectangle2d
                 move_sub_elements(affine::rectangle2d const &outer) override {
             auto const inner_size = content.constraints().extents();
-            auto const area = within(inner, padding.remove(outer), inner_size);
+            auto const area =
+                    within(gravity, padding.remove(outer), inner_size);
             content.move_to(area);
             return outer;
         }
