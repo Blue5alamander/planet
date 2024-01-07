@@ -148,6 +148,17 @@ namespace planet::ui {
                 }
             }
         };
+        template<std::invocable<widget &> Q>
+        struct handle<Q> {
+            static constexpr bool reference = false;
+            using storage = Q;
+            static felspar::coro::task<void> press(button *self, auto clicks) {
+                while (true) {
+                    auto click = co_await clicks.next();
+                    self->output_to(*self);
+                }
+            }
+        };
 
 
         typename handle<std::decay_t<Output>>::storage output_to;
@@ -216,6 +227,8 @@ namespace planet::ui {
 
     template<drawable G, typename Q>
     button(std::string_view, G, Q) -> button<void, G, Q>;
+    template<drawable G, typename Q, typename R>
+    button(std::string_view, G, Q, R) -> button<std::decay_t<R>, G, Q>;
 
 
 }
