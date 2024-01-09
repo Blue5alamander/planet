@@ -5,6 +5,7 @@
 #include <felspar/test/source.hpp>
 
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 

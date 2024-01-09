@@ -1,5 +1,7 @@
 #include <planet/events/mouse.hpp>
 
+#include <optional>
+
 
 bool planet::events::is_click(
         mouse_settings const &conf, mouse const &e1, mouse const &e2) {

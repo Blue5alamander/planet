@@ -1,6 +1,9 @@
 #include <planet/audio/files.hpp>
 
+#include <felspar/exceptions/runtime_error.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
+
+#include <optional>
 
 #include <vorbis/codec.h>
 
