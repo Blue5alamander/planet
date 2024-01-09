@@ -3,6 +3,8 @@
 
 #include <planet/serialise/chrono.hpp>
 
+#include <algorithm>
+
 
 /// ## `planet::time`
 
