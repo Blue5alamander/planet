@@ -43,9 +43,8 @@ namespace planet::ui {
         }
 
         felspar::coro::task<void> behaviour() override {
-            for (auto clicks = events::identify_clicks(
-                         widget::baseplate->mouse_settings,
-                         widget::events.mouse.stream());
+            for (auto clicks =
+                         events::identify_clicks(widget::events.mouse.stream());
                  co_await clicks.next();) {
                 value = not value;
             }

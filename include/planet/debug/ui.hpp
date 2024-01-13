@@ -75,8 +75,7 @@ namespace planet::debug {
             return content.reflow(c);
         }
         felspar::coro::task<void> behaviour() {
-            for (auto mc = events::identify_clicks(
-                         baseplate->mouse_settings, events.mouse.stream());
+            for (auto mc = events::identify_clicks(events.mouse.stream());
                  auto click = co_await mc.next();) {
                 ++clicks;
             }
@@ -97,8 +96,7 @@ namespace planet::debug {
 
         constrained_type do_reflow(constrained_type const &c) { return c; }
         felspar::coro::task<void> behaviour() {
-            for (auto mc = events::identify_clicks(
-                         baseplate->mouse_settings, events.mouse.stream());
+            for (auto mc = events::identify_clicks(events.mouse.stream());
                  auto click = co_await mc.next();) {
                 ++clicks;
             }

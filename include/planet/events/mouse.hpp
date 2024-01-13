@@ -12,12 +12,6 @@
 namespace planet::events {
 
 
-    /// ## Configuration for timing and movements metrics
-    struct mouse_settings {
-        std::chrono::milliseconds click_time{200};
-    };
-
-
     enum class button { none, left, right, middle, x1, x2 };
 
 
@@ -25,7 +19,8 @@ namespace planet::events {
     struct mouse {
         events::button button = events::button::none;
         events::action action = events::action::released;
-        affine::point2d location{{}, {}}, scroll{{}, {}};
+        affine::point2d location{{}, {}};
+        std::size_t clicks = {};
         std::chrono::steady_clock::time_point timestamp =
                 std::chrono::steady_clock::now();
     };
@@ -45,11 +40,8 @@ namespace planet::events {
 
     /// ## Mouse event processing
 
-    /// ### Given two raw mouse events in time order, is this a click?
-    bool is_click(mouse_settings const &, mouse const &, mouse const &);
     /// ### Process a stream of mouse data into higher level events
-    felspar::coro::stream<click> identify_clicks(
-            mouse_settings const &, felspar::coro::stream<mouse>);
+    felspar::coro::stream<click> identify_clicks(felspar::coro::stream<mouse>);
 
 
 }

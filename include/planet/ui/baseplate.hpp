@@ -51,7 +51,6 @@ namespace planet::ui {
 
 
         /// ### Event inputs and settings
-        events::mouse_settings mouse_settings;
         events::queue events;
 
 

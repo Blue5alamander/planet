@@ -106,9 +106,7 @@ namespace planet::ui {
         felspar::coro::task<void> behaviour() override {
             return handle<output_type>::press(
                     this,
-                    events::identify_clicks(
-                            widget::baseplate->mouse_settings,
-                            widget::events.mouse.stream()));
+                    events::identify_clicks(widget::events.mouse.stream()));
         }
     };
 
@@ -218,9 +216,7 @@ namespace planet::ui {
         felspar::coro::task<void> behaviour() override {
             return handle<output_type>::press(
                     this,
-                    events::identify_clicks(
-                            widget::baseplate->mouse_settings,
-                            widget::events.mouse.stream()));
+                    events::identify_clicks(widget::events.mouse.stream()));
         }
     };
 

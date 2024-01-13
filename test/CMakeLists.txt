@@ -13,7 +13,6 @@ add_test_run(check planet TESTS
         grid.layout.tests.cpp
         hexmap.tests.cpp
         map.tests.cpp
-        mouse.tests.cpp
         panel.tests.cpp
         range.ui.tests.cpp
         row.layout.tests.cpp
