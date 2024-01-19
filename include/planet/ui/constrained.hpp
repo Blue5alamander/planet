@@ -11,7 +11,7 @@
 namespace planet::ui {
 
 
-    /// ## Constrained values
+    /// ## Constrained scalar values
     template<typename T>
     class constrained1d {
         T m_value{}, m_desired{}, m_min{},
@@ -30,12 +30,15 @@ namespace planet::ui {
       public:
         using value_type = T;
 
+
+        /// ### Construction
         constexpr constrained1d() noexcept {}
         explicit constexpr constrained1d(value_type t, value_type min = {})
         : m_value{t}, m_desired{t}, m_min{min} {}
         constexpr constrained1d(
                 value_type t, value_type min, value_type max) noexcept
         : m_value{t}, m_desired{t}, m_min{min}, m_max{max} {}
+
 
         /// ### Access to held values
         value_type value() const noexcept { return m_value; }
@@ -54,6 +57,8 @@ namespace planet::ui {
             return c.m_min + (normalised_value() * (c.m_max - c.m_min));
         }
 
+
+        /// ### Change held values
         value_type desire(value_type const m) {
             m_desired = m;
             return constrain();
@@ -100,8 +105,8 @@ namespace planet::ui {
         using axis_constrained_type = constrained1d<value_type>;
         axis_constrained_type width, height;
 
-        /// ### Construction
 
+        /// ### Construction
         constexpr constrained2d() noexcept {}
         constexpr constrained2d(value_type w, value_type h) noexcept
         : width{w}, height{h} {}
@@ -119,12 +124,15 @@ namespace planet::ui {
         : width{ex.width, ex.width, ex.width},
           height{ex.height, ex.height, ex.height} {}
 
+
+        /// ### Conversions
         affine::point2d position() const noexcept {
             return {width.value(), height.value()};
         }
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};
         }
+
         affine::extents2d min() const noexcept {
             return {width.min(), height.min()};
         }
@@ -132,6 +140,8 @@ namespace planet::ui {
             return {width.max(), height.max()};
         }
 
+
+        /// ### Change
         affine::point2d desire(affine::point2d const &p) noexcept {
             return {width.desire(p.x()), height.desire(p.y())};
         }
@@ -143,6 +153,8 @@ namespace planet::ui {
             height.max(e.height);
         }
 
+
+        /// ### Queries
         bool is_at_least_as_constrained_as(constrained2d const &o) const {
             return width.is_at_least_as_constrained_as(o.width)
                     and height.is_at_least_as_constrained_as(o.height);
