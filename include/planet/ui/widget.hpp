@@ -92,13 +92,6 @@ namespace planet::ui {
 
         /// ### Meta-data
 
-        /// #### Check if a point in global space is within the widget
-        virtual bool contains_global_coordinate(
-                affine::point2d const &p,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
-            return position(loc).contains(p);
-        }
         /// #### Will we try to draw the widget
         bool is_visible() const noexcept { return m_visible; }
         /// #### Whether the widget will accept input

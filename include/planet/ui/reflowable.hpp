@@ -43,7 +43,10 @@ namespace planet::ui {
         /// #### The size of the item
         affine::extents2d const &size() { return position().extents; }
         /// #### Does the reflowable contain the given location
-        bool contains_global_coordinate(affine::point2d const &p) const {
+        virtual bool contains_global_coordinate(
+                affine::point2d const &p,
+                felspar::source_location const & =
+                        felspar::source_location::current()) const {
             if (m_position) {
                 return m_position->contains(p);
             } else {
