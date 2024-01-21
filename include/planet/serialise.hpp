@@ -4,6 +4,7 @@
 #include <planet/serialise/affine.hpp>
 #include <planet/serialise/base_types.hpp>
 #include <planet/serialise/chrono.hpp>
+#include <planet/serialise/collections.hpp>
 #include <planet/serialise/events.hpp>
 #include <planet/serialise/exceptions.hpp>
 #include <planet/serialise/felspar.hpp>

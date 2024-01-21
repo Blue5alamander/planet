@@ -7,6 +7,7 @@ Boxes always start with a single byte marker.
 * [`plane/serialise/affine.hpp`](./affine.hpp) -- Serialisation of various [affine](../affine/) data types.
 * [`planet/serialise/base_types.hpp`](./base_types.hpp) -- Serialisation implementations for various simple types.
 * [`plane/serialise/chrono.hpp`](./chrono.hpp) -- Serialisation of `std::chrono` data types.
+* [`plane/serialise/collections.hpp`](./collections.hpp) -- Serialisation of `std::` collection data types.
 * [`planet/serialise/events.hpp`](./events.hpp) -- Serialisation implementations for the event types.
 * [`planet/serialise/exceptions.hpp`](./exceptions.hpp) -- Exceptions that can be throw during serialisation and de-serialisation.
 * [`planet/serialise/felspar.hpp`](./felspar.hpp) -- Serialisation for containers in various [Felspar libraries](https://felspar.com/).
