@@ -19,6 +19,7 @@ namespace planet::serialise {
     }
     template<typename K, typename V>
     void load(load_buffer &lb, std::map<K, V> &m) {
+        m.clear();
         auto box = load_type<serialise::box>(lb);
         box.check_name_or_throw("_s:map");
         auto const count = box.content.extract_size_t();
