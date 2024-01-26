@@ -18,23 +18,36 @@ namespace planet::serialise {
 
 
     /// ## Buffer for loading data
+    /**
+     * The `load_buffer` does not own any memory, it is merely a view over an
+     * existing byte buffer that allows for tracking of what has been
+     * de-serialised so far with helpers to extract low level data types.
+     */
     class load_buffer {
         std::span<std::byte const> buffer;
 
+
       public:
+        /// ### Construction
         load_buffer() {}
         explicit load_buffer(std::span<std::byte const> b) : buffer{b} {}
 
+
+        /// ### Queries
         bool empty() const noexcept { return buffer.empty(); }
         auto size() const noexcept { return buffer.size(); }
         auto cmemory() const noexcept { return buffer; }
 
+
+        /// ### Mutation
         auto split(std::size_t const bytecount) {
             auto const r = buffer.first(bytecount);
             buffer = buffer.subspan(bytecount);
             return r;
         }
 
+
+        /// ### Data extraction
         auto extract_marker() { return marker{extract<std::uint8_t>()}; }
         std::size_t extract_size_t(
                 felspar::source_location const & =
@@ -74,6 +87,7 @@ namespace planet::serialise {
             }
         }
 
+        /// #### Extract and check a marker
         void check_marker(
                 marker const m,
                 felspar::source_location const &loc =
@@ -82,6 +96,8 @@ namespace planet::serialise {
             if (r != m) { throw wrong_marker{m, r, loc}; }
         }
 
+
+        /// ### Load the next box
         template<typename... Args>
         void load_box(std::string_view, Args &...);
     };
