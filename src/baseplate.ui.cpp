@@ -4,9 +4,23 @@
 #include <planet/log.hpp>
 
 
+void planet::ui::baseplate::start_frame_reset() {
+    if (soft_focus
+        and std::find(widgets.begin(), widgets.end(), soft_focus)
+                == widgets.end()) {
+        soft_focus = nullptr;
+    }
+    if (hard_focus
+        and std::find(widgets.begin(), widgets.end(), hard_focus)
+                == widgets.end()) {
+        hard_focus = nullptr;
+    }
+    widgets.clear();
+}
+
+
 void planet::ui::baseplate::add(widget_ptr const w) {
     w->baseplate = this;
-    // TODO Ideally the widget isn't already in the set of widgets
     widgets.push_back(w);
 }
 

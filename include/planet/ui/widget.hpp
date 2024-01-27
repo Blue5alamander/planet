@@ -86,7 +86,10 @@ namespace planet::ui {
 
         /// ### Draw the widget
         void draw() {
-            if (m_visible) { do_draw(); }
+            if (m_visible) {
+                do_draw();
+                if (baseplate) { baseplate->add(this); }
+            }
         }
 
 

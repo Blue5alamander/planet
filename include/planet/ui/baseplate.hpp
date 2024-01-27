@@ -54,6 +54,10 @@ namespace planet::ui {
         events::queue events;
 
 
+        /// ### Reset widgets at the start of a frame
+        void start_frame_reset();
+
+
         /// ### Register and remove widgets from event routing
         void add(widget_ptr);
         void add(widget &w) { add(&w); }

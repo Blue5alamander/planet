@@ -20,8 +20,8 @@ namespace planet::ui {
      */
     class screen final : public widget {
       public:
-        screen() : widget{"planet::ui::screen", -1} {}
-        screen(std::string_view const n) : widget{n, -1} {}
+        screen() : widget{"planet::ui::screen", -1} { visible(true); }
+        screen(std::string_view const n) : widget{n, -1} { visible(true); }
 
 
         using constrained_type = typename widget::constrained_type;
