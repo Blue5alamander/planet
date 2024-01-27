@@ -362,6 +362,17 @@ planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
         loc} {}
 
 
+planet::serialise::unsupported_version_number::unsupported_version_number(
+        box const &b, felspar::source_location const &loc)
+: serialisation_error{
+        "This version number is not supported in this box\nUnsupported "
+        "version: "
+                + std::to_string(b.version),
+        loc} {
+    inside_box(b.name);
+}
+
+
 planet::serialise::wanted_boolean::wanted_boolean(
         std::span<std::byte const> remaining,
         marker const m,

@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/forward.hpp>
 #include <planet/serialise/marker.hpp>
 
 #include <felspar/exceptions.hpp>
@@ -37,6 +38,16 @@ namespace planet::serialise {
       public:
         box_name_length(
                 std::string_view name,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
+
+
+    /// ### The version number isn't supported
+    class unsupported_version_number : public serialisation_error {
+      public:
+        unsupported_version_number(
+                box const &,
                 felspar::source_location const & =
                         felspar::source_location::current());
     };
