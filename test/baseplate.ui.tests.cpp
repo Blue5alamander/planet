@@ -25,7 +25,7 @@ namespace {
 
         btn.add_to(bp, panel);
 
-        check(bp.widget_count()) == 1u;
+        check(bp.widget_count()) == 0u;
         check(btn.is_visible()) == true;
 
         check([&]() {
@@ -48,6 +48,7 @@ namespace {
                 btn.add_to(bp, panel);
                 btn.reflow({{40, 0, 40}, {30, 0, 30}});
                 btn.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
+                btn.draw();
                 check(btn.clicks) == 0u;
 
                 bp.events.mouse.push(
@@ -94,6 +95,7 @@ namespace {
                 btn.add_to(bp, panel);
                 ui.reflow({{40, 0, 40}, {30, 0, 30}});
                 ui.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
+                ui.draw();
 
                 log << "btn position: " << btn.position() << '\n';
 

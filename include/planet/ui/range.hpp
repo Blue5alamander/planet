@@ -9,7 +9,7 @@ namespace planet::ui {
 
     /// ## Range/slide control
     template<typename Background, typename Draggable>
-    class range : public widget, public drop_target {
+    class range final : public widget, public drop_target {
       public:
         range(Background bg,
               Draggable ctrl,
@@ -46,6 +46,13 @@ namespace planet::ui {
             slider.target = this;
             slider.z_layer = widget::z_layer + 1;
             slider.add_to(bp, widget::panel);
+        }
+
+
+      protected:
+        void do_draw() override {
+            background.draw();
+            slider.draw();
         }
 
 

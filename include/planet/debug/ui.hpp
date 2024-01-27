@@ -11,25 +11,6 @@
 namespace planet::debug {
 
 
-    /// ## Generic printable component
-    template<typename AS>
-    struct printable final : public AS {
-        using AS::AS;
-
-
-        printable(std::ostream &s) : os{&s} {}
-
-
-        std::ostream *os;
-
-
-      private:
-        void do_draw() override {
-            *os << AS::name() << " do_draw @ " << AS::position() << '\n';
-        }
-    };
-
-
     /// ## Fixed size UI element
     struct fixed_element final : public ui::reflowable {
         std::ostream *os;
@@ -40,7 +21,9 @@ namespace planet::debug {
         : reflowable{"planet::debug::fixed_element"}, os{&ss}, size{sz} {}
 
 
-        void draw() { *os << name() << " draw @ " << position() << '\n'; }
+        void draw() {
+            if (os) { *os << name() << " draw @ " << position() << '\n'; }
+        }
 
 
       private:

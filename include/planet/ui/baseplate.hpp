@@ -18,6 +18,7 @@ namespace planet::ui {
      * correct widget.
      */
     class baseplate final {
+        friend class widget;
         using widget_ptr = widget *;
         using const_widget_ptr = widget const *;
         std::vector<widget_ptr> widgets;
@@ -58,6 +59,23 @@ namespace planet::ui {
         void start_frame_reset();
 
 
+        /// ### Set and remove hard focus
+        void hard_focus_on(widget_ptr const wp) { hard_focus = wp; }
+        void hard_focus_off(widget_ptr const w) {
+            if (hard_focus == w) { hard_focus = nullptr; }
+        }
+
+
+        /// ### Does this widget have focus
+        bool has_focus(const_widget_ptr const wp) const noexcept {
+            return wp == find_focused_widget();
+        }
+        bool has_focus(widget const &wp) const noexcept {
+            return has_focus(&wp);
+        }
+
+
+      private:
         /// ### Register and remove widgets from event routing
         void add(widget_ptr);
         void add(widget &w) { add(&w); }
@@ -78,26 +96,6 @@ namespace planet::ui {
         }
 
 
-        /// ### Set and remove hard focus
-        void hard_focus_on(widget_ptr const wp) {
-            // TODO Check that wp is already in the set of widgets
-            hard_focus = wp;
-        }
-        void hard_focus_off(widget_ptr const w) {
-            if (hard_focus == w) { hard_focus = nullptr; }
-        }
-
-
-        /// ### Does this widget have focus
-        bool has_focus(const_widget_ptr const wp) const noexcept {
-            return wp == find_focused_widget();
-        }
-        bool has_focus(widget const &wp) const noexcept {
-            return has_focus(&wp);
-        }
-
-
-      private:
         /// ### Focus handling
         /**
          * Soft focus is handled purely by widget the the mouse is over. In the

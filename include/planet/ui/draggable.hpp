@@ -29,7 +29,7 @@ namespace planet::ui {
 
     /// ## A draggable UI element
     template<typename HotSpot>
-    class draggable : public widget {
+    class draggable final : public widget {
       public:
         explicit draggable(std::string_view const n, HotSpot hs)
         : widget{n}, hotspot{std::move(hs)} {}
@@ -46,6 +46,8 @@ namespace planet::ui {
 
       protected:
         HotSpot hotspot;
+
+        void do_draw() override { hotspot.draw(); }
 
 
       private:

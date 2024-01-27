@@ -12,13 +12,11 @@ namespace {
 
     auto const reflow = suite.test("reflow", [](auto check, auto &log) {
         planet::ui::baseplate bp;
-        auto r = planet::debug::printable<planet::ui::range<
+        auto r = planet::ui::range<
                 planet::debug::fixed_element,
-                planet::debug::printable<
-                        planet::ui::draggable<planet::debug::fixed_element>>>>{
+                planet::ui::draggable<planet::debug::fixed_element>>{
                 planet::debug::fixed_element{log, {50, 10}},
-                planet::debug::printable<
-                        planet::ui::draggable<planet::debug::fixed_element>>{
+                planet::ui::draggable<planet::debug::fixed_element>{
                         "hs", planet::debug::fixed_element{log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
@@ -54,20 +52,20 @@ namespace {
 
     auto const slide = suite.test("slide", [](auto check, auto &log) {
         planet::ui::baseplate bp;
-        auto r = planet::debug::printable<planet::ui::range<
+        auto r = planet::ui::range<
                 planet::debug::fixed_element,
-                planet::debug::printable<
-                        planet::ui::draggable<planet::debug::fixed_element>>>>{
+                planet::ui::draggable<planet::debug::fixed_element>>{
                 planet::debug::fixed_element{log, {50, 10}},
-                planet::debug::printable<
-                        planet::ui::draggable<planet::debug::fixed_element>>{
+                planet::ui::draggable<planet::debug::fixed_element>{
                         "hs", {log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
         r.reflow({{50, 0, 100}, {50, 0, 100}});
         r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
+        r.draw();
         check(r.slider.offset.width.min()) == 0;
         check(r.slider.offset.width.max()) == 40;
+        check(bp.has_focus(r.slider)) == false;
 
         bp.events.mouse.push(
                 {planet::events::button::left,
