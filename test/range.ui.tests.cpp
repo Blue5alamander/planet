@@ -22,10 +22,9 @@ namespace {
         r.add_to(bp);
         r.reflow({{50, 0, 100}, {50, 0, 100}});
         r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
+        r.draw();
 
-        check(r.is_visible()) == true;
         check(r.wants_focus()) == true;
-        check(r.slider.is_visible()) == true;
         check(r.slider.wants_focus()) == true;
 
         check(r.position())

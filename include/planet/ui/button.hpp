@@ -32,7 +32,6 @@ namespace planet::ui {
         using widget::enable;
         using widget::name;
         using widget::position;
-        using widget::visible;
 
 
         explicit button(output_type &o, value_type v)

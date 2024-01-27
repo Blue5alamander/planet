@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <planet/ui/concepts.hpp>
 #include <planet/ui/layout.hpp>
 #include <planet/ui/reflowable.hpp>
 
@@ -37,21 +36,6 @@ namespace planet::ui {
 
         void draw() {
             for (auto &item : items) { item.draw(); }
-        }
-
-
-        /// ### Visibility
-        void visible(bool const v)
-            requires(visibility<content_type>)
-        {
-            for (auto &i : items) { i.visible(v); }
-        }
-        bool is_visible() const noexcept
-            requires(visibility<content_type>)
-        {
-            bool v = false;
-            for (auto const &i : items) { v = v or i.is_visible(); }
-            return v;
         }
 
 

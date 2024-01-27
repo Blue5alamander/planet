@@ -21,12 +21,10 @@ namespace {
         planet::debug::button<> btn{log};
 
         check(bp.widget_count()) == 0u;
-        check(btn.is_visible()) == false;
 
         btn.add_to(bp, panel);
 
         check(bp.widget_count()) == 0u;
-        check(btn.is_visible()) == true;
 
         check([&]() {
             btn.draw();
@@ -99,7 +97,6 @@ namespace {
 
                 log << "btn position: " << btn.position() << '\n';
 
-                check(btn.is_visible()) == true;
                 check(btn.wants_focus()) == true;
 
                 bp.events.mouse.push(

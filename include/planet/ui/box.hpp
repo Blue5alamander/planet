@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <planet/ui/concepts.hpp>
 #include <planet/ui/gravity.hpp>
 #include <planet/ui/helpers.hpp>
 #include <planet/ui/reflowable.hpp>
@@ -50,19 +49,6 @@ namespace planet::ui {
 
         /// ### Drawing the box content
         void draw() { content.draw(); }
-
-
-        /// ### Visibility
-        void visible(bool const v)
-            requires(visibility<content_type>)
-        {
-            content.visible(v);
-        }
-        bool is_visible() const noexcept
-            requires(visibility<content_type>)
-        {
-            return content.is_visible();
-        }
 
 
       private:

@@ -2,7 +2,6 @@
 
 
 #include <planet/affine/extents2d.hpp>
-#include <planet/ui/concepts.hpp>
 #include <planet/ui/reflowable.hpp>
 
 
@@ -39,19 +38,6 @@ namespace planet::ui {
             content.draw_within(t, {bounds.top_left, size});
         }
         void draw() { content.draw(); }
-
-
-        /// ### Visibility
-        void visible(bool const v)
-            requires(visibility<content_type>)
-        {
-            content.visible(v);
-        }
-        bool is_visible() const noexcept
-            requires(visibility<content_type>)
-        {
-            return content.is_visible();
-        }
 
 
       private:

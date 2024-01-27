@@ -5,7 +5,6 @@
 #include <planet/ui/box.hpp>
 #include <planet/ui/button.hpp>
 #include <planet/ui/checkbox.hpp>
-#include <planet/ui/concepts.hpp>
 #include <planet/ui/constrained.hpp>
 #include <planet/ui/draggable.hpp>
 #include <planet/ui/drawable.hpp>

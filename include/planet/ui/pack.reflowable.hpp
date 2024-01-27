@@ -45,19 +45,6 @@ namespace planet::ui {
         void draw() { draw_items(items, item_sequence); }
 
 
-        /// ### Widget concepts
-        void visible(bool const v)
-            requires any_visibility<Pack...>
-        {
-            visible_items(items, v, item_sequence);
-        }
-        bool is_visible() const noexcept
-            requires any_visibility<Pack...>
-        {
-            return is_visible_items(items, item_sequence);
-        }
-
-
       protected:
         /// ### Return an array of constraints for all of the included items
         auto items_reflow(constrained_type const &c) {

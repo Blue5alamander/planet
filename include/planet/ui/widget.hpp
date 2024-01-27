@@ -32,7 +32,6 @@ namespace planet::ui {
         : reflowable{std::move(w)},
           events{std::move(w.events)},
           baseplate{std::exchange(w.baseplate, nullptr)},
-          m_visible{w.m_visible},
           m_enabled{w.m_enabled} {
             if (baseplate) {
                 /**
@@ -70,10 +69,6 @@ namespace planet::ui {
 
         /// ### Manually set the state
 
-        /// #### Visibility
-        /// The widget starts invisible.
-        void visible(bool const v) noexcept { m_visible = v; }
-
         /// #### Enable
         void enable(bool const v) noexcept { m_enabled = v; }
 
@@ -86,32 +81,25 @@ namespace planet::ui {
 
         /// ### Draw the widget
         void draw() {
-            if (m_visible) {
-                do_draw();
-                if (baseplate) { baseplate->add(this); }
-            }
+            do_draw();
+            if (baseplate) { baseplate->add(this); }
         }
 
 
         /// ### Meta-data
 
-        /// #### Will we try to draw the widget
-        bool is_visible() const noexcept { return m_visible; }
         /// #### Whether the widget will accept input
         bool is_enabled() const noexcept { return m_enabled; }
 
 
         /// ### Return true if this widget can take focus
-        virtual bool wants_focus() const noexcept {
-            return m_visible and m_enabled;
-        }
+        virtual bool wants_focus() const noexcept { return m_enabled; }
 
 
       protected:
         ui::panel panel;
         ui::baseplate *baseplate = nullptr;
         static void deregister(ui::baseplate *, widget *);
-        bool m_visible = false;
         bool m_enabled = true;
 
         virtual felspar::coro::task<void> behaviour() = 0;
