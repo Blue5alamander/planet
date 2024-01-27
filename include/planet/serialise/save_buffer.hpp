@@ -28,14 +28,16 @@ namespace planet::serialise {
         save_buffer();
 
         template<typename Lambda>
-        save_buffer &
-                save_box_lambda(std::string_view const name, Lambda lambda) {
+        save_buffer &save_box_lambda(
+                std::uint8_t const version,
+                std::string_view const name,
+                Lambda lambda) {
             if (name.empty() or name.size() >= 0x80) {
                 throw box_name_length(std::string{name});
             }
             append(static_cast<std::uint8_t>(name.size()));
             append(std::as_bytes(std::span{name.data(), name.size()}));
-            append(std::uint8_t(1));
+            append(version);
             auto const size_offset = allocate_offset(sizeof(std::uint64_t));
             lambda();
             auto const length = written - size_offset - sizeof(std::uint64_t);
@@ -46,9 +48,23 @@ namespace planet::serialise {
                     std::uint64_t(length));
             return *this;
         }
+        template<typename Lambda>
+        save_buffer &
+                save_box_lambda(std::string_view const name, Lambda &&lambda) {
+            return save_box_lambda(1, name, std::forward<Lambda>(lambda));
+        }
+        template<typename... Args>
+        save_buffer &save_box(
+                std::uint8_t const version,
+                std::string_view const name,
+                Args &&...args) {
+            return save_box_lambda(version, name, [&]() {
+                (save(*this, std::forward<Args>(args)), ...);
+            });
+        }
         template<typename... Args>
         save_buffer &save_box(std::string_view const name, Args &&...args) {
-            return save_box_lambda(name, [&]() {
+            return save_box_lambda(1, name, [&]() {
                 (save(*this, std::forward<Args>(args)), ...);
             });
         }
