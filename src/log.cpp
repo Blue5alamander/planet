@@ -208,6 +208,12 @@ namespace {
                 std::cout << std::endl;
             }
         }
+
+        planet::telemetry::counter debug_count{"planet_log_message_debug"};
+        planet::telemetry::counter info_count{"planet_log_message_info"};
+        planet::telemetry::counter warning_count{"planet_log_message_warning"};
+        planet::telemetry::counter error_count{"planet_log_message_error"};
+
         felspar::io::warden::task<void> display_log_messages_loop() {
             while (true) {
                 auto block = messages.consume();
@@ -218,7 +224,14 @@ namespace {
                     std::scoped_lock _{printers_mutex()};
                     for (auto const &message : block) {
                         print(message);
-                        if (message.level == planet::log::level::critical) {
+                        switch (message.level) {
+                        case planet::log::level::debug: ++debug_count; break;
+                        case planet::log::level::info: ++info_count; break;
+                        case planet::log::level::warning:
+                            ++warning_count;
+                            break;
+                        case planet::log::level::error: ++error_count; break;
+                        case planet::log::level::critical:
                             std::cout << "\33[0;31mCritical log message "
                                          "forcing unclean shutdown\33[0;39m\n";
                             std::exit(120);
@@ -237,8 +250,9 @@ namespace {
 
 
 namespace {
-    planet::telemetry::counter message_count{"planet_log_message"};
-    planet::telemetry::real_time_rate message_rate{"planet_log_message", 2s};
+    planet::telemetry::counter message_count{"planet_log_message_count"};
+    planet::telemetry::real_time_rate message_rate{
+            "planet_log_message_rate", 2s};
 }
 void planet::log::detail::write_log(
         level const l,
