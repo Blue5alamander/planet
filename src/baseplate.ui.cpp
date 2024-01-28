@@ -4,6 +4,16 @@
 #include <planet/log.hpp>
 
 
+planet::ui::baseplate::~baseplate() {
+    if (not widgets.empty()) {
+        planet::log::warning(
+                "Baseplate still has", widgets.size(),
+                "widgets attached to it");
+        for (auto w : widgets) { w->baseplate = nullptr; }
+    }
+}
+
+
 void planet::ui::baseplate::start_frame_reset() {
     if (soft_focus
         and std::find(widgets.begin(), widgets.end(), soft_focus)

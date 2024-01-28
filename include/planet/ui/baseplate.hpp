@@ -33,10 +33,7 @@ namespace planet::ui {
         }
         baseplate(baseplate const &) = delete;
         baseplate(baseplate &&) = delete;
-        /**
-         * TODO A destructor should clear any baseplate pointers in remaining
-         * widgets
-         */
+        ~baseplate();
 
         baseplate &operator=(baseplate const &) = delete;
         /// TODO The move assignment could be allowed
