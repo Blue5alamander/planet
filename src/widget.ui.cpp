@@ -8,6 +8,10 @@ void planet::ui::widget::deregister(ui::baseplate *const bp, widget *const w) {
 
 
 void planet::ui::widget::add_to(ui::baseplate &bp, ui::panel &parent) {
+    if (baseplate) {
+        throw felspar::stdexcept::logic_error{
+                "This widget is already attached to a baseplate"};
+    }
     baseplate = &bp;
     parent.add_child(panel);
     response.post(behaviour());
