@@ -67,6 +67,10 @@ namespace planet::ui {
         float z_layer = {};
 
 
+        /// ### The panel describing the position
+        ui::panel panel;
+
+
         /// ### Manually set the state
 
         /// #### Enable
@@ -77,6 +81,12 @@ namespace planet::ui {
         /// This will also set the widget to visible.
         virtual void add_to(ui::baseplate &, ui::panel &parent);
         void add_to(ui::baseplate &bp) { add_to(bp, bp.pixels); }
+        /// #### Add to another widget
+        void add_to(widget &w) {
+            if (not w.baseplate) { throw_invalid_add_to_target(); }
+            add_to(*w.baseplate, w.panel);
+            z_layer = w.z_layer + 1;
+        }
 
 
         /// ### Draw the widget
@@ -97,7 +107,6 @@ namespace planet::ui {
 
 
       protected:
-        ui::panel panel;
         ui::baseplate *baseplate = nullptr;
         static void deregister(ui::baseplate *, widget *);
         bool m_enabled = true;
@@ -117,6 +126,10 @@ namespace planet::ui {
                 do_move_sub_elements(affine::rectangle2d const &) = 0;
 
         felspar::coro::eager<> response;
+
+
+      private:
+        [[noreturn]] void throw_invalid_add_to_target();
     };
 
 
