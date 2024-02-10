@@ -13,7 +13,7 @@ namespace planet::comms {
         felspar::io::warden &warden;
 
         /// Thread data interchange
-        felspar::posix::pipe pipe = felspar::posix::pipe::create();
+        felspar::io::pipe pipe = warden.create_pipe();
 
       public:
         internal(felspar::io::warden &);
