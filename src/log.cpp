@@ -16,6 +16,9 @@
 using namespace std::literals;
 
 
+thread_local planet::serialise::save_buffer planet::log::detail::ab;
+
+
 namespace {
     constexpr std::string_view log_root_directory = LOG_ROOT_DIRECTORY;
 

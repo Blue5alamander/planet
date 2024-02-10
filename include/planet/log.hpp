@@ -49,7 +49,7 @@ namespace planet::log {
 
 
     namespace detail {
-        inline thread_local serialise::save_buffer ab;
+        extern thread_local serialise::save_buffer ab;
         void write_log(
                 level,
                 serialise::shared_bytes,
