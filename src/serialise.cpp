@@ -249,6 +249,12 @@ std::string_view planet::serialise::to_string(marker const m) {
         case marker::f128le: return "f128le";
 
         case marker::u8string8: return "u8string8";
+
+        case marker::u16string8be: return "u16string8be";
+        case marker::u32string8be: return "u32string8be";
+
+        case marker::u16string8le: return "u16string8le";
+        case marker::u32string8le: return "u32string8le";
         }
     }
     return "Unknown marker";

@@ -58,6 +58,12 @@ namespace planet::serialise {
         f128le,
 
         u8string8 = 0xc3,
+
+        u16string8be = 0xc7,
+        u32string8be = 0xcb,
+
+        u16string8le = 0xe7,
+        u32string8le = 0xeb,
     };
 
 
@@ -185,7 +191,12 @@ namespace planet::serialise {
         case marker::f32le:
         case marker::f64le:
         case marker::f80le:
-        case marker::f128le: return true;
+        case marker::f128le:
+
+        case marker::u16string8be:
+        case marker::u32string8be:
+        case marker::u16string8le:
+        case marker::u32string8le: return true;
         }
         // gcc is confused about this
         return false;
@@ -240,6 +251,16 @@ namespace planet::serialise {
         case marker::f128le:
             return marker{static_cast<std::uint8_t>(
                     static_cast<std::uint8_t>(m) - 0xa0 + 0x80)};
+
+        case marker::u16string8be:
+        case marker::u32string8be:
+            return marker{static_cast<std::uint8_t>(
+                    static_cast<std::uint8_t>(m) - 0xc0 + 0xe0)};
+
+        case marker::u16string8le:
+        case marker::u32string8le:
+            return marker{static_cast<std::uint8_t>(
+                    static_cast<std::uint8_t>(m) - 0xe0 + 0xc0)};
         }
         // gcc is confused about this
         return m;
