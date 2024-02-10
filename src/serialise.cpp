@@ -264,16 +264,27 @@ std::string_view planet::serialise::to_string(marker const m) {
 /// ## Types in `std::`
 
 
-void planet::serialise::save(save_buffer &ab, std::string_view const s) {
-    ab.append(marker::u8string8);
-    ab.append_size_t(s.size());
-    ab.append(std::as_bytes(std::span{s.data(), s.size()}));
+void planet::serialise::detail::save_string(
+        save_buffer &ab,
+        std::span<std::byte const> const sv,
+        std::size_t const charsize) {
+    ab.append(marker_for_character_size(charsize));
+    ab.append_size_t(sv.size() / charsize);
+    ab.append(sv);
 }
 void planet::serialise::load(load_buffer &lb, std::string &s) {
     lb.check_marker(marker::u8string8);
     auto const sz = lb.extract_size_t();
     auto const b = lb.split(sz);
     s = {reinterpret_cast<char const *>(b.data()), b.size()};
+}
+void planet::serialise::load(load_buffer &lb, std::wstring &s) {
+    static constexpr auto charsize = sizeof(std::wstring::value_type);
+    static constexpr auto marker = marker_for_character_size(charsize);
+    lb.check_marker(marker);
+    auto const sz = lb.extract_size_t();
+    auto const b = lb.split(sz * charsize);
+    s = {reinterpret_cast<std::wstring::value_type const *>(b.data()), sz};
 }
 void planet::serialise::load(load_buffer &lb, std::string_view &s) {
     lb.check_marker(marker::u8string8);
@@ -366,6 +377,19 @@ planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
                 + std::to_string(wanted) + " bytes and buffer only contains "
                 + std::to_string(got) + " bytes",
         loc} {}
+
+
+planet::serialise::invalid_charsize::invalid_charsize(
+        std::size_t const charsize, felspar::source_location const &loc)
+: serialisation_error{
+        "Invalid UTF character size in bytes\n"
+        "Expected 1, 2 or 4. Got "
+                + std::to_string(charsize),
+        loc} {}
+void planet::serialise::detail::throw_invalid_charsize(
+        std::size_t const charsize, felspar::source_location const &loc) {
+    throw invalid_charsize{charsize, loc};
+}
 
 
 planet::serialise::unsupported_version_number::unsupported_version_number(

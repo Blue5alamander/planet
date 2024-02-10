@@ -10,9 +10,22 @@
 namespace planet::serialise {
 
 
-    void save(save_buffer &, std::string_view);
+    namespace detail {
+        void save_string(
+                save_buffer &, std::span<std::byte const>, std::size_t charsize);
+    }
+    template<typename C, typename T>
+    void save(save_buffer &sb, std::basic_string_view<C, T> sv) {
+        detail::save_string(
+                sb, std::as_bytes(std::span<C const>{sv.data(), sv.size()}),
+                sizeof(C));
+    }
+
     inline void save(save_buffer &ab, std::string const &s) {
         save(ab, std::string_view{s});
+    }
+    inline void save(save_buffer &ab, std::wstring const &s) {
+        save(ab, std::wstring_view{s});
     }
     template<std::size_t N>
     void save(save_buffer &ab, const char (&s)[N]) {
@@ -22,6 +35,7 @@ namespace planet::serialise {
         save(ab, std::string_view(s));
     }
     void load(load_buffer &, std::string &);
+    void load(load_buffer &, std::wstring &);
     void load(load_buffer &, std::string_view &);
 
 

@@ -17,6 +17,20 @@ namespace {
     auto const suite = felspar::testsuite("serialize");
 
 
+    auto const str = suite.test("string", [](auto check, auto &log) {
+        std::wstring const wstr{L"Hello"};
+        planet::serialise::save_buffer ab;
+        save(ab, wstr);
+        auto bytes = ab.complete();
+        felspar::memory::hexdump(log, bytes.cmemory());
+
+        std::wstring nw;
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        load(lb, nw);
+        check(nw) == wstr;
+    });
+
+
     auto const e = suite.test("empty", [](auto check, auto &log) {
         planet::serialise::save_buffer ab;
         auto const bytes{ab.save_box("empty").complete()};
