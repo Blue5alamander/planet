@@ -1,3 +1,5 @@
+find_package(Threads REQUIRED)
+
 add_library(planet
         audio.cpp
         affine.cpp
@@ -28,5 +30,6 @@ target_link_libraries(planet
         felspar-io
         felspar-parse
         ogg
+        Threads::Threads
         vorbis
     )
