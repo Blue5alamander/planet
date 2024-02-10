@@ -7,7 +7,9 @@ if [ ! -d llvm-project ]; then
     git clone --recursive git@github.com:llvm/llvm-project.git
 fi
 git -C llvm-project fetch
-git -C llvm-project checkout llvmorg-16.0.6
+git -C llvm-project checkout llvmorg-15.0.5
+
+# rm -r build.tmp container/dist
 
 docker run -it --rm -u $(id -u):$(id -g) \
     -e CC=clang -e CXX=clang++ \
@@ -25,7 +27,7 @@ docker run -it --rm -u $(id -u):$(id -g) \
     -w /var/source \
     -v $(pwd):/var/source \
     registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest \
-        ninja -C build.tmp all install
+        ninja -C build.tmp all install/strip
 
 # Build the container
 cd container

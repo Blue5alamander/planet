@@ -1,4 +1,5 @@
 /build.tmp/
 /tooling/linux-builder/build.tmp/
 /tooling/linux-builder/container/dist/
+/tooling/linux-builder/container/vulkan/
 /tooling/linux-builder/llvm-project/
