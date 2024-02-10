@@ -136,6 +136,37 @@ namespace planet::serialise {
         }
     }
 
+    /// #### Marker for a character size
+    namespace detail {
+        [[noreturn]] void throw_invalid_charsize(
+                std::size_t const charsize, felspar::source_location const &);
+    }
+    constexpr marker marker_for_character_size(
+            std::size_t const charsize,
+            felspar::source_location const &loc =
+                    felspar::source_location::current()) {
+        switch (charsize) {
+        case 1: return marker::u8string8;
+        case 2:
+            if constexpr (
+                    felspar::parse::endian::native
+                    == felspar::parse::endian::big) {
+                return marker::u16string8be;
+            } else {
+                return marker::u16string8le;
+            }
+        case 4:
+            if constexpr (
+                    felspar::parse::endian::native
+                    == felspar::parse::endian::big) {
+                return marker::u32string8be;
+            } else {
+                return marker::u32string8le;
+            }
+        default: detail::throw_invalid_charsize(charsize, loc);
+        }
+    }
+
 
     /// ### Classify this marker
 

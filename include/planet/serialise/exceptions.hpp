@@ -43,6 +43,20 @@ namespace planet::serialise {
     };
 
 
+    /// ### Invalid character size
+    /**
+     * Only UTF8, UTF16 and UTF32 are supported, so all character byte sizes
+     * must be either 1, 2 or 4.
+     */
+    class invalid_charsize : public serialisation_error {
+      public:
+        invalid_charsize(
+                std::size_t,
+                felspar::source_location const & =
+                        felspar::source_location::current());
+    };
+
+
     /// ### The version number isn't supported
     class unsupported_version_number : public serialisation_error {
       public:
