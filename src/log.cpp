@@ -193,6 +193,7 @@ namespace {
         }
 
         felspar::io::warden::task<void> display_performance_loop() {
+            planet::log::info("Starting performance counter loop");
             planet::serialise::save_buffer ab;
             while (true) {
                 co_await warden.sleep(1s);
