@@ -13,10 +13,13 @@ namespace planet::comms {
         felspar::io::warden &warden;
 
         /// Thread data interchange
-        felspar::io::pipe pipe = warden.create_pipe();
+        felspar::io::pipe pipe;
 
       public:
-        internal(felspar::io::warden &);
+        internal(
+                felspar::io::warden &,
+                felspar::source_location const & =
+                        felspar::source_location::current());
 
         /// ### Synchronous send of data
         std::size_t write(std::span<std::byte const>);

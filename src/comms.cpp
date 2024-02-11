@@ -6,7 +6,9 @@
 /// ## `planet::comms::internal`
 
 
-planet::comms::internal::internal(felspar::io::warden &w) : warden{w} {}
+planet::comms::internal::internal(
+        felspar::io::warden &w, felspar::source_location const &loc)
+: warden{w}, pipe{warden.create_pipe(loc)} {}
 
 
 std::size_t planet::comms::internal::write(std::span<std::byte const> const b) {
