@@ -94,7 +94,7 @@ std::optional<std::vector<std::byte>> planet::file_loader::try_load(
 std::vector<std::byte>
         planet::file_loader::file_data(std::filesystem::path const &pathname) {
     std::vector<std::byte> d(std::filesystem::file_size(pathname));
-    std::ifstream file{pathname};
+    std::ifstream file{pathname, std::ios::binary};
     file.read(reinterpret_cast<char *>(d.data()), d.size());
     return d;
 }
