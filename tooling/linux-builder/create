@@ -18,7 +18,7 @@ docker run -it --rm -u $(id -u):$(id -g) \
     registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest \
         cmake -B build.tmp -G Ninja -S llvm-project/llvm \
             -DLLVM_ENABLE_PROJECTS="clang;lld" \
-            -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+            -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=container/dist
 
