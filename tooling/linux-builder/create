@@ -9,7 +9,7 @@ fi
 git -C llvm-project fetch
 git -C llvm-project checkout llvmorg-15.0.5
 
-# rm -r build.tmp container/dist
+rm -r build.tmp container/dist
 
 docker run -it --rm -u $(id -u):$(id -g) \
     -e CC=clang -e CXX=clang++ \
