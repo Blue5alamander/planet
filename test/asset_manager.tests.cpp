@@ -24,8 +24,13 @@ namespace {
         planet::file_loader am{"/path"};
         auto gen = am.search_paths();
         check(gen.next().value()) == cwd / "share/";
+#ifdef __WIN32__
+        check(gen.next().value()) == std::filesystem::path{"C:\\path\\share\\"};
+        check(gen.next().value()) == std::filesystem::path{"C:\\share\\"};
+#else
         check(gen.next().value()) == std::filesystem::path{"/path/share/"};
         check(gen.next().value()) == std::filesystem::path{"/share/"};
+#endif
         check(gen.next().has_value()) == false;
     });
 
