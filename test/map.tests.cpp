@@ -13,10 +13,10 @@ namespace {
                     return std::pair{x, y};
                 }};
 
-        check(c[{0, 0}]) == std::pair{0UL, 0UL};
-        check(c[{1, 0}]) == std::pair{1UL, 0UL};
-        check(c[{0, 1}]) == std::pair{0UL, 1UL};
-        check(c[{1, 1}]) == std::pair{1UL, 1UL};
+        check(c[{0, 0}]) == std::pair{std::size_t{}, std::size_t{}};
+        check(c[{1, 0}]) == std::pair{std::size_t{1}, std::size_t{}};
+        check(c[{0, 1}]) == std::pair{std::size_t{}, std::size_t{1}};
+        check(c[{1, 1}]) == std::pair{std::size_t{1}, std::size_t{1}};
     });
 
 
