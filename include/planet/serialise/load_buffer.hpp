@@ -202,7 +202,7 @@ namespace planet::serialise {
     template<typename T>
     void load(std::filesystem::path const &fn, T &t) {
         std::vector<char> buffer(std::filesystem::file_size(fn));
-        std::ifstream{fn}.read(buffer.data(), buffer.size());
+        std::ifstream{fn, std::ios::binary}.read(buffer.data(), buffer.size());
         load_buffer lb{std::as_bytes(std::span{buffer})};
         load(lb, t);
         if (not lb.empty()) {
