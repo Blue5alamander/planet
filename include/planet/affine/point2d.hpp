@@ -21,8 +21,8 @@ namespace planet::affine {
         constexpr point2d(float const xh, float const yh, float const h)
         : xh{xh}, yh{yh}, h{h} {}
 
-            float const r = turns * τ;
         static point2d from_polar(float const mag, float const turns) {
+            float const r = turns * tau;
             float const x = std::cos(r);
             float const y = std::sin(r);
             return {x * mag, y * mag};
@@ -60,14 +60,14 @@ namespace planet::affine {
                 }
             } else if (xp > 0) {
                 if (yp > 0) {
-                    return std::atan(yp / xp) / τ;
+                    return std::atan(yp / xp) / tau;
                 } else if (yp == 0) {
                     return 0.0f;
                 } else {
-                    return std::atan(yp / xp) / τ + 1.0f;
+                    return std::atan(yp / xp) / tau + 1.0f;
                 }
             } else {
-                return std::atan(yp / xp) / τ + 0.5f;
+                return std::atan(yp / xp) / tau + 0.5f;
             }
         }
 
@@ -94,7 +94,7 @@ namespace planet::affine {
         }
         /// #### Rotate a point about the origin
         point2d rotate(float const theta) {
-            std::complex const rotate{std::cos(theta * τ), std::sin(theta * τ)};
+            std::complex const rotate{std::cos(theta * tau), std::sin(theta * tau)};
             std::complex const value{xh, yh};
             auto const result = value * rotate;
             return {result.real(), result.imag(), h};
