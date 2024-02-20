@@ -6,7 +6,6 @@
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
-#include <cmath>
 #include <complex>
 
 
