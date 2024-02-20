@@ -21,8 +21,8 @@ namespace planet::affine {
         constexpr point2d(float const xh, float const yh, float const h)
         : xh{xh}, yh{yh}, h{h} {}
 
-        constexpr static point2d from_polar(float const mag, float const turns) {
             float const r = turns * τ;
+        static point2d from_polar(float const mag, float const turns) {
             float const x = std::cos(r);
             float const y = std::sin(r);
             return {x * mag, y * mag};
