@@ -58,6 +58,7 @@ namespace {
     });
 
 
+#undef small // Windows.... Sigh
     struct small {
         std::uint32_t field1 = {};
     };
