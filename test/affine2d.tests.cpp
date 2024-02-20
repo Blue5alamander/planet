@@ -13,7 +13,7 @@ namespace {
         return u;
     }
     inline std::uint32_t reset_sign(std::uint32_t const x) {
-        return std::int32_t(x) >= 0 ? x : -x;
+        return std::int32_t(x) >= 0 ? x : -std::int32_t(x);
     }
     inline std::uint32_t ulps(float const a, float const b) {
         std::uint32_t ua = bitpattern(a);
