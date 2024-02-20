@@ -54,6 +54,10 @@ namespace planet::serialise {
             return save_box_lambda(
                     std::uint8_t{1}, name, std::forward<Lambda>(lambda));
         }
+        save_buffer &save_box(
+                std::uint8_t const version, std::string_view const name) {
+            return save_box_lambda(version, name, []() {});
+        }
         template<typename... Args>
         save_buffer &save_box(
                 std::uint8_t const version,
@@ -62,6 +66,9 @@ namespace planet::serialise {
             return save_box_lambda(version, name, [&, p = this]() {
                 (save(*p, std::forward<Args>(args)), ...);
             });
+        }
+        save_buffer &save_box(std::string_view const name) {
+            return save_box_lambda(std::uint8_t{1}, name, []() {});
         }
         template<typename... Args>
         save_buffer &save_box(std::string_view const name, Args &&...args) {
