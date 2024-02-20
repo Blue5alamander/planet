@@ -3,6 +3,8 @@
 
 #include <felspar/coro/eager.hpp>
 
+#include <array>
+
 
 using namespace std::literals;
 
