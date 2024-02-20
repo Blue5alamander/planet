@@ -52,9 +52,8 @@ namespace planet::audio {
         explicit operator linear_gain() const noexcept {
             if (dB < -200.0f) {
                 return linear_gain{};
-            }
-            else {
-                return linear_gain{ std::pow(10.0f, dB / 20.0f) };
+            } else {
+                return linear_gain{std::pow(10.0f, dB / 20.0f)};
             }
         }
 
