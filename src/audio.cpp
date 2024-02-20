@@ -24,15 +24,6 @@ void planet::audio::atomic_linear_gain::set(linear_gain const g) {
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
 
 
-planet::audio::dB_gain::operator linear_gain() const noexcept {
-    if (dB < -200.0f) {
-        return linear_gain{};
-    } else {
-        return linear_gain{std::pow(10.0f, dB / 20.0f)};
-    }
-}
-
-
 /// ## `planet::audio::linear_gain`
 
 
