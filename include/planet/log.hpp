@@ -156,14 +156,6 @@ namespace planet::log {
                         felspar::source_location::current()) {
             (detail::log(detail::ab, m), ...);
             detail::write_log(level::critical, detail::ab.complete(), loc);
-            /**
-             * Wait for a bit here.
-             *
-             * The terminate that is actually meaningful is the one in the
-             * [implementation file](../../src/log.cpp) which will cause the
-             * program to terminate after dealing with this log message. The one
-             * here is just to ensure that this function doesn't actually return.
-             */
             detail::critical_log_encountered();
         }
     };

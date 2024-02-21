@@ -254,6 +254,14 @@ namespace {
 
 
 void planet::log::detail::critical_log_encountered() {
+    /**
+     * Wait for a bit here.
+     *
+     * The terminate that is actually meaningful is the one a few lines above
+     * which will cause the program to terminate after dealing with the log
+     * message this is called from. The one here is just to ensure that this
+     * function doesn't actually return.
+     */
     std::this_thread::sleep_for(2s);
     std::exit(121);
 }
