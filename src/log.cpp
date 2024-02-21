@@ -253,6 +253,12 @@ namespace {
 }
 
 
+void planet::log::detail::critical_log_encountered() {
+    std::this_thread::sleep_for(2s);
+    std::exit(121);
+}
+
+
 namespace {
     planet::telemetry::counter message_count{"planet_log_message_count"};
     planet::telemetry::real_time_rate message_rate{

@@ -145,6 +145,9 @@ namespace planet::log {
     template<typename... Ms>
     error(Ms...) -> error<Ms...>;
 
+    namespace detail {
+        [[noreturn]] void critical_log_encountered();
+    }
     template<typename... Ms>
     struct critical {
         [[noreturn]] critical(
@@ -161,12 +164,7 @@ namespace planet::log {
              * program to terminate after dealing with this log message. The one
              * here is just to ensure that this function doesn't actually return.
              */
-#ifdef _WIN64
-            ::Sleep(2000);
-#else
-            ::sleep(2);
-#endif
-            std::exit(121);
+            detail::critical_log_encountered();
         }
     };
     template<typename... Ms>
