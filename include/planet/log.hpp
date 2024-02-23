@@ -73,7 +73,7 @@ namespace planet::log {
 
     /// ## Log a message
     template<typename... Ms>
-    struct item {
+    struct item final {
         item(level const l,
              Ms &&...m,
              felspar::source_location const &loc =
@@ -90,7 +90,7 @@ namespace planet::log {
 
     /// ## Log messages at a given level
     template<typename... Ms>
-    struct debug {
+    struct debug final {
         debug(Ms const &...m,
               felspar::source_location const &loc =
                       felspar::source_location::current()) {
@@ -104,7 +104,7 @@ namespace planet::log {
     debug(Ms...) -> debug<Ms...>;
 
     template<typename... Ms>
-    struct info {
+    struct info final {
         info(Ms const &...m,
              felspar::source_location const &loc =
                      felspar::source_location::current()) {
@@ -118,7 +118,7 @@ namespace planet::log {
     info(Ms...) -> info<Ms...>;
 
     template<typename... Ms>
-    struct warning {
+    struct warning final {
         warning(Ms const &...m,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
@@ -132,7 +132,7 @@ namespace planet::log {
     warning(Ms...) -> warning<Ms...>;
 
     template<typename... Ms>
-    struct error {
+    struct error final {
         error(Ms const &...m,
               felspar::source_location const &loc =
                       felspar::source_location::current()) {
@@ -145,24 +145,18 @@ namespace planet::log {
     template<typename... Ms>
     error(Ms...) -> error<Ms...>;
 
+    namespace detail {
+        [[noreturn]] void critical_log_encountered();
+    }
     template<typename... Ms>
-    struct critical {
+    struct critical final {
         [[noreturn]] critical(
                 Ms const &...m,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
             (detail::log(detail::ab, m), ...);
             detail::write_log(level::critical, detail::ab.complete(), loc);
-            /**
-             * Wait for a bit here.
-             *
-             * The terminate that is actually meaningful is the one in the
-             * [implementation file](../../src/log.cpp) which will cause the
-             * program to terminate after dealing with this log message. The one
-             * here is just to ensure that this function doesn't actually return.
-             */
-            ::sleep(2);
-            std::exit(121);
+            detail::critical_log_encountered();
         }
     };
     template<typename... Ms>
@@ -170,7 +164,7 @@ namespace planet::log {
 
 
     /// ## Log message storage
-    struct message {
+    struct message final {
         log::level level;
         serialise::shared_bytes payload;
         felspar::source_location location;
@@ -190,7 +184,7 @@ namespace planet::log {
     }
     template<typename Lambda>
     auto format(std::string_view const box_name, Lambda lambda) {
-        struct printer : public detail::formatter {
+        struct printer final : public detail::formatter {
             printer(std::string_view const n, Lambda l)
             : formatter{n}, lambda{std::move(l)} {}
             Lambda lambda;

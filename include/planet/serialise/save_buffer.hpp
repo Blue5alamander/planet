@@ -51,21 +51,29 @@ namespace planet::serialise {
         template<typename Lambda>
         save_buffer &
                 save_box_lambda(std::string_view const name, Lambda &&lambda) {
-            return save_box_lambda(1, name, std::forward<Lambda>(lambda));
+            return save_box_lambda(
+                    std::uint8_t{1}, name, std::forward<Lambda>(lambda));
+        }
+        save_buffer &save_box(
+                std::uint8_t const version, std::string_view const name) {
+            return save_box_lambda(version, name, []() {});
         }
         template<typename... Args>
         save_buffer &save_box(
                 std::uint8_t const version,
                 std::string_view const name,
                 Args &&...args) {
-            return save_box_lambda(version, name, [&]() {
-                (save(*this, std::forward<Args>(args)), ...);
+            return save_box_lambda(version, name, [&, p = this]() {
+                (save(*p, std::forward<Args>(args)), ...);
             });
+        }
+        save_buffer &save_box(std::string_view const name) {
+            return save_box_lambda(std::uint8_t{1}, name, []() {});
         }
         template<typename... Args>
         save_buffer &save_box(std::string_view const name, Args &&...args) {
-            return save_box_lambda(1, name, [&]() {
-                (save(*this, std::forward<Args>(args)), ...);
+            return save_box_lambda(std::uint8_t{1}, name, [&, p = this]() {
+                (save(*p, std::forward<Args>(args)), ...);
             });
         }
 

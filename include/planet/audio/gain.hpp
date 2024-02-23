@@ -8,6 +8,7 @@
 #include <felspar/memory/accumulation_buffer.hpp>
 
 #include <atomic>
+#include <cmath>
 
 
 namespace planet::audio {
@@ -49,7 +50,13 @@ namespace planet::audio {
         dB_gain() {}
         explicit dB_gain(float);
 
-        explicit operator linear_gain() const noexcept;
+        explicit operator linear_gain() const noexcept {
+            if (dB < -200.0f) {
+                return linear_gain{};
+            } else {
+                return linear_gain{std::pow(10.0f, dB / 20.0f)};
+            }
+        }
 
         dB_gain operator-() const noexcept { return dB_gain{-dB}; }
     };

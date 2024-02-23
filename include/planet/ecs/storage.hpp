@@ -329,7 +329,7 @@ namespace planet::ecs {
                         component_index<ctype_for<Cs>>()...,
                 };
                 mask_type m{};
-                for (auto const &i : args) { m |= (1 << i); }
+                for (auto const &i : args) { m |= (std::uint64_t(1) << i); }
                 return m;
             }()};
 

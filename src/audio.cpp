@@ -6,7 +6,6 @@
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
-#include <cmath>
 #include <complex>
 
 
@@ -22,15 +21,6 @@ void planet::audio::atomic_linear_gain::set(linear_gain const g) {
 
 
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
-
-
-planet::audio::dB_gain::operator linear_gain() const noexcept {
-    if (dB < -200.0f) {
-        return linear_gain{};
-    } else {
-        return linear_gain{std::pow(10.0f, dB / 20.0f)};
-    }
-}
 
 
 /// ## `planet::audio::linear_gain`
@@ -147,7 +137,7 @@ felspar::coro::generator<std::span<float>> silence() {
 felspar::coro::generator<std::span<float>>
         planet::audio::oscillator(float const turns) {
     std::array<float, planet::audio::default_buffer_samples> buffer;
-    std::complex const rotate{std::cos(turns * τ), std::sin(turns * τ)};
+    std::complex const rotate{std::cos(turns * tau), std::sin(turns * tau)};
     std::complex phase{1.0f, 0.0f};
     while (true) {
         for (auto &s : buffer) {
