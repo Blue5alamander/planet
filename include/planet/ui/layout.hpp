@@ -3,6 +3,7 @@
 
 #include <planet/ui/element.hpp>
 
+#include <felspar/exceptions/runtime_error.hpp>
 #include <felspar/memory/small_vector.hpp>
 
 #include <vector>
@@ -21,9 +22,11 @@ namespace planet::ui {
         using element_type = typename C::value_type;
         using constrained_type = typename element_type::constrained_type;
 
+
         layout() = default;
         layout(collection_type &&e) : elements{std::move(e)} {}
         layout(collection_type const &e) : elements{e} {}
+
 
         template<typename V>
         void emplace_back(V &&c) {
@@ -32,12 +35,20 @@ namespace planet::ui {
 
         std::size_t size() const noexcept { return elements.size(); }
 
+
         template<typename I>
         void resize_to(std::span<I, std::dynamic_extent> const s) {
             elements.resize(s.size());
         }
         template<typename I, std::size_t N>
         void resize_to(std::span<I, N>) {}
+        template<typename I, std::size_t N>
+        void resize_to(std::array<I, N> const &) {}
+        template<typename I>
+        void resize_to(std::vector<I> const &v) {
+            elements.resize(v.size());
+        }
+
 
         auto begin() noexcept { return elements.begin(); }
         auto begin() const noexcept { return elements.begin(); }
@@ -53,6 +64,10 @@ namespace planet::ui {
                            felspar::source_location::current())
             requires(not requires { elements.at(index, loc); })
         {
+            if (index >= size()) {
+                throw felspar::stdexcept::runtime_error{
+                        "index out of range", loc};
+            }
             return elements.at(index);
         }
         element_type &
@@ -61,8 +76,13 @@ namespace planet::ui {
                            felspar::source_location::current())
             requires requires { elements.at(index, loc); }
         {
+            if (index >= size()) {
+                throw felspar::stdexcept::runtime_error{
+                        "index out of range", loc};
+            }
             return elements.at(index, loc);
         }
+
 
         std::optional<constrained_type> laid_out_in;
         std::optional<affine::extents2d> extents;

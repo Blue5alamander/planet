@@ -17,8 +17,10 @@ namespace planet::ui {
         using superclass::elements;
         using superclass::items;
 
-        /// Padding between items in the row
+
+        /// ### Padding between items in the row
         float hpadding = {}, vpadding = {};
+
 
         breakable_row(collection_type c, float const hp, float const vp)
         : superclass{"planet::ui::breakable_row<C>", std::move(c)},
@@ -35,8 +37,10 @@ namespace planet::ui {
         breakable_row(std::string_view const n, collection_type c, float const p)
         : breakable_row{n, std::move(c), p, p} {}
 
+
       private:
         constrained_type do_reflow(constrained_type const &border) override {
+            if (elements.size() != items.size()) { elements.resize_to(items); }
             float row_height = {}, x = {}, y = {}, max_width{};
             for (std::size_t index{}; auto &element : elements) {
                 auto const ex = items[index].reflow(border);
@@ -70,8 +74,10 @@ namespace planet::ui {
         using superclass::item_count;
         using superclass::items;
 
+
         /// Padding between items in the row
         float hpadding = {}, vpadding = {};
+
 
         explicit breakable_row(collection_type c, float const hp, float const vp)
         : superclass{"planet::ui::breakable_row<std::tuple<Pack...>>", std::move(c)},
@@ -94,6 +100,7 @@ namespace planet::ui {
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : breakable_row{n, std::move(c), p, p, loc} {}
+
 
       private:
         constrained_type do_reflow(constrained_type const &border) override {
