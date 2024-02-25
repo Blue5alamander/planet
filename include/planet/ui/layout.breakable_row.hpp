@@ -61,6 +61,11 @@ namespace planet::ui {
             /// TODO We could calculate better min/max here
             return constrained_type{width, height};
         }
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            do_reflow(constrained_type{r.extents});
+            return superclass::move_sub_elements(r);
+        }
     };
 
 
@@ -124,6 +129,11 @@ namespace planet::ui {
             float const width = max_width, height = row_height + y;
             /// TODO We could calculate better min/max here
             return constrained_type{width, height};
+        }
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            do_reflow(constrained_type{r.extents});
+            return superclass::move_sub_elements(r);
         }
     };
 
