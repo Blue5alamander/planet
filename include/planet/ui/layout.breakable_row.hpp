@@ -44,7 +44,7 @@ namespace planet::ui {
             float row_height = {}, x = {}, y = {}, max_width{};
             for (std::size_t index{}; auto &element : elements) {
                 auto const ex = items[index].reflow(border);
-                if (x + ex.width.value() > border.width.value()) {
+                if (x + hpadding + ex.width.value() > border.width.value()) {
                     x = {};
                     if (y) { y += vpadding; }
                     y += row_height;
