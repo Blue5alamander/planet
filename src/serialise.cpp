@@ -198,6 +198,12 @@ void planet::serialise::save_buffer::append(std::span<std::byte const> sv) {
     auto const s = allocate(sv.size());
     std::memcpy(s.data(), sv.data(), sv.size());
 }
+void planet::serialise::save_buffer::append(std::span<char const> sc) {
+    append(std::as_bytes(sc));
+}
+void planet::serialise::save_buffer::append(std::string_view const sv) {
+    append(std::as_bytes(std::span{sv}));
+}
 
 
 /// ## `planet::serialise::marker`
