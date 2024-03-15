@@ -44,29 +44,29 @@ namespace planet::ui {
             } else {
                 auto const space = constraint.extents();
                 float const unused =
-                space.height - (items.size() - 1) * padding;
+                        space.height - (items.size() - 1) * padding;
                 float const item_height = unused / items.size();
                 float top = {}, max_width = {};
                 constrained_type const row_space = {
-                    constraint.width,
-                    {constraint.height.min(), item_height,
-                        constraint.height.max()}};
-                        elements.resize_to(std::span{items});
-                        for (std::size_t index{}; auto &item : items) {
-                            auto const item_ex = item.reflow(row_space);
-                            elements.at(index).size = item_ex;
-                            max_width = std::max(max_width, item_ex.width.value());
-                            ++index;
-                        }
-                        for (auto &element : elements) {
-                            element.position = {
-                                {{}, top},
-                                affine::extents2d{
+                        constraint.width,
+                        {constraint.height.min(), item_height,
+                         constraint.height.max()}};
+                elements.resize_to(std::span{items});
+                for (std::size_t index{}; auto &item : items) {
+                    auto const item_ex = item.reflow(row_space);
+                    elements.at(index).size = item_ex;
+                    max_width = std::max(max_width, item_ex.width.value());
+                    ++index;
+                }
+                for (auto &element : elements) {
+                    element.position = {
+                            {{}, top},
+                            affine::extents2d{
                                     max_width, element.size.extents().height}};
-                                    top += element.size.height.value() + padding;
-                        }
-                        elements.extents = {max_width, top - padding};
-                        return constrained_type{*elements.extents};
+                    top += element.size.height.value() + padding;
+                }
+                elements.extents = {max_width, top - padding};
+                return constrained_type{*elements.extents};
             }
         }
     };
@@ -103,16 +103,16 @@ namespace planet::ui {
 
 
       private:
-          constrained_type do_reflow(constrained_type const &constraint) override {
-              auto c = calculate_reflow(constraint);
-              while (true) {
-                  auto const n = calculate_reflow(c);
-                  if (n.extents() == c.extents()) { return n; }
-                  c = n;
-              }
-          }
-          constrained_type calculate_reflow(constrained_type const &ex) {
-              float const unused = ex.height.value() - (item_count - 1) * padding;
+        constrained_type do_reflow(constrained_type const &constraint) override {
+            auto c = calculate_reflow(constraint);
+            while (true) {
+                auto const n = calculate_reflow(c);
+                if (n.extents() == c.extents()) { return n; }
+                c = n;
+            }
+        }
+        constrained_type calculate_reflow(constrained_type const &ex) {
+            float const unused = ex.height.value() - (item_count - 1) * padding;
             float const item_height = unused / item_count;
             float top = {}, max_width = {};
             constrained_type const row_space = {
