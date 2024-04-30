@@ -36,6 +36,7 @@ namespace planet::audio {
 
         float const *data() const { return storage.data(); }
         std::size_t samples() const { return storage.size() / channels; }
+        auto duration() const { return clock_type{samples()}; }
 
         /// ## Access channel sample data
         auto operator[](std::size_t index) const {
