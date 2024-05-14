@@ -81,9 +81,11 @@ namespace planet::audio {
         }
     }
     template<typename Clock, std::size_t Channels>
-    inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
-            dB_gain const dB,
-            felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
+    FELSPAR_CORO_WRAPPER inline felspar::coro::generator<
+            buffer_storage<Clock, Channels>>
+            gain(dB_gain const dB,
+                 felspar::coro::generator<buffer_storage<Clock, Channels>>
+                         signal) {
         return gain(linear_gain(dB), std::move(signal));
     }
 

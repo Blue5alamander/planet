@@ -102,7 +102,7 @@ namespace planet::ui {
         }
 
 
-        felspar::coro::task<void> behaviour() override {
+        FELSPAR_CORO_WRAPPER felspar::coro::task<void> behaviour() override {
             return handle<output_type>::press(
                     this,
                     events::identify_clicks(widget::events.mouse.stream()));

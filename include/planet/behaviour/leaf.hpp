@@ -38,7 +38,8 @@ namespace planet::behaviour {
             run_fn run;
             std::tuple<parameter<Arg> const &...> args;
 
-            runner::result_type operator()(context &ctx) const override {
+            FELSPAR_CORO_WRAPPER runner::result_type
+                    operator()(context &ctx) const override {
                 []<std::size_t... Is>(std::index_sequence<Is...>) {
                     static_assert(
                             (...
