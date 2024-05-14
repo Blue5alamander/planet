@@ -21,6 +21,10 @@ namespace planet::audio {
      */
     class music {
       public:
+        /// TODO This would have to change from using `std::function` if we want
+        /// to be able to use the lifetime tracking features of clang for
+        /// coroutines. This is because `std::function`'s `operator()` is not
+        /// marked with the correct attribute.
         using start_tune_function = std::function<stereo_generator()>;
 
 
@@ -29,6 +33,7 @@ namespace planet::audio {
         /// #### Audio output
         /// The generator will be handled to the audio processing thread
         stereo_generator output();
+
 
         /// ### Queuing music
 
@@ -46,13 +51,11 @@ namespace planet::audio {
         /// playback will pause
         void set_volume(dB_gain);
 
+
       private:
         std::atomic<bool> clear_flag = false;
         std::mutex mtx;
-        struct play {
-            std::function<stereo_generator(void)> start;
-        };
-        std::vector<play> queue;
+        std::vector<start_tune_function> queue;
         /**
          * Used to auto-fade between tracks and at start up. This value is always
          * manipulated in the same thread that performs the auto generation.

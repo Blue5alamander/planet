@@ -81,7 +81,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
         }
         if (not playing) {
             std::scoped_lock _{mtx};
-            if (queue.size()) { playing = queue.front().start(); }
+            if (queue.size()) { playing = queue.front()(); }
         }
         if (playing) {
             while (auto block = playing->next()) {
