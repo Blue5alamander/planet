@@ -11,6 +11,18 @@
 namespace planet::serialise {
 
 
+    template<typename Rep, typename Period>
+    void save(save_buffer &ab, std::chrono::duration<Rep, Period> const d) {
+        ab.save_box("_sc::duration", d.count());
+    }
+    template<typename Rep, typename Period>
+    void load(box &b, std::chrono::duration<Rep, Period> &d) {
+        decltype(d.count()) c;
+        b.named("_sc::duration", c);
+        d = std::chrono::duration<Rep, Period>{c};
+    }
+
+
     template<typename Clock, typename Duration>
     void
             save(save_buffer &ab,
