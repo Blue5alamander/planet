@@ -78,11 +78,24 @@ namespace planet::serialise {
     }
 
 
-    template<typename T, std::size_t N>
-    inline void save(save_buffer &ab, std::span<T, N> const &a) {
+    template<typename T, std::size_t N, typename L>
+    inline void save_poly_list(
+            save_buffer &ab, std::span<T, N> const a, L &&lambda) {
         ab.append(marker::poly_list);
         ab.append_size_t(a.size());
-        for (auto &&item : a) { save(ab, item); }
+        for (auto &&item : a) { lambda(ab, item); }
+    }
+    template<typename L>
+    inline auto load_poly_list(load_buffer &lb, L &&loader) {
+        lb.check_marker(marker::poly_list);
+        return loader(lb.extract_size_t());
+    }
+
+
+    template<typename T, std::size_t N>
+    inline void save(save_buffer &ab, std::span<T, N> const &a) {
+        save_poly_list(
+                ab, a, [](auto &ab, auto const &item) { save(ab, item); });
     }
     template<typename T, std::size_t N>
     void load(load_buffer &lb, std::span<T, N> a) {
@@ -111,13 +124,11 @@ namespace planet::serialise {
     }
     template<typename T>
     inline void load(load_buffer &lb, std::vector<T> &v) {
-        if (auto const m = lb.extract_marker(); m != marker::poly_list) {
-            throw wrong_marker{lb.cmemory(), marker::poly_list, m};
-        } else {
-            auto const items = lb.extract_size_t();
+        load_poly_list(lb, [&](std::size_t const items) {
             v = std::vector<T>(items);
             for (auto &item : v) { load(lb, item); }
-        }
+            return v;
+        });
     }
 
 
