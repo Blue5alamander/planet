@@ -77,6 +77,8 @@ namespace planet::serialise {
             });
         }
 
+
+        /// ### Saving raw data
         void append(marker const m) { append(static_cast<std::uint8_t>(m)); }
         void append_size_t(std::size_t);
         void append(std::string_view);
@@ -86,6 +88,7 @@ namespace planet::serialise {
             felspar::parse::binary::native::unchecked_insert(
                     allocate_for(v), v);
         }
+
 
         /// ### The number of bytes currently in the save
         std::size_t size() const noexcept { return written; }
