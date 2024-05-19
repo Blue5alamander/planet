@@ -61,10 +61,12 @@ namespace planet::ui {
                 return *m_position;
             } else {
                 throw felspar::stdexcept::logic_error{
-                    "Reflowable position has not been set\n"
-                    "The position for this reflowable `" + name() +
-                    "` has not been set. Generally this means that a parent "
-                    "hasn't called `move_to` as it was supposed to\n", loc};
+                        "Reflowable position has not been set\n"
+                        "The position for this reflowable `" +
+                                name() +
+                                "` has not been set. Generally this means that a parent "
+                                "hasn't called `move_to` as it was supposed to\n",
+                        loc};
             }
         }
         /// #### The constraints that the item has
@@ -75,10 +77,12 @@ namespace planet::ui {
                 return *m_constraints;
             } else {
                 throw felspar::stdexcept::logic_error{
-                    "Reflowable constraints have not been set\n"
-                    "The constraints for this reflowable `" + name() +
-                    "` have not been set. Generally this means that a parent "
-                    "hasn't called `reflow` as it was supposed to\n", loc};
+                        "Reflowable constraints have not been set\n"
+                        "The constraints for this reflowable `" +
+                                name() +
+                                "` have not been set. Generally this means that a parent "
+                                "hasn't called `reflow` as it was supposed to\n",
+                        loc};
             }
         }
 

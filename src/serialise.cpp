@@ -361,16 +361,16 @@ void planet::serialise::serialisation_error::inside_box(std::string_view sv) {
 planet::serialise::box_name_length::box_name_length(
         std::string_view box_name, felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"The box name must be between 1 and 127 bytes long\n"
-                    "Name tried is '"}
-                + std::string{box_name} + '\'',
-        loc} {}
+          std::string{"The box name must be between 1 and 127 bytes long\n"
+                      "Name tried is '"}
+                  + std::string{box_name} + '\'',
+          loc} {}
 
 
 planet::serialise::box_not_empty::box_not_empty(
         felspar::source_location const &loc)
 : serialisation_error{
-        "The box was not empty after loading all data from it", loc} {}
+          "The box was not empty after loading all data from it", loc} {}
 
 
 planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
@@ -378,20 +378,21 @@ planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
         std::size_t const got,
         felspar::source_location const &loc)
 : serialisation_error{
-        "There was not enough data in the buffer to read the requested value\n"
-        "Wanted "
-                + std::to_string(wanted) + " bytes and buffer only contains "
-                + std::to_string(got) + " bytes",
-        loc} {}
+          "There was not enough data in the buffer to read the requested "
+          "value\n"
+          "Wanted "
+                  + std::to_string(wanted) + " bytes and buffer only contains "
+                  + std::to_string(got) + " bytes",
+          loc} {}
 
 
 planet::serialise::invalid_charsize::invalid_charsize(
         std::size_t const charsize, felspar::source_location const &loc)
 : serialisation_error{
-        "Invalid UTF character size in bytes\n"
-        "Expected 1, 2 or 4. Got "
-                + std::to_string(charsize),
-        loc} {}
+          "Invalid UTF character size in bytes\n"
+          "Expected 1, 2 or 4. Got "
+                  + std::to_string(charsize),
+          loc} {}
 void planet::serialise::detail::throw_invalid_charsize(
         std::size_t const charsize, felspar::source_location const &loc) {
     throw invalid_charsize{charsize, loc};
@@ -401,10 +402,10 @@ void planet::serialise::detail::throw_invalid_charsize(
 planet::serialise::unsupported_version_number::unsupported_version_number(
         box const &b, felspar::source_location const &loc)
 : serialisation_error{
-        "This version number is not supported in this box\nUnsupported "
-        "version: "
-                + std::to_string(b.version),
-        loc} {
+          "This version number is not supported in this box\nUnsupported "
+          "version: "
+                  + std::to_string(b.version),
+          loc} {
     inside_box(b.name);
 }
 
@@ -414,10 +415,10 @@ planet::serialise::wanted_boolean::wanted_boolean(
         marker const m,
         felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"Expected b_true or b_false for a boolean\n"
-                    "Got "}
-                + std::string{to_string(m)},
-        remaining, loc} {}
+          std::string{"Expected b_true or b_false for a boolean\n"
+                      "Got "}
+                  + std::string{to_string(m)},
+          remaining, loc} {}
 
 
 planet::serialise::wanted_box::wanted_box(
@@ -425,8 +426,9 @@ planet::serialise::wanted_box::wanted_box(
         marker const m,
         felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"Expected a box marker\nGot "} + std::string{to_string(m)},
-        remaining, loc} {}
+          std::string{"Expected a box marker\nGot "}
+                  + std::string{to_string(m)},
+          remaining, loc} {}
 
 
 planet::serialise::wrong_marker::wrong_marker(
@@ -434,21 +436,21 @@ planet::serialise::wrong_marker::wrong_marker(
         marker const got,
         felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"The wrong type marker is in the save file\n"
-                    "Expected "}
-                + std::string{to_string(expected)} + " and got "
-                + std::string{to_string(got)} + " ("
-                + std::to_string(static_cast<std::uint8_t>(got)) + ")",
-        loc} {}
+          std::string{"The wrong type marker is in the save file\n"
+                      "Expected "}
+                  + std::string{to_string(expected)} + " and got "
+                  + std::string{to_string(got)} + " ("
+                  + std::to_string(static_cast<std::uint8_t>(got)) + ")",
+          loc} {}
 planet::serialise::wrong_marker::wrong_marker(
         std::span<std::byte const> remaining,
         marker const expected,
         marker const got,
         felspar::source_location const &loc)
 : serialisation_error{
-        std::string{"The wrong type marker is in the save file\n"
-                    "Expected "}
-                + std::string{to_string(expected)} + " and got "
-                + std::string{to_string(got)} + " ("
-                + std::to_string(static_cast<std::uint8_t>(got)) + ")",
-        remaining, loc} {}
+          std::string{"The wrong type marker is in the save file\n"
+                      "Expected "}
+                  + std::string{to_string(expected)} + " and got "
+                  + std::string{to_string(got)} + " ("
+                  + std::to_string(static_cast<std::uint8_t>(got)) + ")",
+          remaining, loc} {}

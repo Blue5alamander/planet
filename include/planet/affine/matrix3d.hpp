@@ -37,10 +37,10 @@ namespace planet::affine {
         constexpr matrix3d() {}
         constexpr matrix3d(matrix2d const &m2)
         : matrix3d{
-                {std::array{m2[{0, 0}], m2[{1, 0}], float{}, m2[{2, 0}]},
-                 std::array{m2[{0, 1}], m2[{1, 1}], float{}, m2[{2, 1}]},
-                 std::array{float{}, float{}, float{1}, float{}},
-                 std::array{m2[{0, 2}], m2[{1, 2}], float{}, m2[{2, 2}]}}} {}
+                  {std::array{m2[{0, 0}], m2[{1, 0}], float{}, m2[{2, 0}]},
+                   std::array{m2[{0, 1}], m2[{1, 1}], float{}, m2[{2, 1}]},
+                   std::array{float{}, float{}, float{1}, float{}},
+                   std::array{m2[{0, 2}], m2[{1, 2}], float{}, m2[{2, 2}]}}} {}
 
         static constexpr matrix3d
                 translate(float const x, float const y, float const z) {

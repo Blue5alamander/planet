@@ -14,9 +14,9 @@ namespace {
                 std::type_info const &ti,
                 felspar::source_location const &loc)
         : felspar::stdexcept::logic_error{
-                std::string{m} + "\nEntity id " + std::to_string(eid.id())
-                        + " type index: " + std::string{ti.name()},
-                loc} {}
+                  std::string{m} + "\nEntity id " + std::to_string(eid.id())
+                          + " type index: " + std::string{ti.name()},
+                  loc} {}
     };
 }
 

@@ -37,7 +37,7 @@ namespace planet::ui {
                 do_move_sub_elements(affine::rectangle2d const &r) override {
             return r;
         }
-        void do_draw() override{};
+        void do_draw() override {};
         bool contains_global_coordinate(
                 affine::point2d const &,
                 felspar::source_location const &) const override {

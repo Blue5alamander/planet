@@ -9,9 +9,7 @@ namespace {
 
     auto const chunk = felspar::testsuite("map/chunk", [](auto check) {
         planet::map::chunk<std::pair<std::size_t, std::size_t>, 2> c{
-                [](auto x, auto y) {
-                    return std::pair{x, y};
-                }};
+                [](auto x, auto y) { return std::pair{x, y}; }};
 
         check(c[{0, 0}]) == std::pair{std::size_t{}, std::size_t{}};
         check(c[{1, 0}]) == std::pair{std::size_t{1}, std::size_t{}};
