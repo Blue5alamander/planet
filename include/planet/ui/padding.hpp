@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/affine/rectangle2d.hpp>
 #include <planet/ui/constrained.hpp>
 
 
