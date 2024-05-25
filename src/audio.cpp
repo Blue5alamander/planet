@@ -71,20 +71,24 @@ auto planet::audio::mixer::output() -> stereo_generator {
 planet::audio::stereo_generator planet::audio::music::output() {
     felspar::memory::accumulation_buffer<float> output{
             default_buffer_samples * 50};
-    std::optional<planet::audio::stereo_generator> playing;
+    std::optional<planet::audio::stereo_generator> generator;
     while (true) {
         if (clear_flag.load(std::memory_order_relaxed)) {
             clear_flag.store(false, std::memory_order_relaxed);
-            playing = {};
+            playing.store(false, std::memory_order_relaxed);
+            generator = {};
             std::scoped_lock _{mtx};
             queue.clear();
         }
-        if (not playing) {
+        if (not generator) {
             std::scoped_lock _{mtx};
-            if (queue.size()) { playing = queue.front()(); }
+            if (queue.size()) {
+                generator = queue.front()();
+                playing.store(true, std::memory_order_relaxed);
+            }
         }
-        if (playing) {
-            while (auto block = playing->next()) {
+        if (generator) {
+            while (auto block = generator->next()) {
                 if (clear_flag.load(std::memory_order_relaxed)) {
                     /// TODO Micro fade block
                     // co_yield block;
@@ -93,7 +97,8 @@ planet::audio::stereo_generator planet::audio::music::output() {
                     co_yield *block;
                 }
             }
-            playing = {};
+            playing.store(false, std::memory_order_relaxed);
+            generator = {};
         } else {
             output.ensure_length(
                     default_buffer_samples * stereo_buffer::channels);

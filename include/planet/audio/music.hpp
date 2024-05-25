@@ -21,12 +21,18 @@ namespace planet::audio {
      */
     class music {
       public:
-        /// TODO This would have to change from using `std::function` if we want
-        /// to be able to use the lifetime tracking features of clang for
-        /// coroutines. This is because `std::function`'s `operator()` is not
-        /// marked with the correct attribute.
+        /**
+         * TODO This would have to change from using `std::function` if we want
+         * to be able to use the lifetime tracking features of clang for
+         * coroutines. This is because `std::function`'s `operator()` is not
+         * marked with the correct attribute.
+         */
         using start_tune_function = std::function<stereo_generator()>;
 
+
+        /// ### Playing flag
+        /// Returns true if music is currently playing
+        bool is_playing() const noexcept;
 
         /// ### Construction and output
 
@@ -47,13 +53,15 @@ namespace planet::audio {
         /// ### Volume control
 
         /// #### The volume to set on the playback
-        /// A value less than or equal to -127dB will be taken as mute and the
-        /// playback will pause
+        /**
+         * A value less than or equal to -127dB will be taken as mute and the
+         * playback will pause
+         */
         void set_volume(dB_gain);
 
 
       private:
-        std::atomic<bool> clear_flag = false;
+        std::atomic<bool> clear_flag = false, playing = false;
         std::mutex mtx;
         std::vector<start_tune_function> queue;
         /**
