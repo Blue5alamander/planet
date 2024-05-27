@@ -84,7 +84,7 @@ namespace planet::affine {
                         b15 = a.m[15];
 
             return {
-                    {std::array<float, 4>{
+                    {std::array{
                              a0 * b0 + a4 * b1 + a8 * b2 + a12 * b3,
 
                              a0 * b4 + a4 * b5 + a8 * b6 + a12 * b7,
