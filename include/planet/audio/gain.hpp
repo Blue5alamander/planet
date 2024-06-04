@@ -34,6 +34,8 @@ namespace planet::audio {
       public:
         atomic_linear_gain() {}
         explicit atomic_linear_gain(float);
+        explicit atomic_linear_gain(linear_gain lg) noexcept
+        : multiplier{lg.multiplier} {}
 
         void set(linear_gain);
 
@@ -56,6 +58,9 @@ namespace planet::audio {
             } else {
                 return linear_gain{std::pow(10.0f, dB / 20.0f)};
             }
+        }
+        explicit operator atomic_linear_gain() const noexcept {
+            return atomic_linear_gain{static_cast<linear_gain>(*this)};
         }
 
         dB_gain operator-() const noexcept { return dB_gain{-dB}; }
