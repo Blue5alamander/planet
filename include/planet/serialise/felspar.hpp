@@ -5,6 +5,7 @@
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
+#include <felspar/memory/shared_buffer.hpp>
 #include <felspar/memory/small_vector.hpp>
 
 
@@ -25,6 +26,12 @@ namespace planet::serialise {
         }
         a.resize(items);
         for (auto &item : a) { load(lb, item); }
+    }
+
+
+    template<typename T>
+    void save(save_buffer &sb, felspar::memory::shared_buffer<T> const &b) {
+        save(sb, std::span<T const>{b});
     }
 
 
