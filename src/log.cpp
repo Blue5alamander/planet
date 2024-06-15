@@ -8,6 +8,7 @@
 #include <planet/time/checkpointer.hpp>
 
 #include <felspar/io/warden.poll.hpp>
+#include <felspar/memory/hexdump.hpp>
 
 #include <iostream>
 #include <thread>
@@ -62,6 +63,13 @@ namespace {
                 case planet::serialise::marker::empty:
                     std::cout << "empty";
                     break;
+
+                case planet::serialise::marker::std_byte_array: {
+                    auto const size = lb.extract_size_t();
+                    auto s = lb.split(size);
+                    felspar::memory::hexdump(std::cout, s);
+                    break;
+                }
 
                 case planet::serialise::marker::u8:
                     std::cout << static_cast<int>(lb.extract<std::uint8_t>());
