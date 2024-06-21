@@ -70,8 +70,11 @@ namespace planet::map {
     /// ## Cell & Super-cell Co-ordinates
     /**
      * Directions when looking at the map:
-     * - x-axis is right to left -- increases left
-     * - y-axis is bottom to top -- increases up
+     * - x-axis is right to left -- increases to the left
+     * - y-axis is bottom to top -- increases upwards
+     *
+     * The coordinates are 32 bit integers, so have an effective range of
+     * around ±2 billion.
      */
     class coordinates {
         friend class hexmap::coordinates;
@@ -92,7 +95,7 @@ namespace planet::map {
 
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
-        /// The square of the magnitude of the location from the origin
+        /// #### The square of the magnitude of the location from the origin
         value_type mag2() const noexcept { return x * x + y * y; }
 
         static constexpr std::size_t insert_count(
