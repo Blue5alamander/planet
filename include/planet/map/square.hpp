@@ -70,8 +70,8 @@ namespace planet::map {
     /// ## Cell & Super-cell Co-ordinates
     /**
      * Directions when looking at the map:
-     * * x-axis is right to left -- increases left
-     * * y-axis is bottom to top -- increases up
+     * - x-axis is right to left -- increases left
+     * - y-axis is bottom to top -- increases up
      */
     class coordinates {
         friend class hexmap::coordinates;
