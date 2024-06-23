@@ -115,7 +115,7 @@ namespace planet::serialise {
         save_buffer sb;
         save(sb, t);
         auto const bytes = sb.complete();
-        std::ofstream{fn}.write(
+        std::ofstream{fn, std::ios::binary}.write(
                 reinterpret_cast<char const *>(bytes.data()), bytes.size());
     }
 
