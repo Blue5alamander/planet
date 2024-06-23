@@ -189,9 +189,19 @@ namespace planet::serialise {
     }
 
 
+    /// ### `load_buffer` to `box` support
+    /**
+     * This handles the case where a `load` function wants to take a `box`
+     * instead of a `load_buffer`.
+     *
+     * Loading of numeric fields is ambiguous with this function (as they're
+     * both templated on the serialisation type), hence the template
+     * requirement. This likely means other `load` overloads cannot be
+     * templates, even when restricted by concepts.
+     */
     template<typename T>
     void load(load_buffer &lb, T &t)
-        requires(requires (box b) {load(b, t);})
+        requires(not felspar::parse::concepts::numeric<T>)
     {
         auto b = load_type<box>(lb);
         load(b, t);
