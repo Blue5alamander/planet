@@ -2,8 +2,6 @@
 
 Serialisation allows game state to be sent over the network or saved to a file. All serialisation is binary and is comprised of a sequence of nested boxes.
 
-Boxes always start with a single byte marker.
-
 * [`plane/serialise/affine.hpp`](./affine.hpp) -- Serialisation of various [affine](../affine/) data types.
 * [`planet/serialise/base_types.hpp`](./base_types.hpp) -- Serialisation implementations for various simple types.
 * [`plane/serialise/chrono.hpp`](./chrono.hpp) -- Serialisation of `std::chrono` data types.
