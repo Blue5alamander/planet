@@ -29,12 +29,14 @@ namespace planet::serialise {
     }
 
 
-    inline void save(save_buffer &ab, std::span<std::byte const> const s) {
+    template<std::size_t N>
+    inline void save(save_buffer &ab, std::span<std::byte const, N> const s) {
         ab.append(marker::std_byte_array);
         ab.append_size_t(s.size());
         ab.append(s);
     }
-    inline void load(load_buffer &lb, std::span<std::byte const> &s) {
+    template<std::size_t N>
+    inline void load(load_buffer &lb, std::span<std::byte const, N> &s) {
         if (auto const m = lb.extract_marker(); m != marker::std_byte_array) {
             throw wrong_marker{lb.cmemory(), marker::std_byte_array, m};
         } else {
@@ -42,8 +44,19 @@ namespace planet::serialise {
             s = lb.split(size);
         }
     }
-
-
+    template<std::size_t N>
+    inline void save(save_buffer &ab, std::array<std::byte const, N> const &a) {
+        save(ab, std::span{a, N});
+    }
+    template<std::size_t N>
+    void load(load_buffer &lb, std::array<std::byte, N> &a) {
+        auto const d = load_type<std::span<std::byte const>>(lb);
+        if (d.size() != a.size()) {
+            throw felspar::stdexcept::runtime_error{
+                    "The loaded array size doesn't match the array size"};
+        }
+        std::memcpy(a.data(), d.data(), d.size());
+    }
     inline void save(save_buffer &ab, std::vector<std::byte> const &v) {
         save(ab, std::span{v.data(), v.size()});
     }
