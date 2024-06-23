@@ -9,6 +9,8 @@
 #include <felspar/parse/insert.native.hpp>
 #include <felspar/parse/insert.be.hpp>
 
+#include <filesystem>
+#include <fstream>
 #include <string_view>
 
 
@@ -106,6 +108,16 @@ namespace planet::serialise {
                     allocate(sizeof(T)).data(), sizeof(T)};
         }
     };
+
+
+    template<typename T>
+    inline auto save(std::filesystem::path const &fn, T const &t) {
+        save_buffer sb;
+        save(sb, t);
+        auto const bytes = sb.complete();
+        std::ofstream{fn}.write(
+                reinterpret_cast<char const *>(bytes.data()), bytes.size());
+    }
 
 
 }
