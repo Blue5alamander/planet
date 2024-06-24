@@ -14,7 +14,7 @@ Now it consists of several libraries:
 * `planet` (this library) -- General game code. Includes [2d and 3d affine transforms](https://blue5alamander.com/open-source/planet/include/planet/affine/), [sound](https://blue5alamander.com/open-source/planet/include/planet/audio/), [UI](https://blue5alamander.com/open-source/planet/include/planet/ui/), [serialisation](https://blue5alamander.com/open-source/planet/include/planet/serialise/), [an ECS](https://blue5alamander.com/open-source/planet/include/planet/ecs/), and more.
 * [`planet-sdl`](https://blue5alamander.com/open-source/planet-sdl/) -- Wrapper for use of SDL2 C library with the rest of the Planet engine.
 * [`planet-vk`](https://blue5alamander.com/open-source/planet-vk/) -- Wrappers for the Vulkan C library with higher level engine code.
-* [`planet-android`](git@github.com:Blue5alamander/planet-android.git) -- Android specific code needed to interface between Planet, SDL2 and the platform.
+* [`planet-android`](https://blue5alamander.com/open-source/planet-android) -- Android specific code needed to interface between Planet, SDL2 and the platform.
 
 
 ## Building and running the library and examples
