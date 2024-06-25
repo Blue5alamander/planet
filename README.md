@@ -30,6 +30,16 @@ make
 ./examples/snake
 ```
 
+## Development requirements
+
+On Linux you'll need some dev packages installed:
+
+```bash
+sudo apt install libasound2-dev libogg-dev libopus-dev liburing-dev libvorbis-dev
+```
+
+On Windows it's generally best to add these as submodules to your project and use `add_subdirectory` from cmake to build them.
+
 
 ## Modules
 
