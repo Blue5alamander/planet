@@ -38,7 +38,7 @@ namespace planet::log {
     /// ## The currently active logging level
 
 
-    /// ### Active logging level
+    /// ### Active logging
     /**
      * Any log messages below this level will always be discarded.
      *
@@ -46,6 +46,16 @@ namespace planet::log {
      * effect. Any log messages already in flight will still arrive.
      */
     inline std::atomic<level> active{level::debug};
+
+    /**
+     * When set any log and performance data is sent to the pointed to file.
+     * This may not be changed or cleared once log messages are being sent, so
+     * set it once early during start up and then never change it.
+     *
+     * TODO Change to use an atomic shared pointer so that it can be changed at
+     * any time (i.e. log files can be rotated).
+     */
+    inline std::atomic<std::ostream *> output = nullptr;
 
 
     namespace detail {
@@ -165,12 +175,16 @@ namespace planet::log {
 
     /// ## Log message storage
     struct message final {
+        static constexpr std::string_view box{"_p:log:m"};
+
+
         log::level level;
         serialise::shared_bytes payload;
         felspar::source_location location;
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
     };
+    void save(serialise::save_buffer &ab, message);
 
 
     /// ## Custom log message formatter

@@ -214,6 +214,11 @@ namespace {
                                      / 1e9)
                           << "\33[0;39m\n  ";
                 auto const bytes = ab.complete();
+                if (auto out = planet::log::output.load(); out) {
+                    (*out).write(
+                            reinterpret_cast<char const *>(bytes.data()),
+                            bytes.size());
+                }
                 planet::serialise::load_buffer lb{bytes.cmemory()};
                 std::scoped_lock _{printers_mutex()};
                 show(lb, 0, "\n  ");
@@ -227,14 +232,23 @@ namespace {
         planet::telemetry::counter error_count{"planet_log_message_error"};
 
         felspar::io::warden::task<void> display_log_messages_loop() {
+            planet::serialise::save_buffer ab;
             while (true) {
                 auto block = messages.consume();
                 if (block.empty()) {
                     std::array<std::byte, 16> buffer;
                     co_await signal.read_some(buffer);
                 } else {
+                    auto out = planet::log::output.load();
                     std::scoped_lock _{printers_mutex()};
                     for (auto const &message : block) {
+                        if (out) {
+                            save(ab, message);
+                            auto const bytes = ab.complete();
+                            (*out).write(
+                                    reinterpret_cast<char const *>(bytes.data()),
+                                    bytes.size());
+                        }
                         print(message);
                         switch (message.level) {
                         case planet::log::level::debug: ++debug_count; break;
@@ -311,4 +325,12 @@ planet::log::detail::formatter::~formatter() {
      */
     // std::scoped_lock _{printers_mutex()};
     // printers().erase(printers().find(box_name));
+}
+
+
+/// ## `planet::log::message`
+
+
+void planet::log::save(serialise::save_buffer &ab, message const m) {
+    ab.save_box(m.box, m.level, m.location, m.logged, m.payload);
 }
