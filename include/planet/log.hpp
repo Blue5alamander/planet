@@ -210,4 +210,12 @@ namespace planet::log {
     }
 
 
+    /// ### Log message counter values
+    struct counters {
+        std::int64_t debug, info, warning, error;
+
+        static counters current() noexcept;
+    };
+
+
 }

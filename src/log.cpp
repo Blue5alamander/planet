@@ -162,6 +162,12 @@ namespace {
     }
 
 
+    planet::telemetry::counter debug_count{"planet_log_message_debug"};
+    planet::telemetry::counter info_count{"planet_log_message_info"};
+    planet::telemetry::counter warning_count{"planet_log_message_warning"};
+    planet::telemetry::counter error_count{"planet_log_message_error"};
+
+
     struct log_thread {
         felspar::io::poll_warden warden;
         planet::queue::tspsc<planet::log::message> messages;
@@ -226,10 +232,6 @@ namespace {
             }
         }
 
-        planet::telemetry::counter debug_count{"planet_log_message_debug"};
-        planet::telemetry::counter info_count{"planet_log_message_info"};
-        planet::telemetry::counter warning_count{"planet_log_message_warning"};
-        planet::telemetry::counter error_count{"planet_log_message_error"};
 
         felspar::io::warden::task<void> display_log_messages_loop() {
             planet::serialise::save_buffer ab;
@@ -325,6 +327,15 @@ planet::log::detail::formatter::~formatter() {
      */
     // std::scoped_lock _{printers_mutex()};
     // printers().erase(printers().find(box_name));
+}
+
+
+/// ## `planet::log::counters`
+
+
+auto planet::log::counters::current() noexcept -> counters {
+    return {debug_count.value(), info_count.value(), warning_count.value(),
+            error_count.value()};
 }
 
 
