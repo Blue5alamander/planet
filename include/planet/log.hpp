@@ -210,12 +210,34 @@ namespace planet::log {
     }
 
 
-    /// ### Log message counter values
+    /// ## Log message counter values
     struct counters {
         std::int64_t debug, info, warning, error;
 
         static counters current() noexcept;
     };
+
+
+    /// ## Log file header
+    struct file_header {
+        static constexpr std::string_view box{"_p:log:h"};
+
+        /// ### Time stamp the game started
+        std::chrono::steady_clock::time_point base_time = {};
+        /// ### Common file prefix for source location
+        std::string file_prefix = {};
+    };
+    void load_fields(serialise::box &, file_header &);
+
+
+    /**
+     * Calling this will write a header to the log file containing information
+     * helpful for interpreting the log file.
+     *
+     * An output file must be already set, otherwise calling this is undefined
+     * behaviour.
+     */
+    void write_log_file_header();
 
 
 }

@@ -23,11 +23,13 @@ thread_local planet::serialise::save_buffer planet::log::detail::ab;
 namespace {
     constexpr std::string_view log_root_directory = LOG_ROOT_DIRECTORY;
 
+
     auto g_start_time() {
         static auto st = std::chrono::steady_clock::now();
         return st;
     }
     [[maybe_unused]] auto const g_started = g_start_time();
+
 
     auto &printers_mutex() {
         static std::mutex m;
@@ -336,6 +338,21 @@ planet::log::detail::formatter::~formatter() {
 auto planet::log::counters::current() noexcept -> counters {
     return {debug_count.value(), info_count.value(), warning_count.value(),
             error_count.value()};
+}
+
+
+/// ## `planet::log::file_header`
+
+
+void planet::log::write_log_file_header() {
+    detail::ab.save_box(file_header::box, g_start_time(), log_root_directory);
+    auto const bytes = detail::ab.complete();
+    (*planet::log::output.load())
+            .write(reinterpret_cast<char const *>(bytes.data()), bytes.size());
+}
+void planet::log::load_fields(serialise::box &b, file_header &f) {
+    b.fields(f.base_time, f.file_prefix);
+    b.check_empty_or_throw();
 }
 
 

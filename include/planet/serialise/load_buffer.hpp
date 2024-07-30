@@ -97,9 +97,15 @@ namespace planet::serialise {
         }
 
 
-        /// ### Load the next box
+        /// ### Loading helpers
+
+        /// #### Load a complete box
         template<typename... Args>
         void load_box(std::string_view, Args &...);
+
+        /// #### Load fields
+        template<typename... Args>
+        void load_fields(Args &...);
     };
 
 
@@ -140,6 +146,11 @@ namespace planet::serialise {
                 throw;
             }
         }
+
+        template<typename... Args>
+        void fields(Args &...args) {
+            (load(content, args), ...);
+        }
     };
     void load(load_buffer &, box &);
 
@@ -148,6 +159,11 @@ namespace planet::serialise {
     void load_buffer::load_box(std::string_view const name, Args &...args) {
         load_type<box>(*this).named(name, args...);
     }
+    template<typename... Args>
+    void load_buffer::load_fields(Args &...args) {
+        (load(*this, args), ...);
+    }
+
 
     inline void load(load_buffer &l, box &b) {
         auto const mark = l.extract_marker();
