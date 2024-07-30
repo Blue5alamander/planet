@@ -54,7 +54,7 @@ int main(int argc, char const *argv[]) {
                     load(box.content, when);
                     auto const ns =
                             std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                    when.time_since_epoch());
+                                    when - header.base_time);
                     if (ns < 1us) {
                         std::cout << ns.count() << "ns ";
                     } else if (ns < 1ms) {
