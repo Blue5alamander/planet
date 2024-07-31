@@ -184,14 +184,6 @@ namespace {
 
         std::thread thread{[this]() {
             try {
-                {
-                    planet::serialise::save_buffer ab;
-                    save(ab, g_start_time());
-                    messages.push(
-                            {planet::log::level::info, ab.complete(),
-                             felspar::source_location::current()});
-                    signal.send({});
-                }
                 warden.run(
                         +[](felspar::io::warden &, log_thread *ltp)
                                 -> felspar::io::warden::task<void> {
