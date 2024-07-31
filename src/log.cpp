@@ -202,10 +202,9 @@ namespace {
 
         felspar::io::warden::task<void> display_performance_loop() {
             planet::log::info("Starting performance counter loop");
-            planet::serialise::save_buffer ab;
             while (true) {
                 co_await warden.sleep(1s);
-                planet::telemetry::performance::current_values(ab);
+                planet::telemetry::performance::current_values(planet::log::detail::ab);
                 std::cout << "\33[0;32mPerformance counters "
                           << static_cast<double>(
                                      (std::chrono::steady_clock::now()
@@ -213,7 +212,7 @@ namespace {
                                              .count()
                                      / 1e9)
                           << "\33[0;39m\n  ";
-                auto const bytes = ab.complete();
+                auto const bytes = planet::log::detail::ab.complete();
                 if (auto out = planet::log::output.load(); out) {
                     (*out).write(
                             reinterpret_cast<char const *>(bytes.data()),
@@ -228,7 +227,6 @@ namespace {
 
 
         felspar::io::warden::task<void> display_log_messages_loop() {
-            planet::serialise::save_buffer ab;
             while (true) {
                 auto block = messages.consume();
                 if (block.empty()) {
@@ -239,8 +237,8 @@ namespace {
                     std::scoped_lock _{printers_mutex()};
                     for (auto const &message : block) {
                         if (out) {
-                            save(ab, message);
-                            auto const bytes = ab.complete();
+                            save(planet::log::detail::ab, message);
+                            auto const bytes = planet::log::detail::ab.complete();
                             (*out).write(
                                     reinterpret_cast<char const *>(bytes.data()),
                                     bytes.size());
