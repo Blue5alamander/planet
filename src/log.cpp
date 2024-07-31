@@ -204,24 +204,28 @@ namespace {
             planet::log::info("Starting performance counter loop");
             while (true) {
                 co_await warden.sleep(1s);
-                planet::telemetry::performance::current_values(planet::log::detail::ab);
-                std::cout << "\33[0;32mPerformance counters "
-                          << static_cast<double>(
-                                     (std::chrono::steady_clock::now()
-                                      - g_start_time())
-                                             .count()
-                                     / 1e9)
-                          << "\33[0;39m\n  ";
+                planet::telemetry::performance::current_values(
+                        planet::log::detail::ab);
                 auto const bytes = planet::log::detail::ab.complete();
-                if (auto out = planet::log::output.load(); out) {
-                    (*out).write(
-                            reinterpret_cast<char const *>(bytes.data()),
-                            bytes.size());
+                planet::log::logged_performance_counters lgc{.counters = bytes};
+                {
+                    std::cout << "\33[0;32mPerformance counters "
+                              << static_cast<double>(
+                                         (lgc.logged - g_start_time()).count()
+                                         / 1e9)
+                              << "\33[0;39m\n  ";
+                    planet::serialise::load_buffer lb{bytes.cmemory()};
+                    std::scoped_lock _{printers_mutex()};
+                    show(lb, 0, "\n  ");
+                    std::cout << std::endl;
                 }
-                planet::serialise::load_buffer lb{bytes.cmemory()};
-                std::scoped_lock _{printers_mutex()};
-                show(lb, 0, "\n  ");
-                std::cout << std::endl;
+                if (auto out = planet::log::output.load(); out) {
+                    save(planet::log::detail::ab, lgc);
+                    auto const lb = planet::log::detail::ab.complete();
+                    (*out).write(
+                            reinterpret_cast<char const *>(lb.data()),
+                            lb.size());
+                }
             }
         }
 
@@ -238,7 +242,8 @@ namespace {
                     for (auto const &message : block) {
                         if (out) {
                             save(planet::log::detail::ab, message);
-                            auto const bytes = planet::log::detail::ab.complete();
+                            auto const bytes =
+                                    planet::log::detail::ab.complete();
                             (*out).write(
                                     reinterpret_cast<char const *>(bytes.data()),
                                     bytes.size());
@@ -343,6 +348,15 @@ void planet::log::write_log_file_header() {
 void planet::log::load_fields(serialise::box &b, file_header &f) {
     b.fields(f.base_time, f.file_prefix);
     b.check_empty_or_throw();
+}
+
+
+/// ## `planet::log::logged_performance_counters`
+
+
+void planet::log::save(
+        serialise::save_buffer &ab, logged_performance_counters const l) {
+    ab.save_box(l.box, l.logged, l.counters);
 }
 
 

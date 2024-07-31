@@ -184,7 +184,7 @@ namespace planet::log {
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
     };
-    void save(serialise::save_buffer &ab, message);
+    void save(serialise::save_buffer &, message);
 
 
     /// ## Custom log message formatter
@@ -211,11 +211,24 @@ namespace planet::log {
 
 
     /// ## Log message counter values
+
+    /// ### Counts of the current number of log messages seen
     struct counters {
         std::int64_t debug, info, warning, error;
 
         static counters current() noexcept;
     };
+
+    /// ### Performance counters saved to the log file
+    struct logged_performance_counters {
+        static constexpr std::string_view box{"_p:log:c"};
+
+
+        serialise::shared_bytes counters;
+        std::chrono::steady_clock::time_point logged =
+                std::chrono::steady_clock::now();
+    };
+    void save(serialise::save_buffer &, logged_performance_counters);
 
 
     /// ## Log file header

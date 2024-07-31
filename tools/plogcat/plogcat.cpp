@@ -69,6 +69,26 @@ int main(int argc, char const *argv[]) {
                     load(box.content, payload);
 
                     std::cout << felspar::memory::hexdump(payload);
+                } else if (box.name == "_p:log:c") {
+                    std::cout << "\33[0;32mPERF\33[0;39m ";
+
+                    std::chrono::steady_clock::time_point when;
+                    load(box.content, when);
+                    auto const ns =
+                            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                    when - header.base_time);
+                    if (ns < 1us) {
+                        std::cout << ns.count() << "ns ";
+                    } else if (ns < 1ms) {
+                        std::cout << (ns.count() / 1000) << "µs ";
+                    } else if (ns < 10s) {
+                        std::cout << (ns.count() / 1000'000) << "ms ";
+                    } else {
+                        std::cout << (ns.count() / 1000'000'000) << "s ";
+                    }
+
+                    std::cout
+                            << felspar::memory::hexdump(box.content.cmemory());
                 } else {
                     std::cout
                             << box.name << ": "
