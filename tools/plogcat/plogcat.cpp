@@ -9,6 +9,27 @@
 using namespace std::literals;
 
 
+namespace {
+    void fetch_and_print_timestamp(
+            planet::log::file_header const &header,
+            planet::serialise::box &box) {
+        std::chrono::steady_clock::time_point when;
+        load(box.content, when);
+        auto const ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                when - header.base_time);
+        if (ns < 1us) {
+            std::cout << ns.count() << "ns ";
+        } else if (ns < 1ms) {
+            std::cout << (ns.count() / 1000) << "µs ";
+        } else if (ns < 10s) {
+            std::cout << (ns.count() / 1000'000) << "ms ";
+        } else {
+            std::cout << (ns.count() / 1000'000'000) << "s ";
+        }
+    }
+}
+
+
 int main(int argc, char const *argv[]) {
     try {
         std::cout << "Planet binary log cat\n";
@@ -50,20 +71,7 @@ int main(int argc, char const *argv[]) {
                     std::uint_least32_t line, column;
                     box.content.load_box("_s:sl", file, function, line, column);
 
-                    std::chrono::steady_clock::time_point when;
-                    load(box.content, when);
-                    auto const ns =
-                            std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                    when - header.base_time);
-                    if (ns < 1us) {
-                        std::cout << ns.count() << "ns ";
-                    } else if (ns < 1ms) {
-                        std::cout << (ns.count() / 1000) << "µs ";
-                    } else if (ns < 10s) {
-                        std::cout << (ns.count() / 1000'000) << "ms ";
-                    } else {
-                        std::cout << (ns.count() / 1000'000'000) << "s ";
-                    }
+                    fetch_and_print_timestamp(header, box);
 
                     std::span<std::byte const> payload;
                     load(box.content, payload);
@@ -72,20 +80,7 @@ int main(int argc, char const *argv[]) {
                 } else if (box.name == "_p:log:c") {
                     std::cout << "\33[0;32mPERF\33[0;39m ";
 
-                    std::chrono::steady_clock::time_point when;
-                    load(box.content, when);
-                    auto const ns =
-                            std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                    when - header.base_time);
-                    if (ns < 1us) {
-                        std::cout << ns.count() << "ns ";
-                    } else if (ns < 1ms) {
-                        std::cout << (ns.count() / 1000) << "µs ";
-                    } else if (ns < 10s) {
-                        std::cout << (ns.count() / 1000'000) << "ms ";
-                    } else {
-                        std::cout << (ns.count() / 1000'000'000) << "s ";
-                    }
+                    fetch_and_print_timestamp(header, box);
 
                     std::cout
                             << felspar::memory::hexdump(box.content.cmemory());
