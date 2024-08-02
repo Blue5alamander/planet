@@ -40,7 +40,9 @@ int main(int argc, char const *argv[]) {
             planet::log::file_header header;
 
             auto const filedata = planet::file_loader::file_data(argv[1]);
+            std::cout << "Printing \"" << argv[1] << "\" which is " << filedata.size() << " bytes\n";
             planet::serialise::load_buffer lb{filedata};
+
             while (lb.size()) {
                 auto box = planet::serialise::load_type<planet::serialise::box>(
                         lb);
