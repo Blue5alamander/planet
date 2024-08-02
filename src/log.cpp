@@ -42,6 +42,20 @@ namespace {
     }
 
 
+    void show(planet::serialise::load_buffer &, std::size_t, std::string_view);
+    void
+            show(planet::serialise::box &b,
+                 std::size_t const depth,
+                 std::string_view const separator) {
+        if (auto printer = printers().find(b.name);
+            printer == printers().end()) {
+            std::cout << b.name << " v" << int(b.version) << " size "
+                      << b.content.size() << " bytes\n";
+            show(b.content, depth + 1, separator);
+        } else {
+            printer->second->print(std::cout, b);
+        }
+    }
     void
             show(planet::serialise::load_buffer &lb,
                  std::size_t const depth,
@@ -51,14 +65,7 @@ namespace {
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
             if (mv > 0 and mv < 80) {
                 auto b = load_type<planet::serialise::box>(lb);
-                if (auto printer = printers().find(b.name);
-                    printer == printers().end()) {
-                    std::cout << b.name << " v" << int(b.version) << " size "
-                              << b.content.size() << " bytes\n";
-                    show(b.content, depth + 1, separator);
-                } else {
-                    printer->second->print(std::cout, b);
-                }
+                show(b, depth, separator);
             } else {
                 auto const m = lb.extract_marker();
                 switch (m) {
@@ -310,6 +317,13 @@ void planet::log::pretty_print(
         std::size_t const depth,
         std::string_view const prefix) {
     show(lb, depth, prefix);
+}
+void planet::log::pretty_print(
+        serialise::box &b,
+        std::size_t const depth,
+        std::string_view const prefix) {
+    if (depth) { std::cout << std::string(depth, ' '); }
+    show(b, depth, prefix);
 }
 
 

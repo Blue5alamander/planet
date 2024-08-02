@@ -190,14 +190,19 @@ namespace planet::log {
     /// ## Pretty printing
 
     /**
-     * Walks along the data held in the load buffer pretty printing anything that
-     * it finds.
+     * Walks along the data held in the load buffer pretty printing anything
+     * that it finds, or pretty print a single box.
      *
      * The `depth` describes how deeply nested the current print is, with the
-     * `prefix` being pre-pended to each line output once for each tick of depth.
+     * `prefix` being pre-pended to each line output once for each tick of
+     * depth.
      */
     void pretty_print(
             serialise::load_buffer &,
+            std::size_t depth = 1,
+            std::string_view prefix = " ");
+    void pretty_print(
+            serialise::box &,
             std::size_t depth = 1,
             std::string_view prefix = " ");
 

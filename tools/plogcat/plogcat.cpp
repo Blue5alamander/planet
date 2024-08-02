@@ -24,7 +24,7 @@ namespace {
         } else if (ns < 10s) {
             std::cout << (ns.count() / 1000'000) << "ms ";
         } else {
-            std::cout << (ns.count() / 1000'000'000) << "s ";
+            std::cout << (double(ns.count()) / 1000'000'000) << "s ";
         }
     }
 }
@@ -40,7 +40,8 @@ int main(int argc, char const *argv[]) {
             planet::log::file_header header;
 
             auto const filedata = planet::file_loader::file_data(argv[1]);
-            std::cout << "Printing \"" << argv[1] << "\" which is " << filedata.size() << " bytes\n";
+            std::cout << "Printing \"" << argv[1] << "\" which is "
+                      << filedata.size() << " bytes\n";
             planet::serialise::load_buffer lb{filedata};
 
             while (lb.size()) {
@@ -86,9 +87,19 @@ int main(int argc, char const *argv[]) {
                     std::cout << "\33[0;32mPERF\33[0;39m ";
 
                     fetch_and_print_timestamp(header, box);
+                    std::cout << '\n';
 
-                    std::cout
-                            << felspar::memory::hexdump(box.content.cmemory());
+                    std::span<std::byte const> payload;
+                    load(box.content, payload);
+                    planet::serialise::load_buffer lb{payload};
+                    while (lb.size()) {
+                        auto counter = planet::serialise::load_type<
+                                planet::serialise::box>(lb);
+                        planet::log::pretty_print(counter);
+                        std::cout << '\n';
+                    }
+
+                    std::cout << "\n\n";
                 } else {
                     std::cout
                             << box.name << ": "
