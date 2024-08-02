@@ -70,13 +70,16 @@ int main(int argc, char const *argv[]) {
                     std::string file, function;
                     std::uint_least32_t line, column;
                     box.content.load_box("_s:sl", file, function, line, column);
-
                     fetch_and_print_timestamp(header, box);
+                    std::cout << function << ' ' << file << ':' << line << ':'
+                              << column << '\n';
 
                     std::span<std::byte const> payload;
                     load(box.content, payload);
+                    planet::serialise::load_buffer lb{payload};
+                    planet::log::pretty_print(lb);
 
-                    std::cout << felspar::memory::hexdump(payload);
+                    std::cout << "\n\n";
                 } else if (box.name == "_p:log:c") {
                     std::cout << "\33[0;32mPERF\33[0;39m ";
 

@@ -187,7 +187,21 @@ namespace planet::log {
     void save(serialise::save_buffer &, message);
 
 
-    /// ## Custom log message formatter
+    /// ## Pretty printing
+
+    /**
+     * Walks along the data held in the load buffer pretty printing anything that
+     * it finds.
+     *
+     * The `depth` describes how deeply nested the current print is, with the
+     * `prefix` being pre-pended to each line output once for each tick of depth.
+     */
+    void pretty_print(
+            serialise::load_buffer &,
+            std::size_t depth = 1,
+            std::string_view prefix = " ");
+
+    /// ### Custom log message formatter
     namespace detail {
         struct formatter {
             formatter(std::string_view);
@@ -196,6 +210,11 @@ namespace planet::log {
             virtual void print(std::ostream &, serialise::box &) const = 0;
         };
     }
+    /**
+     * Create a `const` global of this type, passing it the box name and the
+     * lambda that is to be used to print the box. The lambda will be called
+     * with a `std::ostream &` and a `box `
+     */
     template<typename Lambda>
     auto format(std::string_view const box_name, Lambda lambda) {
         struct printer final : public detail::formatter {

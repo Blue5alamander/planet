@@ -45,7 +45,7 @@ namespace {
     void
             show(planet::serialise::load_buffer &lb,
                  std::size_t const depth,
-                 char const *const separator) {
+                 std::string_view const separator) {
         if (depth) { std::cout << std::string(depth, ' '); }
         while (not lb.empty()) {
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
@@ -103,7 +103,7 @@ namespace {
 
                 case planet::serialise::marker::poly_list: {
                     auto const count = lb.extract_size_t();
-                    std::cout << "poly-list with " << count << " items\n";
+                    std::cout << "(poly-list with " << count << " items)\n";
                     for (std::size_t index{}; index < count; ++index) {
                         show(lb, depth + 1, separator);
                     }
@@ -302,6 +302,14 @@ void planet::log::detail::write_log(
     lt.signal.send({});
     ++message_count;
     message_rate.tick();
+}
+
+
+void planet::log::pretty_print(
+        serialise::load_buffer &lb,
+        std::size_t const depth,
+        std::string_view const prefix) {
+    show(lb, depth, prefix);
 }
 
 
