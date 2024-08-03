@@ -85,14 +85,15 @@ namespace {
 
 namespace {
     std::atomic<std::uint64_t> next_id = {};
-    std::string suffix() { return std::to_string(++next_id); }
+    std::string create_suffix() { return std::to_string(++next_id); }
 }
 
 
-planet::telemetry::id::id() : m_name{suffix()} {}
+planet::telemetry::id::id() : m_name{create_suffix()} {}
 
 
-planet::telemetry::id::id(std::string n) : m_name{n + "__" + suffix()} {}
+planet::telemetry::id::id(std::string n, suffix const s)
+: m_name{s == suffix::yes ? (n + "__" + create_suffix()) : std::move(n)} {}
 
 
 /// ## `planet::telemetry::performance`
@@ -111,7 +112,8 @@ namespace {
 }
 
 
-planet::telemetry::performance::performance(std::string_view const n) : id{n} {
+planet::telemetry::performance::performance(std::string_view const n)
+: id{n, id::suffix::no} {
     std::scoped_lock _{g_mtx};
     g_perfs().push_back(this);
 }
