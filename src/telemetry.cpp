@@ -30,7 +30,7 @@ namespace {
 /// ## `planet::telemetry::counter`
 
 
-bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
+bool planet::telemetry::counter::save(serialise::save_buffer &ab) const {
     auto const c = count.load();
     if (c != 0) {
         ab.save_box(box, name(), c);
@@ -71,7 +71,7 @@ namespace {
 
 
 std::size_t planet::telemetry::detail::save_performance(
-        serialise::save_buffer &sb, std::span<performance *> pcs) {
+        serialise::save_buffer &sb, std::span<performance const *> pcs) {
     std::size_t count{};
     sb.save_box_lambda(measurements_box, [&]() {
         for (auto p : pcs) {
@@ -111,7 +111,8 @@ void planet::telemetry::exponential_decay::add_measurement(double const m) {
 }
 
 
-bool planet::telemetry::exponential_decay::save(serialise::save_buffer &ab) {
+bool planet::telemetry::exponential_decay::save(
+        serialise::save_buffer &ab) const {
     auto const c = m_value.load();
     if (c) {
         ab.save_box(box, name(), c);
@@ -231,7 +232,7 @@ void planet::telemetry::real_time_decay::add_measurement(double const m) {
 }
 
 
-bool planet::telemetry::real_time_decay::save(serialise::save_buffer &ab) {
+bool planet::telemetry::real_time_decay::save(serialise::save_buffer &ab) const {
     auto const decay = decay_factor(last.checkpoint(), half_life);
     auto ov = m_value.load();
     while (not m_value.compare_exchange_weak(ov, ov * decay)) {}
@@ -279,7 +280,7 @@ void planet::telemetry::real_time_rate::tick() {
 }
 
 
-bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
+bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) const {
     auto const v = m_value.load();
     if (v != 0.0) {
         ab.save_box(box, name(), m_value.load());

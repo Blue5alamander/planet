@@ -33,7 +33,7 @@ namespace planet::telemetry {
          */
 
         /// #### Save this performance counter
-        [[nodiscard]] virtual bool save(serialise::save_buffer &) = 0;
+        [[nodiscard]] virtual bool save(serialise::save_buffer &) const = 0;
         /**
          * Returns `true` if the performance counter has been saved to the
          * buffer.
@@ -72,7 +72,7 @@ namespace planet::telemetry {
 
     namespace detail {
         std::size_t save_performance(
-                serialise::save_buffer &, std::span<performance *>);
+                serialise::save_buffer &, std::span<performance const *>);
         std::size_t load_performance(
                 serialise::load_buffer &, std::span<performance *>);
     }
@@ -90,7 +90,7 @@ namespace planet::telemetry {
     /// ### Save a number of performance counters
     template<typename... Performance>
     std::size_t save_performance(serialise::save_buffer &sb, Performance &...p) {
-        std::array<performance *, sizeof...(p)> ps{&p...};
+        std::array<performance const *, sizeof...(p)> ps{&p...};
         return detail::save_performance(sb, ps);
     }
 
@@ -98,7 +98,7 @@ namespace planet::telemetry {
     template<typename... Performance>
     std::size_t load_performance(serialise::load_buffer &lb, Performance &...p) {
         std::array<performance *, sizeof...(p)> ps{&p...};
-        return detail::save_performance(lb, ps);
+        return detail::load_performance(lb, ps);
     }
 
 

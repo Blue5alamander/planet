@@ -34,12 +34,15 @@ namespace planet::telemetry {
          */
         exponential_decay(std::string_view, std::size_t half_life);
 
+
         double value() const noexcept;
+
 
         void add_measurement(double);
 
+
       private:
-        bool save(serialise::save_buffer &) override;
+        bool save(serialise::save_buffer &) const override;
         bool load(measurements &) override;
     };
 
@@ -57,8 +60,10 @@ namespace planet::telemetry {
      * may mean that the true value is converged on faster or slower.
      */
     class real_time_decay final : public performance {
-        std::atomic<double> m_value{};
-        time::checkpointer last;
+        // TODO If saving didn't decay the value then these wouldn't need to be
+        // mutable
+        mutable std::atomic<double> m_value{};
+        mutable time::checkpointer last;
         double const half_life;
 
 
@@ -76,8 +81,9 @@ namespace planet::telemetry {
 
         void add_measurement(double);
 
+
       private:
-        bool save(serialise::save_buffer &) override;
+        bool save(serialise::save_buffer &) const override;
         bool load(measurements &) override;
     };
 
@@ -124,7 +130,7 @@ namespace planet::telemetry {
 
 
       private:
-        bool save(serialise::save_buffer &) override;
+        bool save(serialise::save_buffer &) const override;
         bool load(measurements &) override;
     };
 

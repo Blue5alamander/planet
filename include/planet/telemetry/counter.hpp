@@ -45,7 +45,7 @@ namespace planet::telemetry {
 
 
       private:
-        bool save(serialise::save_buffer &) override;
+        bool save(serialise::save_buffer &) const override;
         bool load(measurements &) override;
     };
 
