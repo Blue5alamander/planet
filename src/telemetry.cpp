@@ -308,6 +308,6 @@ namespace {
                 std::string name;
                 double value;
                 box.named(planet::telemetry::real_time_rate::box, name, value);
-                os << name << " = " << value << "Hz";
+                os << name << " = " << value << "/s";
             });
 }
