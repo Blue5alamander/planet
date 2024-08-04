@@ -70,4 +70,36 @@ namespace planet::telemetry {
     };
 
 
+    namespace detail {
+        std::size_t save_performance(
+                serialise::save_buffer &, std::span<performance *>);
+        std::size_t load_performance(
+                serialise::load_buffer &, std::span<performance *>);
+    }
+
+
+    /// ## Loading and saving performance counters
+    /**
+     * Because of the way performance counters are saved and loaded it is
+     * possible to add new counters to these save files at any time. A counter
+     * with no saved data is simply not loaded (and counters that still have
+     * zeros in them will not be saved either). This means no special effort
+     * needs to be taken when adding new counters.
+     */
+
+    /// ### Save a number of performance counters
+    template<typename... Performance>
+    std::size_t save_performance(serialise::save_buffer &sb, Performance &...p) {
+        std::array<performance *, sizeof...(p)> ps{&p...};
+        return detail::save_performance(sb, ps);
+    }
+
+    /// ### Load the performance counters
+    template<typename... Performance>
+    std::size_t load_performance(serialise::load_buffer &lb, Performance &...p) {
+        std::array<performance *, sizeof...(p)> ps{&p...};
+        return detail::save_performance(lb, ps);
+    }
+
+
 }

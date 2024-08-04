@@ -62,6 +62,39 @@ namespace {
 }
 
 
+/// ## `planet::telemetry::detail`
+
+
+namespace {
+    constexpr std::string_view measurements_box{"_p:t:mb"};
+}
+
+
+std::size_t planet::telemetry::detail::save_performance(
+        serialise::save_buffer &sb, std::span<performance *> pcs) {
+    std::size_t count{};
+    sb.save_box_lambda(measurements_box, [&]() {
+        for (auto p : pcs) {
+            if (p->save(sb)) { ++count; }
+        }
+    });
+    return count;
+}
+
+
+std::size_t planet::telemetry::detail::load_performance(
+        serialise::load_buffer &lb, std::span<performance *> const pcs) {
+    auto box = serialise::load_type<serialise::box>(lb);
+    box.check_name_or_throw(measurements_box);
+    auto map = performance::saved_measurements(box.content);
+    std::size_t count{};
+    for (auto p : pcs) {
+        if (p->load(map)) { ++count; }
+    }
+    return count;
+}
+
+
 /// ## `planet::telemetry::exponential_decay`
 
 
@@ -163,6 +196,19 @@ std::size_t planet::telemetry::performance::current_values(
     auto &p = g_perfs();
     return std::count_if(
             p.begin(), p.end(), [&](auto c) { return c->save(ab); });
+}
+
+
+auto planet::telemetry::performance::saved_measurements(
+        serialise::load_buffer &lb) -> measurements {
+    measurements map;
+    while (not lb.empty()) {
+        auto box = serialise::load_type<serialise::box>(lb);
+        std::string name;
+        serialise::load(box.content, name);
+        map.insert(std::pair{std::move(name), std::move(box)});
+    }
+    return map;
 }
 
 
