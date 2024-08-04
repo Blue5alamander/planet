@@ -12,12 +12,19 @@ namespace planet::telemetry {
 
 
     /// ## Exponential decay
+    /**
+     * The exponential decay rate is not saved when the performance count is
+     * saved. Changes to this value when a value is loaded back in will take
+     * some time to level back out, this depending on the half-life.
+     */
     class exponential_decay final : public performance {
         std::atomic<double> m_value{};
         double decay_rate;
 
+
       public:
         static constexpr std::string_view box{"_p:t:exponential_decay"};
+
 
         /// ### Construct performance counter
         /**
@@ -33,6 +40,7 @@ namespace planet::telemetry {
 
       private:
         bool save(serialise::save_buffer &) override;
+        bool load(measurements &) override;
     };
 
 
@@ -42,14 +50,21 @@ namespace planet::telemetry {
      * is not thread safe for anything other than reading of the current value.
      * Updates to the counter must be synchronised if they are to occur from
      * more than one thread.
+     *
+     * Loaded values are taken as a new measurement made at the point in time
+     * that the value is loaded. Depending on the value, the time of other
+     * measurements, and any change to the half life (which is never saved) it
+     * may mean that the true value is converged on faster or slower.
      */
     class real_time_decay final : public performance {
         std::atomic<double> m_value{};
         time::checkpointer last;
         double const half_life;
 
+
       public:
         static constexpr std::string_view box{"_p:t:real_time_decay"};
+
 
         real_time_decay(
                 std::string_view const n, std::chrono::nanoseconds const hl)
@@ -63,6 +78,7 @@ namespace planet::telemetry {
 
       private:
         bool save(serialise::save_buffer &) override;
+        bool load(measurements &) override;
     };
 
 
@@ -72,14 +88,22 @@ namespace planet::telemetry {
      * is not thread safe for anything other than reading of the current value.
      * Updates to the counter must be synchronised if they are to occur from
      * more than one thread.
+     *
+     * Loaded values are set into the current value and the checkpoint timer
+     * reset to the time that the value is loaded. Depending on the value, the
+     * time of other measurements, and any change to the half life (which is
+     * never saved) it may mean that the true value is converged on faster or
+     * slower.
      */
     class real_time_rate final : public performance {
         std::atomic<double> m_value{};
         time::checkpointer last;
         double const half_life;
 
+
       public:
         static constexpr std::string_view box{"_p:t:real_time_rate"};
+
 
         real_time_rate(
                 std::string_view const n, std::chrono::nanoseconds const hl)
@@ -101,6 +125,7 @@ namespace planet::telemetry {
 
       private:
         bool save(serialise::save_buffer &) override;
+        bool load(measurements &) override;
     };
 
 

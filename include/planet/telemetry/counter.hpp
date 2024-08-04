@@ -11,12 +11,19 @@ namespace planet::telemetry {
 
 
     /// ## A performance counter
+    /**
+     * The counter is thread safe for all writes and reads.
+     *
+     * When loaded the saved measurement is added to any currently recorded
+     * measurement.
+     */
     class counter final : public performance {
         std::atomic<std::int64_t> count{};
 
 
       public:
         static constexpr std::string_view box{"_p:t:counter"};
+
 
         counter(std::string_view const n) : performance{n} {}
         counter(std::string_view const n, std::int64_t const v)
@@ -39,6 +46,7 @@ namespace planet::telemetry {
 
       private:
         bool save(serialise::save_buffer &) override;
+        bool load(measurements &) override;
     };
 
 

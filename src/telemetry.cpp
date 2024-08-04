@@ -9,9 +9,20 @@
 
 
 namespace {
-    double decay_factor(std::chrono::nanoseconds const ns, double half_life) {
-        auto const ts = static_cast<double>(ns.count());
-        return std::pow(2.0, -ts / half_life);
+    template<typename... Fields>
+    bool load_performance_measurement(
+            planet::telemetry::performance::measurements &pd,
+            std::string const &name,
+            std::string_view const box_name,
+            Fields &...fields) {
+        if (auto d = pd.find(name); d != pd.end()) {
+            d->second.check_name_or_throw(box_name);
+            d->second.fields(fields...);
+            d->second.check_empty_or_throw();
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -28,6 +39,17 @@ bool planet::telemetry::counter::save(serialise::save_buffer &ab) {
         return false;
     }
 }
+bool planet::telemetry::counter::load(measurements &pd) {
+    std::int64_t c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        count += c;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 namespace {
     auto const counter_print = planet::log::format(
             planet::telemetry::counter::box,
@@ -60,6 +82,15 @@ bool planet::telemetry::exponential_decay::save(serialise::save_buffer &ab) {
     auto const c = m_value.load();
     if (c) {
         ab.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::exponential_decay::load(measurements &pd) {
+    double c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        m_value.store(c);
         return true;
     } else {
         return false;
@@ -138,6 +169,14 @@ std::size_t planet::telemetry::performance::current_values(
 /// ## `planet::telemetry::real_time_decay`
 
 
+namespace {
+    double decay_factor(std::chrono::nanoseconds const ns, double half_life) {
+        auto const ts = static_cast<double>(ns.count());
+        return std::pow(2.0, -ts / half_life);
+    }
+}
+
+
 void planet::telemetry::real_time_decay::add_measurement(double const m) {
     auto const decay = decay_factor(last.checkpoint(), half_life);
     auto const a = m * (1 - decay);
@@ -157,6 +196,17 @@ bool planet::telemetry::real_time_decay::save(serialise::save_buffer &ab) {
         return false;
     }
 }
+bool planet::telemetry::real_time_decay::load(measurements &pd) {
+    double c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        add_measurement(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 namespace {
     auto const real_time_decay_print = planet::log::format(
             planet::telemetry::real_time_decay::box,
@@ -192,6 +242,18 @@ bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) {
         return false;
     }
 }
+bool planet::telemetry::real_time_rate::load(measurements &pd) {
+    double c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        last.checkpoint();
+        m_value.store(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 namespace {
     auto const real_time_rate_print = planet::log::format(
             planet::telemetry::real_time_rate::box,
