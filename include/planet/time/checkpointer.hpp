@@ -17,15 +17,16 @@ namespace planet::time {
         using clock = std::chrono::steady_clock;
         clock::time_point last = clock::now();
 
+
       public:
         /// ### The amount of time since the last check point
-        auto checkpoint() {
+        auto checkpoint() noexcept {
             auto old = std::exchange(last, clock::now());
             return last - old;
         }
 
         /// ### The number of seconds since the last check point
-        auto per_second() {
+        auto per_second() noexcept {
             return static_cast<double>(checkpoint().count())
                     / clock::period::den;
         }

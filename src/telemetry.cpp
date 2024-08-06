@@ -104,7 +104,8 @@ planet::telemetry::exponential_decay::exponential_decay(
   decay_rate{std::pow(2.0, -1.0 / static_cast<double>(half_life))} {}
 
 
-void planet::telemetry::exponential_decay::add_measurement(double const m) {
+void planet::telemetry::exponential_decay::add_measurement(
+        double const m) noexcept {
     auto const a = (1.0 - decay_rate) * m;
     auto ov = m_value.load();
     while (not m_value.compare_exchange_weak(ov, ov * decay_rate + a)) {}
@@ -217,14 +218,16 @@ auto planet::telemetry::performance::saved_measurements(
 
 
 namespace {
-    double decay_factor(std::chrono::nanoseconds const ns, double half_life) {
+    double decay_factor(
+            std::chrono::nanoseconds const ns, double half_life) noexcept {
         auto const ts = static_cast<double>(ns.count());
         return std::pow(2.0, -ts / half_life);
     }
 }
 
 
-void planet::telemetry::real_time_decay::add_measurement(double const m) {
+void planet::telemetry::real_time_decay::add_measurement(
+        double const m) noexcept {
     auto const decay = decay_factor(last.checkpoint(), half_life);
     auto const a = m * (1 - decay);
     auto ov = m_value.load();
@@ -269,7 +272,7 @@ namespace {
 /// ## `planet::telemetry::real_time_rate`
 
 
-void planet::telemetry::real_time_rate::tick() {
+void planet::telemetry::real_time_rate::tick() noexcept {
     std::chrono::nanoseconds ns{last.checkpoint()};
     auto const ts = static_cast<double>(ns.count());
     auto const m = 1e9 / ts;

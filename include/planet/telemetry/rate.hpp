@@ -38,7 +38,7 @@ namespace planet::telemetry {
         double value() const noexcept;
 
 
-        void add_measurement(double);
+        void add_measurement(double) noexcept;
 
 
       private:
@@ -79,7 +79,7 @@ namespace planet::telemetry {
         double value() const noexcept;
 
 
-        void add_measurement(double);
+        void add_measurement(double) noexcept;
 
 
       private:
@@ -126,7 +126,7 @@ namespace planet::telemetry {
         double value() const noexcept;
 
 
-        void tick();
+        void tick() noexcept;
 
 
       private:
