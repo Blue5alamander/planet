@@ -62,6 +62,6 @@ namespace {
     planet::telemetry::counter recycle_count{"planet_ecs_entities_recycled"};
     planet::telemetry::counter destroy_count{"planet_ecs_entities_destroyed"};
 }
-void planet::ecs::detail::count_create_entity() { ++create_count; }
-void planet::ecs::detail::count_recycled_entity() { ++recycle_count; }
-void planet::ecs::detail::count_destroy_entity() { ++destroy_count; }
+void planet::ecs::detail::count_create_entity() noexcept { ++create_count; }
+void planet::ecs::detail::count_recycled_entity() noexcept { ++recycle_count; }
+void planet::ecs::detail::count_destroy_entity() noexcept { ++destroy_count; }

@@ -26,11 +26,13 @@ namespace planet::ecs::detail {
 
         /// ### Strong reference count
         std::size_t strong_count = 0;
-        void increment_strong() { ++strong_count; }
-        auto decrement_strong() { return --strong_count; }
+        void increment_strong() noexcept { ++strong_count; }
+        auto decrement_strong() noexcept { return --strong_count; }
+
 
       public:
         explicit entity() {}
+
 
         /**
         TODO Add in an awaitable system for the below

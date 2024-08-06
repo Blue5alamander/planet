@@ -14,9 +14,9 @@ namespace planet::ecs {
 
 
     namespace detail {
-        void count_create_entity();
-        void count_recycled_entity();
-        void count_destroy_entity();
+        void count_create_entity() noexcept;
+        void count_recycled_entity() noexcept;
+        void count_destroy_entity() noexcept;
     }
 
 
@@ -339,14 +339,14 @@ namespace planet::ecs {
                 entity.increment_strong();
             }
         }
-        void release(entity_id const &eid) override {
+        void release(entity_id const &eid) noexcept override {
             auto &entity = e_slots[eid.m_id].entity;
             if (entity.generation == eid.generation) {
                 if (entity.decrement_strong() == 0) { destroy(eid); }
             }
         }
 
-        void destroy(entity_id const &eid, detail::entity &entity) {
+        void destroy(entity_id const &eid, detail::entity &entity) noexcept {
             ++entity.generation;
             entity.strong_count = {};
             auto &c = e_slots[eid.id()].masks;

@@ -71,7 +71,7 @@ namespace planet::ecs {
                     acquire(entity_id const &,
                             felspar::source_location const & =
                                     felspar::source_location::current()) = 0;
-            virtual void release(entity_id const &) = 0;
+            virtual void release(entity_id const &) noexcept = 0;
 
             /// #### Force destroy the entity
             virtual void destroy(entity_id const &) = 0;
@@ -88,7 +88,7 @@ namespace planet::ecs {
     : owner{o}, generation{g}, m_id{i} {
         increment(loc);
     }
-    inline entity_id::entity_id(entity_id &&o)
+    inline entity_id::entity_id(entity_id &&o) noexcept
     : owner{std::exchange(o.owner, nullptr)},
       generation{std::exchange(o.generation, {})},
       m_id{std::exchange(o.m_id, {})} {}
@@ -102,11 +102,11 @@ namespace planet::ecs {
     inline void entity_id::increment(felspar::source_location const &loc) {
         if (owner) { owner->acquire(*this, loc); }
     }
-    inline void entity_id::decrement() {
+    inline void entity_id::decrement() noexcept {
         if (owner) { owner->release(*this); }
     }
 
-    inline entity_id &entity_id::operator=(entity_id &&eid) {
+    inline entity_id &entity_id::operator=(entity_id &&eid) noexcept {
         decrement();
         owner = std::exchange(eid.owner, nullptr);
         generation = std::exchange(eid.generation, {});

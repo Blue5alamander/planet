@@ -31,7 +31,7 @@ namespace planet::ecs {
         void increment(
                 felspar::source_location const & =
                         felspar::source_location::current());
-        void decrement();
+        void decrement() noexcept;
 
         std::size_t generation = {};
         std::size_t m_id = {};
@@ -45,19 +45,22 @@ namespace planet::ecs {
                 std::size_t,
                 felspar::source_location const & =
                         felspar::source_location::current());
-        entity_id(entity_id &&);
+        entity_id(entity_id &&) noexcept;
         entity_id(entity_id const &);
         ~entity_id();
 
-        entity_id &operator=(entity_id &&);
+        entity_id &operator=(entity_id &&) noexcept;
         entity_id &operator=(entity_id const &);
+
 
         std::size_t id() const noexcept { return m_id; };
 
         std::variant<std::size_t, std::string_view> name_or_id() const;
 
+
         detail::entity *operator->();
         detail::entity const *operator->() const;
+
 
         mask_type &
                 mask(std::size_t,
@@ -68,8 +71,10 @@ namespace planet::ecs {
                      felspar::source_location const & =
                              felspar::source_location::current()) const;
 
+
         friend bool operator==(entity_id const &, entity_id const &) noexcept =
                 default;
+
 
         explicit operator bool() const noexcept;
 
