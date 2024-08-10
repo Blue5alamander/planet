@@ -14,6 +14,7 @@ add_test_run(check planet TESTS
         hexmap.tests.cpp
         map.tests.cpp
         panel.tests.cpp
+        performance.tests.cpp
         range.ui.tests.cpp
         row.layout.tests.cpp
         serialise.tests.cpp

@@ -181,7 +181,17 @@ namespace {
 planet::telemetry::performance::performance(std::string_view const n)
 : id{n, id::suffix::no} {
     std::scoped_lock _{g_mtx};
-    g_perfs().push_back(this);
+    auto &perfs = g_perfs();
+    auto pos =
+            std::lower_bound(perfs.begin(), perfs.end(), n, [](auto p, auto v) {
+                return v < p->name();
+            });
+    if (pos != perfs.end() and (*pos)->name() == n) {
+        throw felspar::stdexcept::logic_error{
+                "There is already a performance counter called "
+                + std::string{n}};
+    }
+    perfs.insert(pos, this);
 }
 
 
