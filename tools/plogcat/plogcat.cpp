@@ -32,6 +32,7 @@ namespace {
 
 int main(int argc, char const *argv[]) {
     try {
+        std::cout << std::setprecision(9);
         std::cout << "Planet binary log cat\n";
         if (argc != 2) {
             std::cerr << "Expected log file to display\n";

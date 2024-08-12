@@ -238,6 +238,7 @@ namespace {
 
 
         felspar::io::warden::task<void> display_log_messages_loop() {
+            std::cout << std::setprecision(9);
             while (true) {
                 auto block = messages.consume();
                 if (block.empty()) {
