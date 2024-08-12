@@ -54,19 +54,19 @@ int main(int argc, char const *argv[]) {
                     load(box.content, level);
                     switch (level) {
                     case planet::log::level::debug:
-                        std::cout << "\33[0;37mDEBUG\33[0;39m ";
+                        std::cout << "\33[0;37mDBUG\33[0;39m ";
                         break;
                     case planet::log::level::info:
                         std::cout << "\33[0;32mINFO\33[0;39m ";
                         break;
                     case planet::log::level::warning:
-                        std::cout << "\33[1;33mWARNING\33[0;39m ";
+                        std::cout << "\33[1;33mWARN\33[0;39m ";
                         break;
                     case planet::log::level::error:
-                        std::cout << "\33[0;31mERROR\33[0;39m ";
+                        std::cout << "\33[0;31mERRR\33[0;39m ";
                         break;
                     case planet::log::level::critical:
-                        std::cout << "\33[0;31mCRITICAL\33[0;39m ";
+                        std::cout << "\33[0;31mCRIT\33[0;39m ";
                         break;
                     }
 
