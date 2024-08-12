@@ -24,7 +24,8 @@ namespace {
         } else if (ns < 10s) {
             std::cout << (ns.count() / 1000'000) << "ms ";
         } else {
-            std::cout << (double(ns.count()) / 1000'000'000) << "s ";
+            std::cout << std::fixed << (double(ns.count()) / 1'000'000'000)
+                      << std::defaultfloat << "s ";
         }
     }
 }

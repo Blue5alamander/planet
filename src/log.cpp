@@ -138,9 +138,10 @@ namespace {
 
 
     void print(planet::log::message const &m) {
-        std::cout << static_cast<double>(
-                (m.logged - g_start_time()).count() / 1e9)
-                  << ' ';
+        std::cout << std::fixed
+                  << static_cast<double>(
+                             (m.logged - g_start_time()).count() / 1e9)
+                  << std::defaultfloat << ' ';
         switch (m.level) {
         case planet::log::level::debug:
             std::cout << "\33[0;37mDBUG\33[0;39m ";
