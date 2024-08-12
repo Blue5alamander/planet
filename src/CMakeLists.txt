@@ -10,6 +10,7 @@ add_library(planet
         ecs.cpp
         files.audio.cpp
         files.drawing.cpp
+        folders.cpp
         gravity.ui.cpp
         image.drawing.cpp
         log.cpp
