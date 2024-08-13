@@ -86,6 +86,7 @@ namespace planet::serialise {
         void append(std::string_view);
         void append(std::span<std::byte const>);
         void append(std::span<char const>);
+        void append(std::string const &s) { append(std::string_view{s}); }
         void append(felspar::parse::concepts::numeric auto v) {
             felspar::parse::binary::native::unchecked_insert(
                     allocate_for(v), v);
