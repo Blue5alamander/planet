@@ -34,3 +34,4 @@ target_link_libraries(planet
         Threads::Threads
         vorbis
     )
+install(TARGETS planet LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
