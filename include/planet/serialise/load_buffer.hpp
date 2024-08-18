@@ -147,6 +147,25 @@ namespace planet::serialise {
             }
         }
 
+        /// #### Load via lambda
+        /**
+         * Checks the provided name and then calls the lambda to load the actual
+         * data needed. The lambda can include logic to check the box version
+         * number and size for which fields to load.
+         */
+        template<typename Lambda>
+        void lambda(std::string_view const name, Lambda lambda) {
+            try {
+                check_name_or_throw(name);
+                lambda();
+                check_empty_or_throw();
+            } catch (serialisation_error &e) {
+                e.inside_box(name);
+                throw;
+            }
+        }
+
+        /// #### Only load fields
         template<typename... Args>
         void fields(Args &...args) {
             (load(content, args), ...);
