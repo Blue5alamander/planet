@@ -2,6 +2,7 @@
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/music.hpp>
 #include <planet/audio/oscillator.hpp>
+#include <planet/serialise.hpp>
 #include <planet/numbers.hpp>
 
 #include <felspar/memory/accumulation_buffer.hpp>
@@ -21,6 +22,13 @@ void planet::audio::atomic_linear_gain::set(linear_gain const g) {
 
 
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
+
+void planet::audio::save(serialise::save_buffer &sb, dB_gain const &g) {
+    sb.save_box(g.box, g.dB);
+}
+void planet::audio::load(serialise::box &b, dB_gain &g) {
+    b.named(g.box, g.dB);
+}
 
 
 /// ## `planet::audio::linear_gain`

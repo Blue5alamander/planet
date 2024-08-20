@@ -3,6 +3,7 @@
 
 #include <planet/audio/buffer.hpp>
 #include <planet/audio/clocks.hpp>
+#include <planet/serialise/forward.hpp>
 
 #include <felspar/coro/generator.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
@@ -47,6 +48,9 @@ namespace planet::audio {
 
     /// ## Gain in +/- dB
     struct dB_gain {
+        static constexpr std::string_view box{"_p:a:dB"};
+
+
         float dB = {};
 
         dB_gain() {}
@@ -59,12 +63,15 @@ namespace planet::audio {
                 return linear_gain{std::pow(10.0f, dB / 20.0f)};
             }
         }
+        /// TODO This looks really wrong
         explicit operator atomic_linear_gain() const noexcept {
             return atomic_linear_gain{static_cast<linear_gain>(*this)};
         }
 
         dB_gain operator-() const noexcept { return dB_gain{-dB}; }
     };
+    void save(serialise::save_buffer &, dB_gain const &);
+    void load(serialise::box &, dB_gain &);
 
 
     /// ## Apply a gain level to the audio
