@@ -31,7 +31,7 @@ namespace planet::ui {
     template<typename HotSpot>
     class draggable final : public widget {
       public:
-        explicit draggable(std::string_view const n, HotSpot hs)
+        draggable(std::string_view const n, HotSpot hs)
         : widget{n}, hotspot{std::move(hs)} {}
 
 
