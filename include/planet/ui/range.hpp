@@ -14,12 +14,8 @@ namespace planet::ui {
         range(Background bg,
               Draggable ctrl,
               planet::ui::constrained1d<float> const &position)
-        : widget{"planet::ui::range<>"},
-          background{std::move(bg)},
-          slider{std::move(ctrl)},
-          slider_position{position} {
-            slider.offset = {fully_constrained, fully_constrained};
-        }
+        : range{"planet::ui::range<>", std::move(bg), std::move(ctrl),
+                position} {}
         range(std::string_view const n,
               Background bg,
               Draggable ctrl,
