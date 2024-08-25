@@ -59,7 +59,7 @@ namespace planet::ui {
             bottom_left.reflow(c);
             bottom_right.reflow(c);
             /// TODO Calculate a better min based on the corner constraints
-            return constrained_type{c.max()};
+            return constrained_type{c.max_extents()};
         }
         affine::rectangle2d
                 move_sub_elements(affine::rectangle2d const &r) override {

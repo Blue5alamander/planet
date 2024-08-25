@@ -39,8 +39,8 @@ planet::ui::constrained2d<float> planet::ui::scaling(
         affine::extents2d const size,
         constrained2d<float> constraint,
         scale const fit) {
-    auto const min = scaling(size, constraint.min(), fit);
+    auto const min = scaling(size, constraint.min_extents(), fit);
     auto const mid = scaling(size, constraint.extents(), fit);
-    auto const max = scaling(size, constraint.max(), fit);
+    auto const max = scaling(size, constraint.max_extents(), fit);
     return {mid, min, max};
 }

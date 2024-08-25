@@ -83,9 +83,9 @@ namespace {
     auto const con2d = c2d.test("construction", [](auto check) {
         auto const c = planet::ui::constrained2d<float>{{4, 2, 10}, {6, 1, 8}};
 
-        check(c.min()) == planet::affine::extents2d{2, 1};
+        check(c.min_extents()) == planet::affine::extents2d{2, 1};
         check(c.extents()) == planet::affine::extents2d{4, 6};
-        check(c.max()) == planet::affine::extents2d{10, 8};
+        check(c.max_extents()) == planet::affine::extents2d{10, 8};
     });
 
 

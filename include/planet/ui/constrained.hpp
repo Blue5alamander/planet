@@ -126,17 +126,23 @@ namespace planet::ui {
 
 
         /// ### Conversions
-        affine::point2d position() const noexcept {
-            return {width.value(), height.value()};
-        }
         affine::extents2d extents() const noexcept {
             return {width.value(), height.value()};
         }
+        affine::point2d position() const noexcept {
+            return {width.value(), height.value()};
+        }
 
-        affine::extents2d min() const noexcept {
+        affine::extents2d min_extents() const noexcept {
             return {width.min(), height.min()};
         }
-        affine::extents2d max() const noexcept {
+        affine::extents2d max_extents() const noexcept {
+            return {width.max(), height.max()};
+        }
+        affine::point2d min_position() const noexcept {
+            return {width.min(), height.min()};
+        }
+        affine::point2d max_position() const noexcept {
             return {width.max(), height.max()};
         }
 

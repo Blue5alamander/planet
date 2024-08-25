@@ -25,14 +25,15 @@ namespace {
                 b.reflow({{400, 0, 400}, {300, 0, 300}});
                 b.move_to({{15, 20}, bounds});
 
-                check(b.content.constraints().min()) == size;
+                check(b.content.constraints().min_extents()) == size;
                 check(b.content.constraints().extents()) == size;
-                check(b.content.constraints().max()) == size;
+                check(b.content.constraints().max_extents()) == size;
 
-                check(b.constraints().min()) == planet::affine::extents2d{8, 7};
+                check(b.constraints().min_extents())
+                        == planet::affine::extents2d{8, 7};
                 check(b.constraints().extents())
                         == planet::affine::extents2d{8, 7};
-                check(b.constraints().max()) == bounds;
+                check(b.constraints().max_extents()) == bounds;
             },
             [](auto check, auto &log) {
                 constexpr planet::affine::extents2d target_size{40, 30};
@@ -43,8 +44,8 @@ namespace {
                 b.reflow({{400, 0, 400}, {300, 0, 300}});
 
                 check(b.content.size) == target_size;
-                check(b.content.constraints().min()) == target_size;
-                check(b.constraints().min()) == target_size;
+                check(b.content.constraints().min_extents()) == target_size;
+                check(b.constraints().min_extents()) == target_size;
 
                 b.move_to({{0, 0}, bounds});
 

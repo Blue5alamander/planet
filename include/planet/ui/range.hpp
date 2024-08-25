@@ -30,6 +30,8 @@ namespace planet::ui {
 
         Background background;
         Draggable slider;
+        /// ### Slider position mapping
+        /// #### The original range that we're aiming for'
         planet::ui::constrained1d<float> slider_position = {};
 
 
@@ -59,7 +61,17 @@ namespace planet::ui {
         constrained_type do_reflow(constrained_type const &constraint) override {
             auto const bg = background.reflow(constraint);
             auto const s = slider.reflow(bg);
-            slider.offset.max(bg.max() - s.max());
+            slider.offset.max(bg.max_extents() - s.max_extents());
+            auto const slider_range =
+                    slider_position.max() - slider_position.min();
+            auto const slider_weight =
+                    (slider_position.value() - slider_position.min())
+                    / slider_range;
+            auto const offset_range =
+                    slider.offset.max_position() - slider.offset.min_position();
+            auto const offset_difference = offset_range * slider_weight;
+            slider.offset.desire(
+                    slider.offset.min_position() + offset_difference);
             return bg;
         }
 
