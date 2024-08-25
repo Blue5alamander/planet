@@ -12,9 +12,7 @@ namespace {
 
     auto const reflow = suite.test("reflow", [](auto check, auto &log) {
         planet::ui::baseplate bp;
-        auto r = planet::ui::range<
-                planet::debug::fixed_element,
-                planet::ui::draggable<planet::debug::fixed_element>>{
+        auto r = planet::ui::range{
                 planet::debug::fixed_element{log, {50, 10}},
                 planet::ui::draggable<planet::debug::fixed_element>{
                         "hs", planet::debug::fixed_element{log, {10, 10}}},
@@ -51,9 +49,7 @@ namespace {
 
     auto const slide = suite.test("slide", [](auto check, auto &log) {
         planet::ui::baseplate bp;
-        auto r = planet::ui::range<
-                planet::debug::fixed_element,
-                planet::ui::draggable<planet::debug::fixed_element>>{
+        auto r = planet::ui::range{
                 planet::debug::fixed_element{log, {50, 10}},
                 planet::ui::draggable<planet::debug::fixed_element>{
                         "hs", {log, {10, 10}}},
