@@ -3,7 +3,6 @@
 
 #include <planet/affine/extents2d.hpp>
 
-// #include <concepts>
 #include <limits>
 #include <optional>
 
@@ -72,6 +71,8 @@ namespace planet::ui {
             return constrain();
         }
 
+
+        /// ### Comparisons
         bool is_at_least_as_constrained_as(constrained1d const &o) const {
             return m_min >= o.m_min and m_max <= o.m_max;
         }
