@@ -32,7 +32,7 @@ namespace planet::ui {
         Draggable slider;
         /// ### Slider position mapping
         /// #### The original range that we're aiming for'
-        planet::ui::constrained1d<float> slider_position = {};
+        constrained1d<float> slider_position = {};
 
 
         using constrained_type = widget::constrained_type;
@@ -62,14 +62,10 @@ namespace planet::ui {
             auto const bg = background.reflow(constraint);
             auto const s = slider.reflow(bg);
             slider.offset.max(bg.max_extents() - s.max_extents());
-            auto const slider_range =
-                    slider_position.max() - slider_position.min();
-            auto const slider_weight =
-                    (slider_position.value() - slider_position.min())
-                    / slider_range;
             auto const offset_range =
                     slider.offset.max_position() - slider.offset.min_position();
-            auto const offset_difference = offset_range * slider_weight;
+            auto const offset_difference =
+                    offset_range * slider_position.normalised_value();
             slider.offset.desire(
                     slider.offset.min_position() + offset_difference);
             return bg;
@@ -85,7 +81,17 @@ namespace planet::ui {
 
         felspar::coro::task<void> behaviour() override { co_return; }
 
+
         constrained_type drop(constrained_type const &offset) override {
+            constrained1d<float> const hypot{
+                    std::hypot(
+                            offset.width.value() - offset.width.min(),
+                            offset.height.value() - offset.height.min()),
+                    0,
+                    std::hypot(
+                            offset.width.max() - offset.width.min(),
+                            offset.height.max() - offset.height.min())};
+            slider_position.desire(hypot.remapped_to(slider_position));
             return offset;
         }
     };
