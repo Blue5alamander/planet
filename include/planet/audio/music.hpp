@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/audio/channel.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/stereo.hpp>
 
@@ -33,6 +34,7 @@ namespace planet::audio {
         /// ### Playing flag
         /// Returns true if music is currently playing
         bool is_playing() const noexcept;
+
 
         /// ### Construction and output
 

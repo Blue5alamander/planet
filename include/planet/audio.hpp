@@ -2,6 +2,7 @@
 
 
 #include <planet/audio/buffer.hpp>
+#include <planet/audio/channel.hpp>
 #include <planet/audio/clocks.hpp>
 #include <planet/audio/files.hpp>
 #include <planet/audio/gain.hpp>
