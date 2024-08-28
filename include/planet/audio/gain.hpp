@@ -3,6 +3,7 @@
 
 #include <planet/audio/buffer.hpp>
 #include <planet/audio/clocks.hpp>
+#include <planet/audio/forward.hpp>
 #include <planet/serialise/forward.hpp>
 
 #include <felspar/coro/generator.hpp>
@@ -34,14 +35,14 @@ namespace planet::audio {
 
       public:
         atomic_linear_gain() {}
-        explicit atomic_linear_gain(float);
+        explicit atomic_linear_gain(dB_gain gain) noexcept;
         explicit atomic_linear_gain(linear_gain lg) noexcept
         : multiplier{lg.multiplier} {}
 
-        void set(linear_gain);
 
-        float operator*(float const v) const noexcept {
-            return multiplier.load(std::memory_order_relaxed) * v;
+        void store(linear_gain);
+        float load() const {
+            return multiplier.load(std::memory_order_relaxed);
         }
     };
 
@@ -64,10 +65,6 @@ namespace planet::audio {
             } else {
                 return linear_gain{std::pow(10.0f, dB / 20.0f)};
             }
-        }
-        /// TODO This looks really wrong
-        explicit operator atomic_linear_gain() const noexcept {
-            return atomic_linear_gain{static_cast<linear_gain>(*this)};
         }
 
 

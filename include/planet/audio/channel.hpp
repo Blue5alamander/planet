@@ -30,7 +30,7 @@ namespace planet::audio {
 
         void update(ui::constrained1d<float> c) {
             gain.dB = c.value();
-            linear.set(static_cast<linear_gain>(gain));
+            linear.store(static_cast<linear_gain>(gain));
         }
     };
 

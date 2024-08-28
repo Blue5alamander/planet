@@ -13,8 +13,12 @@
 /// ## `planet::audio::atomic_linear_gain`
 
 
-void planet::audio::atomic_linear_gain::set(linear_gain const g) {
-    multiplier = g.multiplier;
+planet::audio::atomic_linear_gain::atomic_linear_gain(dB_gain const gain) noexcept
+: atomic_linear_gain{static_cast<linear_gain>(gain)} {}
+
+
+void planet::audio::atomic_linear_gain::store(linear_gain const g) {
+    multiplier.store(g.multiplier);
 }
 
 
@@ -134,7 +138,7 @@ void planet::audio::music::enqueue(start_tune_function tn) {
 
 void planet::audio::music::set_volume(dB_gain const dB) {
     master = dB;
-    master_gain.set(static_cast<linear_gain>(master));
+    master_gain.store(static_cast<linear_gain>(master));
 }
 
 
