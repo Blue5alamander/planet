@@ -53,11 +53,13 @@ namespace planet::audio {
 
         float dB = {};
 
+
         dB_gain() {}
         explicit dB_gain(float);
 
+
         explicit operator linear_gain() const noexcept {
-            if (dB < -200.0f) {
+            if (dB < -127.0f) {
                 return linear_gain{};
             } else {
                 return linear_gain{std::pow(10.0f, dB / 20.0f)};
@@ -67,6 +69,7 @@ namespace planet::audio {
         explicit operator atomic_linear_gain() const noexcept {
             return atomic_linear_gain{static_cast<linear_gain>(*this)};
         }
+
 
         dB_gain operator-() const noexcept { return dB_gain{-dB}; }
     };
