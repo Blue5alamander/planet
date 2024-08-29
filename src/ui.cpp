@@ -1,5 +1,18 @@
 #include <planet/ui/baseplate.hpp>
+#include <planet/ui/draggable.hpp>
 #include <planet/ui/widget.hpp>
+
+
+/// ## `planet::ui::drop_target`
+
+
+void planet::ui::drop_target::start(constrained_type const &) {}
+
+
+void planet::ui::drop_target::update(constrained_type const &) {}
+
+
+/// ## `planet::ui::widget`
 
 
 void planet::ui::widget::deregister(ui::baseplate *const bp, widget *const w) {

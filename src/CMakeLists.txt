@@ -22,7 +22,7 @@ add_library(planet
         stdin.cpp
         telemetry.cpp
         time.cpp
-        widget.ui.cpp
+        ui.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
 target_compile_definitions(planet PRIVATE

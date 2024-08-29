@@ -92,7 +92,7 @@ namespace planet::ui {
 
         felspar::coro::task<void> behaviour() override { co_return; }
 
-        constrained_type drop(constrained_type const &offset) override {
+        void calculate_position(constrained_type const &offset) {
             constrained1d<float> const hypot{
                     std::hypot(
                             offset.width.value() - offset.width.min(),
@@ -103,6 +103,12 @@ namespace planet::ui {
                             offset.height.max() - offset.height.min())};
             slider_position.desire(hypot.remapped_to(slider_position));
             if (updater) { updater->update(slider_position.value()); }
+        }
+        void update(constrained_type const &offset) override {
+            calculate_position(offset);
+        }
+        constrained_type drop(constrained_type const &offset) override {
+            calculate_position(offset);
             return offset;
         }
     };

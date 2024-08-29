@@ -13,17 +13,38 @@ namespace planet::ui {
      * An abstract super class for types that will respond to the "drop" part of
      * the draggable sequence. This happens when the mouse button is released
      * after dragging to a new position.
+     *
+     * TODO Probably the `start`/`update` methods should be able to cancel the
+     * drag/drop.
      */
     struct drop_target {
         using constrained_type = constrained2d<float>;
 
-        /// Respond to the end of a drag
+        /// ### Start dragging
+        virtual void start(constrained_type const &);
+        /**
+         * The constraint is passed when the mouse button is pressed to start a
+         * drag.
+         *
+         * The default implementation does nothing.
+         */
+
+        /// ### Updates during drag
+        virtual void update(constrained_type const &);
+        /**
+         * Passes the constraint every time a mouse message is processed to
+         * update the drag position of the slider.
+         *
+         * The default implementation does nothing.
+         */
+
+        /// ### Respond to the end of a drag
+        virtual constrained_type drop(constrained_type const &) = 0;
         /**
          * The returned constraint becomes the new offset in the draggable
          * widget. Nearly always this should be zero so that new drags start at
          * the current position rather than random one.
          */
-        virtual constrained_type drop(constrained_type const &) = 0;
     };
 
 
@@ -66,6 +87,7 @@ namespace planet::ui {
                     if (event.action == events::action::down) {
                         drag_last = event.location;
                         widget::baseplate->hard_focus_on(this);
+                        target->start(offset);
                     } else if (drag_last and event.action == events::action::held) {
                         auto const delta_mouse = event.location - *drag_last;
                         drag_last = event.location;
@@ -79,6 +101,7 @@ namespace planet::ui {
                         move_to(
                                 {old_position.top_left + delta_offset,
                                  old_position.extents});
+                        target->update(offset);
                     } else if (event.action == events::action::up) {
                         offset = target->drop(offset);
                         drag_last = {};

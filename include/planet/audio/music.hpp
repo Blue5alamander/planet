@@ -39,8 +39,8 @@ namespace planet::audio {
         /// ### Construction and output
 
         /// #### Audio output
-        /// The generator will be handled to the audio processing thread
         stereo_generator output();
+        /// The generator will be handled to the audio processing thread
 
 
         /// ### Queuing music
@@ -55,11 +55,11 @@ namespace planet::audio {
         /// ### Volume control
 
         /// #### The volume to set on the playback
+        void set_volume(dB_gain);
         /**
          * A value less than or equal to -127dB will be taken as mute and the
          * playback will pause
          */
-        void set_volume(dB_gain);
 
 
       private:
