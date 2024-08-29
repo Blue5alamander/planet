@@ -7,23 +7,32 @@
 namespace planet::ui {
 
 
+    /// ## Update range/slide control
+    struct range_updater {
+        virtual void update(float) = 0;
+    };
+
+
     /// ## Range/slide control
     template<typename Background, typename Draggable>
     class range final : public widget, public drop_target {
       public:
         range(Background bg,
               Draggable ctrl,
-              planet::ui::constrained1d<float> const &position)
-        : range{"planet::ui::range<>", std::move(bg), std::move(ctrl),
-                position} {}
+              planet::ui::constrained1d<float> const &position,
+              range_updater *const u = nullptr)
+        : range{"planet::ui::range<>", std::move(bg), std::move(ctrl), position,
+                u} {}
         range(std::string_view const n,
               Background bg,
               Draggable ctrl,
-              planet::ui::constrained1d<float> const &position)
+              planet::ui::constrained1d<float> const position,
+              range_updater *const u = nullptr)
         : widget{n},
           background{std::move(bg)},
           slider{std::move(ctrl)},
-          slider_position{position} {
+          slider_position{position},
+          updater{u} {
             slider.offset = {fully_constrained, fully_constrained};
         }
 
@@ -33,6 +42,8 @@ namespace planet::ui {
         /// ### Slider position mapping
         /// #### The original range that we're aiming for'
         constrained1d<float> slider_position = {};
+        /// #### Updates are written through to this
+        range_updater *updater = nullptr;
 
 
         using constrained_type = widget::constrained_type;
@@ -81,7 +92,6 @@ namespace planet::ui {
 
         felspar::coro::task<void> behaviour() override { co_return; }
 
-
         constrained_type drop(constrained_type const &offset) override {
             constrained1d<float> const hypot{
                     std::hypot(
@@ -92,6 +102,7 @@ namespace planet::ui {
                             offset.width.max() - offset.width.min(),
                             offset.height.max() - offset.height.min())};
             slider_position.desire(hypot.remapped_to(slider_position));
+            if (updater) { updater->update(slider_position.value()); }
             return offset;
         }
     };
