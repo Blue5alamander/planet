@@ -2,6 +2,7 @@
 
 
 #include <planet/audio/gain.hpp>
+#include <planet/serialise/forward.hpp>
 #include <planet/ui/constrained.hpp>
 
 
@@ -13,12 +14,19 @@ namespace planet::audio {
      * Abstracts out the notion of a particular audio output with its own gain.
      */
     class channel {
-        dB_gain &gain;
+        dB_gain db_g;
         atomic_linear_gain linear;
+
+        void write_through() noexcept {
+            linear.store(static_cast<linear_gain>(db_g));
+        }
 
 
       public:
-        channel(dB_gain &g) : gain{g} {}
+        static constexpr std::string_view box{"_p:a:channel"};
+
+
+        channel(dB_gain const g) : db_g{g} {}
 
 
         template<typename Clock, std::size_t Channels>
@@ -28,11 +36,20 @@ namespace planet::audio {
         }
 
 
-        void update(ui::constrained1d<float> c) {
-            gain.dB = c.value();
-            linear.store(static_cast<linear_gain>(gain));
+        dB_gain const &gain() const noexcept { return db_g; }
+
+
+        void update(dB_gain const g) noexcept {
+            db_g = g;
+            write_through();
         }
+
+
+        friend void save(serialise::save_buffer &, channel const &);
+        friend void load(serialise::box &, channel &);
     };
+    void save(serialise::save_buffer &, channel const &);
+    void load(serialise::box &, channel &);
 
 
 }

@@ -22,10 +22,27 @@ void planet::audio::atomic_linear_gain::store(linear_gain const g) {
 }
 
 
+/// ## `planet::audio::channel`
+
+
+void planet::audio::save(serialise::save_buffer &sb, channel const &c) {
+    sb.save_box(c.box, c.db_g);
+}
+void planet::audio::load(serialise::box &b, channel &c) {
+    if (b.name == dB_gain::box) {
+        load(b, c.db_g);
+    } else {
+        b.named(c.box, c.db_g);
+    }
+    c.write_through();
+}
+
+
 /// ## `planet::audio::dB_gain`
 
 
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
+
 
 void planet::audio::save(serialise::save_buffer &sb, dB_gain const &g) {
     sb.save_box(g.box, g.dB);
