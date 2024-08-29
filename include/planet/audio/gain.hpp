@@ -75,9 +75,9 @@ namespace planet::audio {
 
 
     /// ## Apply a gain level to the audio
-    template<typename Clock, std::size_t Channels, typename LinearGain>
+    template<typename Clock, std::size_t Channels>
     inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
-            LinearGain const gain,
+            linear_gain const &gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         felspar::memory::accumulation_buffer<float> output{
                 default_buffer_samples * Channels * 25};
@@ -87,6 +87,24 @@ namespace planet::audio {
                 for (std::size_t channel{}; channel < Channels; ++channel) {
                     output[index * Channels + channel] =
                             gain * block[index][channel];
+                }
+            }
+            co_yield output.first(block.samples() * Channels);
+        }
+    }
+    template<typename Clock, std::size_t Channels>
+    inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
+            atomic_linear_gain const &gain,
+            felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
+        felspar::memory::accumulation_buffer<float> output{
+                default_buffer_samples * Channels * 25};
+        for (auto block : signal) {
+            output.ensure_length(block.samples() * Channels);
+            auto const mul = gain.load();
+            for (std::size_t index{}; index < block.samples(); ++index) {
+                for (std::size_t channel{}; channel < Channels; ++channel) {
+                    output[index * Channels + channel] =
+                            mul * block[index][channel];
                 }
             }
             co_yield output.first(block.samples() * Channels);
