@@ -43,9 +43,6 @@ void planet::audio::load(serialise::box &b, channel &c) {
 /// ## `planet::audio::dB_gain`
 
 
-planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
-
-
 planet::audio::dB_gain::operator linear_gain() const noexcept {
     if (dB < -127.0f) {
         return linear_gain{};

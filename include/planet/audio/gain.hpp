@@ -57,18 +57,20 @@ namespace planet::audio {
         float dB = {};
 
 
-        dB_gain() {}
-        explicit dB_gain(float);
+        constexpr dB_gain() {}
+        constexpr explicit dB_gain(float const g) : dB{g} {}
 
 
         explicit operator linear_gain() const noexcept;
 
 
-        dB_gain operator-() const noexcept { return dB_gain{-dB}; }
+        constexpr dB_gain operator-() const noexcept { return dB_gain{-dB}; }
 
 
-        friend bool operator==(dB_gain const &, dB_gain const &) = default;
-        friend bool operator<=>(dB_gain const &, dB_gain const &) = default;
+        friend constexpr bool
+                operator==(dB_gain const &, dB_gain const &) noexcept = default;
+        friend constexpr bool operator<=>(
+                dB_gain const &, dB_gain const &) noexcept = default;
         std::string as_string() const;
     };
     void save(serialise::save_buffer &, dB_gain const &);
