@@ -10,7 +10,7 @@ namespace planet::ui {
 
     /// ## Draw re-sizeable content at the specified size
     template<typename C>
-    struct target_size : public reflowable {
+    struct target_size final : public reflowable {
         using content_type = C;
 
 
