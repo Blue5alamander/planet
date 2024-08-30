@@ -7,6 +7,7 @@
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
+#include <cmath>
 #include <complex>
 
 
@@ -42,6 +43,19 @@ void planet::audio::load(serialise::box &b, channel &c) {
 
 
 planet::audio::dB_gain::dB_gain(float const g) : dB{g} {}
+
+
+planet::audio::dB_gain::operator linear_gain() const noexcept {
+    if (dB < -127.0f) {
+        return linear_gain{};
+    } else {
+        return linear_gain{std::pow(10.0f, dB / 20.0f)};
+    }
+}
+
+std::string planet::audio::dB_gain::as_string() const {
+    return std::to_string(static_cast<int>(dB + 0.5f)) + "dB";
+}
 
 
 void planet::audio::save(serialise::save_buffer &sb, dB_gain const &g) {

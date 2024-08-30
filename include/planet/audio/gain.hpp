@@ -10,7 +10,6 @@
 #include <felspar/memory/accumulation_buffer.hpp>
 
 #include <atomic>
-#include <cmath>
 
 
 namespace planet::audio {
@@ -61,16 +60,15 @@ namespace planet::audio {
         explicit dB_gain(float);
 
 
-        explicit operator linear_gain() const noexcept {
-            if (dB < -127.0f) {
-                return linear_gain{};
-            } else {
-                return linear_gain{std::pow(10.0f, dB / 20.0f)};
-            }
-        }
+        explicit operator linear_gain() const noexcept;
 
 
         dB_gain operator-() const noexcept { return dB_gain{-dB}; }
+
+
+        friend bool operator==(dB_gain const &, dB_gain const &) = default;
+        friend bool operator<=>(dB_gain const &, dB_gain const &) = default;
+        std::string as_string() const;
     };
     void save(serialise::save_buffer &, dB_gain const &);
     void load(serialise::box &, dB_gain &);
