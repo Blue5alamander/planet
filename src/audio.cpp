@@ -76,6 +76,11 @@ planet::audio::linear_gain::linear_gain(float const g) : multiplier{g} {}
 
 
 auto planet::audio::mixer::output() -> stereo_generator {
+    return master.attenuate(raw_mix());
+}
+
+
+auto planet::audio::mixer::raw_mix() -> stereo_generator {
     felspar::memory::accumulation_buffer<float> output{
             default_buffer_samples * 50};
     while (true) {
@@ -126,7 +131,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
         if (not generator) {
             std::scoped_lock _{mtx};
             if (queue.size()) {
-                generator = queue.front()();
+                generator = master.attenuate(queue.front()());
                 playing.store(true, std::memory_order_relaxed);
             }
         }
@@ -164,12 +169,6 @@ felspar::coro::task<void>
 void planet::audio::music::enqueue(start_tune_function tn) {
     std::scoped_lock _{mtx};
     queue.push_back({std::move(tn)});
-}
-
-
-void planet::audio::music::set_volume(dB_gain const dB) {
-    master = dB;
-    master_gain.store(static_cast<linear_gain>(master));
 }
 
 

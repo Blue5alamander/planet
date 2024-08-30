@@ -10,6 +10,7 @@
 #include <felspar/memory/accumulation_buffer.hpp>
 
 #include <atomic>
+#include <cmath>
 
 
 namespace planet::audio {

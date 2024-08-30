@@ -22,6 +22,14 @@ namespace planet::audio {
      */
     class music {
       public:
+        /// ### Construction and output
+        music(channel &c) : master{c} {}
+
+        /// #### Audio output
+        stereo_generator output();
+        /// The generator will be handled to the audio processing thread
+
+
         /**
          * TODO This would have to change from using `std::function` if we want
          * to be able to use the lifetime tracking features of clang for
@@ -36,13 +44,6 @@ namespace planet::audio {
         bool is_playing() const noexcept;
 
 
-        /// ### Construction and output
-
-        /// #### Audio output
-        stereo_generator output();
-        /// The generator will be handled to the audio processing thread
-
-
         /// ### Queuing music
 
         /// #### Stop playing and clear the queue
@@ -50,16 +51,6 @@ namespace planet::audio {
 
         /// #### Queue this to play
         void enqueue(start_tune_function);
-
-
-        /// ### Volume control
-
-        /// #### The volume to set on the playback
-        void set_volume(dB_gain);
-        /**
-         * A value less than or equal to -127dB will be taken as mute and the
-         * playback will pause
-         */
 
 
       private:
@@ -72,9 +63,7 @@ namespace planet::audio {
          */
         linear_gain auto_fade;
         /// The user requested gain value
-        dB_gain master{-9};
-        /// The gain value that is used during playback
-        atomic_linear_gain master_gain;
+        channel &master;
     };
 
 
