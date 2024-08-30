@@ -21,11 +21,13 @@ namespace planet::audio {
         friend class atomic_linear_gain;
         float multiplier = {1};
 
+
       public:
         linear_gain() {}
         explicit linear_gain(float);
 
-        float operator*(float const v) const noexcept { return multiplier * v; }
+
+        float load() const noexcept { return multiplier; }
     };
 
 
@@ -41,7 +43,7 @@ namespace planet::audio {
 
 
         void store(linear_gain);
-        float load() const {
+        float load() const noexcept {
             return multiplier.load(std::memory_order_relaxed);
         }
     };
@@ -79,14 +81,16 @@ namespace planet::audio {
     inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
             linear_gain const &gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
+        auto const mul = gain.load();
         felspar::memory::accumulation_buffer<float> output{
                 default_buffer_samples * Channels * 25};
+
         for (auto block : signal) {
             output.ensure_length(block.samples() * Channels);
             for (std::size_t index{}; index < block.samples(); ++index) {
                 for (std::size_t channel{}; channel < Channels; ++channel) {
                     output[index * Channels + channel] =
-                            gain * block[index][channel];
+                            mul * block[index][channel];
                 }
             }
             co_yield output.first(block.samples() * Channels);
@@ -98,15 +102,20 @@ namespace planet::audio {
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         felspar::memory::accumulation_buffer<float> output{
                 default_buffer_samples * Channels * 25};
+        auto old_mul = gain.load();
         for (auto block : signal) {
             output.ensure_length(block.samples() * Channels);
             auto const mul = gain.load();
+            float const t_length = block.samples();
             for (std::size_t index{}; index < block.samples(); ++index) {
                 for (std::size_t channel{}; channel < Channels; ++channel) {
+                    auto const this_mul =
+                            std::lerp(old_mul, mul, index / t_length);
                     output[index * Channels + channel] =
-                            mul * block[index][channel];
+                            this_mul * block[index][channel];
                 }
             }
+            old_mul = mul;
             co_yield output.first(block.samples() * Channels);
         }
     }
