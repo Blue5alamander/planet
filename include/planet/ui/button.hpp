@@ -56,7 +56,7 @@ namespace planet::ui {
           press_value{std::move(b.press_value)},
           output_to{b.output_to},
           graphic{std::move(b.graphic)} {
-            if (baseplate) { response.post(behaviour()); }
+            if (has_baseplate()) { response.post(behaviour()); }
         }
 
 
@@ -187,14 +187,14 @@ namespace planet::ui {
         : widget{std::move(b)},
           output_to{b.output_to},
           graphic{std::move(b.graphic)} {
-            if (baseplate) { response.post(behaviour()); }
+            if (has_baseplate()) { response.post(behaviour()); }
         }
         button(button &&b)
             requires(not handle<output_type>::reference)
         : widget{std::move(b)},
           output_to{std::move(b.output_to)},
           graphic{std::move(b.graphic)} {
-            if (baseplate) { response.post(behaviour()); }
+            if (has_baseplate()) { response.post(behaviour()); }
         }
 
 

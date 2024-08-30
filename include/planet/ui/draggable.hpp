@@ -86,7 +86,7 @@ namespace planet::ui {
                 if (target and event.button == events::button::left) {
                     if (event.action == events::action::down) {
                         drag_last = event.location;
-                        widget::baseplate->hard_focus_on(this);
+                        widget::hard_focus_on();
                         target->start(offset);
                     } else if (drag_last and event.action == events::action::held) {
                         auto const delta_mouse = event.location - *drag_last;
@@ -105,7 +105,7 @@ namespace planet::ui {
                     } else if (event.action == events::action::up) {
                         offset = target->drop(offset);
                         drag_last = {};
-                        widget::baseplate->hard_focus_off(this);
+                        widget::hard_focus_off();
                     }
                 }
             }

@@ -105,12 +105,25 @@ namespace planet::ui {
         /// ### Return true if this widget can take focus
         virtual bool wants_focus() const noexcept { return m_enabled; }
 
+        /// #### Turn hard focus on and off
+        void hard_focus_on() { baseplate->hard_focus_on(this); }
+        void hard_focus_off() { baseplate->hard_focus_off(this); }
+
 
       protected:
-        ui::baseplate *baseplate = nullptr;
-        static void deregister(ui::baseplate *, widget *);
-        bool m_enabled = true;
+        /// ### Return true if the widget is connected to a baseplate
+        bool has_baseplate() const noexcept { return baseplate != nullptr; }
 
+
+        /// ### Remove a widget from the baseplate
+        /**
+         * By default widgets are removed from the baseplate at the beginning of
+         * the render cycle and then re-added when draw.
+         */
+        static void deregister(ui::baseplate *, widget *);
+
+
+        /// ### Required implementation
         virtual felspar::coro::task<void> behaviour() = 0;
         virtual void do_draw() = 0;
 
@@ -125,10 +138,13 @@ namespace planet::ui {
         virtual affine::rectangle2d
                 do_move_sub_elements(affine::rectangle2d const &) = 0;
 
+        /// ### The coroutine for the behaviour
         felspar::coro::eager<> response;
 
 
       private:
+        ui::baseplate *baseplate = nullptr;
+        bool m_enabled = true;
         [[noreturn]] void throw_invalid_add_to_target();
     };
 
