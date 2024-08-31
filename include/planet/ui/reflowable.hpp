@@ -41,7 +41,7 @@ namespace planet::ui {
         /// `reflow` and `move_to` must have been called before these are available
 
         /// #### The size of the item
-        affine::extents2d const &size() { return position().extents; }
+        affine::extents2d size() { return constraints().extents(); }
         /// #### Does the reflowable contain the given location
         virtual bool contains_global_coordinate(
                 affine::point2d const &p,
