@@ -14,6 +14,7 @@ namespace planet::ui {
         using superclass = collection_reflowable<CT, void>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
         using superclass::elements;
         using superclass::items;
 
@@ -39,11 +40,24 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &border) override {
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &border) override {
             if (elements.size() != items.size()) { elements.resize_to(items); }
+            for (std::size_t index{}; index < items.size(); ++index) {
+                items[index].reflow(p, border);
+            }
+            return layout(border);
+        }
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            layout(constrained_type{r.extents});
+            return superclass::move_sub_elements(r);
+        }
+        constrained_type layout(constrained_type const &border) {
             float row_height = {}, x = {}, y = {}, max_width{};
             for (std::size_t index{}; auto &element : elements) {
-                auto const ex = items[index].reflow(border);
+                auto const ex = items[index].constraints();
                 if (x + hpadding + ex.width.value() > border.width.value()) {
                     x = {};
                     if (y) { y += vpadding; }
@@ -61,11 +75,6 @@ namespace planet::ui {
             /// TODO We could calculate better min/max here
             return constrained_type{width, height};
         }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
-            do_reflow(constrained_type{r.extents});
-            return superclass::move_sub_elements(r);
-        }
     };
 
 
@@ -75,6 +84,7 @@ namespace planet::ui {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
         using superclass::elements;
         using superclass::item_count;
         using superclass::items;
@@ -108,10 +118,21 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &border) override {
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &border) override {
+            superclass::items_reflow(p, border);
+            return layout(border);
+        }
+        affine::rectangle2d
+                move_sub_elements(affine::rectangle2d const &r) override {
+            layout(constrained_type{r.extents});
+            return superclass::move_sub_elements(r);
+        }
+        constrained_type layout(constrained_type const &border) {
             float row_height = {}, x = {}, y = {}, max_width{};
             for (std::size_t index{};
-                 auto &ex : superclass::items_reflow(border)) {
+                 auto &ex : superclass::items_constraints()) {
                 if (x + ex.width.value() > border.width.value()) {
                     x = {};
                     if (y) { y += vpadding; }
@@ -129,11 +150,6 @@ namespace planet::ui {
             float const width = max_width, height = row_height + y;
             /// TODO We could calculate better min/max here
             return constrained_type{width, height};
-        }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
-            do_reflow(constrained_type{r.extents});
-            return superclass::move_sub_elements(r);
         }
     };
 

@@ -47,6 +47,7 @@ namespace planet::ui {
 
 
         using constrained_type = widget::constrained_type;
+        using reflow_parameters = widget::reflow_parameters;
 
 
         using widget::add_to;
@@ -69,9 +70,11 @@ namespace planet::ui {
         static constexpr typename constrained_type::axis_constrained_type
                 fully_constrained = {0, 0, 0};
 
-        constrained_type do_reflow(constrained_type const &constraint) override {
-            auto const bg = background.reflow(constraint);
-            auto const s = slider.reflow(bg);
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &constraint) override {
+            auto const bg = background.reflow(p, constraint);
+            auto const s = slider.reflow(p, bg);
             slider.offset.max(bg.max_extents() - s.max_extents());
             auto const offset_range =
                     slider.offset.max_position() - slider.offset.min_position();

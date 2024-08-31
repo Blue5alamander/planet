@@ -24,13 +24,13 @@ namespace planet::ui {
         screen(std::string_view const n, float const z = -1) : widget{n, z} {}
 
 
-        using constrained_type = typename widget::constrained_type;
         using widget::events;
         using widget::panel;
 
 
       private:
-        constrained_type do_reflow(constrained_type const &c) override {
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &c) override {
             return c;
         }
         affine::rectangle2d

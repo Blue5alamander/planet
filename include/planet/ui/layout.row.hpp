@@ -14,6 +14,7 @@ namespace planet::ui {
         using superclass = collection_reflowable<CT, void>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
         using superclass::elements;
         using superclass::items;
 
@@ -29,7 +30,9 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &bounds) override {
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &bounds) override {
             elements.resize_to(std::span{items});
             if (items.empty()) { return {}; }
             float const unused =
@@ -41,8 +44,8 @@ namespace planet::ui {
                     bounds.height};
             float left = 0, max_height = 0;
             for (std::size_t index{}; auto &item : items) {
-                auto const ex = item.reflow(space);
-                elements.at(index).size = ex;
+                auto const ex = item.reflow(p, space);
+                elements.at(index).constraints = ex;
                 max_height = std::max(max_height, ex.height.value());
                 ++index;
             }
@@ -50,8 +53,9 @@ namespace planet::ui {
                 element.position = {
                         {left, 0},
                         affine::extents2d{
-                                element.size.extents().width, max_height}};
-                left += element.size.width.value() + padding;
+                                element.constraints.extents().width,
+                                max_height}};
+                left += element.constraints.width.value() + padding;
             }
             return constrained_type{left - padding, max_height};
         }
@@ -64,6 +68,7 @@ namespace planet::ui {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
         using superclass::elements;
         using superclass::item_count;
         using superclass::items;
@@ -81,7 +86,9 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &constraint) override {
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &constraint) override {
             float const unused =
                     constraint.width.value() - (item_count - 1) * padding;
             float const item_width = unused / item_count;
@@ -90,7 +97,7 @@ namespace planet::ui {
                      constraint.width.max()},
                     constraint.height};
             float left = 0, max_height = {};
-            auto const sizes = superclass::items_reflow(space);
+            auto const sizes = superclass::items_reflow(p, space);
             for (auto &item : sizes) {
                 max_height = std::max(max_height, item.height.value());
             }

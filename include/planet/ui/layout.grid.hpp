@@ -69,21 +69,27 @@ namespace planet::ui {
         using superclass = pack_reflowable<void, Pack...>;
         using collection_type = typename superclass::collection_type;
         using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
         using superclass::elements;
         using superclass::item_count;
         using superclass::items;
 
-        /// ### Padding between items
-        float vpadding = {}, hpadding = {};
 
         grid(collection_type c, float const p)
         : superclass{"planet::ui::grid<std::tuple<Pack...>>", std::move(c)},
           vpadding{p},
           hpadding{p} {}
 
+
+        /// ### Padding between items
+        float vpadding = {}, hpadding = {};
+
+
       private:
-        constrained_type do_reflow(constrained_type const &border) override {
-            auto const constraints = superclass::items_reflow(border);
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &border) override {
+            auto const constraints = superclass::items_reflow(p, border);
             affine::extents2d min;
             for (auto const &ic : constraints) {
                 min.width = std::max(min.width, ic.width.min());

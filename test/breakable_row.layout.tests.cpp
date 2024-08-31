@@ -9,6 +9,9 @@ namespace {
 
     using constrained_type = planet::ui::constrained2d<float>;
 
+    static constexpr planet::ui::reflowable::constrained_type screen{
+            {100, 0, 100}, {100, 0, 100}};
+
 
     auto const bsuite = felspar::testsuite("breakable_row.layout");
 
@@ -19,7 +22,7 @@ namespace {
                 auto c = planet::ui::breakable_row{
                         std::array{planet::debug::fixed_element{log, {4, 3}}},
                         2};
-                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.reflow({.screen = screen}, screen);
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
@@ -35,7 +38,7 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}},
                                 planet::debug::fixed_element{log, {4, 3}}},
                         2};
-                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.reflow({.screen = screen}, screen);
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
@@ -56,7 +59,7 @@ namespace {
                 auto c = planet::ui::breakable_row{
                         std::tuple{planet::debug::fixed_element{log, {4, 3}}},
                         2};
-                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.reflow({.screen = screen}, screen);
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
@@ -72,7 +75,7 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}},
                                 planet::debug::fixed_element{log, {4, 3}}},
                         2};
-                c.reflow({{100, 0, 100}, {100, 0, 100}});
+                c.reflow({.screen = screen}, screen);
                 c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())

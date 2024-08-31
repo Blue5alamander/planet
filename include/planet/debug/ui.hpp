@@ -27,7 +27,8 @@ namespace planet::debug {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &) override {
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &) override {
             return constrained_type{size};
         }
         affine::rectangle2d
@@ -54,8 +55,9 @@ namespace planet::debug {
         std::size_t clicks = {};
 
 
-        constrained_type do_reflow(constrained_type const &c) {
-            return content.reflow(c);
+        constrained_type do_reflow(
+                reflow_parameters const &p, constrained_type const &c) {
+            return content.reflow(p, c);
         }
         felspar::coro::task<void> behaviour() {
             for (auto mc = events::identify_clicks(events.mouse.stream());
@@ -77,7 +79,10 @@ namespace planet::debug {
         /// ### The number of times the button has been pressed
         std::size_t clicks = {};
 
-        constrained_type do_reflow(constrained_type const &c) { return c; }
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &c) {
+            return c;
+        }
         felspar::coro::task<void> behaviour() {
             for (auto mc = events::identify_clicks(events.mouse.stream());
                  auto click = co_await mc.next();) {

@@ -72,8 +72,10 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &constraint) override {
-            return hotspot.reflow(constraint);
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &constraint) override {
+            return hotspot.reflow(p, constraint);
         }
         affine::rectangle2d
                 do_move_sub_elements(affine::rectangle2d const &r) override {

@@ -87,7 +87,14 @@ namespace planet::ui {
         }
 
 
-        /// ### Calculate position
+        /// ### Calculate size
+
+        /// #### Calculation parameters
+        struct reflow_parameters {
+            constrained_type screen;
+        };
+
+        /// #### Size calculation
         /**
          * Calculates the correct position for this element given the
          * constraints and returns a concrete position that the element will be
@@ -103,8 +110,9 @@ namespace planet::ui {
          * determine their locations. Once done the parent element calls
          * `move_to` on each child to inform it of where to draw.
          */
-        constrained_type const &reflow(constrained_type const &ex) {
-            m_constraints = do_reflow(ex);
+        constrained_type const &
+                reflow(reflow_parameters const &p, constrained_type const &ex) {
+            m_constraints = do_reflow(p, ex);
             return *m_constraints;
         }
 
@@ -127,7 +135,8 @@ namespace planet::ui {
 
       protected:
         /// ### Reflow implementation
-        virtual constrained_type do_reflow(constrained_type const &) = 0;
+        virtual constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &) = 0;
 
 
         /// ### Move sub-elements to final positions

@@ -11,6 +11,9 @@ namespace {
 
     using constrained_type = planet::ui::constrained2d<float>;
 
+    constexpr planet::ui::reflowable::constrained_type screen{
+            {40, 0, 40}, {30, 0, 30}};
+
 
     auto const suite = felspar::testsuite("baseplate");
 
@@ -44,7 +47,7 @@ namespace {
                 planet::debug::button<> btn{log};
 
                 btn.add_to(bp, panel);
-                btn.reflow({{40, 0, 40}, {30, 0, 30}});
+                btn.reflow({.screen = screen}, screen);
                 btn.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
                 btn.draw();
                 check(btn.clicks) == 0u;
@@ -91,7 +94,7 @@ namespace {
 
                 auto &btn = std::get<0>(std::get<0>(ui.items).items);
                 btn.add_to(bp, panel);
-                ui.reflow({{40, 0, 40}, {30, 0, 30}});
+                ui.reflow({.screen = screen}, screen);
                 ui.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
                 ui.draw();
 

@@ -16,10 +16,12 @@ namespace planet::ui {
     struct element<void, T> {
         using constrained_type = constrained2d<T>;
 
-        element() noexcept {}
-        explicit element(constrained_type const &s) noexcept : size{s} {}
 
-        constrained_type size;
+        element() noexcept {}
+        explicit element(constrained_type const &s) noexcept : constraints{s} {}
+
+
+        constrained_type constraints;
         std::optional<affine::rectangle2d> position;
     };
 

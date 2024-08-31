@@ -41,9 +41,10 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &) override {
+        constrained_type do_reflow(
+                reflow_parameters const &p, constrained_type const &) override {
             constrained_type const csize{size};
-            content.reflow(csize);
+            content.reflow(p, csize);
             return csize;
         }
 

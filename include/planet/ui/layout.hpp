@@ -83,6 +83,9 @@ namespace planet::ui {
             return elements.at(index, loc);
         }
 
+        void write_constraints(std::size_t const i, constrained_type c) {
+            at(i).constraints = c;
+        }
 
         std::optional<constrained_type> laid_out_in;
         std::optional<affine::extents2d> extents;

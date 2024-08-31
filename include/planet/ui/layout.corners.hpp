@@ -21,7 +21,6 @@ namespace planet::ui {
         using top_right_type = TR;
         using bottom_left_type = BL;
         using bottom_right_type = BR;
-        using constrained_type = planet::ui::reflowable::constrained_type;
 
 
         corners(affine::rectangle2d const &w,
@@ -53,11 +52,13 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &c) override {
-            top_left.reflow(c);
-            top_right.reflow(c);
-            bottom_left.reflow(c);
-            bottom_right.reflow(c);
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &c) override {
+            top_left.reflow(p, c);
+            top_right.reflow(p, c);
+            bottom_left.reflow(p, c);
+            bottom_right.reflow(p, c);
             /// TODO Calculate a better min based on the corner constraints
             return constrained_type{c.max_extents()};
         }

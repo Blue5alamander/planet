@@ -52,8 +52,10 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            auto const inner = content.reflow(padding.remove(ex));
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &ex) override {
+            auto const inner = content.reflow(p, padding.remove(ex));
             auto const min_width =
                     inner.width.min() + padding.left + padding.right;
             auto const min_height =

@@ -11,6 +11,8 @@ namespace {
     using constrained_type = planet::ui::constrained2d<float>;
     using axis_constrained_type = constrained_type::axis_constrained_type;
 
+    constexpr planet::ui::reflowable::constrained_type screen_400{
+            {400, 0, 400}, {300, 0, 300}};
 
     auto const suite = felspar::testsuite("grid.layout");
 
@@ -23,7 +25,7 @@ namespace {
                         std::tuple{
                                 planet::debug::fixed_element{log, target_size}},
                         4};
-                g.reflow({{400, 0, 400}, {300, 0, 300}});
+                g.reflow({.screen = screen_400}, screen_400);
                 g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.position())
@@ -40,7 +42,7 @@ namespace {
                                 planet::debug::fixed_element{log, target_size},
                                 planet::debug::fixed_element{log, target_size}},
                         4};
-                g.reflow({{400, 0, 400}, {300, 0, 300}});
+                g.reflow({.screen = screen_400}, screen_400);
                 g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.hpadding) == 4;
@@ -63,7 +65,9 @@ namespace {
                                 planet::debug::fixed_element{log, target_size},
                                 planet::debug::fixed_element{log, target_size}},
                         4};
-                g.reflow({{8, 0, 8}, {300, 0, 300}});
+                static constexpr planet::ui::reflowable::constrained_type
+                        screen_8{{8, 0, 8}, {300, 0, 300}};
+                g.reflow({.screen = screen_8}, screen_8);
                 g.move_to({{0, 0}, planet::affine::extents2d{8, 300}});
 
                 check(g.hpadding) == 4;
@@ -86,7 +90,7 @@ namespace {
                                 planet::debug::fixed_element{log, target_size},
                                 planet::debug::fixed_element{log, target_size}},
                         5}};
-                g.reflow({{400, 0, 400}, {300, 0, 300}});
+                g.reflow({.screen = screen_400}, screen_400);
                 g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.position())

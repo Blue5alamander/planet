@@ -22,9 +22,11 @@ namespace planet::ui {
 
 
       private:
-        constrained_type do_reflow(constrained_type const &ex) override {
-            auto const on_size = on.reflow(ex);
-            auto const off_size = off.reflow(ex);
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &ex) override {
+            auto const on_size = on.reflow(p, ex);
+            auto const off_size = off.reflow(p, ex);
             typename constrained_type::axis_constrained_type const w{
                     std::max(on_size.width.min(), off_size.width.min()),
                     std::max(on_size.width.value(), off_size.width.value()),

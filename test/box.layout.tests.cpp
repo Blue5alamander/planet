@@ -10,6 +10,9 @@ namespace {
 
     using constrained_type = planet::ui::constrained2d<float>;
 
+    constexpr planet::ui::reflowable::constrained_type screen{
+            {400, 0, 400}, {300, 0, 300}};
+
 
     auto const suite = felspar::testsuite("box.layout");
 
@@ -22,7 +25,7 @@ namespace {
 
                 auto b = planet::ui::box{
                         planet::debug::fixed_element{log, size}, 2, 2};
-                b.reflow({{400, 0, 400}, {300, 0, 300}});
+                b.reflow({.screen = screen}, screen);
                 b.move_to({{15, 20}, bounds});
 
                 check(b.content.constraints().min_extents()) == size;
@@ -41,7 +44,7 @@ namespace {
 
                 auto b = planet::ui::box{planet::ui::target_size{
                         planet::debug::fixed_element{log, {4, 3}}, target_size}};
-                b.reflow({{400, 0, 400}, {300, 0, 300}});
+                b.reflow({.screen = screen}, screen);
 
                 check(b.content.size) == target_size;
                 check(b.content.constraints().min_extents()) == target_size;
@@ -64,7 +67,7 @@ namespace {
                         planet::ui::box{
                                 planet::debug::fixed_element{log, {4, 3}}},
                         target_size}};
-                b.reflow({{400, 0, 400}, {300, 0, 300}});
+                b.reflow({.screen = screen}, screen);
                 b.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(b.position())

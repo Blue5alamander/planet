@@ -7,6 +7,10 @@
 namespace {
 
 
+    constexpr planet::ui::reflowable::constrained_type screen_constraints = {
+            {50, 0, 100}, {50, 0, 100}};
+
+
     auto const suite = felspar::testsuite("range.ui");
 
 
@@ -18,7 +22,7 @@ namespace {
                         "hs", planet::debug::fixed_element{log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
-        r.reflow({{50, 0, 100}, {50, 0, 100}});
+        r.reflow({.screen = screen_constraints}, screen_constraints);
         r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
         r.draw();
 
@@ -56,7 +60,7 @@ namespace {
                         "hs", {log, {10, 10}}},
                 {20, 0, 100}};
         r.add_to(bp);
-        r.reflow({{50, 0, 100}, {50, 0, 100}});
+        r.reflow({.screen = screen_constraints}, screen_constraints);
         r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
         r.draw();
         check(r.slider.offset.position()) == planet::affine::point2d{8, 0};

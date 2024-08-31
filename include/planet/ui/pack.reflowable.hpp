@@ -47,9 +47,10 @@ namespace planet::ui {
 
       protected:
         /// ### Return an array of constraints for all of the included items
-        auto items_reflow(constrained_type const &c) {
-            return items_reflow_sequence(c, item_sequence);
+        auto items_reflow(reflow_parameters const &p, constrained_type const &c) {
+            return items_reflow_sequence(p, c, item_sequence);
         }
+        auto items_constraints() { return constraints_sequence(item_sequence); }
 
         affine::rectangle2d
                 move_sub_elements(affine::rectangle2d const &r) override {
@@ -80,8 +81,16 @@ namespace planet::ui {
         }
         template<std::size_t... I>
         auto items_reflow_sequence(
-                constrained_type const &c, std::index_sequence<I...>) {
-            return std::array{std::get<I>(items).reflow(c)...};
+                reflow_parameters const &p,
+                constrained_type const &c,
+                std::index_sequence<I...>) {
+            (elements.write_constraints(I, std::get<I>(items).reflow(p, c)),
+             ...);
+            return constraints_sequence(item_sequence);
+        }
+        template<std::size_t... I>
+        auto constraints_sequence(std::index_sequence<I...>) {
+            return std::array{elements.at(I).constraints...};
         }
     };
 
