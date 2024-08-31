@@ -83,6 +83,13 @@ namespace planet::ui {
         }
 
 
+        /// ### Hover handling
+        events::mouse last_mouse;
+        std::vector<widget_ptr> current_hovers;
+        std::vector<widget_ptr> previous_hovers;
+        std::chrono::steady_clock::time_point last_reset =
+                std::chrono::steady_clock::now();
+
         /// ### Update a widget pointer
         void update_ptr(widget_ptr const was, widget_ptr const now) {
             if (hard_focus == was) { hard_focus = now; }

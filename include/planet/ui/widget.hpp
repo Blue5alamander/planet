@@ -111,6 +111,15 @@ namespace planet::ui {
 
 
       protected:
+        /// ### Hover duration
+        /**
+         * How long the widget has had the mouse hovered over it. The time
+         * counts up even if the widget is overlapped by other widgets, but is
+         * reset once the mouse leaves the widget.
+         */
+        virtual void hover(std::chrono::steady_clock::duration) {}
+
+
         /// ### Return true if the widget is connected to a baseplate
         bool has_baseplate() const noexcept { return baseplate != nullptr; }
 
@@ -128,6 +137,8 @@ namespace planet::ui {
         virtual void do_draw() = 0;
 
 
+        /// ### Hover notification
+
         /// ### Move the widget's panel
         affine::rectangle2d
                 move_sub_elements(affine::rectangle2d const &r) override {
@@ -143,6 +154,7 @@ namespace planet::ui {
 
 
       private:
+        std::chrono::steady_clock::duration hover_time = {};
         ui::baseplate *baseplate = nullptr;
         bool m_enabled = true;
         [[noreturn]] void throw_invalid_add_to_target();
