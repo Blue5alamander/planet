@@ -50,6 +50,7 @@ namespace planet::ui {
 
         /// ### Event inputs and settings
         events::queue events;
+        auto const &last_mouse_event() const noexcept { return last_mouse; }
 
 
         /// ### Reset widgets at the start of a frame
