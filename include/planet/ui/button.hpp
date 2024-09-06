@@ -3,6 +3,7 @@
 
 #include <planet/queue/concepts.hpp>
 #include <planet/queue/pmc.hpp>
+#include <planet/queue/psc.hpp>
 #include <planet/ui/drawable.hpp>
 #include <planet/ui/widget.hpp>
 
@@ -64,6 +65,12 @@ namespace planet::ui {
 
 
       private:
+        /**
+         * TODO It's likely much better to use concepts to direct these
+         * overloads in the right direction. That way we also get to cut down on
+         * the number of includes we need as we don't need to name the types
+         * directly.
+         */
         template<typename Q>
         struct handle {
             static felspar::coro::task<void> press(button *self, auto clicks) {
@@ -75,6 +82,15 @@ namespace planet::ui {
         };
         template<typename R>
         struct handle<queue::pmc<R>> {
+            static felspar::coro::task<void> press(button *self, auto clicks) {
+                while (true) {
+                    auto click = co_await clicks.next();
+                    self->output_to.push(self->press_value);
+                }
+            }
+        };
+        template<typename R>
+        struct handle<queue::psc<R>> {
             static felspar::coro::task<void> press(button *self, auto clicks) {
                 while (true) {
                     auto click = co_await clicks.next();
