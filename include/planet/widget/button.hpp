@@ -10,7 +10,7 @@
 #include <felspar/coro/future.hpp>
 
 
-namespace planet::ui {
+namespace planet::widget {
 
 
     /// ## Button
@@ -19,8 +19,8 @@ namespace planet::ui {
      * inside its area. The button is customised with a graphical element. The
      * value of the mouse press is always the same, and is passed to the output.
      */
-    template<typename Return, drawable Texture, typename Output>
-    class button final : public widget {
+    template<typename Return, ui::drawable Texture, typename Output>
+    class button final : public ui::widget {
         Return press_value;
         Output &output_to;
 
@@ -127,8 +127,8 @@ namespace planet::ui {
         }
     };
 
-    template<drawable Texture, typename Output>
-    class button<void, Texture, Output> final : public widget {
+    template<ui::drawable Texture, typename Output>
+    class button<void, Texture, Output> final : public ui::widget {
         template<typename Q>
         struct handle;
 
@@ -240,9 +240,9 @@ namespace planet::ui {
     };
 
 
-    template<drawable G, typename Q>
+    template<ui::drawable G, typename Q>
     button(std::string_view, G, Q) -> button<void, G, Q>;
-    template<drawable G, typename Q, typename R>
+    template<ui::drawable G, typename Q, typename R>
     button(std::string_view, G, Q, R) -> button<std::decay_t<R>, G, Q>;
 
 

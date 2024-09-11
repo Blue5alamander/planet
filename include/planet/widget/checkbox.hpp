@@ -4,11 +4,11 @@
 #include <planet/ui/widget.hpp>
 
 
-namespace planet::ui {
+namespace planet::widget {
 
 
     template<typename Texture>
-    class checkbox : public widget {
+    class checkbox : public ui::widget {
       public:
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
         : widget{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
