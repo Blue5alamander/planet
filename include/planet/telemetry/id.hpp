@@ -12,11 +12,10 @@ namespace planet::telemetry {
     /**
      * If the application provides a name then it is used in conjunction with
      * the machine generated name. In any case a unique machine generated name
-     * is always provided.
+     * is always provided (unless opted out of using `suffix::no`).
      *
-     * If you want an ID for your own type, sub-class from
-     * `planet::telemetry::id` and optionally pass on the user requested name
-     * and optionally the sub-class type ID that you want to make use of.
+     * If you want an ID for your own type, sub-class (privately) from
+     * `planet::telemetry::id` and optionally pass on the user requested name.
      */
     class id {
         std::string m_name;
