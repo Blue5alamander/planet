@@ -81,7 +81,7 @@ namespace {
                 }
 
                 case planet::serialise::marker::u8:
-                    std::cout << static_cast<int>(lb.extract<std::uint8_t>());
+                    std::cout << std::to_string(lb.extract<std::uint8_t>());
                     break;
 
                 case planet::serialise::marker::b_true:
@@ -92,13 +92,16 @@ namespace {
                     break;
 
                 case planet::serialise::marker::i32le:
-                    std::cout << lb.extract<std::int32_t>();
+                    std::cout << std::to_string(lb.extract<std::int32_t>());
                     break;
-                case planet::serialise::marker::u64le:
-                    std::cout << lb.extract<std::uint64_t>();
+                case planet::serialise::marker::u32le:
+                    std::cout << std::to_string(lb.extract<std::uint32_t>());
                     break;
                 case planet::serialise::marker::i64le:
-                    std::cout << lb.extract<std::int64_t>();
+                    std::cout << std::to_string(lb.extract<std::int64_t>());
+                    break;
+                case planet::serialise::marker::u64le:
+                    std::cout << std::to_string(lb.extract<std::uint64_t>());
                     break;
 
                 case planet::serialise::marker::f32le:
