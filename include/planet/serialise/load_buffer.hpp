@@ -40,7 +40,13 @@ namespace planet::serialise {
 
 
         /// ### Mutation
-        auto split(std::size_t const bytecount) {
+        auto
+                split(std::size_t const bytecount,
+                      felspar::source_location const &loc =
+                              felspar::source_location::current()) {
+            if (buffer.size() < bytecount) {
+                throw buffer_not_big_enough{bytecount, buffer.size(), loc};
+            }
             auto const r = buffer.first(bytecount);
             buffer = buffer.subspan(bytecount);
             return r;
