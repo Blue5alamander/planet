@@ -186,10 +186,12 @@ namespace {
 
         log_thread() {}
         ~log_thread() {
+            if (thread.joinable()) { stop_thread(); }
+        }
+        void stop_thread() {
             terminate.send({});
             thread.join();
         }
-
         std::thread thread{[this]() {
             try {
                 warden.run(
@@ -208,32 +210,34 @@ namespace {
             co_await terminate.read_some(buffer);
         }
 
+        void print_performance() {
+            planet::telemetry::performance::current_values(
+                    planet::log::detail::ab);
+            auto const bytes = planet::log::detail::ab.complete();
+            planet::log::logged_performance_counters lgc{.counters = bytes};
+            {
+                std::cout << "\33[0;32mPerformance counters "
+                          << static_cast<double>(
+                                     (lgc.logged - g_start_time()).count()
+                                     / 1e9)
+                          << "\33[0;39m\n  ";
+                planet::serialise::load_buffer lb{bytes.cmemory()};
+                std::scoped_lock _{printers_mutex()};
+                show(lb, 0, "\n  ");
+                std::cout << std::endl;
+            }
+            if (auto out = planet::log::output.load(); out) {
+                save(planet::log::detail::ab, lgc);
+                auto const lb = planet::log::detail::ab.complete();
+                (*out).write(
+                        reinterpret_cast<char const *>(lb.data()), lb.size());
+            }
+        }
         felspar::io::warden::task<void> display_performance_loop() {
             planet::log::info("Starting performance counter loop");
             while (true) {
                 co_await warden.sleep(1s);
-                planet::telemetry::performance::current_values(
-                        planet::log::detail::ab);
-                auto const bytes = planet::log::detail::ab.complete();
-                planet::log::logged_performance_counters lgc{.counters = bytes};
-                {
-                    std::cout << "\33[0;32mPerformance counters "
-                              << static_cast<double>(
-                                         (lgc.logged - g_start_time()).count()
-                                         / 1e9)
-                              << "\33[0;39m\n  ";
-                    planet::serialise::load_buffer lb{bytes.cmemory()};
-                    std::scoped_lock _{printers_mutex()};
-                    show(lb, 0, "\n  ");
-                    std::cout << std::endl;
-                }
-                if (auto out = planet::log::output.load(); out) {
-                    save(planet::log::detail::ab, lgc);
-                    auto const lb = planet::log::detail::ab.complete();
-                    (*out).write(
-                            reinterpret_cast<char const *>(lb.data()),
-                            lb.size());
-                }
+                print_performance();
             }
         }
 
@@ -280,6 +284,13 @@ namespace {
         static log_thread lt;
         return lt;
     }
+}
+
+
+void planet::log::stop_thread() {
+    auto &thread = g_log_thread();
+    thread.stop_thread();
+    thread.print_performance();
 }
 
 

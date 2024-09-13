@@ -9,7 +9,22 @@
 namespace planet::log {
 
 
+    /// # log.hpp
+
+
+    /// ## Stop the logging thread
+    void stop_thread();
+    /**
+     * The logging thread is started automatically when the first log message is
+     * sent and will be stopped when the program terminates. This function can
+     * be used to stop the thread during normal shut-down and will cause a final
+     * print of performance data. Normally you'd want to call it after all other
+     * code has run.
+     */
+
+
     /// ## Log levels
+    enum class level : std::uint8_t { debug, info, warning, error, critical };
     /**
      * Defined log levels:
      *
@@ -22,7 +37,6 @@ namespace planet::log {
      * Critical errors will result in the termination of the process sending the
      * log message.
      */
-    enum class level : std::uint8_t { debug, info, warning, error, critical };
     inline auto operator<=>(level const l, level const r) {
         return static_cast<std::uint8_t>(l) <=> static_cast<std::uint8_t>(r);
     }
@@ -39,14 +53,18 @@ namespace planet::log {
 
 
     /// ### Active logging
+
+    /// #### Log level
+    inline std::atomic<level> active{level::debug};
     /**
      * Any log messages below this level will always be discarded.
      *
      * The value can be updated at any time and the change will have immediate
      * effect. Any log messages already in flight will still arrive.
      */
-    inline std::atomic<level> active{level::debug};
 
+    /// #### Log output file
+    inline std::atomic<std::ostream *> output = nullptr;
     /**
      * When set any log and performance data is sent to the pointed to file.
      * This may not be changed or cleared once log messages are being sent, so
@@ -55,7 +73,6 @@ namespace planet::log {
      * TODO Change to use an atomic shared pointer so that it can be changed at
      * any time (i.e. log files can be rotated).
      */
-    inline std::atomic<std::ostream *> output = nullptr;
 
 
     namespace detail {
@@ -188,15 +205,6 @@ namespace planet::log {
 
 
     /// ## Pretty printing
-
-    /**
-     * Walks along the data held in the load buffer pretty printing anything
-     * that it finds, or pretty print a single box.
-     *
-     * The `depth` describes how deeply nested the current print is, with the
-     * `prefix` being pre-pended to each line output once for each tick of
-     * depth.
-     */
     void pretty_print(
             serialise::load_buffer &,
             std::size_t depth = 1,
@@ -205,8 +213,16 @@ namespace planet::log {
             serialise::box &,
             std::size_t depth = 1,
             std::string_view prefix = " ");
+    /**
+     * Walks along the data held in the load buffer pretty printing anything
+     * that it finds, or pretty print a single box.
+     *
+     * The `depth` describes how deeply nested the current print is, with the
+     * `prefix` being pre-pended to each line output once for each tick of
+     * depth.
+     */
 
-    /// ### Custom log message formatter
+
     namespace detail {
         struct formatter {
             formatter(std::string_view);
@@ -215,11 +231,9 @@ namespace planet::log {
             virtual void print(std::ostream &, serialise::box &) const = 0;
         };
     }
-    /**
-     * Create a `const` global of this type, passing it the box name and the
-     * lambda that is to be used to print the box. The lambda will be called
-     * with a `std::ostream &` and a `box `
-     */
+
+
+    /// ### Custom log message formatter
     template<typename Lambda>
     auto format(std::string_view const box_name, Lambda lambda) {
         struct printer final : public detail::formatter {
@@ -232,6 +246,11 @@ namespace planet::log {
         };
         return printer{box_name, std::move(lambda)};
     }
+    /**
+     * Create a `const` global of this type, passing it the box name and the
+     * lambda that is to be used to print the box. The lambda will be called
+     * with a `std::ostream &` and a `box `
+     */
 
 
     /// ## Log message counter values
@@ -242,6 +261,7 @@ namespace planet::log {
 
         static counters current() noexcept;
     };
+
 
     /// ### Performance counters saved to the log file
     struct logged_performance_counters {
@@ -256,6 +276,7 @@ namespace planet::log {
 
 
     /// ## Log file header
+
     struct file_header {
         static constexpr std::string_view box{"_p:log:h"};
 
@@ -267,14 +288,17 @@ namespace planet::log {
     void load_fields(serialise::box &, file_header &);
 
 
+    /// ### Write log file header
+    void write_log_file_header();
     /**
      * Calling this will write a header to the log file containing information
-     * helpful for interpreting the log file.
+     * helpful for interpreting the log file. Typically you'd want to call this
+     * just after opening a log file and before sending any more log messages,
+     * that way the header will appear first in the file.'
      *
      * An output file must be already set, otherwise calling this is undefined
      * behaviour.
      */
-    void write_log_file_header();
 
 
 }
