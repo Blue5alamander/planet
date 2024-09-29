@@ -195,6 +195,10 @@ namespace planet::widget {
         : widget{"planet::sdl::ui::button"},
           output_to{o},
           graphic{std::move(g)} {}
+        button(Texture g, output_type &&o)
+        : widget{"planet::sdl::ui::button"},
+          output_to{std::move(o)},
+          graphic{std::move(g)} {}
         button(std::string_view const n, Texture g, output_type &o)
         : widget{n}, output_to{o}, graphic{std::move(g)} {}
         button(std::string_view const n, Texture g, output_type &&o)
