@@ -11,6 +11,7 @@ add_test_run(check planet TESTS
         event.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
+        headers.cpp
         hexmap.tests.cpp
         map.tests.cpp
         panel.tests.cpp
