@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/ui/helpers.hpp>
+#include <planet/tuple.hpp>
 #include <planet/ui/layout.hpp>
 #include <planet/ui/reflowable.hpp>
 
@@ -42,7 +42,9 @@ namespace planet::ui {
 
 
         /// ### Draw the contained items
-        void draw() { draw_items(items, item_sequence); }
+        void draw() {
+            exec_all(items, [](auto &item) { item.draw(); });
+        }
 
 
       protected:
