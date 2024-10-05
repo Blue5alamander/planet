@@ -92,6 +92,16 @@ namespace planet::ui {
         /// #### Calculation parameters
         struct reflow_parameters {
             constrained_type screen;
+
+            affine::rectangle2d within(affine::rectangle2d r) const noexcept {
+                if (r.top_left.x() + r.extents.width > screen.width.max()) {
+                    r.top_left.x(screen.width.max() - r.extents.width);
+                }
+                if (r.top_left.y() - r.extents.height < screen.height.min()) {
+                    r.top_left.y(screen.height.min() + r.extents.height);
+                }
+                return r;
+            }
         };
 
         /// #### Size calculation
