@@ -57,6 +57,7 @@ namespace planet::ui {
 
 
         using constrained_type = typename widget::constrained_type;
+        using reflow_parameters = typename widget::reflow_parameters;
         using widget::move_to;
 
 
@@ -72,14 +73,17 @@ namespace planet::ui {
 
 
       private:
+        widget::reflow_parameters reflow_p;
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &constraint) override {
+            reflow_p = p;
             return hotspot.reflow(p, constraint);
         }
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
-            return hotspot.move_to(r);
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            return hotspot.move_to(p, r);
         }
         felspar::coro::task<void> behaviour() override {
             auto mouse = widget::events.mouse.values();
@@ -100,7 +104,7 @@ namespace planet::ui {
                                 offset.position() - old_offset;
 
                         auto const old_position = widget::position();
-                        move_to(
+                        move_to(reflow_p,
                                 {old_position.top_left + delta_offset,
                                  old_position.extents});
                         target->update(offset);

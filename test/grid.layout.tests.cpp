@@ -26,7 +26,9 @@ namespace {
                                 planet::debug::fixed_element{log, target_size}},
                         4};
                 g.reflow({.screen = screen_400}, screen_400);
-                g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
+                g.move_to(
+                        {.screen = screen_400},
+                        {{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.position())
                         == planet::affine::rectangle2d{
@@ -43,7 +45,9 @@ namespace {
                                 planet::debug::fixed_element{log, target_size}},
                         4};
                 g.reflow({.screen = screen_400}, screen_400);
-                g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
+                g.move_to(
+                        {.screen = screen_400},
+                        {{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.hpadding) == 4;
                 check(g.vpadding) == 4;
@@ -68,7 +72,9 @@ namespace {
                 static constexpr planet::ui::reflowable::constrained_type
                         screen_8{{8, 0, 8}, {300, 0, 300}};
                 g.reflow({.screen = screen_8}, screen_8);
-                g.move_to({{0, 0}, planet::affine::extents2d{8, 300}});
+                g.move_to(
+                        {.screen = screen_8},
+                        {{0, 0}, planet::affine::extents2d{8, 300}});
 
                 check(g.hpadding) == 4;
                 check(g.vpadding) == 4;
@@ -91,7 +97,9 @@ namespace {
                                 planet::debug::fixed_element{log, target_size}},
                         5}};
                 g.reflow({.screen = screen_400}, screen_400);
-                g.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
+                g.move_to(
+                        {.screen = screen_400},
+                        {{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(g.position())
                         == planet::affine::rectangle2d{

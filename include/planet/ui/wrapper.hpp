@@ -28,7 +28,8 @@ namespace planet::ui {
                     reflow(reflow_parameters const &,
                            constrained_type const &) = 0;
             virtual planet::affine::rectangle2d
-                    move_to(planet::affine::rectangle2d const &) = 0;
+                    move_to(reflow_parameters const &,
+                            planet::affine::rectangle2d const &) = 0;
             virtual void do_draw() = 0;
         };
     }
@@ -71,9 +72,10 @@ namespace planet::ui {
             }
         }
         planet::affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
                 planet::affine::rectangle2d const &r) override {
             if (implementation) {
-                return implementation->move_to(r);
+                return implementation->move_to(p, r);
             } else {
                 return {};
             }
@@ -104,8 +106,9 @@ namespace planet::ui {
                 return graphic.reflow(p, c);
             }
             planet::affine::rectangle2d
-                    move_to(planet::affine::rectangle2d const &r) override {
-                return graphic.move_to(r);
+                    move_to(reflow_parameters const &p,
+                            planet::affine::rectangle2d const &r) override {
+                return graphic.move_to(p, r);
             }
             void do_draw() override { graphic.draw(); }
         };

@@ -126,9 +126,11 @@ namespace planet::ui {
          * whatever its natural size is, or it is to be placed at a given
          * location covering the entire rectangle it's told to use.
          */
-        affine::rectangle2d move_to(affine::rectangle2d const &r) {
+        affine::rectangle2d
+                move_to(reflow_parameters const &p,
+                        affine::rectangle2d const &r) {
             constraints(); // Reflow must have been called first
-            m_position = move_sub_elements(r);
+            m_position = move_sub_elements(p, r);
             return *m_position;
         }
 
@@ -148,8 +150,8 @@ namespace planet::ui {
          * For widgets this method name changes slightly. See
          * [widget.hpp](./widget.hpp) for more details.
          */
-        virtual affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &) = 0;
+        virtual affine::rectangle2d move_sub_elements(
+                reflow_parameters const &, affine::rectangle2d const &) = 0;
 
       private:
         std::optional<constrained_type> m_constraints;

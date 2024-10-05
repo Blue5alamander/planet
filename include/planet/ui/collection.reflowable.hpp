@@ -40,13 +40,14 @@ namespace planet::ui {
 
 
       protected:
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
             for (std::size_t index{}; auto &item : items) {
                 auto const &epos = elements.at(index).position.value();
                 affine::rectangle2d const np{
                         r.top_left + epos.top_left, epos.extents};
-                item.move_to(np);
+                item.move_to(p, np);
                 ++index;
             }
             return {r.top_left, constraints().extents()};

@@ -85,12 +85,14 @@ namespace planet::ui {
             return bg;
         }
 
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
             slider.move_to(
+                    p,
                     {r.top_left + slider.offset.position(),
                      slider.constraints().extents()});
-            return background.move_to(r);
+            return background.move_to(p, r);
         }
 
         felspar::coro::task<void> behaviour() override { co_return; }

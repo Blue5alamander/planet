@@ -23,7 +23,9 @@ namespace {
                 {20, 0, 100}};
         r.add_to(bp);
         r.reflow({.screen = screen_constraints}, screen_constraints);
-        r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
+        r.move_to(
+                {.screen = screen_constraints},
+                {{15, 30}, planet::affine::extents2d{50, 50}});
         r.draw();
 
         check(r.wants_focus()) == true;
@@ -61,7 +63,9 @@ namespace {
                 {20, 0, 100}};
         r.add_to(bp);
         r.reflow({.screen = screen_constraints}, screen_constraints);
-        r.move_to({{15, 30}, planet::affine::extents2d{50, 50}});
+        r.move_to(
+                {.screen = screen_constraints},
+                {{15, 30}, planet::affine::extents2d{50, 50}});
         r.draw();
         check(r.slider.offset.position()) == planet::affine::point2d{8, 0};
         check(r.slider.offset.width.min()) == 0;

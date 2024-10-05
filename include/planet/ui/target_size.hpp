@@ -48,9 +48,10 @@ namespace planet::ui {
             return csize;
         }
 
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
-            content.move_to({r.top_left, size});
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            content.move_to(p, {r.top_left, size});
             return {r.top_left, size};
         }
     };

@@ -49,10 +49,11 @@ namespace planet::ui {
             }
             return layout(border);
         }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
             layout(constrained_type{r.extents});
-            return superclass::move_sub_elements(r);
+            return superclass::move_sub_elements(p, r);
         }
         constrained_type layout(constrained_type const &border) {
             float row_height = {}, x = {}, y = {}, max_width{};
@@ -124,10 +125,11 @@ namespace planet::ui {
             superclass::items_reflow(p, border);
             return layout(border);
         }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
             layout(constrained_type{r.extents});
-            return superclass::move_sub_elements(r);
+            return superclass::move_sub_elements(p, r);
         }
         constrained_type layout(constrained_type const &border) {
             float row_height = {}, x = {}, y = {}, max_width{};

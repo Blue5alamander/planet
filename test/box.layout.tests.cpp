@@ -26,7 +26,7 @@ namespace {
                 auto b = planet::ui::box{
                         planet::debug::fixed_element{log, size}, 2, 2};
                 b.reflow({.screen = screen}, screen);
-                b.move_to({{15, 20}, bounds});
+                b.move_to({.screen = screen}, {{15, 20}, bounds});
 
                 check(b.content.constraints().min_extents()) == size;
                 check(b.content.constraints().extents()) == size;
@@ -50,7 +50,7 @@ namespace {
                 check(b.content.constraints().min_extents()) == target_size;
                 check(b.constraints().min_extents()) == target_size;
 
-                b.move_to({{0, 0}, bounds});
+                b.move_to({.screen = screen}, {{0, 0}, bounds});
 
                 check(b.position())
                         == planet::affine::rectangle2d{{0, 0}, bounds};
@@ -68,7 +68,9 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}}},
                         target_size}};
                 b.reflow({.screen = screen}, screen);
-                b.move_to({{0, 0}, planet::affine::extents2d{400, 300}});
+                b.move_to(
+                        {.screen = screen},
+                        {{0, 0}, planet::affine::extents2d{400, 300}});
 
                 check(b.position())
                         == planet::affine::rectangle2d{

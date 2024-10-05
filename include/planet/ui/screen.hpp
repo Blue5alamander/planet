@@ -33,8 +33,9 @@ namespace planet::ui {
                 reflow_parameters const &, constrained_type const &c) override {
             return c;
         }
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &,
+                affine::rectangle2d const &r) override {
             return r;
         }
         void do_draw() override {};

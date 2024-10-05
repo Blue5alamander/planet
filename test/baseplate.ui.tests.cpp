@@ -34,7 +34,9 @@ namespace {
         }).throws(std::logic_error{"Reflowable position has not been set"});
 
         check([&]() {
-            btn.move_to({{15, 20}, planet::affine::extents2d{40, 30}});
+            btn.move_to(
+                    {.screen = screen},
+                    {{15, 20}, planet::affine::extents2d{40, 30}});
         }).throws(std::logic_error{"Reflowable constraints have not been set"});
     });
 
@@ -48,7 +50,9 @@ namespace {
 
                 btn.add_to(bp, panel);
                 btn.reflow({.screen = screen}, screen);
-                btn.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
+                btn.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
                 btn.draw();
                 check(btn.clicks) == 0u;
 
@@ -95,7 +99,9 @@ namespace {
                 auto &btn = std::get<0>(std::get<0>(ui.items).items);
                 btn.add_to(bp, panel);
                 ui.reflow({.screen = screen}, screen);
-                ui.move_to({{15, 20}, planet::affine::extents2d{4, 3}});
+                ui.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
                 ui.draw();
 
                 log << "btn position: " << btn.position() << '\n';

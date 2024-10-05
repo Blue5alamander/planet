@@ -42,7 +42,11 @@ namespace planet::widget::volume {
             range.content.updater = this;
             return range.reflow(p, c);
         }
-        void move_to(planet::affine::rectangle2d const &r) { range.move_to(r); }
+        void
+                move_to(reflow_parameters const &p,
+                        planet::affine::rectangle2d const &r) {
+            range.move_to(p, r);
+        }
 
 
       private:

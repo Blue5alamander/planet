@@ -64,12 +64,13 @@ namespace planet::ui {
                     {inner.height.value() + padding.top + padding.bottom,
                      std::max(min_height, ex.height.min()), ex.height.max()}};
         }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &outer) override {
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &outer) override {
             auto const inner_size = content.constraints().extents();
             auto const area =
                     within(gravity, padding.remove(outer), inner_size);
-            content.move_to(area);
+            content.move_to(p, area);
             return outer;
         }
     };

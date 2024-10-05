@@ -23,7 +23,9 @@ namespace {
                         std::array{planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -39,7 +41,9 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -57,7 +61,9 @@ namespace {
         auto c = planet::ui::row{
                 std::tuple{planet::debug::fixed_element{log, {4, 3}}}, 2};
         c.reflow({.screen = screen}, screen);
-        c.move_to({{15, 20}, planet::affine::extents2d{100, 100}});
+        c.move_to(
+                {.screen = screen},
+                {{15, 20}, planet::affine::extents2d{100, 100}});
 
         check(c.position())
                 == planet::affine::rectangle2d{

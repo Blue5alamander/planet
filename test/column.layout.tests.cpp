@@ -22,7 +22,9 @@ namespace {
                         std::array{planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{0, 0}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{0, 0}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -38,7 +40,9 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{13, 15}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{13, 15}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -59,7 +63,9 @@ namespace {
                         std::tuple{planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{0, 0}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{0, 0}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -75,7 +81,9 @@ namespace {
                                 planet::debug::fixed_element{log, {4, 3}}},
                         2};
                 c.reflow({.screen = screen}, screen);
-                c.move_to({{13, 15}, planet::affine::extents2d{100, 100}});
+                c.move_to(
+                        {.screen = screen},
+                        {{13, 15}, planet::affine::extents2d{100, 100}});
 
                 check(c.position())
                         == planet::affine::rectangle2d{
@@ -97,12 +105,12 @@ namespace {
         check(c.items.size()) == 0u;
 
         c.reflow({.screen = screen}, screen);
-        c.move_to(size);
+        c.move_to({.screen = screen}, size);
         check(c.position().extents) == planet::affine::extents2d{};
 
         c.items.push_back(planet::debug::fixed_element{log, {4, 3}});
         c.reflow({.screen = screen}, screen);
-        c.move_to(size);
+        c.move_to({.screen = screen}, size);
         check(c.position().top_left) == planet::affine::point2d{13, 15};
         check(c.position().extents) == planet::affine::extents2d{4, 3};
         check(c.items[0].position().top_left)
@@ -111,7 +119,7 @@ namespace {
 
         c.items.push_back({log, {4, 3}});
         c.reflow({.screen = screen}, screen);
-        c.move_to(size);
+        c.move_to({.screen = screen}, size);
         check(c.position().top_left) == planet::affine::point2d{13, 15};
         check(c.position().extents) == planet::affine::extents2d{4, 6};
         check(c.items[0].position().top_left)

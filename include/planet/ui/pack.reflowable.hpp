@@ -54,9 +54,10 @@ namespace planet::ui {
         }
         auto items_constraints() { return constraints_sequence(item_sequence); }
 
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
-            move_elements(r, item_sequence);
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            move_elements(p, r, item_sequence);
             return {r.top_left, constraints().extents()};
         }
 
@@ -66,12 +67,14 @@ namespace planet::ui {
 
         template<std::size_t... I>
         void move_elements(
-                affine::rectangle2d const &r, std::index_sequence<I...>) {
+                reflow_parameters const &p,
+                affine::rectangle2d const &r,
+                std::index_sequence<I...>) {
             try {
                 auto const tl = r.top_left;
                 std::array const pos{elements.at(I).position.value()...};
                 (std::get<I>(items).move_to(
-                         {pos[I].top_left + tl, pos[I].extents}),
+                         p, {pos[I].top_left + tl, pos[I].extents}),
                  ...);
             } catch (std::bad_optional_access const &) {
                 throw felspar::stdexcept::logic_error{

@@ -114,9 +114,10 @@ namespace planet::widget {
                 constrained_type const &ex) override {
             return graphic.reflow(p, ex);
         }
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
-            return graphic.move_to(r);
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            return graphic.move_to(p, r);
         }
 
 
@@ -230,9 +231,10 @@ namespace planet::widget {
                 constrained_type const &ex) override {
             return graphic.reflow(p, ex);
         }
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
-            return graphic.move_to(r);
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            return graphic.move_to(p, r);
         }
 
 

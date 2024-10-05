@@ -31,8 +31,9 @@ namespace planet::debug {
                 reflow_parameters const &, constrained_type const &) override {
             return constrained_type{size};
         }
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &,
+                affine::rectangle2d const &r) override {
             return {r.top_left, size};
         }
     };
@@ -56,18 +57,21 @@ namespace planet::debug {
 
 
         constrained_type do_reflow(
-                reflow_parameters const &p, constrained_type const &c) {
+                reflow_parameters const &p,
+                constrained_type const &c) override {
             return content.reflow(p, c);
         }
-        felspar::coro::task<void> behaviour() {
+        felspar::coro::task<void> behaviour() override {
             for (auto mc = events::identify_clicks(events.mouse.stream());
                  auto click = co_await mc.next();) {
                 ++clicks;
             }
         }
-        void do_draw() { content.draw(); }
-        affine::rectangle2d do_move_sub_elements(affine::rectangle2d const &c) {
-            return content.move_to(c);
+        void do_draw() override { content.draw(); }
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &c) override {
+            return content.move_to(p, c);
         }
     };
     template<>
@@ -80,17 +84,21 @@ namespace planet::debug {
         std::size_t clicks = {};
 
         constrained_type do_reflow(
-                reflow_parameters const &, constrained_type const &c) {
+                reflow_parameters const &, constrained_type const &c) override {
             return c;
         }
-        felspar::coro::task<void> behaviour() {
+        felspar::coro::task<void> behaviour() override {
             for (auto mc = events::identify_clicks(events.mouse.stream());
                  auto click = co_await mc.next();) {
                 ++clicks;
             }
         }
-        void do_draw() { *os << name() << " do_draw @ " << position() << '\n'; }
-        affine::rectangle2d do_move_sub_elements(affine::rectangle2d const &r) {
+        void do_draw() override {
+            *os << name() << " do_draw @ " << position() << '\n';
+        }
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &,
+                affine::rectangle2d const &r) override {
             return r;
         }
     };

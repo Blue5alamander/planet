@@ -140,14 +140,15 @@ namespace planet::ui {
         /// ### Hover notification
 
         /// ### Move the widget's panel
-        affine::rectangle2d
-                move_sub_elements(affine::rectangle2d const &r) override {
-            auto const se = do_move_sub_elements(r);
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
+            auto const se = do_move_sub_elements(p, r);
             panel.move_to(se);
             return se;
         }
-        virtual affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &) = 0;
+        virtual affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p, affine::rectangle2d const &) = 0;
 
         /// ### The coroutine for the behaviour
         felspar::coro::eager<> response;
