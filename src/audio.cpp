@@ -82,7 +82,7 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
     felspar::memory::accumulation_buffer<float> output{
             default_buffer_samples * 50};
     while (true) {
-        std::erase_if(generators, [&output](auto &gen) {
+        generators.erase_if([&output](auto &gen) {
             while (gen.samples < default_buffer_samples) {
                 auto buffer = gen.audio.next();
                 if (buffer) {

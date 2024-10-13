@@ -22,7 +22,9 @@ namespace planet::audio {
 
 
         void add_track(stereo_generator track) {
-            generators.push_back({std::move(track)});
+            if (generators.has_room()) {
+                generators.push_back({std::move(track)});
+            }
         }
 
         stereo_generator output();
@@ -35,7 +37,7 @@ namespace planet::audio {
             /// The number of samples that have been placed in the output so far
             std::size_t samples = {};
         };
-        std::vector<track> generators;
+        felspar::memory::small_vector<track, 50> generators;
         stereo_generator raw_mix();
     };
 
