@@ -1,5 +1,8 @@
 # `linux-builder` container
 
+
+## Clang
+
 Steam's Linux run time unfortunately doesn't contain the latest compilers. Using the `create` script in this folder will fix this for you, with a brand new clang compiler to use.
 
 The general process to create a set of files for distribution is:
@@ -9,3 +12,8 @@ Firstly, run the `create` script. The script will fetch the clang source code, c
 The container itself is big, the clang sources are huge and the compilation will take a long time and produce another fairly large container -- this is not to be undertaken by anybody with a slow machine or slow Internet connection.
 
 Once you have the container it can be used to create your distribution files for the game code.
+
+
+## Vulkan
+
+Download the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) and extract it into a new `vulkan` directory. The script expects `container/vulkan/x86_64` to contain the downloaded binaries.
