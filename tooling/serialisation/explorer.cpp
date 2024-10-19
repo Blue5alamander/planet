@@ -77,7 +77,7 @@ int main(int argc, char const *argv[]) {
 
     std::filesystem::path const fn{argv[1]};
     std::ifstream input{fn};
-    std::vector<char> save(std::filesystem::file_size(fn));
+    std::vector<char> save(std::filesystem::file_size(fn), std::ios::binary);
     input.read(save.data(), save.size());
 
     serialise::load_buffer buffer{
