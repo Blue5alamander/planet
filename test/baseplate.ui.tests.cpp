@@ -57,36 +57,39 @@ namespace {
                 check(btn.clicks) == 0u;
 
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::down,
-                         {18, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {18, 21},
+                         .clicks = 0});
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::up,
-                         {18, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {18, 21},
+                         .clicks = 1});
                 check(btn.position())
                         == planet::affine::rectangle2d{
                                 {15, 20}, planet::affine::extents2d{4, 3}};
                 check(btn.clicks) == 1u;
 
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::down,
-                         {8, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {8, 21}});
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::up,
-                         {8, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {8, 21}});
                 check(btn.clicks) == 1u;
 
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::down,
-                         {18, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {18, 21}});
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::up,
-                         {18, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {18, 21},
+                         .clicks = 1});
                 check(btn.clicks) == 2u;
             },
             [](auto check, auto &log) {
@@ -109,13 +112,14 @@ namespace {
                 check(btn.wants_focus()) == true;
 
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::down,
-                         {16, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {16, 21}});
                 bp.events.mouse.push(
-                        {planet::events::button::left,
-                         planet::events::action::up,
-                         {16, 21}});
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {16, 21},
+                         .clicks = 1});
                 check(btn.clicks) == 1u;
             });
 
