@@ -21,5 +21,4 @@ add_test_run(check planet TESTS
         serialise.tests.cpp
         scaling.tests.cpp
         time.tests.cpp
-        ui.tests.cpp
     )

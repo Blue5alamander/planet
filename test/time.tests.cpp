@@ -1,4 +1,4 @@
-#include <planet/time/clock.hpp>
+#include <planet/time.hpp>
 #include <felspar/test.hpp>
 
 #include <felspar/coro/eager.hpp>
