@@ -8,7 +8,7 @@ namespace planet::widget {
 
 
     template<typename Texture>
-    class checkbox : public ui::widget {
+    class checkbox final : public ui::widget {
       public:
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
         : widget{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
@@ -37,11 +37,12 @@ namespace planet::widget {
                     std::min(on_size.height.max(), off_size.height.max())};
             return {w, h};
         }
-        affine::rectangle2d
-                do_move_sub_elements(affine::rectangle2d const &r) override {
+        affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r) override {
             /// TODO Should be the union of the two returned rectangles
-            on.move_to(r);
-            return off.move_to(r);
+            on.move_to(p, r);
+            return off.move_to(p, r);
         }
 
         felspar::coro::task<void> behaviour() override {
