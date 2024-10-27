@@ -2,6 +2,10 @@
 #include <planet/ui/draggable.hpp>
 #include <planet/ui/widget.hpp>
 
+#include <planet/widget/button.hpp>
+#include <planet/widget/checkbox.hpp>
+#include <planet/widget/volume.slider.hpp>
+
 
 /// ## `planet::ui::drop_target`
 
