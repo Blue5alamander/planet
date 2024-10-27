@@ -209,6 +209,10 @@ namespace planet::ecs {
             return std::get<storage>(stores).add_component(
                     eid, std::forward<Component>(component));
         }
+        template<typename... Cs>
+        auto add_components(entity_id &eid, Cs &&...cs) {
+            return std::tuple{add_component<Cs>(eid, std::forward<Cs>(cs))...};
+        }
 
 
         /// ### Remove a component
