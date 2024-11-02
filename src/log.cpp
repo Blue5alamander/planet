@@ -273,8 +273,12 @@ namespace {
                             break;
                         case planet::log::level::error: ++error_count; break;
                         case planet::log::level::critical:
+                            print_performance();
                             std::cout << "\33[0;31mCritical log message "
                                          "forcing unclean shutdown\33[0;39m\n";
+                            if (out) {
+                                out->flush();
+                            }
                             std::exit(120);
                         }
                     }
