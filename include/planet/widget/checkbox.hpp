@@ -8,7 +8,7 @@ namespace planet::widget {
 
 
     template<typename Texture>
-    class checkbox : public ui::widget {
+    class checkbox final : public ui::widget {
       public:
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
         : widget{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
@@ -22,6 +22,14 @@ namespace planet::widget {
 
 
       private:
+        void do_draw() override {
+            if (value) {
+                on.draw();
+            } else {
+                off.draw();
+            }
+        }
+
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &ex) override {
