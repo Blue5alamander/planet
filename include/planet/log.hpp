@@ -64,8 +64,12 @@ namespace planet::log {
      */
 
     /// #### Log output file
-    inline std::atomic<std::ostream *> output = nullptr;
+    inline std::atomic<std::ostream *> log_output = nullptr,
+                                       profile_output = nullptr;
     /**
+     * There are separate files for logging and performance data. There would
+     * normally be different upload conditions for performance and log file data.
+     *
      * When set any log and performance data is sent to the pointed to file.
      * This may not be changed or cleared once log messages are being sent, so
      * set it once early during start up and then never change it.
@@ -289,15 +293,12 @@ namespace planet::log {
 
 
     /// ### Write log file header
-    void write_log_file_header();
+    void write_file_headers();
     /**
      * Calling this will write a header to the log file containing information
      * helpful for interpreting the log file. Typically you'd want to call this
      * just after opening a log file and before sending any more log messages,
      * that way the header will appear first in the file.'
-     *
-     * An output file must be already set, otherwise calling this is undefined
-     * behaviour.
      */
 
 

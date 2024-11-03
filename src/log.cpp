@@ -229,11 +229,18 @@ namespace {
                 show(lb, 0, "\n  ");
                 std::cout << std::endl;
             }
-            if (auto out = planet::log::output.load(); out) {
+            {
                 save(planet::log::detail::ab, lgc);
                 auto const lb = planet::log::detail::ab.complete();
-                (*out).write(
-                        reinterpret_cast<char const *>(lb.data()), lb.size());
+                for (auto *out : std::array{
+                             planet::log::profile_output.load(),
+                             planet::log::log_output.load()}) {
+                    if (out) {
+                        (*out).write(
+                                reinterpret_cast<char const *>(lb.data()),
+                                lb.size());
+                    }
+                }
             }
         }
         felspar::io::warden::task<void> display_performance_loop() {
@@ -253,7 +260,7 @@ namespace {
                     std::array<std::byte, 16> buffer;
                     co_await signal.read_some(buffer);
                 } else {
-                    auto out = planet::log::output.load();
+                    auto out = planet::log::log_output.load();
                     std::scoped_lock _{printers_mutex()};
                     for (auto const &message : block) {
                         if (out) {
@@ -273,11 +280,17 @@ namespace {
                             break;
                         case planet::log::level::error: ++error_count; break;
                         case planet::log::level::critical:
+                            /**
+                             * TODO We should probably print write the rest of
+                             * the log messages we have before we exit the game.
+                             */
                             print_performance();
                             std::cout << "\33[0;31mCritical log message "
                                          "forcing unclean shutdown\33[0;39m\n";
-                            if (out) {
-                                out->flush();
+                            for (auto *flushing : std::array{
+                                         planet::log::profile_output.load(),
+                                         planet::log::log_output.load()}) {
+                                if (flushing) { flushing->flush(); }
                             }
                             std::exit(120);
                         }
@@ -381,11 +394,17 @@ auto planet::log::counters::current() noexcept -> counters {
 /// ## `planet::log::file_header`
 
 
-void planet::log::write_log_file_header() {
+void planet::log::write_file_headers() {
     detail::ab.save_box(file_header::box, g_start_time(), log_root_directory);
     auto const bytes = detail::ab.complete();
-    (*planet::log::output.load())
-            .write(reinterpret_cast<char const *>(bytes.data()), bytes.size());
+    for (auto *out : std::array{
+                 planet::log::log_output.load(),
+                 planet::log::profile_output.load()}) {
+        if (out) {
+            (*out).write(
+                    reinterpret_cast<char const *>(bytes.data()), bytes.size());
+        }
+    }
 }
 void planet::log::load_fields(serialise::box &b, file_header &f) {
     b.fields(f.base_time, f.file_prefix);
