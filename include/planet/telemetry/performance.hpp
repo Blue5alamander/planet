@@ -12,8 +12,11 @@ namespace planet::telemetry {
 
     /// ## One of any number of performance counters
     class performance : public id {
-      public:
+      protected:
         performance(std::string_view);
+
+
+      public:
         virtual ~performance();
 
 

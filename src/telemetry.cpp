@@ -324,3 +324,52 @@ namespace {
                 os << name << " = " << value << "/s";
             });
 }
+
+
+// ## `planet::telemetry::timestamps`
+
+
+planet::telemetry::timestamps::timestamps(std::string_view const n) : id{n} {}
+
+
+void planet::telemetry::timestamps::set(std::string_view key) {
+    auto pos = history.find(key);
+    if (pos == history.end()) {
+        history.insert(std::pair{std::string{key}, stamps{}});
+    } else {
+        pos->second.last = std::chrono::system_clock::now();
+    }
+}
+void planet::telemetry::timestamps::unset(std::string_view const key) {
+    auto pos = history.find(key);
+    if (pos != history.end()) { pos->second.last = {}; }
+}
+
+
+bool planet::telemetry::timestamps::is_set(std::string_view const key) const {
+    auto pos = history.find(key);
+    if (pos == history.end()) {
+        return false;
+    } else {
+        return pos->second.last.has_value();
+    }
+}
+
+
+void planet::telemetry::save(
+        planet::serialise::save_buffer &sb,
+        planet::telemetry::timestamps::stamps const &s) {
+    sb.save_box(s.box, s.first, s.last);
+}
+void planet::telemetry::load(
+        planet::serialise::box &b, planet::telemetry::timestamps::stamps &s) {
+    b.named(s.box, s.first, s.last);
+}
+
+void planet::telemetry::save(
+        planet::serialise::save_buffer &sb, timestamps const &t) {
+    sb.save_box(t.box, t.history);
+}
+void planet::telemetry::load(planet::serialise::box &b, timestamps &t) {
+    b.named(t.box, t.history);
+}

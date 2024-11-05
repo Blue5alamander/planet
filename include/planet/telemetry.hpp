@@ -6,3 +6,4 @@
 #include <planet/telemetry/id.hpp>
 #include <planet/telemetry/performance.hpp>
 #include <planet/telemetry/rate.hpp>
+#include <planet/telemetry/timestamps.hpp>
