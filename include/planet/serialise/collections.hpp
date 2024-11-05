@@ -7,8 +7,8 @@
 namespace planet::serialise {
 
 
-    template<typename K, typename V>
-    void save(save_buffer &ab, std::map<K, V> const &m) {
+    template<typename K, typename V, typename C, typename A>
+    void save(save_buffer &ab, std::map<K, V, C, A> const &m) {
         ab.save_box_lambda("_s:map", [&]() {
             ab.append_size_t(m.size());
             for (auto const &[k, v] : m) {
@@ -17,8 +17,8 @@ namespace planet::serialise {
             }
         });
     }
-    template<typename K, typename V>
-    void load(load_buffer &lb, std::map<K, V> &m) {
+    template<typename K, typename V, typename C, typename A>
+    void load(load_buffer &lb, std::map<K, V, C, A> &m) {
         m.clear();
         auto box = load_type<serialise::box>(lb);
         box.check_name_or_throw("_s:map");
