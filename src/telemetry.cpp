@@ -356,6 +356,17 @@ bool planet::telemetry::timestamps::is_set(std::string_view const key) const {
 }
 
 
+auto planet::telemetry::timestamps::times_for(std::string_view const key) const
+        -> std::optional<stamps> {
+    auto pos = history.find(key);
+    if (pos == history.end()) {
+        return {};
+    } else {
+        return pos->second;
+    }
+}
+
+
 void planet::telemetry::save(
         planet::serialise::save_buffer &sb,
         planet::telemetry::timestamps::stamps const &s) {
@@ -368,8 +379,9 @@ void planet::telemetry::load(
 
 void planet::telemetry::save(
         planet::serialise::save_buffer &sb, timestamps const &t) {
-    sb.save_box(t.box, t.history);
+    sb.save_box(t.box, t.name(), t.history);
 }
 void planet::telemetry::load(planet::serialise::box &b, timestamps &t) {
-    b.named(t.box, t.history);
+    std::string id;
+    b.named(t.box, id, t.history);
 }

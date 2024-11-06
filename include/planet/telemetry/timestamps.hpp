@@ -23,6 +23,7 @@ namespace planet::telemetry {
      * serialised along with the other telemetry types.
      */
     class timestamps : public id {
+      public:
         static constexpr std::string_view box{"_p:t:timestamps"};
 
 
@@ -33,11 +34,13 @@ namespace planet::telemetry {
             std::chrono::system_clock::time_point first =
                     std::chrono::system_clock::now();
             std::optional<std::chrono::system_clock::time_point> last = first;
+
+
+            friend bool operator==(stamps const &, stamps const &) noexcept =
+                    default;
         };
-        std::map<std::string, stamps, std::less<>> history;
 
 
-      public:
         timestamps(std::string_view);
 
 
@@ -52,11 +55,19 @@ namespace planet::telemetry {
         bool is_set(std::string_view) const;
 
 
+        /// ### Return the time information for the key
+        std::optional<stamps> times_for(std::string_view) const;
+
+
         /// ### Serialisation
         friend void save(planet::serialise::save_buffer &, stamps const &);
         friend void load(planet::serialise::box &, stamps &);
         friend void save(planet::serialise::save_buffer &, timestamps const &);
         friend void load(planet::serialise::box &, timestamps &);
+
+
+      private:
+        std::map<std::string, stamps, std::less<>> history;
     };
     void save(planet::serialise::save_buffer &, timestamps::stamps const &);
     void load(planet::serialise::box &, timestamps::stamps &);
