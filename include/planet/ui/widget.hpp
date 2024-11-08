@@ -26,6 +26,12 @@ namespace planet::ui {
          *
          * Enabled widgets will accept input from the baseplate. Widgets are by
          * default enabled.
+         *
+         * For the widget to respond to input it must be added to a baseplate
+         * using `add_to`.
+         *
+         * A common bug in sub-classes is to forget that the move constructor
+         * needs to `post` the `behaviour` back into the `response`.
          */
         widget(widget const &) = delete;
         widget(widget &&w)
@@ -150,7 +156,13 @@ namespace planet::ui {
         virtual affine::rectangle2d do_move_sub_elements(
                 reflow_parameters const &p, affine::rectangle2d const &) = 0;
 
-        /// ### The coroutine for the behaviour
+        /**
+         * ### The coroutine for the behaviour
+         *
+         * The `behaviour` method is run within `reponse`, and is started by the
+         * `add_to` method after the baseplate has been set. (Final) sub-classes
+         * will need to post a new behaviour after being moved.
+         */
         felspar::coro::eager<> response;
 
 
