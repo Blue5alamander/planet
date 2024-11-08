@@ -8,13 +8,20 @@ namespace planet::widget {
 
 
     template<typename Texture>
-    class checkbox final : public ui::widget {
-      public:
+    struct checkbox final : public ui::widget {
+        using constrained_type = widget::constrained_type;
+
+
         checkbox(std::string_view const n, Texture on, Texture off, bool &v)
         : widget{n}, on{std::move(on)}, off{std::move(off)}, value{v} {}
 
-
-        using constrained_type = widget::constrained_type;
+        checkbox(checkbox &&cb)
+        : widget{std::move(cb)},
+          on{std::move(cb.on)},
+          off{std::move(cb.off)},
+          value{cb.value} {
+            if (has_baseplate()) { response.post(behaviour()); }
+        }
 
 
         Texture on, off;
