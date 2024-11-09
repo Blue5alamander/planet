@@ -259,7 +259,7 @@ namespace planet::ecs {
                 kill(entity_id const &eid,
                      felspar::source_location const &loc =
                              felspar::source_location::current()) {
-            assert_entities(eid, loc);
+            assert_entities();
             entities->kill(eid, loc);
         }
 
