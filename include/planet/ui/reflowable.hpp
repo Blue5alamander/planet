@@ -93,12 +93,21 @@ namespace planet::ui {
         struct reflow_parameters {
             constrained_type screen;
 
+            /// ##### Ensure that `r` is within the `screen`
             affine::rectangle2d within(affine::rectangle2d r) const noexcept {
+                /**
+                 * The calculations here assume that the rectangle `r` isn't too
+                 * large to fit inside the `screen` size.
+                 */
                 if (r.top_left.x() + r.extents.width > screen.width.max()) {
                     r.top_left.x(screen.width.max() - r.extents.width);
+                } else if (r.top_left.x() < screen.width.min()) {
+                    r.top_left.x(screen.width.min());
                 }
-                if (r.top_left.y() - r.extents.height < screen.height.min()) {
-                    r.top_left.y(screen.height.min() + r.extents.height);
+                if (r.top_left.y() + r.extents.height > screen.height.max()) {
+                    r.top_left.y(screen.height.max() - r.extents.height);
+                } else if (r.top_left.y() < screen.height.min()) {
+                    r.top_left.y(screen.height.min());
                 }
                 return r;
             }
