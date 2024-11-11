@@ -30,6 +30,11 @@ namespace {
                 case serialise::marker::b_true: std::cout << "true\n"; break;
                 case serialise::marker::b_false: std::cout << "false\n"; break;
 
+                case serialise::marker::u8:
+                    std::cout
+                            << static_cast<unsigned>(lb.extract<std::uint8_t>())
+                            << ' ' << to_string(m) << '\n';
+                    break;
                 case serialise::marker::i32le:
                     std::cout << lb.extract<std::int32_t>() << ' '
                               << to_string(m) << '\n';
@@ -56,6 +61,16 @@ namespace {
                     }
                     break;
                 }
+
+                case serialise::marker::u8string8: {
+                    std::string str;
+                    auto const sz = lb.extract_size_t();
+                    auto const b = lb.split(sz);
+                    str = {reinterpret_cast<char const *>(b.data()), b.size()};
+                    std::cout << str << '\n';
+                    break;
+                }
+
 
                 default:
                     std::cerr << "unknown marker " << to_string(m) << " - 0x"
