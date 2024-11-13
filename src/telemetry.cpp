@@ -187,7 +187,7 @@ planet::telemetry::performance::performance(std::string_view const n)
     auto &perfs = g_perfs();
     auto pos =
             std::lower_bound(perfs.begin(), perfs.end(), n, [](auto p, auto v) {
-                return v < p->name();
+                return v > p->name();
             });
     if (pos != perfs.end() and (*pos)->name() == n) {
         throw felspar::stdexcept::logic_error{
