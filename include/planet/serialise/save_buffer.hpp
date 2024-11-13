@@ -120,5 +120,12 @@ namespace planet::serialise {
                 reinterpret_cast<char const *>(bytes.data()), bytes.size());
     }
 
+    template<typename V1, typename V2, typename... Vs>
+    inline auto save(save_buffer &sb, V1 &v1, V2 &v2, Vs &...vs) {
+        save(sb, v1);
+        save(sb, v2);
+        (save(sb, vs), ...);
+    }
+
 
 }
