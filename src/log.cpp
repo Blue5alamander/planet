@@ -281,12 +281,13 @@ namespace {
                         case planet::log::level::error: ++error_count; break;
                         case planet::log::level::critical:
                             /**
-                             * TODO We should probably print write the rest of
-                             * the log messages we have before we exit the game.
+                             * TODO We should probably print the rest of the log
+                             * messages we have before we exit the game.
                              */
-                            print_performance();
                             std::cout << "\33[0;31mCritical log message "
-                                         "forcing unclean shutdown\33[0;39m\n";
+                                         "forcing unclean shutdown\33[0;39m"
+                                      << std::endl;
+                            print_performance();
                             for (auto *flushing : std::array{
                                          planet::log::profile_output.load(),
                                          planet::log::log_output.load()}) {
