@@ -8,6 +8,9 @@
 #include <vector>
 
 
+using namespace std::literals;
+
+
 namespace {
     template<typename... Fields>
     bool load_performance_measurement(
@@ -322,6 +325,45 @@ namespace {
                 double value;
                 box.named(planet::telemetry::real_time_rate::box, name, value);
                 os << name << " = " << value << "/s";
+            });
+}
+
+
+// ## `planet::telemetry::time`
+
+
+bool planet::telemetry::time::save(serialise::save_buffer &ab) const {
+    auto const c = ns.load();
+    if (c != 0) {
+        ab.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::time::load(measurements &pd) {
+    std::int64_t c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        ns += c;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+namespace {
+    auto const time_print = planet::log::format(
+            planet::telemetry::time::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::int64_t count;
+                box.named(planet::telemetry::time::box, name, count);
+                std::chrono::nanoseconds const ns{count};
+
+                os << name << " = " << std::fixed
+                   << static_cast<double>(count / 1e9) << std::defaultfloat
+                   << 's';
             });
 }
 
