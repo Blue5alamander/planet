@@ -13,6 +13,16 @@ namespace planet::time {
 
 
     /// ## Clock
+    /**
+     * This clock is intended for game time, and as such the time must be
+     * advanced by the game code. This means the clock is completely isolated
+     * from the actual passage of time in the real world meaning it can be
+     * paused or run faster as the game requires.
+     *
+     * Time is moved forwards using one of the `advance_` functions. Game code
+     * can also wait for a given time or duration using the `wake_at` or `sleep`
+     * functions.
+     */
     class clock {
       public:
         using rep = std::uint64_t;
@@ -24,8 +34,10 @@ namespace planet::time {
         /// ### Construct a new clock starting at time zero
         clock();
 
+
         /// ### Return the current time
         time_point now() const noexcept { return time; }
+
 
         /// ### Have a coroutine wait for a given time
         struct awaitable {
