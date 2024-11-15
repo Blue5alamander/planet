@@ -212,6 +212,12 @@ namespace planet::serialise {
         load(v, s);
         return s;
     }
+    /**
+     * TODO This looks wrong enough it should probably be removed and/or
+     * changed. It appears that this really ought to load from the box content,
+     * as loading from a `box` directly will assume that we've got a box type
+     * whose name we're now going to check in the called `load` function.
+     */
     template<typename S>
     S load_type(box &b) {
         S s;
