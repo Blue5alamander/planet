@@ -86,7 +86,7 @@ void planet::serialise::box::check_name_or_throw(
 
 void planet::serialise::box::check_empty_or_throw(
         felspar::source_location const &loc) const {
-    if (not content.empty()) { throw box_not_empty{loc}; }
+    if (not content.empty()) { throw box_not_empty{*this, loc}; }
 }
 
 
@@ -368,9 +368,12 @@ planet::serialise::box_name_length::box_name_length(
 
 
 planet::serialise::box_not_empty::box_not_empty(
-        felspar::source_location const &loc)
+        box const &b, felspar::source_location const &loc)
 : serialisation_error{
-          "The box was not empty after loading all data from it", loc} {}
+          "The box was not empty after loading all data from it\n"
+          "Box content: "
+                  + std::string{felspar::memory::hexdump(b.content.cmemory())},
+          loc} {}
 
 
 planet::serialise::buffer_not_big_enough::buffer_not_big_enough(

@@ -77,6 +77,7 @@ namespace planet::serialise {
     class box_not_empty : public serialisation_error {
       public:
         box_not_empty(
+                box const &,
                 felspar::source_location const & =
                         felspar::source_location::current());
     };
