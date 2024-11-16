@@ -57,11 +57,17 @@ namespace planet::serialise {
     };
 
 
-    /// ### The version number isn't supported
+    /**
+     * ### The version number isn't supported
+     *
+     * Pass it the box and the highest supported version number. This error can
+     * also be thrown through a method on the `box` type.
+     */
     class unsupported_version_number : public serialisation_error {
       public:
         unsupported_version_number(
                 box const &,
+                std::uint8_t,
                 felspar::source_location const & =
                         felspar::source_location::current());
     };

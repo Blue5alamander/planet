@@ -176,6 +176,19 @@ namespace planet::serialise {
         void fields(Args &...args) {
             (load(content, args), ...);
         }
+
+
+        /**
+         * #### The version number isn't supported
+         *
+         * Pass it the highest version number that is supported.
+         */
+        [[noreturn]] void throw_unsupported_version(
+                std::uint8_t const highest,
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) const {
+            throw unsupported_version_number{*this, highest, loc};
+        }
     };
     void load(load_buffer &, box &);
 

@@ -400,11 +400,14 @@ void planet::serialise::detail::throw_invalid_charsize(
 
 
 planet::serialise::unsupported_version_number::unsupported_version_number(
-        box const &b, felspar::source_location const &loc)
+        box const &b,
+        std::uint8_t const highest,
+        felspar::source_location const &loc)
 : serialisation_error{
-          "This version number is not supported in this box\nUnsupported "
-          "version: "
-                  + std::to_string(b.version),
+          "Unsupported version number in box\n"
+          "Unsupported version "
+                  + std::to_string(b.version) + ", and only up to "
+                  + std::to_string(highest) + " is supported",
           loc} {
     inside_box(b.name);
 }
