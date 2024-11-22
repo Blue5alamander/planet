@@ -213,7 +213,7 @@ namespace {
             co_await terminate.read_some(buffer);
         }
 
-        void print_performance() {
+        void print_performance(std::scoped_lock<std::mutex> *lock = nullptr) {
             planet::telemetry::performance::current_values(
                     planet::log::detail::ab);
             auto const bytes = planet::log::detail::ab.complete();
@@ -225,8 +225,12 @@ namespace {
                                      / 1e9)
                           << "\33[0;39m\n  ";
                 planet::serialise::load_buffer lb{bytes.cmemory()};
-                std::scoped_lock _{printers_mutex()};
-                show(lb, 0, "\n  ");
+                if (lock) {
+                    show(lb, 0, "\n  ");
+                } else {
+                    std::scoped_lock _{printers_mutex()};
+                    show(lb, 0, "\n  ");
+                }
                 std::cout << std::endl;
             }
             {
@@ -261,7 +265,7 @@ namespace {
                     co_await signal.read_some(buffer);
                 } else {
                     auto out = planet::log::log_output.load();
-                    std::scoped_lock _{printers_mutex()};
+                    std::scoped_lock print_lock{printers_mutex()};
                     for (auto const &message : block) {
                         if (out) {
                             save(planet::log::detail::ab, message);
@@ -284,10 +288,10 @@ namespace {
                              * TODO We should probably print the rest of the log
                              * messages we have before we exit the game.
                              */
-                            std::cout << "\33[0;31mCritical log message "
-                                         "forcing unclean shutdown\33[0;39m"
-                                      << std::endl;
-                            print_performance();
+                            std::cout
+                                    << "\33[0;31mA Critical log message is forcing an unclean shutdown\33[0;39m"
+                                    << std::endl;
+                            print_performance(&print_lock);
                             for (auto *flushing : std::array{
                                          planet::log::profile_output.load(),
                                          planet::log::log_output.load()}) {
