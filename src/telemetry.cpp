@@ -165,6 +165,54 @@ planet::telemetry::id::id(std::string n, suffix const s)
 : m_name{s == suffix::yes ? (n + "__" + create_suffix()) : std::move(n)} {}
 
 
+/// ## `planet::telemetry::max`
+
+
+void planet::telemetry::max::value(value_type const v) noexcept {
+    while (true) {
+        auto const old = m_value.load();
+        auto const m = std::max(old, v);
+        if (m == old) {
+            return;
+        } else if (m_value.exchange(v) == old) {
+            return;
+        }
+    }
+}
+
+
+bool planet::telemetry::max::save(serialise::save_buffer &sb) const {
+    auto const c = m_value.load();
+    if (c != minimum) {
+        sb.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::max::load(measurements &pd) {
+    value_type c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        value(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+namespace {
+    auto const max_print = planet::log::format(
+            planet::telemetry::max::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::uint64_t value;
+                box.named(planet::telemetry::max::box, name, value);
+                os << name << " = " << value;
+            });
+}
+
+
 /// ## `planet::telemetry::performance`
 
 
