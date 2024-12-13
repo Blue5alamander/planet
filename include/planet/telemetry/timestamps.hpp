@@ -20,7 +20,8 @@ namespace planet::telemetry {
      * dialogue boxes.
      *
      * The stored timestamps are not performance data, so they are not
-     * serialised along with the other telemetry types.
+     * serialised along with the other telemetry types -- they must be
+     * serialised as normal data fields.
      */
     class timestamps : public id {
       public:
@@ -33,7 +34,7 @@ namespace planet::telemetry {
 
             std::chrono::system_clock::time_point first =
                     std::chrono::system_clock::now();
-            std::optional<std::chrono::system_clock::time_point> last = first;
+            std::optional<std::chrono::system_clock::time_point> last;
 
 
             friend bool operator==(stamps const &, stamps const &) noexcept =
@@ -45,8 +46,15 @@ namespace planet::telemetry {
 
 
         /// ### Changing timestamps
+
         /// #### Set a timestamp for the provided key
         void set(std::string_view);
+        /**
+         * If the key has not previously been set then a new `stamp` is
+         * recorded. If the key has previously been set then only the
+         * `stamp::last` time is updated.
+         */
+
         /// #### Unset a timestamp
         void unset(std::string_view);
 

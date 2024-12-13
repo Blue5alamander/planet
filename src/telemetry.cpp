@@ -431,18 +431,12 @@ void planet::telemetry::timestamps::set(std::string_view key) {
     }
 }
 void planet::telemetry::timestamps::unset(std::string_view const key) {
-    auto pos = history.find(key);
-    if (pos != history.end()) { pos->second.last = {}; }
+    history.erase(history.find(key));
 }
 
 
 bool planet::telemetry::timestamps::is_set(std::string_view const key) const {
-    auto pos = history.find(key);
-    if (pos == history.end()) {
-        return false;
-    } else {
-        return pos->second.last.has_value();
-    }
+    return history.find(key) != history.end();
 }
 
 
