@@ -9,9 +9,10 @@
 namespace planet::audio {
 
 
-    /// ## Audio channel
     /**
-     * Abstracts out the notion of a particular audio output with its own gain.
+     * ## Audio channel
+     *
+     * An audio pathway with a gain that can be altered in real time.
      */
     class channel {
         dB_gain db_g;
