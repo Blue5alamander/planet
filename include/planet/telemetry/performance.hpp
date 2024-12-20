@@ -42,9 +42,9 @@ namespace planet::telemetry {
          * buffer.
          *
          * Performance counters are always saved into a box whose name gives the
-         * type of counter. The first field in the box is always being the
-         * counter's name. The following data is the measurements and the format
-         * is determined by the box name.
+         * type of counter. The first field in the box is always the counter's
+         * name. The following data is the measurements and the format is
+         * determined by the box name.
          */
 
         /// #### Load performance counters
