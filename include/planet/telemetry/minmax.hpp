@@ -38,4 +38,7 @@ namespace planet::telemetry {
     };
 
 
+    /// TODO `min` type
+
+
 }
