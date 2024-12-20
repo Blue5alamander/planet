@@ -22,6 +22,8 @@ namespace planet::telemetry {
      * The stored timestamps are not performance data, so they are not
      * serialised along with the other telemetry types -- they must be
      * serialised as normal data fields.
+     *
+     * **NB**: This type is **not** thread safe
      */
     class timestamps : public id {
       public:
