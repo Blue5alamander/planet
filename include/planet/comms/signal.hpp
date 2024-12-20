@@ -14,8 +14,10 @@ namespace planet::comms {
       public:
         signal(felspar::io::warden &);
 
+
         /// ### Send a signal to the far end of the pipe
         void send(std::byte);
+
 
         /// ### Read signals
         auto read_some(std::span<std::byte> b) { return pipe.read_some(b); }
