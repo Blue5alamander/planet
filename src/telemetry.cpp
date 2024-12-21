@@ -494,3 +494,46 @@ void planet::telemetry::load(planet::serialise::box &b, timestamps &t) {
     std::string id;
     b.named(t.box, id, t.history);
 }
+
+
+namespace {
+    std::ostream &
+            print(std::ostream &os,
+                  planet::telemetry::timestamps::stamps const &s) {
+        os << "first = " << s.first.time_since_epoch().count();
+        if (s.last) {
+            os << " last = " << s.last.value().time_since_epoch().count();
+        }
+        return os;
+    }
+    auto const timestamps_print = planet::log::format(
+            planet::telemetry::timestamps::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::map<
+                        std::string, planet::telemetry::timestamps::stamps,
+                        std::less<>>
+                        timestamps;
+                box.named(planet::telemetry::timestamps::box, name, timestamps);
+                if (timestamps.size() == 0) {
+                    os << name << " (empty)";
+                } else if (timestamps.size() == 1) {
+                    os << name << ' ' << timestamps.begin()->first << ' ';
+                    print(os, timestamps.begin()->second);
+                } else {
+                    os << name << '\n';
+                    for (auto const &[n, s] : timestamps) {
+                        os << "    " << n << ' ';
+                        print(os, s);
+                        os << '\n';
+                    }
+                }
+            });
+    auto const timestamps_stamp_print = planet::log::format(
+            planet::telemetry::timestamps::stamps::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                planet::telemetry::timestamps::stamps s;
+                load(box, s);
+                print(os, s);
+            });
+}
