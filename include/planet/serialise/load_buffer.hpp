@@ -190,23 +190,16 @@ namespace planet::serialise {
             throw unsupported_version_number{*this, highest, loc};
         }
     };
-    void load(load_buffer &, box &);
 
 
-    template<typename... Args>
-    void load_buffer::load_box(std::string_view const name, Args &...args) {
-        load_type<box>(*this).named(name, args...);
-    }
-    template<typename... Args>
-    void load_buffer::load_fields(Args &...args) {
-        (load(*this, args), ...);
-    }
-
-
-    inline void load(load_buffer &l, box &b) {
+    inline box expect_box(
+            load_buffer &l,
+            felspar::source_location const &loc =
+                    felspar::source_location::current()) {
+        box b;
         auto const mark = l.extract_marker();
         if (not is_box_marker(mark)) {
-            throw wanted_box{l.cmemory(), mark};
+            throw wanted_box{l.cmemory(), mark, loc};
         } else {
             auto const name_bytes = l.split(static_cast<std::uint8_t>(mark));
             b.name = {
@@ -216,29 +209,34 @@ namespace planet::serialise {
             auto const bytes = l.extract_size_t();
             b.content = load_buffer{l.split(bytes)};
         }
+        return b;
+    }
+
+
+    template<typename... Args>
+    void load_buffer::load_box(std::string_view const name, Args &...args) {
+        expect_box(*this).named(name, args...);
+    }
+    template<typename... Args>
+    void load_buffer::load_fields(Args &...args) {
+        (load(*this, args), ...);
     }
 
 
     template<typename S>
-    S load_type(load_buffer &v) {
-        S s;
-        load(v, s);
-        return s;
-    }
-    /**
-     * TODO This looks wrong enough it should probably be removed and/or
-     * changed. It appears that this really ought to load from the box content,
-     * as loading from a `box` directly will assume that we've got a box type
-     * whose name we're now going to check in the called `load` function.
-     */
-    template<typename S>
-    S load_type(box &b) {
+    inline S load_from_box(box &b) {
         S s;
         load(b, s);
         return s;
     }
     template<typename S>
-    S load_type(shared_byte_view v) {
+    inline S load_type(load_buffer &v) {
+        S s;
+        load(v, s);
+        return s;
+    }
+    template<typename S>
+    inline S load_type(shared_byte_view v) {
         auto b = load_buffer{v.cmemory()};
         auto s{load_type<S>(b)};
         if (not b.empty()) {
@@ -260,10 +258,14 @@ namespace planet::serialise {
      * templates, even when restricted by concepts.
      */
     template<typename T>
-    void load(load_buffer &lb, T &t)
+    void
+            load(load_buffer &lb,
+                 T &t,
+                 felspar::source_location const &loc =
+                         felspar::source_location::current())
         requires(not felspar::parse::concepts::numeric<T>)
     {
-        auto b = load_type<box>(lb);
+        auto b = expect_box(lb, loc);
         load(b, t);
     }
 

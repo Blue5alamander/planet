@@ -22,7 +22,15 @@ namespace {
                 std::cout << " (empty)\n";
             }
         } else if (box.name == "_s:map") {
-            auto const entries = box.content.extract_size_t();
+            auto const entries = [&]() {
+                if (box.version == 2) {
+                    return load_type<std::size_t>(box.content);
+                } else if (box.version == 1) {
+                    return box.content.extract_size_t();
+                } else {
+                    box.throw_unsupported_version(2);
+                }
+            }();
             std::cout << " with " << entries << " entries\n";
             show(box.content, depth + 1);
         } else {
@@ -36,7 +44,7 @@ namespace {
 
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
             if (mv > 0 and mv < 80) {
-                auto box = load_type<planet::serialise::box>(lb);
+                auto box = expect_box(lb);
                 show(box, depth);
             } else {
                 auto const m = lb.extract_marker();

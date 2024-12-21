@@ -20,21 +20,19 @@ namespace planet::serialise {
     template<typename K, typename V, typename C, typename A>
     void load(load_buffer &lb, std::map<K, V, C, A> &m) {
         m.clear();
-        auto box = load_type<serialise::box>(lb);
+        auto box = expect_box(lb);
         box.check_name_or_throw("_s:map");
-        if (box.version == 2) {
-            std::size_t count;
-            load(box.content, count);
-            while (m.size() < count) {
-                load(box.content, m[load_type<K>(box.content)]);
+        auto const count = [&]() {
+            if (box.version == 2) {
+                return load_type<std::size_t>(box.content);
+            } else if (box.version == 1) {
+                return box.content.extract_size_t();
+            } else {
+                box.throw_unsupported_version(2);
             }
-        } else if (box.version == 1) {
-            auto const count = box.content.extract_size_t();
-            while (m.size() < count) {
-                load(box.content, m[load_type<K>(box.content)]);
-            }
-        } else {
-            box.throw_unsupported_version(2);
+        }();
+        while (m.size() < count) {
+            load(box.content, m[load_type<K>(box.content)]);
         }
         box.check_empty_or_throw();
     }

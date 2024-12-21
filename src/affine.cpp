@@ -14,7 +14,7 @@ void planet::affine::load(serialise::box &box, extents2d &t) {
 }
 namespace {
     auto const e2 = planet::log::format("_p:a:e2", [](auto &os, auto &box) {
-        os << planet::serialise::load_type<planet::affine::extents2d>(box);
+        os << planet::serialise::load_from_box<planet::affine::extents2d>(box);
     });
 }
 
@@ -37,7 +37,7 @@ void planet::affine::load(serialise::box &box, point2d &p) {
 }
 namespace {
     auto const p2 = planet::log::format("_p:a:p2", [](auto &os, auto &box) {
-        os << planet::serialise::load_type<planet::affine::point2d>(box);
+        os << planet::serialise::load_from_box<planet::affine::point2d>(box);
     });
 }
 
@@ -50,7 +50,8 @@ void planet::affine::load(serialise::box &box, rectangle2d &t) {
 }
 namespace {
     auto const r2 = planet::log::format("_p:a:r2", [](auto &os, auto &box) {
-        os << planet::serialise::load_type<planet::affine::rectangle2d>(box);
+        os << planet::serialise::load_from_box<planet::affine::rectangle2d>(
+                box);
     });
 }
 

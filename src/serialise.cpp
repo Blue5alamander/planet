@@ -51,9 +51,7 @@ felspar::io::warden::task<void>
             for (auto &&b : processing) {
                 planet::serialise::load_buffer lb{b.cmemory()};
                 while (not lb.empty()) {
-                    auto box =
-                            planet::serialise::load_type<planet::serialise::box>(
-                                    lb);
+                    auto box = planet::serialise::expect_box(lb);
                     queue_for(box.name).push({std::move(box), b});
                     ++enqueued;
                 }

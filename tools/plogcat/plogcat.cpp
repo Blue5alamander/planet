@@ -47,8 +47,7 @@ int main(int argc, char const *argv[]) {
             planet::serialise::load_buffer lb{filedata};
 
             while (lb.size()) {
-                auto box = planet::serialise::load_type<planet::serialise::box>(
-                        lb);
+                auto box = planet::serialise::expect_box(lb);
                 if (box.name == "_p:log:h") {
                     planet::log::load_fields(box, header);
                 } else if (box.name == "_p:log:m") {
@@ -95,8 +94,7 @@ int main(int argc, char const *argv[]) {
                     load(box.content, payload);
                     planet::serialise::load_buffer lb{payload};
                     while (lb.size()) {
-                        auto counter = planet::serialise::load_type<
-                                planet::serialise::box>(lb);
+                        auto counter = planet::serialise::expect_box(lb);
                         planet::log::pretty_print(counter);
                         std::cout << '\n';
                     }

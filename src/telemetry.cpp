@@ -87,7 +87,7 @@ std::size_t planet::telemetry::detail::save_performance(
 
 std::size_t planet::telemetry::detail::load_performance(
         serialise::load_buffer &lb, std::span<performance *> const pcs) {
-    auto box = serialise::load_type<serialise::box>(lb);
+    auto box = serialise::expect_box(lb);
     box.check_name_or_throw(measurements_box);
     auto map = performance::saved_measurements(box.content);
     std::size_t count{};
@@ -266,7 +266,7 @@ auto planet::telemetry::performance::saved_measurements(
         serialise::load_buffer &lb) -> measurements {
     measurements map;
     while (not lb.empty()) {
-        auto box = serialise::load_type<serialise::box>(lb);
+        auto box = serialise::expect_box(lb);
         std::string name;
         serialise::load(box.content, name);
         map.insert(std::pair{std::move(name), std::move(box)});

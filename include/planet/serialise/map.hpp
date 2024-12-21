@@ -57,7 +57,7 @@ namespace planet::map {
          * to load in -- this will overwrite the saved fields in the chunk's
          * data type and leave the others as if it was a fresh world.
          */
-        auto box = serialise::load_type<serialise::box>(lb);
+        auto box = serialise::expect_box(lb);
         box.check_name_or_throw("_p:m:world");
         box.content.check_marker(serialise::marker::poly_list);
         auto const items = box.content.extract_size_t();

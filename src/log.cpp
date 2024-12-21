@@ -53,7 +53,13 @@ namespace {
                       << b.content.size() << " bytes\n";
             show(b.content, depth + 1, separator);
         } else {
-            printer->second->print(std::cout, b);
+            try {
+                printer->second->print(std::cout, b);
+            } catch (std::exception const &e) {
+                std::cout << "Error formatting output for box " << b.name
+                          << '\n'
+                          << e.what() << '\n';
+            }
         }
     }
     void
@@ -64,7 +70,7 @@ namespace {
         while (not lb.empty()) {
             auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
             if (mv > 0 and mv < 80) {
-                auto b = load_type<planet::serialise::box>(lb);
+                auto b = expect_box(lb);
                 show(b, depth, separator);
             } else {
                 auto const m = lb.extract_marker();
