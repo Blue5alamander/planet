@@ -419,7 +419,8 @@ namespace {
 // ## `planet::telemetry::timestamps`
 
 
-planet::telemetry::timestamps::timestamps(std::string_view const n) : id{n} {}
+planet::telemetry::timestamps::timestamps(std::string_view const n)
+: performance{n} {}
 
 
 void planet::telemetry::timestamps::set(std::string_view key) {
@@ -451,6 +452,34 @@ auto planet::telemetry::timestamps::times_for(std::string_view const key) const
 }
 
 
+bool planet::telemetry::timestamps::save(serialise::save_buffer &sb) const {
+    std::scoped_lock _{mutex};
+    if (history.size()) {
+        sb.save_box(box, name(), history);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::timestamps::load(measurements &pd) {
+    std::map<std::string, stamps, std::less<>> m;
+    if (load_performance_measurement(pd, name(), box, m)) {
+        std::scoped_lock _{mutex};
+        for (auto const &[k, v] : m) {
+            if (auto pos = history.find(k); pos == history.end()) {
+                history[k] = v;
+            } else {
+                pos->second.first = std::min(pos->second.first, v.first);
+                pos->second.last = std::max(pos->second.last, v.last);
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 void planet::telemetry::save(
         planet::serialise::save_buffer &sb,
         planet::telemetry::timestamps::stamps const &s) {
@@ -461,10 +490,6 @@ void planet::telemetry::load(
     b.named(s.box, s.first, s.last);
 }
 
-void planet::telemetry::save(
-        planet::serialise::save_buffer &sb, timestamps const &t) {
-    sb.save_box(t.box, t.name(), t.history);
-}
 void planet::telemetry::load(planet::serialise::box &b, timestamps &t) {
     std::string id;
     b.named(t.box, id, t.history);

@@ -1,11 +1,11 @@
 #pragma once
 
 
-#include <planet/serialise/forward.hpp>
-#include <planet/telemetry/id.hpp>
+#include <planet/telemetry/performance.hpp>
 
 #include <chrono>
 #include <map>
+#include <mutex>
 #include <string>
 
 
@@ -18,14 +18,8 @@ namespace planet::telemetry {
      * Stores timestamps when a particular key has been presented to the user.
      * Designed for tutorial hints and "don't show this again" checkboxes on
      * dialogue boxes.
-     *
-     * The stored timestamps are not performance data, so they are not
-     * serialised along with the other telemetry types -- they must be
-     * serialised as normal data fields.
-     *
-     * **NB**: This type is **not** thread safe
      */
-    class timestamps : public id {
+    class timestamps final : public performance {
       public:
         static constexpr std::string_view box{"_p:t:timestamps"};
 
@@ -72,16 +66,18 @@ namespace planet::telemetry {
         /// ### Serialisation
         friend void save(planet::serialise::save_buffer &, stamps const &);
         friend void load(planet::serialise::box &, stamps &);
-        friend void save(planet::serialise::save_buffer &, timestamps const &);
         friend void load(planet::serialise::box &, timestamps &);
 
 
       private:
+        mutable std::mutex mutex;
         std::map<std::string, stamps, std::less<>> history;
+
+        bool save(serialise::save_buffer &) const override;
+        bool load(measurements &) override;
     };
     void save(planet::serialise::save_buffer &, timestamps::stamps const &);
     void load(planet::serialise::box &, timestamps::stamps &);
-    void save(planet::serialise::save_buffer &, timestamps const &);
     void load(planet::serialise::box &, timestamps &);
 
 
