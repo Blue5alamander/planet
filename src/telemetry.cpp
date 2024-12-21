@@ -500,6 +500,10 @@ namespace {
     std::ostream &
             print(std::ostream &os,
                   planet::telemetry::timestamps::stamps const &s) {
+        /**
+         * TODO We really want to have a better display of the time stamp,
+         * ideally as local time, or UTC or something.
+         */
         os << "first = " << s.first.time_since_epoch().count();
         if (s.last) {
             os << " last = " << s.last.value().time_since_epoch().count();
