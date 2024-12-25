@@ -406,7 +406,7 @@ auto planet::log::counters::current() noexcept -> counters {
 
 
 void planet::log::write_file_headers() {
-    detail::ab.save_box(file_header::box, g_start_time(), log_root_directory);
+    write_file_headers(detail::ab);
     auto const bytes = detail::ab.complete();
     for (auto *out : std::array{
                  planet::log::log_output.load(),
@@ -416,6 +416,9 @@ void planet::log::write_file_headers() {
                     reinterpret_cast<char const *>(bytes.data()), bytes.size());
         }
     }
+}
+void planet::log::write_file_headers(serialise::save_buffer &sb) {
+    sb.save_box(file_header::box, g_start_time(), log_root_directory);
 }
 void planet::log::load_fields(serialise::box &b, file_header &f) {
     b.fields(f.base_time, f.file_prefix);

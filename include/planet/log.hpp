@@ -293,6 +293,15 @@ namespace planet::log {
 
 
     /// ### Write log file header
+
+    /// #### To `save_buffer`
+    void write_file_headers(serialise::save_buffer &);
+    /**
+     * Write the `file_header` structure, filled in with the relevant logging
+     * information, to the save buffer.
+     */
+
+    /// #### To the current log files
     void write_file_headers();
     /**
      * Calling this will write a header to the log file containing information
