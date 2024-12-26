@@ -86,10 +86,6 @@ namespace {
                     break;
                 }
 
-                case planet::serialise::marker::u8:
-                    std::cout << std::to_string(lb.extract<std::uint8_t>());
-                    break;
-
                 case planet::serialise::marker::b_true:
                     std::cout << "true";
                     break;
@@ -97,6 +93,18 @@ namespace {
                     std::cout << "false";
                     break;
 
+                case planet::serialise::marker::i8:
+                    std::cout << std::to_string(lb.extract<std::int8_t>());
+                    break;
+                case planet::serialise::marker::u8:
+                    std::cout << std::to_string(lb.extract<std::uint8_t>());
+                    break;
+                case planet::serialise::marker::i16le:
+                    std::cout << std::to_string(lb.extract<std::int16_t>());
+                    break;
+                case planet::serialise::marker::u16le:
+                    std::cout << std::to_string(lb.extract<std::uint16_t>());
+                    break;
                 case planet::serialise::marker::i32le:
                     std::cout << std::to_string(lb.extract<std::int32_t>());
                     break;
