@@ -23,6 +23,7 @@ add_library(planet
         telemetry.cpp
         time.cpp
         ui.cpp
+        version.cpp
     )
 target_include_directories(planet PUBLIC ../include/)
 target_compile_definitions(planet PRIVATE

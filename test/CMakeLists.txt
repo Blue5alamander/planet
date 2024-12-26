@@ -22,4 +22,5 @@ add_test_run(check planet TESTS
         scaling.tests.cpp
         telemetry.tests.cpp
         time.tests.cpp
+        version.tests.cpp
     )
