@@ -37,7 +37,21 @@ planet::version::version(
         std::string_view const id,
         std::string_view const sv,
         std::uint16_t const b)
-: application_id{id}, version_string{sv}, semver{parse(sv)}, build{b} {}
+: application_id{id},
+  version_string{sv},
+  application_folder{id},
+  semver{parse(sv)},
+  build{b} {}
+planet::version::version(
+        std::string_view const id,
+        std::string_view const dir,
+        std::string_view const sv,
+        std::uint16_t const b)
+: application_id{id},
+  version_string{sv},
+  application_folder{dir},
+  semver{parse(sv)},
+  build{b} {}
 
 
 std::ostream &planet::operator<<(std::ostream &os, version const &v) {
