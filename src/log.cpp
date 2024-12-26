@@ -49,8 +49,8 @@ namespace {
                  std::string_view const separator) {
         if (auto printer = printers().find(b.name);
             printer == printers().end()) {
-            std::cout << b.name << " v" << int(b.version) << " size "
-                      << b.content.size() << " bytes\n";
+            std::cout << b.name << " [v" << int(b.version) << " size "
+                      << b.content.size() << " bytes]\n";
             show(b.content, depth + 1, separator);
         } else {
             try {
@@ -127,7 +127,7 @@ namespace {
 
                 case planet::serialise::marker::poly_list: {
                     auto const count = lb.extract_size_t();
-                    std::cout << "(poly-list with " << count << " items)\n";
+                    std::cout << "[poly-list with " << count << " items]\n";
                     for (std::size_t index{}; index < count; ++index) {
                         show(lb, depth + 1, separator);
                     }
@@ -143,7 +143,7 @@ namespace {
                 }
 
                 default:
-                    std::cerr << "unknown marker [" << to_string(m) << " - 0x"
+                    std::cout << "unknown marker [" << to_string(m) << " - 0x"
                               << std::hex << static_cast<unsigned>(m)
                               << std::dec << ']';
                     return;
@@ -233,11 +233,11 @@ namespace {
             auto const bytes = planet::log::detail::ab.complete();
             planet::log::logged_performance_counters lgc{.counters = bytes};
             {
-                std::cout << "\33[0;32mPerformance counters "
+                std::cout << "\33[0;32m" << std::fixed
                           << static_cast<double>(
                                      (lgc.logged - g_start_time()).count()
-                                     / 1e9)
-                          << "\33[0;39m\n  ";
+                                     / 1e9) << std::defaultfloat
+                          << " Performance counters\33[0;39m\n  ";
                 planet::serialise::load_buffer lb{bytes.cmemory()};
                 if (lock) {
                     show(lb, 0, "\n  ");
