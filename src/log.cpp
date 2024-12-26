@@ -161,19 +161,19 @@ namespace {
                   << std::defaultfloat << ' ';
         switch (m.level) {
         case planet::log::level::debug:
-            std::cout << "\33[0;37mDBUG\33[0;39m ";
+            std::cout << "\33[0;37mDEBUG\33[0;39m ";
             break;
         case planet::log::level::info:
             std::cout << "\33[0;32mINFO\33[0;39m ";
             break;
         case planet::log::level::warning:
-            std::cout << "\33[1;33mWARN\33[0;39m ";
+            std::cout << "\33[1;33mWARNING\33[0;39m ";
             break;
         case planet::log::level::error:
-            std::cout << "\33[0;31mERRR\33[0;39m ";
+            std::cout << "\33[0;31mERROR\33[0;39m ";
             break;
         case planet::log::level::critical:
-            std::cout << "\33[0;31mCRIT\33[0;39m ";
+            std::cout << "\33[0;31mCRITICAL ERROR\33[0;39m ";
             break;
         }
         planet::serialise::load_buffer buffer{m.payload.cmemory()};
@@ -236,7 +236,8 @@ namespace {
                 std::cout << "\33[0;32m" << std::fixed
                           << static_cast<double>(
                                      (lgc.logged - g_start_time()).count()
-                                     / 1e9) << std::defaultfloat
+                                     / 1e9)
+                          << std::defaultfloat
                           << " Performance counters\33[0;39m\n  ";
                 planet::serialise::load_buffer lb{bytes.cmemory()};
                 if (lock) {
