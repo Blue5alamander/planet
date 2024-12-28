@@ -55,8 +55,8 @@ namespace planet {
 
 
         std::string application_id;
-        std::string version_string;
         std::string application_folder;
+        std::string version_string;
 
         planet::semver semver;
         std::uint16_t build;

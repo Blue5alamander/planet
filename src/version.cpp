@@ -38,8 +38,8 @@ planet::version::version(
         std::string_view const sv,
         std::uint16_t const b)
 : application_id{id},
-  version_string{sv},
   application_folder{id},
+  version_string{sv},
   semver{parse(sv)},
   build{b} {}
 planet::version::version(
@@ -48,8 +48,8 @@ planet::version::version(
         std::string_view const sv,
         std::uint16_t const b)
 : application_id{id},
-  version_string{sv},
   application_folder{dir},
+  version_string{sv},
   semver{parse(sv)},
   build{b} {}
 
