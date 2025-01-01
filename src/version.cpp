@@ -35,6 +35,13 @@ namespace {
 
 planet::version::version(
         std::string_view const id,
+        std::string_view const sv)
+: application_id{id},
+  application_folder{id},
+  version_string{sv},
+  semver{parse(sv)} {}
+planet::version::version(
+        std::string_view const id,
         std::string_view const sv,
         std::uint16_t const b)
 : application_id{id},
@@ -55,7 +62,9 @@ planet::version::version(
 
 
 std::ostream &planet::operator<<(std::ostream &os, version const &v) {
-    return os << v.version_string << " build " << v.build;
+    os << v.version_string;
+    if (v.build) { os << " build " << *v.build; }
+    return os;
 }
 
 
