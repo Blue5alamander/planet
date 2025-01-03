@@ -39,18 +39,24 @@ namespace planet {
          * version number. It must consist only of digits and dots with a
          * maximum of three numbers. This value will be parsed to provide the
          * `semver` data structure with the major, minor and patch numbers.
-         * - The `build` number, when provided. Ideally this is a monotonically increasing number that goes up each time a release package (or similar) is produced.
+         * - The `build` number, when provided. Ideally this is a monotonically
+         * increasing number that goes up each time a release package (or
+         * similar) is produced.
          *
          * TODO Also have an overload that takes the `semver` data structure,
          * then the version string can be free form.
          */
+        version(std::string_view appid, std::string_view semver);
         version(std::string_view appid,
                 std::string_view semver,
-                std::optional<std::uint16_t> build = {});
+                std::uint16_t build);
+        version(std::string_view appid,
+                std::string_view appdir,
+                std::string_view semver);
         version(std::string_view appid,
                 std::string_view appdir,
                 std::string_view semver,
-                std::optional<std::uint16_t> build = {});
+                std::uint16_t build);
 
 
         std::string application_id;
