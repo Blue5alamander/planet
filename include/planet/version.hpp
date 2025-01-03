@@ -45,14 +45,12 @@ namespace planet {
          * then the version string can be free form.
          */
         version(std::string_view appid,
-                std::string_view semver);
-        version(std::string_view appid,
                 std::string_view semver,
-                std::uint16_t build);
+                std::optional<std::uint16_t> build = {});
         version(std::string_view appid,
                 std::string_view appdir,
                 std::string_view semver,
-                std::uint16_t build);
+                std::optional<std::uint16_t> build = {});
 
 
         std::string application_id;

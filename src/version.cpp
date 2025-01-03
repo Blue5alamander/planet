@@ -35,25 +35,14 @@ namespace {
 
 planet::version::version(
         std::string_view const id,
-        std::string_view const sv)
-: application_id{id},
-  application_folder{id},
-  version_string{sv},
-  semver{parse(sv)} {}
-planet::version::version(
-        std::string_view const id,
         std::string_view const sv,
-        std::uint16_t const b)
-: application_id{id},
-  application_folder{id},
-  version_string{sv},
-  semver{parse(sv)},
-  build{b} {}
+        std::optional<std::uint16_t> const b)
+: version{id, id, sv, b} {}
 planet::version::version(
         std::string_view const id,
         std::string_view const dir,
         std::string_view const sv,
-        std::uint16_t const b)
+        std::optional<std::uint16_t> const b)
 : application_id{id},
   application_folder{dir},
   version_string{sv},
