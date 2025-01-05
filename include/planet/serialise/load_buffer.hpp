@@ -54,7 +54,11 @@ namespace planet::serialise {
 
 
         /// ### Data extraction
-        auto extract_marker() { return marker{extract<std::uint8_t>()}; }
+        auto extract_marker(
+                felspar::source_location const &loc =
+                        felspar::source_location::current()) {
+            return marker{extract<std::uint8_t>(loc)};
+        }
         std::size_t extract_size_t(
                 felspar::source_location const & =
                         felspar::source_location::current());
