@@ -58,6 +58,8 @@ namespace planet {
                 std::string_view semver,
                 std::uint16_t build);
 
+        explicit version(serialise::box &);
+
 
         std::string application_id;
         std::string application_folder;

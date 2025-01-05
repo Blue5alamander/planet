@@ -59,6 +59,8 @@ planet::version::version(
   semver{parse(sv)},
   build{b} {}
 
+planet::version::version(serialise::box &b) { load(b, *this); }
+
 
 std::ostream &planet::operator<<(std::ostream &os, version const &v) {
     os << v.version_string;
