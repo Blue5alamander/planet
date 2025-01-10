@@ -382,6 +382,10 @@ planet::log::detail::formatter::~formatter() {
      * formatter to be destroyed after the global in this translation unit has
      * gone. Because these are all static functions anyway it's fine to just let
      * this "leak".
+     *
+     * TODO The way to fix this is to have the formatter hold a shared pointer
+     * to the printers and the mutex. That way the last formatter to be
+     * destroyed gets rid of the printers.
      */
     // std::scoped_lock _{printers_mutex()};
     // printers().erase(printers().find(box_name));
