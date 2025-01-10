@@ -251,14 +251,10 @@ namespace {
             {
                 save(planet::log::detail::ab, lgc);
                 auto const lb = planet::log::detail::ab.complete();
-                for (auto *out : std::array{
-                             planet::log::profile_output.load(),
-                             planet::log::log_output.load()}) {
-                    if (out) {
-                        (*out).write(
-                                reinterpret_cast<char const *>(lb.data()),
-                                lb.size());
-                    }
+                if (auto *out = planet::log::log_output.load(); out) {
+                    (*out).write(
+                            reinterpret_cast<char const *>(lb.data()),
+                            lb.size());
                 }
             }
         }
@@ -307,10 +303,9 @@ namespace {
                                     << "\33[0;31mA Critical log message is forcing an unclean shutdown\33[0;39m"
                                     << std::endl;
                             print_performance(&print_lock);
-                            for (auto *flushing : std::array{
-                                         planet::log::profile_output.load(),
-                                         planet::log::log_output.load()}) {
-                                if (flushing) { flushing->flush(); }
+                            if (auto *flushing = planet::log::log_output.load();
+                                flushing) {
+                                flushing->flush();
                             }
                             std::exit(120);
                         }
@@ -396,6 +391,10 @@ planet::log::detail::formatter::~formatter() {
      * formatter to be destroyed after the global in this translation unit has
      * gone. Because these are all static functions anyway it's fine to just let
      * this "leak".
+     *
+     * TODO The way to fix this is to have the formatter hold a shared pointer
+     * to the printers and the mutex. That way the last formatter to be
+     * destroyed gets rid of the printers.
      */
     // std::scoped_lock _{printers_mutex()};
     // printers().erase(printers().find(box_name));
@@ -417,13 +416,9 @@ auto planet::log::counters::current() noexcept -> counters {
 void planet::log::write_file_headers() {
     write_file_headers(detail::ab);
     auto const bytes = detail::ab.complete();
-    for (auto *out : std::array{
-                 planet::log::log_output.load(),
-                 planet::log::profile_output.load()}) {
-        if (out) {
-            (*out).write(
-                    reinterpret_cast<char const *>(bytes.data()), bytes.size());
-        }
+    if (auto *out = planet::log::log_output.load(); out) {
+        (*out).write(
+                reinterpret_cast<char const *>(bytes.data()), bytes.size());
     }
 }
 void planet::log::write_file_headers(serialise::save_buffer &sb) {

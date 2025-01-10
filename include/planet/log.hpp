@@ -64,8 +64,7 @@ namespace planet::log {
      */
 
     /// #### Log output file
-    inline std::atomic<std::ostream *> log_output = nullptr,
-                                       profile_output = nullptr;
+    inline std::atomic<std::ostream *> log_output = nullptr;
     /**
      * There are separate files for logging and performance data. There would
      * normally be different upload conditions for performance and log file data.
