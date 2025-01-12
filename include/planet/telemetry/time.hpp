@@ -3,6 +3,10 @@
 
 #include <planet/telemetry/performance.hpp>
 
+#include <felspar/coro/eager.hpp>
+#include <felspar/coro/task.hpp>
+#include <felspar/io/warden.hpp>
+
 #include <chrono>
 
 
