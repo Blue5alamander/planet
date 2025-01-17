@@ -26,6 +26,7 @@ namespace planet::queue {
     template<typename T>
     class pmc {
         using internal_buffer_type = std::vector<T>;
+        std::size_t value_push_count = {};
 
 
       public:
@@ -51,6 +52,7 @@ namespace planet::queue {
 
 
         void push(T t) {
+            ++value_push_count;
             for (std::size_t idx{}; idx < consumers.size();) {
                 auto *consumer = consumers[idx];
                 consumer->values.push_back(t);
@@ -113,6 +115,7 @@ namespace planet::queue {
             }
         };
         auto values() { return consumer{this}; }
+        auto values_pushed() const noexcept { return value_push_count; }
 
 
         felspar::coro::stream<value_type> stream() {
