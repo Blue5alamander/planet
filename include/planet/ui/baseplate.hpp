@@ -81,6 +81,8 @@ namespace planet::ui {
             if (hard_focus == w) { hard_focus = nullptr; }
             if (soft_focus == w) { soft_focus = nullptr; }
             std::erase(widgets, w);
+            std::erase(current_hovers, w);
+            std::erase(previous_hovers, w);
         }
 
 
