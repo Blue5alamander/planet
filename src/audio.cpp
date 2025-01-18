@@ -157,10 +157,11 @@ planet::audio::stereo_generator planet::audio::music::output() {
 
 felspar::coro::task<void>
         planet::audio::music::clear(felspar::io::warden &ward) {
-    planet::log::debug("Clearing music queue");
+    planet::log::info("Clearing music queue");
     clear_flag.store(true, std::memory_order_relaxed);
     while (clear_flag.load(std::memory_order_relaxed)) {
         co_await ward.sleep(50ms);
+        planet::log::debug("Still waiting for music to clear");
     }
 }
 
