@@ -6,6 +6,9 @@
 #include <planet/serialise/save_buffer.hpp>
 
 
+/// ## `planet::affine::extents2d`
+
+
 void planet::affine::save(serialise::save_buffer &ab, extents2d const &t) {
     ab.save_box("_p:a:e2", t.width, t.height);
 }
@@ -19,12 +22,18 @@ namespace {
 }
 
 
+/// ## `planet::affine::matrix2d`
+
+
 void planet::affine::save(serialise::save_buffer &ab, matrix2d const &m) {
     ab.save_box("_p:a:m2", m.cmemory());
 }
 void planet::affine::load(serialise::box &box, matrix2d &m) {
     box.named("_p:a:m2", m.memory());
 }
+
+
+/// ## `planet::affine::point2d`
 
 
 void planet::affine::save(serialise::save_buffer &ab, point2d const &p) {
@@ -42,6 +51,9 @@ namespace {
 }
 
 
+/// ## `planet::affine::rectangle2d`
+
+
 void planet::affine::save(serialise::save_buffer &ab, rectangle2d const &t) {
     ab.save_box("_p:a:r2", t.top_left, t.extents);
 }
@@ -54,6 +66,9 @@ namespace {
                 box);
     });
 }
+
+
+/// ## `planet::affine::transform2d`
 
 
 void planet::affine::save(serialise::save_buffer &ab, transform2d const &t) {

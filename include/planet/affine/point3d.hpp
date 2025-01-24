@@ -38,6 +38,10 @@ namespace planet::affine {
             // return {l.xh * r.h + r.xh * l.h, l.yh * r.h + r.yh * l.h,
             //         l.zh * r.h + r.zh * l.h, l.h * r.h};
         }
+
+        friend constexpr point3d operator*(point3d const &l, float const r) {
+            return {l.xh * r, l.yh * r, l.zh * r, l.h};
+        }
     };
 
 
