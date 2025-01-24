@@ -11,6 +11,7 @@ namespace planet::affine {
     struct point3d;
     struct rectangle2d;
     class transform2d;
+    class transform3d;
 
 
 }

@@ -1,4 +1,5 @@
 #include <planet/affine2d.hpp>
+#include <planet/affine3d.hpp>
 #include <planet/log.hpp>
 #include <planet/ostream.hpp>
 #include <planet/serialise/affine.hpp>
@@ -76,4 +77,51 @@ void planet::affine::save(serialise::save_buffer &ab, transform2d const &t) {
 }
 void planet::affine::load(serialise::box &box, transform2d &t) {
     box.named("_p:a:t2", t.in, t.out);
+}
+
+
+/// ## `planet::affine::transform3d`
+
+
+planet::affine::transform3d &
+        planet::affine::transform3d::translate(point3d const &p) {
+    in = matrix3d::translate(p.x(), p.y(), p.z()) * in;
+    out = out * matrix3d::translate(-p.x(), -p.y(), -p.z());
+    return *this;
+}
+
+planet::affine::transform3d &
+        planet::affine::transform3d::rotate_x(float const t) {
+    in = matrix3d::rotate_x(t) * in;
+    out = out * matrix3d::rotate_x(-t);
+    return *this;
+}
+
+
+planet::affine::transform3d planet::affine::transform3d::perspective(
+        float const aspect, float const theta, float const n, float const f) {
+    float const fov_rad = theta * pi;
+    float const focal_length = 1.0f / std::tan(fov_rad / 2.0f);
+    float const x = focal_length / aspect;
+    float const y = -focal_length;
+    float const A = n / (f - n);
+    float const B = f * A;
+
+    return {{std::array{
+                    std::array{x, 0.0f, 0.0f, 0.0f},
+                    std::array{0.0f, y, 0.0f, 0.0f},
+                    std::array{0.0f, 0.0f, A, B},
+                    std::array{0.0f, 0.0f, -1.0f, 0.0f}}},
+
+            {std::array{
+                    std::array{1.0f / x, 0.0f, 0.0f, 0.0f},
+                    std::array{0.0f, 1.0f / y, 0.0f, 0.0f},
+                    std::array{0.0f, 0.0f, 0.0f, -1.0f},
+                    std::array{0.0f, 0.0f, 1.0f / A, A / B}}}};
+}
+
+
+planet::affine::transform3d
+        planet::affine::operator*(transform3d const &l, transform3d const &r) {
+    return {l.into() * r.into(), r.outof() * l.outof()};
 }

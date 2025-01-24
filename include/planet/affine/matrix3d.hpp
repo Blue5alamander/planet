@@ -13,6 +13,9 @@ namespace planet::affine {
 
     /// ## 3D affine transform matrix
     class matrix3d final {
+        friend class transform3d;
+
+
         /**
          * The memory layout here needs to be compatible with Vulkan's
          * requirements. This dictates the memory alignment requirement and it

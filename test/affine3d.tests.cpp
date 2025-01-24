@@ -1,5 +1,6 @@
 #include <planet/affine/matrix3d.hpp>
 #include <planet/affine/point3d.hpp>
+#include <planet/affine/transform3d.hpp>
 #include <felspar/test.hpp>
 
 
@@ -84,6 +85,24 @@ namespace {
         check(ry[{1, 3}]) == 0.0f;
         check(ry[{2, 3}]) == 0.0f;
         check(ry[{3, 3}]) == 1.0f;
+    });
+
+
+    auto const tran3 = suite.test("transform3d", [](auto check, auto &log) {
+        float const aspect = 1.0f;
+        float const theta = 1.0f;
+        float const n = -1.0f;
+        float const f = -100.0f;
+        auto const t =
+                planet::affine::transform3d::perspective(aspect, theta, n, f);
+        auto const p = planet::affine::point3d{0, 0, -1};
+        auto const r = t.into() * p;
+        log << "x " << r.x() << " y " << r.y() << " z " << r.z() << " h " << r.h
+            << '\n';
+        check(r.x()) == 0.0f;
+        check(r.y()) == 0.0f;
+        check(r.z()) < -1.02f;
+        check(r.z()) > -1.03f;
     });
 
 
