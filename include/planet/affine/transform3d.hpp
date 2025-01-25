@@ -40,10 +40,10 @@ namespace planet::affine {
          * 1. `aspect` ratio of the screen
          * 2. `theta` is the FoV as a factor of 90 degrees
          *
-         * The near plane is always at 1.0f, and the far plane is infinitely far away.
+         * The near plane is always at 1.0f, and the far plane is infinitely far
+         * away.
          */
-        static transform3d
-                perspective(float aspect, float theta);
+        static transform3d perspective(float aspect, float theta);
 
 
         /// ### Transform points into and out of co-ordinate space
