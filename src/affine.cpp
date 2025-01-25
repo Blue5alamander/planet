@@ -96,6 +96,18 @@ planet::affine::transform3d &
     out = out * matrix3d::rotate_x(-t);
     return *this;
 }
+planet::affine::transform3d &
+        planet::affine::transform3d::rotate_y(float const t) {
+    in = matrix3d::rotate_y(t) * in;
+    out = out * matrix3d::rotate_y(-t);
+    return *this;
+}
+planet::affine::transform3d &
+        planet::affine::transform3d::rotate_z(float const t) {
+    in = matrix3d::rotate_z(t) * in;
+    out = out * matrix3d::rotate_z(-t);
+    return *this;
+}
 
 
 planet::affine::transform3d planet::affine::transform3d::perspective(
