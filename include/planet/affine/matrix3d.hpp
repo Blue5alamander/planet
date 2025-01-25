@@ -69,6 +69,26 @@ namespace planet::affine {
                      std::array{0.0f, s, c, 0.0f},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
         }
+        static constexpr matrix3d rotate_y(float const t) {
+            float const r = t * tau;
+            float const c = std::cos(r);
+            float const s = std::sin(r);
+            return {
+                    {std::array{c, 0.0f, s, 0.0f},
+                     std::array{0.0f, 1.0f, 0.0f, 0.0f},
+                     std::array{-s, 0.0f, c, 0.0f},
+                     std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
+        }
+        static constexpr matrix3d rotate_z(float const t) {
+            float const r = t * tau;
+            float const c = std::cos(r);
+            float const s = std::sin(r);
+            return {
+                    {std::array{c, -s, 0.0f, 0.0f},
+                     std::array{s, c, 0.0f, 0.0f},
+                     std::array{0.0f, 0.0f, 1.0f, 0.0f},
+                     std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
+        }
 
 
         friend constexpr bool

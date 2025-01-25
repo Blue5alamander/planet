@@ -29,6 +29,8 @@ namespace planet::affine {
          */
         transform3d &translate(point3d const &);
         transform3d &rotate_x(float);
+        transform3d &rotate_y(float);
+        transform3d &rotate_z(float);
 
 
         /// ### Perspective matrix
