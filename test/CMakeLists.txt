@@ -5,6 +5,7 @@ add_test_run(check planet TESTS
         baseplate.ui.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
+        cameras.tests.cpp
         column.layout.tests.cpp
         constrained.tests.cpp
         entities.tests.cpp

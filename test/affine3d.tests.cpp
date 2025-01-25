@@ -88,22 +88,43 @@ namespace {
     });
 
 
-    auto const tran3 = suite.test("transform3d", [](auto check, auto &log) {
-        float const aspect = 1.0f;
-        float const theta = 1.0f;
-        float const n = -1.0f;
-        float const f = -100.0f;
-        auto const t =
-                planet::affine::transform3d::perspective(aspect, theta, n, f);
-        auto const p = planet::affine::point3d{0, 0, -1};
-        auto const r = t.into() * p;
-        log << "x " << r.x() << " y " << r.y() << " z " << r.z() << " h " << r.h
-            << '\n';
-        check(r.x()) == 0.0f;
-        check(r.y()) == 0.0f;
-        check(r.z()) < -1.02f;
-        check(r.z()) > -1.03f;
-    });
+    float constexpr aspect = 1.0f;
+    float constexpr theta = 1.0f;
+    auto const tran3 = suite.test(
+            "transform3d",
+            [](auto check, auto &log) {
+                auto const t = planet::affine::transform3d::perspective(
+                        aspect, theta);
+                auto const p = planet::affine::point3d{0, 0, -1};
+                auto const r = t.into() * p;
+                log << "x " << r.x() << " y " << r.y() << " z " << r.z()
+                    << " zh " << r.zh << " h " << r.h << '\n';
+                check(r.x()) == 0.0f;
+                check(r.y()) == 0.0f;
+                check(r.z()) == 1.0f;
+            },
+            [](auto check, auto &log) {
+                auto const t = planet::affine::transform3d::perspective(
+                        aspect, theta);
+                auto const p = planet::affine::point3d{0, 0, -10};
+                auto const r = t.into() * p;
+                log << "x " << r.x() << " y " << r.y() << " z " << r.z()
+                    << " zh " << r.zh << " h " << r.h << '\n';
+                check(r.x()) == 0.0f;
+                check(r.y()) == 0.0f;
+                check(r.z()) == 0.1f;
+            },
+            [](auto check, auto &log) {
+                auto const t = planet::affine::transform3d::perspective(
+                        aspect, theta);
+                auto const p = planet::affine::point3d{0, 0, 10};
+                auto const r = t.into() * p;
+                log << "x " << r.x() << " y " << r.y() << " z " << r.z()
+                    << " zh " << r.zh << " h " << r.h << '\n';
+                check(r.x()) == 0.0f;
+                check(r.y()) == 0.0f;
+                check(r.z()) == -0.1f;
+            });
 
 
 }

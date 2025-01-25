@@ -19,7 +19,7 @@ namespace planet::camera {
      * current position and scale to the targets.
      */
     class orthogonal_birdseye {
-      friend struct target3dxy;
+        friend struct target3dxy;
         void tick_update();
 
 

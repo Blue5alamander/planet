@@ -111,25 +111,24 @@ planet::affine::transform3d &
 
 
 planet::affine::transform3d planet::affine::transform3d::perspective(
-        float const aspect, float const theta, float const n, float const f) {
+        float const aspect, float const theta) {
     float const fov_rad = theta * pi;
     float const focal_length = 1.0f / std::tan(fov_rad / 2.0f);
     float const x = focal_length / aspect;
     float const y = -focal_length;
-    float const A = n / (f - n);
-    float const B = f * A;
 
     return {{std::array{
                     std::array{x, 0.0f, 0.0f, 0.0f},
                     std::array{0.0f, y, 0.0f, 0.0f},
-                    std::array{0.0f, 0.0f, A, B},
+                    std::array{0.0f, 0.0f, 0.0f, 1.0f},
                     std::array{0.0f, 0.0f, -1.0f, 0.0f}}},
 
             {std::array{
                     std::array{1.0f / x, 0.0f, 0.0f, 0.0f},
                     std::array{0.0f, 1.0f / y, 0.0f, 0.0f},
                     std::array{0.0f, 0.0f, 0.0f, -1.0f},
-                    std::array{0.0f, 0.0f, 1.0f / A, A / B}}}};
+                    /// TODO Double check the below row
+                    std::array{0.0f, 0.0f, 1.0f, 0.0f}}}};
 }
 
 

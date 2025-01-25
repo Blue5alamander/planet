@@ -20,14 +20,14 @@ void planet::camera::orthogonal_birdseye::tick_update() {
         current_looking_at = target_looking_at;
     } else {
         auto const translate = planet::affine::point2d::from_polar(
-            std::sqrt(direction.mag2()) * 0.15f, direction.theta());
+                std::sqrt(direction.mag2()) * 0.15f, direction.theta());
         current_looking_at = current_looking_at + translate;
     }
 
     view = {};
     view.translate(-current_looking_at)
-    .rotate(current_rotation)
-    .scale(1.0f / current_scale);
+            .rotate(current_rotation)
+            .scale(1.0f / current_scale);
 }
 
 
@@ -57,13 +57,10 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
 
 
 planet::affine::transform3d
-        planet::camera::target3dxy::current_transform() const {
+        planet::camera::target3dxy::current_perspective_transform() const {
     float const aspect = 1.0f;
     float const theta = 1.0f;
-    float const n = -1.0f;
-    float const f = -100.0f;
-
-    return affine::transform3d::perspective(aspect, theta, n, f);
+    return affine::transform3d::perspective(aspect, theta);
 }
 
 
@@ -73,6 +70,7 @@ felspar::coro::task<void>
     while (true) {
         initial.tick_update();
         view = {initial.view.into(), initial.view.outof()};
+        view.translate(-current.view_direction * current.distance);
         co_await warden.sleep(25ms);
     }
 }

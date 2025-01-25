@@ -13,7 +13,9 @@ namespace planet::camera {
      * The camera targets a location in 3d space, but aligns itself as if the
      * world is built in the XY plane with the Z axis pointing up.
      *
-     * The `orthogonal_birdseye` camera provides an initial set of transforms that provide basic rotation, position and scaling support. This is then further adjusted by the 3D transforms held by this camera.
+     * The `orthogonal_birdseye` camera provides an initial set of transforms
+     * that provide basic rotation, position and scaling support. This is then
+     * further adjusted by the 3D transforms held by this camera.
      */
     struct target3dxy {
         /// ### Initial transformation
@@ -22,36 +24,31 @@ namespace planet::camera {
 
         /// ### Set up parameters
         struct parameters {
-            /// #### Target parameters
-            affine::point3d looking_at{};
-            /// ##### The distance away from the target
+            /// #### View direction unit vector
+            affine::point3d view_direction{0, 0, -1};
+            /// #### The distance away from the target
             float distance{3};
-            /// ##### Rotation around the Z axis
-            float rotation{};
-            /// ##### View angle
+            /// #### View angle
             /**
              * This is how oblique the camera is to looking at the ground. An
              * angle of zero means that the camera is pointing straight down,
              * and an angle of one means it is pointing straight up.
+             *
+             * This angle amounts to a rotation around the y axis.
              */
             float view_angle{0.25f};
         };
 
         /// ### Targetting
-        parameters target = {}, currently = target;
-
-        /// #### Camera position and direction
-        affine::point3d current_view_direction{0, 0, -1};
-        affine::point3d current_focal_point =
-                current_view_direction * -currently.distance;
+        parameters target = {}, current = target;
 
 
         /// ### Return the transform for the current parameters
-        affine::transform3d current_transform() const;
+        affine::transform3d current_perspective_transform() const;
 
 
         /// ### Current matrix transforms
-        affine::transform3d view = current_transform();
+        affine::transform3d view;
 
         /// #### The `into` transform
         affine::point2d into(affine::point3d const &);
