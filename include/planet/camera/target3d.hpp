@@ -18,16 +18,12 @@ namespace planet::camera {
      * further adjusted by the 3D transforms held by this camera.
      */
     struct target3dxy {
-        /// ### Initial transformation
-        orthogonal_birdseye initial;
-
-
         /// ### Set up parameters
         struct parameters {
             /// #### View direction unit vector
-            affine::point3d view_direction{0, 0, -1};
+            affine::point3d view_direction = {0, 0, -1};
             /// #### The distance away from the target
-            float distance{3};
+            float distance = {3};
             /// #### View angle
             /**
              * This is how oblique the camera is to looking at the ground. An
@@ -36,8 +32,18 @@ namespace planet::camera {
              *
              * This angle amounts to a rotation around the y axis.
              */
-            float view_angle{0.25f};
+            float view_angle = {0.25f};
         };
+
+
+        /// ### Construction
+        target3dxy() : target3dxy(parameters{}) {}
+        target3dxy(parameters const &);
+
+
+        /// ### Initial transformation
+        orthogonal_birdseye initial;
+
 
         /// ### Targetting
         parameters target = {}, current = target;
@@ -68,11 +74,15 @@ namespace planet::camera {
          * felspar::coro::starter<> tasks;
          * tasks.post(
          *      camera,
-         *      &planet::camera::orthogonal_birdseye::updates,
+         *      &planet::camera::target3dxy::updates,
          *      std::ref(warden));
          * ```
          */
-        felspar::coro::task<void> updates(felspar::io::warden &warden);
+        felspar::coro::task<void> updates(felspar::io::warden &);
+
+
+      private:
+        void tick_update();
     };
 
 

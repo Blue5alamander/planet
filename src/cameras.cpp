@@ -29,8 +29,6 @@ void planet::camera::orthogonal_birdseye::tick_update() {
             .rotate(current_rotation)
             .scale(1.0f / current_scale);
 }
-
-
 felspar::coro::task<void> planet::camera::orthogonal_birdseye::updates(
         felspar::io::warden &warden) {
     while (true) {
@@ -41,6 +39,11 @@ felspar::coro::task<void> planet::camera::orthogonal_birdseye::updates(
 
 
 /// ## `planet::camera::target3dxy`
+
+
+planet::camera::target3dxy::target3dxy(parameters const &p) : target{p} {
+    tick_update();
+}
 
 
 planet::affine::point2d
@@ -64,13 +67,15 @@ planet::affine::transform3d
 }
 
 
+void planet::camera::target3dxy::tick_update() {
+    initial.tick_update();
+    view = {initial.view.into(), initial.view.outof()};
+    view.translate(current.view_direction * current.distance);
+}
 felspar::coro::task<void>
         planet::camera::target3dxy::updates(felspar::io::warden &warden) {
-
     while (true) {
-        initial.tick_update();
-        view = {initial.view.into(), initial.view.outof()};
-        view.translate(-current.view_direction * current.distance);
+        tick_update();
         co_await warden.sleep(25ms);
     }
 }
