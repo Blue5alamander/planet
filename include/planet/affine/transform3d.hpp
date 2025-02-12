@@ -37,13 +37,13 @@ namespace planet::affine {
         /**
          * Creates a perspective projection matrix with its inverse.
          *
-         * 1. `aspect` ratio of the screen
-         * 2. `theta` is the FoV as a factor of 90 degrees
+         * 1. `scale` a scaling factor for the x, and y co-ordinates.
+         * 2. `theta` is the FoV as a factor of 90 degrees.
          *
          * The near plane is always at 1.0f, and the far plane is infinitely far
          * away.
          */
-        static transform3d perspective(float aspect, float theta);
+        static transform3d perspective(float scale, float theta);
 
 
         /// ### Transform points into and out of co-ordinate space

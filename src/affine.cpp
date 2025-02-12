@@ -111,10 +111,10 @@ planet::affine::transform3d &
 
 
 planet::affine::transform3d planet::affine::transform3d::perspective(
-        float const aspect, float const theta) {
+        float const scale, float const theta) {
     float const fov_rad = theta * pi;
-    float const focal_length = 1.0f / std::tan(fov_rad / 2.0f);
-    float const x = focal_length / aspect;
+    float const focal_length = scale / std::tan(fov_rad / 2.0f);
+    float const x = -focal_length;
     float const y = -focal_length;
 
     return {{std::array{
