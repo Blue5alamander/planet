@@ -61,9 +61,9 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
 
 planet::affine::transform3d
         planet::camera::target3dxy::current_perspective_transform() const {
-    float const aspect = 1.0f;
+    float const scale = 0.666e8f;
     float const theta = 1.0f;
-    return affine::transform3d::perspective(aspect, theta);
+    return affine::transform3d::perspective(scale, theta);
 }
 
 
