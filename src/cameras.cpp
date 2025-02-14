@@ -70,7 +70,7 @@ planet::affine::transform3d
 void planet::camera::target3dxy::tick_update() {
     initial.tick_update();
     view = {initial.view.into(), initial.view.outof()};
-    view.translate(current.view_direction * current.distance);
+    view.rotate_x(-0.125f).translate(current.view_direction * current.distance);
 }
 felspar::coro::task<void>
         planet::camera::target3dxy::updates(felspar::io::warden &warden) {
