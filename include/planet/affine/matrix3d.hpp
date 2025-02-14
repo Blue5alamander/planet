@@ -110,11 +110,11 @@ namespace planet::affine {
                         a12 = a.m[12], a13 = a.m[13], a14 = a.m[14],
                         a15 = a.m[15];
 
-            float const b0 = b.m[0], b1 = b.m[1], b2 = a.m[2], b3 = b.m[3],
+            float const b0 = b.m[0], b1 = b.m[1], b2 = b.m[2], b3 = b.m[3],
                         b4 = b.m[4], b5 = b.m[5], b6 = b.m[6], b7 = b.m[7],
                         b8 = b.m[8], b9 = b.m[9], b10 = b.m[10], b11 = b.m[11],
                         b12 = b.m[12], b13 = b.m[13], b14 = b.m[14],
-                        b15 = a.m[15];
+                        b15 = b.m[15];
 
             return {
                     {std::array{
