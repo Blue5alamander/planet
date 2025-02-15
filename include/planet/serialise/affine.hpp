@@ -19,6 +19,9 @@ namespace planet::affine {
     void save(serialise::save_buffer &, point2d const &);
     void load(serialise::box &, point2d &);
 
+    void save(serialise::save_buffer &, point3d const &);
+    void load(serialise::box &, point3d &);
+
     void save(serialise::save_buffer &, rectangle2d const &);
     void load(serialise::box &, rectangle2d &);
 

@@ -43,12 +43,25 @@ void planet::affine::save(serialise::save_buffer &ab, point2d const &p) {
 void planet::affine::load(serialise::box &box, point2d &p) {
     float x, y;
     box.named("_p:a:p2", x, y);
-    p = point2d{x, y};
+    p = {x, y};
 }
 namespace {
     auto const p2 = planet::log::format("_p:a:p2", [](auto &os, auto &box) {
         os << planet::serialise::load_from_box<planet::affine::point2d>(box);
     });
+}
+
+
+/// ## `planet::affine::point3d`
+
+
+void planet::affine::save(serialise::save_buffer &ab, point3d const &p) {
+    ab.save_box("_p:a:p3", p.x(), p.y(), p.z());
+}
+void planet::affine::load(serialise::box &box, point3d &p) {
+    float x, y, z;
+    box.named("_p:a:p3", x, y, z);
+    p = {x, y, z};
 }
 
 
