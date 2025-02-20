@@ -52,11 +52,22 @@ namespace planet::affine {
                      std::array{0.0f, 0.0f, 1.0f, z},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
         }
+        static constexpr matrix3d translate(point3d const &p) {
+            return translate(p.x(), p.y(), p.z());
+        }
         static constexpr matrix3d scale_xy(float const x, float const y) {
             return {
                     {std::array{x, 0.0f, 0.0f, 0.0f},
                      std::array{0.0f, y, 0.0f, 0.0f},
                      std::array{0.0f, 0.0f, 1.0f, 0.0f},
+                     std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
+        }
+        static constexpr matrix3d
+                scale_xyz(float const x, float const y, float const z) {
+            return {
+                    {std::array{x, 0.0f, 0.0f, 0.0f},
+                     std::array{0.0f, y, 0.0f, 0.0f},
+                     std::array{0.0f, 0.0f, z, 0.0f},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
         }
         static constexpr matrix3d rotate_x(float const t) {
