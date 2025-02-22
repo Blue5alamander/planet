@@ -97,13 +97,6 @@ void planet::affine::load(serialise::box &box, transform2d &t) {
 
 
 planet::affine::transform3d &
-        planet::affine::transform3d::translate(point3d const &p) {
-    in = matrix3d::translate(p.x(), p.y(), p.z()) * in;
-    out = out * matrix3d::translate(-p.x(), -p.y(), -p.z());
-    return *this;
-}
-
-planet::affine::transform3d &
         planet::affine::transform3d::rotate_x(float const t) {
     in = matrix3d::rotate_x(t) * in;
     out = out * matrix3d::rotate_x(-t);
@@ -119,6 +112,22 @@ planet::affine::transform3d &
         planet::affine::transform3d::rotate_z(float const t) {
     in = matrix3d::rotate_z(t) * in;
     out = out * matrix3d::rotate_z(-t);
+    return *this;
+}
+
+
+planet::affine::transform3d &planet::affine::transform3d::scale(
+        float const x, float const y, float const z) {
+    in = matrix3d::scale(x, y, z) * in;
+    out = out * matrix3d::scale(1.0f / x, 1.0f / y, 1.0f / z);
+    return *this;
+}
+
+
+planet::affine::transform3d &
+        planet::affine::transform3d::translate(point3d const &p) {
+    in = matrix3d::translate(p.x(), p.y(), p.z()) * in;
+    out = out * matrix3d::translate(-p.x(), -p.y(), -p.z());
     return *this;
 }
 

@@ -27,10 +27,11 @@ namespace planet::affine {
         /**
          * Rotations are given in terms of "turns". A fuil turn is 360°.
          */
-        transform3d &translate(point3d const &);
         transform3d &rotate_x(float);
         transform3d &rotate_y(float);
         transform3d &rotate_z(float);
+        transform3d &scale(float, float, float);
+        transform3d &translate(point3d const &);
 
 
         /// ### Perspective matrix
