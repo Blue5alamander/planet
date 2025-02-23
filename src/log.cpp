@@ -121,6 +121,9 @@ namespace {
                 case planet::serialise::marker::f32le:
                     std::cout << lb.extract<float>();
                     break;
+                case planet::serialise::marker::f64le:
+                    std::cout << lb.extract<double>();
+                    break;
                 case planet::serialise::marker::f128le:
                     std::cout << lb.extract<long double>();
                     break;
