@@ -96,6 +96,39 @@ namespace planet::affine {
                      std::array{0.0f, 0.0f, 1.0f, 0.0f},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
         }
+        static constexpr matrix3d
+                rotate_about(point3d const &unit_vector, float const t) {
+            float const r = t * tau;
+            /**
+             * Rotation matrix taken from
+             * [Maths
+             * exchange](https://math.stackexchange.com/questions/4025666/how-to-rotate-a-vector-in-3d-space-around-arbitrary-axis/4034978#4034978)
+             */
+            auto const c = std::cos(r);
+            auto const s = std::sin(r);
+
+            auto const mc = 1 - c;
+
+            auto const x = unit_vector.x();
+            auto const y = unit_vector.y();
+            auto const z = unit_vector.z();
+
+            auto const r11 = c + x * x * mc;
+            auto const r12 = x * y * mc - z * s;
+            auto const r13 = x * z * mc + y * s;
+            auto const r21 = y * x * mc + z * s;
+            auto const r22 = c + y * y * mc;
+            auto const r23 = y * z * mc - x * s;
+            auto const r31 = z * x * mc - y * s;
+            auto const r32 = z * y * mc + x * s;
+            auto const r33 = c + z * z * mc;
+
+            return {
+                    {std::array{r11, r12, r13, 0.0f},
+                     std::array{r21, r22, r23, 0.0f},
+                     std::array{r31, r32, r33, 0.0f},
+                     std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
+        }
 
 
         friend constexpr bool
