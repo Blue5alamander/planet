@@ -31,6 +31,10 @@ namespace planet::affine {
         constexpr float z() const noexcept { return zh / h; }
         constexpr float z(float const n) noexcept { return zh = n * h; }
 
+        constexpr float mag2() const noexcept {
+            return x() * x() + y() * y() + z() * z();
+        }
+
 
         /// ### Operators
         friend constexpr point3d operator-(point3d const &p) {
