@@ -204,8 +204,8 @@ namespace planet::ecs {
         /// ### Add a component
         template<typename Component>
         auto add_component(entity_id &eid, Component &&component) {
-            static constexpr auto storage =
-                    get_storage_index_for_type<Component>();
+            using ctype = std::remove_cvref_t<Component>;
+            static constexpr auto storage = get_storage_index_for_type<ctype>();
             return std::get<storage>(stores).add_component(
                     eid, std::forward<Component>(component));
         }

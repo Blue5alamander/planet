@@ -130,19 +130,21 @@ namespace planet::ecs {
                 C &&component,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            static constexpr auto ci = component_index<C>();
+            using ctype = std::remove_cvref_t<C>;
+            static constexpr auto ci = component_index<ctype>();
             assert_entities(eid, loc);
             auto &nc =
                     (std::get<ci>(components).at(eid.id()) =
                              std::move(component));
             eid.mask(*entities_storage_index) |= (1 << ci);
             connect_component(eid, *nc);
-            return proxy_for<C>{*this, eid};
+            return proxy_for<ctype>{*this, eid};
         }
         /// #### Provide a component proxy
         template<typename C>
         [[nodiscard]] auto get_proxy_for(entity_id eid) {
-            return proxy_for<C>{*this, std::move(eid)};
+            using ctype = std::remove_cvref_t<C>;
+            return proxy_for<ctype>{*this, std::move(eid)};
         }
         /// #### Remove a component from the entity
         template<typename C>
@@ -150,13 +152,14 @@ namespace planet::ecs {
                 entity_id &eid,
                 felspar::source_location const &loc =
                         felspar::source_location::current()) {
-            static constexpr auto ci = maybe_component_index<C>();
+            using ctype = std::remove_cvref_t<C>;
+            static constexpr auto ci = maybe_component_index<ctype>();
             if constexpr (ci) {
                 assert_entities(eid);
                 eid.mask(*entities_storage_index, loc) &= ~(1 << ci.value());
                 destroy_component<ci.value()>(eid);
             } else {
-                detail::throw_component_type_not_valid(eid, typeid(C), loc);
+                detail::throw_component_type_not_valid(eid, typeid(ctype), loc);
             }
         }
 
