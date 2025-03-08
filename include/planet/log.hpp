@@ -63,6 +63,10 @@ namespace planet::log {
      * effect. Any log messages already in flight will still arrive.
      */
 
+    /// #### Performance data print out
+    inline std::atomic<bool> display_performance_messages{true};
+
+
     /// #### Log output file
     inline std::atomic<std::ostream *> log_output = nullptr;
     /**

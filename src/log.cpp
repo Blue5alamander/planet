@@ -235,7 +235,7 @@ namespace {
                     planet::log::detail::ab);
             auto const bytes = planet::log::detail::ab.complete();
             planet::log::logged_performance_counters lgc{.counters = bytes};
-            {
+            if (planet::log::display_performance_messages.load()) {
                 std::cout << "\33[0;32m" << std::fixed
                           << static_cast<double>(
                                      (lgc.logged - g_start_time()).count()
@@ -251,14 +251,12 @@ namespace {
                 }
                 std::cout << std::endl;
             }
-            {
+            if (auto *out = planet::log::log_output.load(); out) {
                 save(planet::log::detail::ab, lgc);
-                auto const lb = planet::log::detail::ab.complete();
-                if (auto *out = planet::log::log_output.load(); out) {
-                    (*out).write(
-                            reinterpret_cast<char const *>(lb.data()),
-                            lb.size());
-                }
+                auto const log_data = planet::log::detail::ab.complete();
+                (*out).write(
+                        reinterpret_cast<char const *>(log_data.data()),
+                        log_data.size());
             }
         }
         felspar::io::warden::task<void> display_performance_loop() {
