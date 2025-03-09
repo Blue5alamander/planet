@@ -429,6 +429,7 @@ void planet::telemetry::timestamps::set(std::string_view key) {
         history.insert(std::pair{std::string{key}, stamps{}});
     } else {
         pos->second.last = std::chrono::system_clock::now();
+        ++pos->second.count;
     }
 }
 void planet::telemetry::timestamps::unset(std::string_view const key) {
@@ -483,11 +484,18 @@ bool planet::telemetry::timestamps::load(measurements &pd) {
 void planet::telemetry::save(
         planet::serialise::save_buffer &sb,
         planet::telemetry::timestamps::stamps const &s) {
-    sb.save_box(s.box, s.first, s.last);
+    sb.save_box(s.box, s.first, s.last, s.count);
 }
 void planet::telemetry::load(
-        planet::serialise::box &b, planet::telemetry::timestamps::stamps &s) {
-    b.named(s.box, s.first, s.last);
+        planet::serialise::box &box, planet::telemetry::timestamps::stamps &s) {
+    box.lambda(s.box, [&]() {
+        box.fields(s.first, s.last);
+        if (box.content.empty()) {
+            if (s.last) { s.count = 2; }
+            return;
+        }
+        box.fields(s.count);
+    });
 }
 
 void planet::telemetry::load(planet::serialise::box &b, timestamps &t) {
@@ -506,7 +514,8 @@ namespace {
          */
         os << "first = " << s.first.time_since_epoch().count();
         if (s.last) {
-            os << " last = " << s.last.value().time_since_epoch().count();
+            os << " last = " << s.last.value().time_since_epoch().count()
+               << " count = " << s.count;
         }
         return os;
     }

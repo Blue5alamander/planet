@@ -28,9 +28,17 @@ namespace planet::telemetry {
             static constexpr std::string_view box{"_p:t:timestamps:s"};
 
 
+            /// #### When the time was first recorded
             std::chrono::system_clock::time_point first =
                     std::chrono::system_clock::now();
+            /// #### The latest time the time was recorded
+            /**
+             * The setting of the `last` time implies that this time was
+             * recorded more than once as it is never set the first time.
+             */
             std::optional<std::chrono::system_clock::time_point> last;
+            /// #### The number of times the time was recorded
+            std::size_t count = 1;
 
 
             friend bool operator==(stamps const &, stamps const &) noexcept =
