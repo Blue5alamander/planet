@@ -47,3 +47,4 @@ An incomplete list of the available modules are:
 
 * [Behaviours](./include/behaviour/) -- unstable
 * [Serialisation](./include/serialise/) -- stable
+* [Telemetry](./include/telemetry/)-- stable

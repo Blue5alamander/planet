@@ -13,9 +13,11 @@ namespace planet::telemetry {
 
     /// ## Exponential decay
     /**
+     * Smoothes out a value over a number of samples.
+     *
      * The exponential decay rate is not saved when the performance count is
      * saved. Changes to this value when a value is loaded back in will take
-     * some time to level back out, this depending on the half-life.
+     * some time to level back out, depending on the half-life.
      */
     class exponential_decay final : public performance {
         std::atomic<double> m_value{};
@@ -29,8 +31,8 @@ namespace planet::telemetry {
         /// ### Construct performance counter
         /**
          * The half-life is expressed in the number of readings that the value
-         * will decay over. A small value will be much-smoothed than a larger
-         * value, but will also take longer to get to the right level.
+         * will decay over. A large value will be much more smoothed than a
+         * smaller value, but will also take longer to get to the right level.
          */
         exponential_decay(std::string_view, std::size_t half_life);
 
@@ -49,6 +51,8 @@ namespace planet::telemetry {
 
     /// ## Real-time exponential decay function
     /**
+     * Smoothes out a value tending to zero when samples don't come in.
+     *
      * Although this performance counter uses an atomic to store the value, it
      * is not thread safe for anything other than reading of the current value.
      * Updates to the counter must be synchronised if they are to occur from
@@ -90,6 +94,8 @@ namespace planet::telemetry {
 
     /// ## Time decayed frequency measurement
     /**
+     * Records how often an event happens, reported in events per second.
+     *
      * Although this performance counter uses an atomic to store the value, it
      * is not thread safe for anything other than reading of the current value.
      * Updates to the counter must be synchronised if they are to occur from
