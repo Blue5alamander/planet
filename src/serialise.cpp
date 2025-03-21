@@ -62,8 +62,8 @@ felspar::io::warden::task<void>
 }
 
 
-void planet::serialise::demuxer::send(shared_bytes b) {
-    push(std::move(b));
+void planet::serialise::demuxer::push(shared_bytes b) {
+    do_push(std::move(b));
     ++sends;
 }
 

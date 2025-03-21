@@ -21,7 +21,7 @@ namespace planet::serialise {
         /// ### Implemented by the sub-class
 
         /// #### Add the data to the queue
-        virtual void push(shared_bytes) = 0;
+        virtual void do_push(shared_bytes) = 0;
 
         /// #### Acquire the data
         virtual felspar::io::warden::task<std::span<shared_bytes>> acquire() = 0;
@@ -53,7 +53,8 @@ namespace planet::serialise {
 
 
         /// ### Send/receive data to the subscribers
-        void send(shared_bytes);
+        /// Pushing data is thread safe
+        void push(shared_bytes);
 
 
       private:
