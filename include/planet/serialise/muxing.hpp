@@ -29,9 +29,11 @@ namespace planet::serialise {
         /// Called by the sub-class once the required virtuals are set up
         void start_manager();
 
+
       public:
         demuxer();
         demuxer(std::string_view);
+
 
         /// ### Message envolope
         struct message {
