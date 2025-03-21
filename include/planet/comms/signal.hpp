@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/comms/internal.hpp>
+#include <felspar/io/warden.hpp>
 
 
 namespace planet::comms {
@@ -9,10 +9,13 @@ namespace planet::comms {
 
     /// ## Internal signalling
     class signal {
-        internal pipe;
+        felspar::io::warden &warden;
+        felspar::io::pipe pipe;
 
       public:
-        signal(felspar::io::warden &);
+        signal(felspar::io::warden &,
+               felspar::source_location const & =
+                       felspar::source_location::current());
 
 
         /// ### Send a signal to the far end of the pipe
@@ -20,7 +23,9 @@ namespace planet::comms {
 
 
         /// ### Read signals
-        auto read_some(std::span<std::byte> b) { return pipe.read_some(b); }
+        auto read_some(std::span<std::byte> b) {
+            return warden.read_some(pipe.read, b);
+        }
     };
 
 

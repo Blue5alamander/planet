@@ -8,7 +8,7 @@ namespace planet::comms {
 
 
     /// ## Internal communications
-    class internal {
+    class [[deprecated("Just use a felspar::io::pipe")]] internal {
         /// Warden used for message passing
         felspar::io::warden &warden;
 
