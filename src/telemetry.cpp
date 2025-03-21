@@ -4,30 +4,10 @@
 #include <planet/telemetry.hpp>
 
 #include <cmath>
-#include <mutex>
 #include <vector>
 
 
 using namespace std::literals;
-
-
-namespace {
-    template<typename... Fields>
-    bool load_performance_measurement(
-            planet::telemetry::performance::measurements &pd,
-            std::string const &name,
-            std::string_view const box_name,
-            Fields &...fields) {
-        if (auto d = pd.find(name); d != pd.end()) {
-            d->second.check_name_or_throw(box_name);
-            d->second.fields(fields...);
-            d->second.check_empty_or_throw();
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
 
 
 /// ## `planet::telemetry::counter`

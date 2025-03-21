@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/serialise/forward.hpp>
+#include <planet/serialise/load_buffer.hpp>
 #include <planet/telemetry/id.hpp>
 
 #include <map>
@@ -102,6 +102,30 @@ namespace planet::telemetry {
     std::size_t load_performance(serialise::load_buffer &lb, Performance &...p) {
         std::array<performance *, sizeof...(p)> ps{&p...};
         return detail::load_performance(lb, ps);
+    }
+
+
+    /// ### Implementing load for a performance counter
+    /**
+     * Typically this is used to load into a new copy of the underlying storage
+     * for the counter whose content is then integrated into the current actual
+     * values for the counter. This allows counters to be loaded after values
+     * have already been recorded into them.
+     */
+    template<typename... Fields>
+    inline bool load_performance_measurement(
+            planet::telemetry::performance::measurements &pd,
+            std::string const &name,
+            std::string_view const box_name,
+            Fields &...fields) {
+        if (auto d = pd.find(name); d != pd.end()) {
+            d->second.check_name_or_throw(box_name);
+            d->second.fields(fields...);
+            d->second.check_empty_or_throw();
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

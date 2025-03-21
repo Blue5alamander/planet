@@ -7,5 +7,6 @@
 #include <planet/telemetry/minmax.hpp>
 #include <planet/telemetry/performance.hpp>
 #include <planet/telemetry/rate.hpp>
+#include <planet/telemetry/table.hpp>
 #include <planet/telemetry/time.hpp>
 #include <planet/telemetry/timestamps.hpp>
