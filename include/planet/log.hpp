@@ -278,6 +278,15 @@ namespace planet::log {
         serialise::shared_bytes counters;
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
+
+
+        /// #### Print performance counters
+        /**
+         * Prints the performance counters found in the bytes. The data will be
+         * transferred to the logging thread for printing so it doesn't
+         * interfere with the printing of other log messages.
+         */
+        static void print(serialise::shared_bytes);
     };
     void save(serialise::save_buffer &, logged_performance_counters);
 

@@ -201,6 +201,8 @@ namespace {
     struct log_thread {
         felspar::io::poll_warden warden;
         planet::queue::tspsc<planet::log::message> messages;
+        planet::queue::tspsc<planet::serialise::shared_bytes>
+                logged_performance_counters;
         planet::comms::signal signal{warden};
         planet::comms::signal terminate{warden};
 
@@ -225,6 +227,7 @@ namespace {
         felspar::io::warden::task<void> run_loops() {
             felspar::io::warden::starter<> tasks;
             tasks.post(*this, &log_thread::display_performance_loop);
+            tasks.post(*this, &log_thread::display_logged_performance_counters);
             tasks.post(*this, &log_thread::display_log_messages_loop);
             std::array<std::byte, 1> buffer;
             co_await terminate.read_some(buffer);
@@ -264,6 +267,17 @@ namespace {
             while (true) {
                 co_await warden.sleep(1s);
                 print_performance();
+            }
+        }
+        felspar::io::warden::task<void> display_logged_performance_counters() {
+            while (true) {
+                auto lpcs = logged_performance_counters.consume();
+                for (auto const &bytes : lpcs) {
+                    planet::serialise::load_buffer lb{bytes};
+                    std::scoped_lock _{printers_mutex()};
+                    while (not lb.empty()) { show(lb, 0, "\n  "); }
+                }
+                co_await warden.sleep(100ms);
             }
         }
 
@@ -437,6 +451,12 @@ void planet::log::load_fields(serialise::box &b, file_header &f) {
 void planet::log::save(
         serialise::save_buffer &ab, logged_performance_counters const l) {
     ab.save_box(l.box, l.logged, l.counters);
+}
+
+
+void planet::log::logged_performance_counters::print(
+        serialise::shared_bytes const d) {
+    g_log_thread().logged_performance_counters.push(d);
 }
 
 
