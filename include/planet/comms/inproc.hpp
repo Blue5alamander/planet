@@ -52,16 +52,14 @@ namespace planet::comms::inproc {
     /// ## Intra-process object queue
     /**
      * Values can be sent from any thread. Subscribers provide the type they are
-     * interested in receiving. The subscribers must be in the same thread that
-     * the queue is created in.
+     * interested in receiving.
+     *
+     * Items of any of the types in the queue can be pushed from any thread, but
+     * all subscribers must run in the same thread.
      *
      * Because this type is moving objects and not serialised data between
      * threads, there can be no inter-process or between host version of this
      * API.
-     *
-     * TODO Can we have it so that the `manage_subscriptions` coroutine can be
-     * run from another thread so that we can create this object in a different
-     * thread to the one we want to run the subscriptions in?
      */
     template<typename... Types>
     class object final :
@@ -84,14 +82,13 @@ namespace planet::comms::inproc {
 
         /// ### Construction
         /**
-         * Pass the constructor the warden for the thread it's constructed in.
+         * Pass the constructor the warden for the thread that the subscribers
+         * will be running in.
          */
         object(std::string_view const n,
                felspar::io::warden &w,
                telemetry::id::suffix const s = telemetry::id::suffix::yes)
-        : id{n, s}, signalling{w} {
-            manager.post(object::manage_subscriptions());
-        }
+        : id{n, s}, signalling{w} {}
 
         object(object const &) = delete;
         object(object &&) = delete;
@@ -111,6 +108,9 @@ namespace planet::comms::inproc {
         /// ### Buses for the various types
         template<typename T>
         auto &queue_for() {
+            if (manager.empty()) {
+                manager.post(object::manage_subscriptions());
+            }
             return std::get<queue::psc<T>>(buses);
         }
 
