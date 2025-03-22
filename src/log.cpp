@@ -1,3 +1,4 @@
+#include <planet/comms/inproc.hpp>
 #include <planet/comms/signal.hpp>
 #include <planet/log.hpp>
 #include <planet/queue/tspsc.hpp>
@@ -200,10 +201,10 @@ namespace {
 
     struct log_thread {
         felspar::io::poll_warden warden;
-        planet::queue::tspsc<planet::log::message> messages;
-        planet::queue::tspsc<planet::serialise::shared_bytes>
-                logged_performance_counters;
-        planet::comms::signal signal{warden};
+        planet::comms::inproc::
+                object<planet::log::message, planet::serialise::shared_bytes>
+                        bus{"planet_log_bus", warden,
+                            planet::telemetry::id::suffix::no};
         planet::comms::signal terminate{warden};
 
         log_thread() {}
@@ -227,32 +228,39 @@ namespace {
         felspar::io::warden::task<void> run_loops() {
             felspar::io::warden::starter<> tasks;
             tasks.post(*this, &log_thread::display_performance_loop);
-            tasks.post(*this, &log_thread::display_logged_performance_counters);
+            tasks.post(
+                    *this,
+                    &log_thread::display_logged_performance_counters_loop);
             tasks.post(*this, &log_thread::display_log_messages_loop);
             std::array<std::byte, 1> buffer;
             co_await terminate.read_some(buffer);
         }
 
+        void print_lgc(
+                std::chrono::steady_clock::time_point const &logged,
+                std::span<std::byte const> const payload,
+                std::scoped_lock<std::mutex> *lock) {
+            std::cout << "\33[0;32m" << std::fixed
+                      << static_cast<double>(
+                                 (logged - g_start_time()).count() / 1e9)
+                      << std::defaultfloat
+                      << " Performance counters\33[0;39m\n  ";
+            planet::serialise::load_buffer lb{payload};
+            if (lock) {
+                show(lb, 0, "\n  ");
+            } else {
+                std::scoped_lock _{printers_mutex()};
+                show(lb, 0, "\n  ");
+            }
+            std::cout << std::endl;
+        }
         void print_performance(std::scoped_lock<std::mutex> *lock = nullptr) {
             planet::telemetry::performance::current_values(
                     planet::log::detail::ab);
             auto const bytes = planet::log::detail::ab.complete();
             planet::log::logged_performance_counters lgc{.counters = bytes};
             if (planet::log::display_performance_messages.load()) {
-                std::cout << "\33[0;32m" << std::fixed
-                          << static_cast<double>(
-                                     (lgc.logged - g_start_time()).count()
-                                     / 1e9)
-                          << std::defaultfloat
-                          << " Performance counters\33[0;39m\n  ";
-                planet::serialise::load_buffer lb{bytes.cmemory()};
-                if (lock) {
-                    show(lb, 0, "\n  ");
-                } else {
-                    std::scoped_lock _{printers_mutex()};
-                    show(lb, 0, "\n  ");
-                }
-                std::cout << std::endl;
+                print_lgc(lgc.logged, lgc.counters.cmemory(), lock);
             }
             if (auto *out = planet::log::log_output.load(); out) {
                 save(planet::log::detail::ab, lgc);
@@ -269,62 +277,66 @@ namespace {
                 print_performance();
             }
         }
-        felspar::io::warden::task<void> display_logged_performance_counters() {
+        felspar::io::warden::task<void>
+                display_logged_performance_counters_loop() {
             while (true) {
-                auto lpcs = logged_performance_counters.consume();
-                for (auto const &bytes : lpcs) {
+                auto &lpcs = bus.queue_for<planet::serialise::shared_bytes>();
+                while (true) {
+                    auto bytes = co_await lpcs.next();
                     planet::serialise::load_buffer lb{bytes};
-                    std::scoped_lock _{printers_mutex()};
-                    while (not lb.empty()) { show(lb, 0, "\n  "); }
+                    try {
+                        auto box = planet::serialise::expect_box(lb);
+                        std::chrono::steady_clock::time_point logged;
+                        std::span<std::byte const> counters;
+                        box.named(
+                                planet::log::logged_performance_counters::box,
+                                logged, counters);
+                        std::scoped_lock lock{printers_mutex()};
+                        print_lgc(logged, counters, &lock);
+                    } catch (std::exception const &err) {
+                        planet::log::error(
+                                "Showing logged performance counters error:",
+                                err.what());
+                    }
                 }
-                co_await warden.sleep(100ms);
             }
         }
 
 
         felspar::io::warden::task<void> display_log_messages_loop() {
             std::cout << std::setprecision(9);
+            auto &messages = bus.queue_for<planet::log::message>();
             while (true) {
-                auto block = messages.consume();
-                if (block.empty()) {
-                    std::array<std::byte, 16> buffer;
-                    co_await signal.read_some(buffer);
-                } else {
-                    auto out = planet::log::log_output.load();
-                    std::scoped_lock print_lock{printers_mutex()};
-                    for (auto const &message : block) {
-                        if (out) {
-                            save(planet::log::detail::ab, message);
-                            auto const bytes =
-                                    planet::log::detail::ab.complete();
-                            (*out).write(
-                                    reinterpret_cast<char const *>(bytes.data()),
-                                    bytes.size());
-                        }
-                        print(message);
-                        switch (message.level) {
-                        case planet::log::level::debug: ++debug_count; break;
-                        case planet::log::level::info: ++info_count; break;
-                        case planet::log::level::warning:
-                            ++warning_count;
-                            break;
-                        case planet::log::level::error: ++error_count; break;
-                        case planet::log::level::critical:
-                            /**
-                             * TODO We should probably print the rest of the log
-                             * messages we have before we exit the game.
-                             */
-                            std::cout
-                                    << "\33[0;31mA Critical log message is forcing an unclean shutdown\33[0;39m"
-                                    << std::endl;
-                            print_performance(&print_lock);
-                            if (auto *flushing = planet::log::log_output.load();
-                                flushing) {
-                                flushing->flush();
-                            }
-                            std::exit(120);
-                        }
+                auto message = co_await messages.next();
+                auto out = planet::log::log_output.load();
+                std::scoped_lock print_lock{printers_mutex()};
+                if (out) {
+                    save(planet::log::detail::ab, message);
+                    auto const bytes = planet::log::detail::ab.complete();
+                    (*out).write(
+                            reinterpret_cast<char const *>(bytes.data()),
+                            bytes.size());
+                }
+                print(message);
+                switch (message.level) {
+                case planet::log::level::debug: ++debug_count; break;
+                case planet::log::level::info: ++info_count; break;
+                case planet::log::level::warning: ++warning_count; break;
+                case planet::log::level::error: ++error_count; break;
+                case planet::log::level::critical:
+                    /**
+                     * TODO We should probably print the rest of the log
+                     * messages we have before we exit the game.
+                     */
+                    std::cout
+                            << "\33[0;31mA Critical log message is forcing an unclean shutdown\33[0;39m"
+                            << std::endl;
+                    print_performance(&print_lock);
+                    if (auto *flushing = planet::log::log_output.load();
+                        flushing) {
+                        flushing->flush();
                     }
+                    std::exit(120);
                 }
             }
         }
@@ -368,8 +380,7 @@ void planet::log::detail::write_log(
         serialise::shared_bytes b,
         felspar::source_location const &loc) {
     auto &lt = g_log_thread();
-    lt.messages.push({l, std::move(b), loc});
-    lt.signal.send({});
+    lt.bus.push(planet::log::message{l, std::move(b), loc});
     ++message_count;
     message_rate.tick();
 }
@@ -449,14 +460,14 @@ void planet::log::load_fields(serialise::box &b, file_header &f) {
 
 
 void planet::log::save(
-        serialise::save_buffer &ab, logged_performance_counters const l) {
+        serialise::save_buffer &ab, logged_performance_counters const &l) {
     ab.save_box(l.box, l.logged, l.counters);
 }
 
 
 void planet::log::logged_performance_counters::print(
         serialise::shared_bytes const d) {
-    g_log_thread().logged_performance_counters.push(d);
+    g_log_thread().bus.push(d);
 }
 
 

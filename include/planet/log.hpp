@@ -288,7 +288,7 @@ namespace planet::log {
          */
         static void print(serialise::shared_bytes);
     };
-    void save(serialise::save_buffer &, logged_performance_counters);
+    void save(serialise::save_buffer &, logged_performance_counters const &);
 
 
     /// ## Log file header
