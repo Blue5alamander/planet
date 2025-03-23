@@ -62,8 +62,8 @@ namespace {
             try {
                 printer->second->print(os, b, depth);
             } catch (std::exception const &e) {
-                os << "\n\nError formatting output for box " << b.name
-                   << "\n   " << e.what() << '\n';
+                os << "\n\nError formatting output for box '" << b.name
+                   << "': " << e.what() << '\n';
             }
         }
     }
@@ -423,6 +423,20 @@ planet::log::detail::formatter::~formatter() {
 
 
 namespace {
+    auto const std_optional = planet::log::format(
+            "_s:opt",
+            [](std::ostream &os,
+               planet::serialise::box &box,
+               std::size_t const depth) {
+                auto const has_value =
+                        planet::serialise::load_type<bool>(box.content);
+                if (has_value) {
+                    os << "[std::optional] ";
+                    show1(os, box.content, depth + 1);
+                } else {
+                    os << "[empty std::optional]";
+                }
+            });
     auto const std_set = planet::log::format(
             "_s:set",
             [](std::ostream &os,
