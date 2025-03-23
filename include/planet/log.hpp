@@ -216,8 +216,8 @@ namespace planet::log {
             std::ostream &, serialise::load_buffer &, std::size_t depth = 0);
     void pretty_print(std::ostream &, serialise::box &, std::size_t depth = 0);
     /**
-     * Walks along the data held in the load buffer pretty printing anything
-     * that it finds, or pretty print a single box.
+     * Pretty prints the first item in the `load_buffer`, or pretty print the
+     * content of a single box.
      *
      * The `depth` describes how deeply nested the current print is, with the
      * `prefix` being pre-pended to each line output once for each tick of
