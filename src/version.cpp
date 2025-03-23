@@ -1,3 +1,4 @@
+#include <planet/log.hpp>
 #include <planet/serialise.hpp>
 #include <planet/version.hpp>
 
@@ -87,4 +88,22 @@ void planet::save(serialise::save_buffer &sb, version const &v) {
 }
 void planet::load(serialise::box &b, version &v) {
     b.named(v.box, v.application_id, v.version_string, v.semver, v.build);
+}
+
+
+namespace {
+    auto const print_version = planet::log::format(
+            planet::version::box,
+            [](std::ostream &os, planet::serialise::box &box, std::size_t) {
+                planet::version version{box};
+                os << version.application_id << ' ' << version.version_string
+                   << " (" << version.semver.major << '.'
+                   << version.semver.minor << '.' << version.semver.patch
+                   << ')';
+                if (version.build) {
+                    os << " build " << *version.build;
+                } else {
+                    os << " (no build number)";
+                }
+            });
 }
