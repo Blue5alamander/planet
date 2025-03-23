@@ -81,7 +81,10 @@ int main(int argc, char const *argv[]) {
                     std::span<std::byte const> payload;
                     load(box.content, payload);
                     planet::serialise::load_buffer lb{payload};
-                    planet::log::pretty_print(lb);
+                    while (not lb.empty()) {
+                        planet::log::pretty_print(std::cout, lb);
+                        std::cout << ' ';
+                    }
 
                     std::cout << "\n\n";
                 } else if (box.name == "_p:log:c") {
@@ -95,7 +98,7 @@ int main(int argc, char const *argv[]) {
                     planet::serialise::load_buffer lb{payload};
                     while (lb.size()) {
                         auto counter = planet::serialise::expect_box(lb);
-                        planet::log::pretty_print(counter);
+                        planet::log::pretty_print(std::cout, counter);
                         std::cout << '\n';
                     }
 

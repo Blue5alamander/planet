@@ -213,13 +213,8 @@ namespace planet::log {
 
     /// ## Pretty printing
     void pretty_print(
-            serialise::load_buffer &,
-            std::size_t depth = 1,
-            std::string_view prefix = " ");
-    void pretty_print(
-            serialise::box &,
-            std::size_t depth = 1,
-            std::string_view prefix = " ");
+            std::ostream &, serialise::load_buffer &, std::size_t depth = 0);
+    void pretty_print(std::ostream &, serialise::box &, std::size_t depth = 0);
     /**
      * Walks along the data held in the load buffer pretty printing anything
      * that it finds, or pretty print a single box.
@@ -235,20 +230,37 @@ namespace planet::log {
             formatter(std::string_view);
             ~formatter();
             std::string_view const box_name;
-            virtual void print(std::ostream &, serialise::box &) const = 0;
+            virtual void print(
+                    std::ostream &, serialise::box &, std::size_t) const = 0;
         };
     }
 
 
     /// ### Custom log message formatter
-    template<typename Lambda>
+    template<std::invocable<std::ostream &, serialise::box &> Lambda>
     auto format(std::string_view const box_name, Lambda lambda) {
         struct printer final : public detail::formatter {
             printer(std::string_view const n, Lambda l)
             : formatter{n}, lambda{std::move(l)} {}
             Lambda lambda;
-            void print(std::ostream &os, serialise::box &box) const override {
+            void print(std::ostream &os, serialise::box &box, std::size_t)
+                    const override {
                 lambda(os, box);
+            }
+        };
+        return printer{box_name, std::move(lambda)};
+    }
+    template<std::invocable<std::ostream &, serialise::box &, std::size_t> Lambda>
+    auto format(std::string_view const box_name, Lambda lambda) {
+        struct printer final : public detail::formatter {
+            printer(std::string_view const n, Lambda l)
+            : formatter{n}, lambda{std::move(l)} {}
+            Lambda lambda;
+            void
+                    print(std::ostream &os,
+                          serialise::box &box,
+                          std::size_t const depth) const override {
+                lambda(os, box, depth);
             }
         };
         return printer{box_name, std::move(lambda)};
