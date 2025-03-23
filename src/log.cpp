@@ -48,24 +48,29 @@ namespace {
             show(std::ostream &os,
                  planet::serialise::box &b,
                  std::size_t const depth) {
-        if (auto printer = printers().find(b.name);
+        if (auto printer =
+                    [&]() {
+                        std::scoped_lock _{printers_mutex()};
+                        return printers().find(b.name);
+                    }();
             printer == printers().end()) {
             os << "box " << b.name << " [v" << int(b.version) << " size "
-                      << b.content.size() << " bytes]\n" << std::string(depth + 1, ' ');
+               << b.content.size() << " bytes]\n"
+               << std::string(depth + 1, ' ');
             show(os, b.content, depth + 1);
         } else {
             try {
                 printer->second->print(os, b, depth);
             } catch (std::exception const &e) {
                 os << "\n\nError formatting output for box " << b.name
-                          << "\n   "
-                          << e.what() << '\n';
+                   << "\n   " << e.what() << '\n';
             }
         }
     }
-    void show1(std::ostream &os,
-               planet::serialise::load_buffer &lb,
-               std::size_t const depth) {
+    void
+            show1(std::ostream &os,
+                  planet::serialise::load_buffer &lb,
+                  std::size_t const depth) {
         auto const mv = static_cast<std::uint8_t>(lb.cmemory()[0]);
         if (mv > 0 and mv < 80) {
             auto b = expect_box(lb);
@@ -73,83 +78,76 @@ namespace {
         } else {
             auto const m = lb.extract_marker();
             switch (m) {
-                case planet::serialise::marker::empty:
-                    os << "empty";
-                    break;
+            case planet::serialise::marker::empty: os << "empty"; break;
 
-                case planet::serialise::marker::std_byte_array: {
-                    auto const size = lb.extract_size_t();
-                    auto s = lb.split(size);
-                    felspar::memory::hexdump(os, s);
-                    break;
+            case planet::serialise::marker::std_byte_array: {
+                auto const size = lb.extract_size_t();
+                auto s = lb.split(size);
+                felspar::memory::hexdump(os, s);
+                break;
+            }
+
+            case planet::serialise::marker::b_true: os << "true"; break;
+            case planet::serialise::marker::b_false: os << "false"; break;
+
+            case planet::serialise::marker::i8:
+                os << std::to_string(lb.extract<std::int8_t>());
+                break;
+            case planet::serialise::marker::u8:
+                os << std::to_string(lb.extract<std::uint8_t>());
+                break;
+            case planet::serialise::marker::i16le:
+                os << std::to_string(lb.extract<std::int16_t>());
+                break;
+            case planet::serialise::marker::u16le:
+                os << std::to_string(lb.extract<std::uint16_t>());
+                break;
+            case planet::serialise::marker::i32le:
+                os << std::to_string(lb.extract<std::int32_t>());
+                break;
+            case planet::serialise::marker::u32le:
+                os << std::to_string(lb.extract<std::uint32_t>());
+                break;
+            case planet::serialise::marker::i64le:
+                os << std::to_string(lb.extract<std::int64_t>());
+                break;
+            case planet::serialise::marker::u64le:
+                os << std::to_string(lb.extract<std::uint64_t>());
+                break;
+
+            case planet::serialise::marker::f32le:
+                os << lb.extract<float>();
+                break;
+            case planet::serialise::marker::f64le:
+                os << lb.extract<double>();
+                break;
+            case planet::serialise::marker::f128le:
+                os << lb.extract<long double>();
+                break;
+
+            case planet::serialise::marker::poly_list: {
+                auto const count = lb.extract_size_t();
+                os << "[poly-list with " << count << " items]";
+                for (std::size_t index{}; index < count; ++index) {
+                    os << '\n' << std::string(depth + 1, ' ');
+                    show1(os, lb, depth + 1);
                 }
+                os << '\n' << std::string(depth, ' ');
+                break;
+            }
 
-                case planet::serialise::marker::b_true:
-                    os << "true";
-                    break;
-                case planet::serialise::marker::b_false:
-                    os << "false";
-                    break;
-
-                case planet::serialise::marker::i8:
-                    os << std::to_string(lb.extract<std::int8_t>());
-                    break;
-                case planet::serialise::marker::u8:
-                    os << std::to_string(lb.extract<std::uint8_t>());
-                    break;
-                case planet::serialise::marker::i16le:
-                    os << std::to_string(lb.extract<std::int16_t>());
-                    break;
-                case planet::serialise::marker::u16le:
-                    os << std::to_string(lb.extract<std::uint16_t>());
-                    break;
-                case planet::serialise::marker::i32le:
-                    os << std::to_string(lb.extract<std::int32_t>());
-                    break;
-                case planet::serialise::marker::u32le:
-                    os << std::to_string(lb.extract<std::uint32_t>());
-                    break;
-                case planet::serialise::marker::i64le:
-                    os << std::to_string(lb.extract<std::int64_t>());
-                    break;
-                case planet::serialise::marker::u64le:
-                    os << std::to_string(lb.extract<std::uint64_t>());
-                    break;
-
-                case planet::serialise::marker::f32le:
-                    os << lb.extract<float>();
-                    break;
-                case planet::serialise::marker::f64le:
-                    os << lb.extract<double>();
-                    break;
-                case planet::serialise::marker::f128le:
-                    os << lb.extract<long double>();
-                    break;
-
-                case planet::serialise::marker::poly_list: {
-                    auto const count = lb.extract_size_t();
-                    os << "[poly-list with " << count << " items]";
-                    for (std::size_t index{}; index < count; ++index) {
-                        os << '\n' << std::string(depth + 1, ' ');
-                        show1(os, lb, depth + 1);
-                    }
-                    os << '\n' << std::string(depth, ' ');
-                    break;
-                }
-
-                case planet::serialise::marker::u8string8: {
-                    auto const buffer = lb.split(lb.extract_size_t());
-                    os << std::string_view{
+            case planet::serialise::marker::u8string8: {
+                auto const buffer = lb.split(lb.extract_size_t());
+                os << std::string_view{
                         reinterpret_cast<char const *>(buffer.data()),
                         buffer.size()};
-                        break;
-                }
+                break;
+            }
 
-                default:
-                    os << "unknown marker [" << to_string(m) << " - 0x"
-                    << std::hex << static_cast<unsigned>(m)
-                    << std::dec << ']';
-                    return;
+            default:
+                os << "unknown marker [" << to_string(m) << " - 0x" << std::hex
+                   << static_cast<unsigned>(m) << std::dec << ']';
+                return;
             }
         }
     }
@@ -159,8 +157,11 @@ namespace {
                  std::size_t const depth) {
         while (not lb.empty()) {
             show1(os, lb, depth);
-            if (depth == 0) { os << ' '; }
-            else { os << '\n' << std::string(depth, ' '); }
+            if (depth == 0) {
+                os << ' ';
+            } else {
+                os << '\n' << std::string(depth, ' ');
+            }
         }
     }
 
@@ -245,29 +246,23 @@ namespace {
 
         void print_lgc(
                 std::chrono::steady_clock::time_point const &logged,
-                std::span<std::byte const> const payload,
-                std::scoped_lock<std::mutex> *lock) {
+                std::span<std::byte const> const payload) {
             std::cout << "\33[0;32m" << std::fixed
                       << static_cast<double>(
                                  (logged - g_start_time()).count() / 1e9)
                       << std::defaultfloat
                       << " Performance counters\33[0;39m\n  ";
             planet::serialise::load_buffer lb{payload};
-            if (lock) {
-                show(std::cout, lb, 2);
-            } else {
-                std::scoped_lock _{printers_mutex()};
-                show(std::cout, lb, 2);
-            }
+            show(std::cout, lb, 2);
             std::cout << std::endl;
         }
-        void print_performance(std::scoped_lock<std::mutex> *lock = nullptr) {
+        void print_performance() {
             planet::telemetry::performance::current_values(
                     planet::log::detail::ab);
             auto const bytes = planet::log::detail::ab.complete();
             planet::log::logged_performance_counters lgc{.counters = bytes};
             if (planet::log::display_performance_messages.load()) {
-                print_lgc(lgc.logged, lgc.counters.cmemory(), lock);
+                print_lgc(lgc.logged, lgc.counters.cmemory());
             }
             if (auto *out = planet::log::log_output.load(); out) {
                 save(planet::log::detail::ab, lgc);
@@ -298,8 +293,7 @@ namespace {
                         box.named(
                                 planet::log::logged_performance_counters::box,
                                 logged, counters);
-                        std::scoped_lock lock{printers_mutex()};
-                        print_lgc(logged, counters, &lock);
+                        print_lgc(logged, counters);
                     } catch (std::exception const &err) {
                         planet::log::error(
                                 "Showing logged performance counters error:",
@@ -316,7 +310,6 @@ namespace {
             while (true) {
                 auto message = co_await messages.next();
                 auto out = planet::log::log_output.load();
-                std::scoped_lock print_lock{printers_mutex()};
                 if (out) {
                     save(planet::log::detail::ab, message);
                     auto const bytes = planet::log::detail::ab.complete();
@@ -338,7 +331,7 @@ namespace {
                     std::cout
                             << "\33[0;31mA Critical log message is forcing an unclean shutdown\33[0;39m"
                             << std::endl;
-                    print_performance(&print_lock);
+                    print_performance();
                     if (auto *flushing = planet::log::log_output.load();
                         flushing) {
                         flushing->flush();
@@ -394,15 +387,11 @@ void planet::log::detail::write_log(
 
 
 void planet::log::pretty_print(
-        std::ostream &os,
-        serialise::load_buffer &lb,
-        std::size_t const depth) {
+        std::ostream &os, serialise::load_buffer &lb, std::size_t const depth) {
     show1(os, lb, depth);
 }
 void planet::log::pretty_print(
-        std::ostream &os,
-        serialise::box &b,
-        std::size_t const depth) {
+        std::ostream &os, serialise::box &b, std::size_t const depth) {
     show(os, b, depth);
 }
 
@@ -447,7 +436,7 @@ namespace {
                     os << "[std::set with " << count << " items]";
                     for (std::size_t index{}; index < count; ++index) {
                         os << '\n' << std::string(depth + 1, ' ');
-                        show1(os, box.content, depth +1);
+                        show1(os, box.content, depth + 1);
                     }
                     os << '\n' << std::string(depth, ' ');
                 }
