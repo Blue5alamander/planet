@@ -42,8 +42,15 @@ namespace planet::telemetry {
         : performance{n}, max_entries{max_entries} {}
 
 
+        /// #### Queries
+        std::size_t size() const noexcept {
+            std::scoped_lock _{mutex};
+            return content.size();
+        }
+
         /// #### Record a new value
         bool add_reading(key_type const &k, value_type const &v) {
+            std::scoped_lock _{mutex};
             if (content.size() < max_entries) {
                 content[k] = v;
             } else {
@@ -100,8 +107,20 @@ namespace planet::telemetry {
         : performance{n}, max_entries{max_entries} {}
 
 
+        /// #### Queries
+        std::size_t size() const noexcept {
+            std::scoped_lock _{mutex};
+            return content.size();
+        }
+        auto copy_content() const {
+            std::scoped_lock _{mutex};
+            return content;
+        }
+
+
         /// #### Record a new value
         bool add_reading(key_type const &k) {
+            std::scoped_lock _{mutex};
             if (content.size() < max_entries) {
                 content.insert(k);
                 return true;
