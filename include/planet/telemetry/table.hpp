@@ -47,6 +47,11 @@ namespace planet::telemetry {
             std::scoped_lock _{mutex};
             return content.size();
         }
+        auto copy_content() const {
+            std::scoped_lock _{mutex};
+            return content;
+        }
+
 
         /// #### Record a new value
         bool add_reading(key_type const &k, value_type const &v) {
