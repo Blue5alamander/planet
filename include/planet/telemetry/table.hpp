@@ -54,15 +54,19 @@ namespace planet::telemetry {
 
 
         /// #### Record a new value
-        bool add_reading(key_type const &k, value_type const &v) {
+        bool add_reading(key_type const &k, value_type v) {
             std::scoped_lock _{mutex};
             if (content.size() < max_entries) {
-                content[k] = v;
+                content.insert(std::pair{k, std::move(v)});
+                return true;
             } else {
                 auto const last_iter = --content.end();
-                if (comparison_type{}(k, *last_iter)) {
+                if (comparison_type{}(k, last_iter->first)) {
                     content.erase(last_iter);
-                    content[k];
+                    content.insert(std::pair{k, std::move(v)});
+                    return true;
+                } else {
+                    return false;
                 }
             }
         }
