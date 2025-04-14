@@ -69,8 +69,10 @@ planet::affine::transform3d
 
 void planet::camera::target3dxy::tick_update() {
     initial.tick_update();
+    /// TODO Do the current update from the target
     view = {initial.view.into(), initial.view.outof()};
     view.scale(1.0f, 1.0f, 1.0f / initial.current_scale)
+            .translate(current.view_offset)
             .rotate_x(-0.125f)
             .translate(current.view_direction * current.distance);
 }

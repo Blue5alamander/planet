@@ -20,6 +20,14 @@ namespace planet::camera {
     struct target3dxy {
         /// ### Set up parameters
         struct parameters {
+            /// #### Offset
+            /**
+             * Offset the camera by this before adjusting it's view direction
+             * etc. Used to give a more balanced view direction when the camera
+             * is finally rotated using the `view_angle`. The offset is applied
+             * before the rotation.
+             */
+            affine::point3d view_offset = {0, 0, 0};
             /// #### View direction unit vector
             affine::point3d view_direction = {0, 0, -1};
             /// #### The distance away from the target
