@@ -11,3 +11,10 @@ A good introduction to behaviour trees can be found at [Game Developer](https://
 * [`planet/behaviour/state.hpp`](./state.hpp) -- The `state` enumeration used to describe behaviour outcomes.
 
 There is also the convenience header [`planet/behaviour.hpp`](../behaviour.hpp) which includes everything.
+
+
+## Usefulness?
+
+It does seem that a the behaviours, as described for use in _Project Zomboid_, do seem to be just a form of more scripting. The tree as described is merely an abstract syntax tree describing how things need to interact. Probably a DSL would work even better and be much easier to work with.
+
+It's likely better to think of this as an execution engine for a DSL and then build a DSL later on.
