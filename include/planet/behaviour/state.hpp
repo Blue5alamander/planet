@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <expected>
+
+
 namespace planet::behaviour {
 
 
@@ -9,7 +12,10 @@ namespace planet::behaviour {
      * We don't need the `running` state because that's implicit in the
      * coroutine implementation anyway.
      */
-    enum class state : bool { failure, success };
+    struct failure {};
+
+    template<typename R>
+    using state = std::expected<R, failure>;
 
 
 }
