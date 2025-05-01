@@ -15,6 +15,9 @@ namespace planet::behaviour {
      */
     struct failure {
         std::string_view reason;
+
+
+        friend bool operator==(failure const &, failure const &) = default;
     };
 
 
