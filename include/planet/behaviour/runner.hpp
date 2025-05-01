@@ -31,7 +31,12 @@ namespace planet::behaviour {
       public:
         using state_type = state<R>;
         struct result_type {
+            using value_type = R;
+
+
             result_type(failure f) : state{std::unexpect_t{}, std::move(f)} {}
+            result_type(value_type r)
+            : state{std::in_place_t{}, std::move(r)} {}
 
 
             state_type state;

@@ -166,6 +166,10 @@ namespace {
         check(best_direction(from, to)) == planet::hexmap::south_west;
         to = {11, 1};
         check(best_direction(from, to)) == planet::hexmap::south_east;
+
+        from = {2, 0};
+        to = {};
+        check(best_direction(from, to)) == planet::hexmap::coordinates{-2, 0};
     });
 
 
