@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <planet/behaviour/key.hpp>
 #include <planet/behaviour/parameter.hpp>
+#include <planet/behaviour/type.hpp>
 
 #include <felspar/memory/pmr.hpp>
 
@@ -13,30 +13,53 @@ namespace planet::behaviour {
 
 
     /// ## Behaviour context
-    class context : public felspar::pmr::memory_resource {
-        std::unordered_map<key::id_type, void *> map;
+    class context_base : public felspar::pmr::memory_resource {
+        struct value {
+            behaviour::type type;
+            void const *cptr;
+            void *mptr;
+        };
+        using map_type = std::unordered_map<char const *, value>;
+
+
+        map_type map;
+
 
       public:
         /// ### Look up a parameter by key and return the argument
         template<typename T>
         T &look_up(parameter<T> const &p) {
+            auto &mp = map.at(p.type.id->name());
             /// TODO Check stored type matches
-            return *reinterpret_cast<T *>(map.at(p.key.id));
+            /// TODO Add checks that `cptr`/`mptr` contain valid values
+            if (parameter<T>::is_constant() and mp.cptr) {
+                return *reinterpret_cast<T *>(mp.cptr);
+            } else {
+                return *reinterpret_cast<T *>(mp.mptr);
+            }
         }
+
 
         /// ### Register a variable by parameter instance
         template<typename T>
         auto operator[](parameter<T> const &p) {
             struct assign {
                 parameter<T> const &p;
-                std::unordered_map<key::id_type, void *> &map;
+                map_type &map;
                 T &operator=(T &t) {
-                    map[p.key.id] = &t;
+                    if constexpr (parameter<T>::is_constant()) {
+                        map[p.type.id->name()] = {
+                                .type = p.type, .cptr = &t, .mptr = nullptr};
+                    } else {
+                        map[p.type.id->name()] = {
+                                .type = p.type, .cptr = nullptr, .mptr = &t};
+                    }
                     return t;
                 }
             };
             return assign{p, map};
         }
+
 
         /// ### PMR memory resources
         void *do_allocate(

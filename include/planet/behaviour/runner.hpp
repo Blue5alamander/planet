@@ -29,10 +29,17 @@ namespace planet::behaviour {
     template<typename R>
     class runner {
       public:
-        using context_type = context;
         using state_type = state<R>;
-        using result_type = felspar::coro::task<state_type, context_type>;
-        virtual result_type operator()(context &) const = 0;
+        struct result_type {
+            result_type(failure f) : state{std::unexpect_t{}, std::move(f)} {}
+
+
+            state_type state;
+        };
+        using co_result_type = felspar::coro::task<result_type, context_base>;
+
+
+        virtual co_result_type operator()(context_base &) const = 0;
     };
 
 

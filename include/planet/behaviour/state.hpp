@@ -2,6 +2,7 @@
 
 
 #include <expected>
+#include <string_view>
 
 
 namespace planet::behaviour {
@@ -12,7 +13,10 @@ namespace planet::behaviour {
      * We don't need the `running` state because that's implicit in the
      * coroutine implementation anyway.
      */
-    struct failure {};
+    struct failure {
+        std::string_view reason;
+    };
+
 
     template<typename R>
     using state = std::expected<R, failure>;

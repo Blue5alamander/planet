@@ -11,21 +11,23 @@ namespace planet::behaviour {
 
     /// ### Create a leaf behaviour from a nullary coroutine
     template<typename R>
-    constexpr auto leaf(typename runner<R>::result_type (*c)()) {
+    constexpr auto leaf(typename runner<R>::co_result_type (*c)()) {
         struct impl : public runner<R> {
-            constexpr impl(runner<R>::result_type (*c)()) : run{c} {}
+            constexpr impl(runner<R>::co_result_type (*c)()) : run{c} {}
             runner<R>::result_type (*run)();
-            runner<R>::result_type operator()(context &) const override {
+            runner<R>::result_type operator()(context_base &) const override {
                 co_return co_await run();
             }
         };
         return impl{c};
     }
+
+    /// ### Create a leaf behaviour from an n-ary coroutine
     template<typename R, typename... Param, typename... Arg>
     constexpr auto
-            leaf(typename runner<R>::result_type (*c)(Param...),
+            leaf(typename runner<R>::co_result_type (*c)(Param...),
                  parameter<Arg> const &...arg) {
-        using run_fn = runner<R>::result_type (*)(Param...);
+        using run_fn = runner<R>::co_result_type (*)(Param...);
 
         static_assert(
                 sizeof...(Param) == sizeof...(Arg),
@@ -39,8 +41,8 @@ namespace planet::behaviour {
             run_fn run;
             std::tuple<parameter<Arg> const &...> args;
 
-            FELSPAR_CORO_WRAPPER runner<R>::result_type
-                    operator()(context &ctx) const override {
+            FELSPAR_CORO_WRAPPER runner<R>::co_result_type
+                    operator()(context_base &ctx) const override {
                 []<std::size_t... Is>(std::index_sequence<Is...>) {
                     static_assert(
                             (...
@@ -49,11 +51,11 @@ namespace planet::behaviour {
                                      std::tuple_element_t<Is, arg_types>>));
                 }(std::index_sequence_for<Param...>{});
 
-                std::tuple<context &, run_fn> cr{ctx, run};
+                std::tuple<context_base &, run_fn> cr{ctx, run};
                 return std::apply(impl::dispatch, std::tuple_cat(cr, args));
             }
-            static runner<R>::result_type dispatch(
-                    context &ctx, run_fn run, parameter<Arg> const &...a) {
+            static runner<R>::co_result_type dispatch(
+                    context_base &ctx, run_fn run, parameter<Arg> const &...a) {
                 co_return co_await run(ctx.look_up(a)...);
             }
         };
