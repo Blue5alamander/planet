@@ -6,6 +6,7 @@
 
 #include <felspar/memory/pmr.hpp>
 
+#include <string_view>
 #include <unordered_map>
 
 
@@ -19,7 +20,7 @@ namespace planet::behaviour {
             void const *cptr;
             void *mptr;
         };
-        using map_type = std::unordered_map<char const *, value>;
+        using map_type = std::unordered_map<std::string_view, value>;
 
 
         map_type map;
@@ -29,7 +30,7 @@ namespace planet::behaviour {
         /// ### Look up a parameter by key and return the argument
         template<typename T>
         T &look_up(parameter<T> const &p) {
-            auto &mp = map.at(p.type.id->name());
+            auto &mp = map.at(p.name);
             /// TODO Check stored type matches
             /// TODO Add checks that `cptr`/`mptr` contain valid values
             if (parameter<T>::is_constant() and mp.cptr) {
@@ -48,10 +49,10 @@ namespace planet::behaviour {
                 map_type &map;
                 T &operator=(T &t) {
                     if constexpr (parameter<T>::is_constant()) {
-                        map[p.type.id->name()] = {
+                        map[p.name] = {
                                 .type = p.type, .cptr = &t, .mptr = nullptr};
                     } else {
-                        map[p.type.id->name()] = {
+                        map[p.type.name] = {
                                 .type = p.type, .cptr = nullptr, .mptr = &t};
                     }
                     return t;
