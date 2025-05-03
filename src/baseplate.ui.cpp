@@ -62,6 +62,16 @@ void planet::ui::baseplate::start_frame_reset() {
 void planet::ui::baseplate::add(widget_ptr const w) {
     w->baseplate = this;
     widgets.push_back(w);
+    update_if_better_soft_focus(w);
+}
+
+
+void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
+    if (w->wants_focus()
+        and (not soft_focus or soft_focus->z_layer < w->z_layer)
+        and w->contains_global_coordinate(last_mouse.location)) {
+        soft_focus = w;
+    }
 }
 
 
@@ -72,13 +82,7 @@ auto planet::ui::baseplate::forward_mouse() -> task_type {
             last_mouse = co_await mouse.next();
             // Look for the widget that should now have soft focus
             soft_focus = nullptr;
-            for (widget_ptr w : widgets) {
-                if (w->wants_focus()
-                    and (not soft_focus or soft_focus->z_layer < w->z_layer)
-                    and w->contains_global_coordinate(last_mouse.location)) {
-                    soft_focus = w;
-                }
-            }
+            for (widget_ptr w : widgets) { update_if_better_soft_focus(w); }
             // Now send the event to the correct widget
             if (auto *send_to = find_focused_widget(); send_to) {
                 send_to->events.mouse.push(last_mouse);

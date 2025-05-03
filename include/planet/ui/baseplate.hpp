@@ -115,6 +115,8 @@ namespace planet::ui {
         widget_ptr find_focused_widget() const noexcept {
             return hard_focus ? hard_focus : soft_focus;
         }
+        /// #### Update the soft focus if this widget is better
+        void update_if_better_soft_focus(widget_ptr);
 
 
         /// ### Event forwarding
