@@ -131,10 +131,10 @@ namespace planet::audio {
 
 
     namespace literals {
-        inline auto operator"" _dB(unsigned long long d) {
+        inline auto operator""_dB(unsigned long long d) {
             return dB_gain{float(d)};
         }
-        inline auto operator"" _dB(long double d) { return dB_gain{float(d)}; }
+        inline auto operator""_dB(long double d) { return dB_gain{float(d)}; }
     }
 
 
