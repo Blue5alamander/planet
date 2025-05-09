@@ -26,20 +26,26 @@ int main() {
     planet::audio::channel master{0_dB};
     planet::audio::mixer desk{master};
 
-    desk.add_track(planet::audio::gain(
-            -6_dB,
-            planet::audio::stereobuffer(planet::audio::monobuffer<
-                                        planet::audio::sample_clock>(
-                    planet::audio::oscillator(
-                            440.0f
-                            / planet::audio::sample_clock::period::den)))));
-    desk.add_track(planet::audio::gain(
-            -6_dB,
-            planet::audio::stereobuffer(planet::audio::monobuffer<
-                                        planet::audio::sample_clock>(
-                    planet::audio::oscillator(
-                            660.0f
-                            / planet::audio::sample_clock::period::den)))));
+    desk.add_track(
+            planet::audio::gain(
+                    -6_dB,
+                    planet::audio::stereobuffer(
+                            planet::audio::monobuffer<
+                                    planet::audio::sample_clock>(
+                                    planet::audio::oscillator(
+                                            440.0f
+                                            / planet::audio::sample_clock::
+                                                    period::den)))));
+    desk.add_track(
+            planet::audio::gain(
+                    -6_dB,
+                    planet::audio::stereobuffer(
+                            planet::audio::monobuffer<
+                                    planet::audio::sample_clock>(
+                                    planet::audio::oscillator(
+                                            660.0f
+                                            / planet::audio::sample_clock::
+                                                    period::den)))));
 
     for (auto block : desk.output()) {
         snd_pcm_writei(pcm, block.data(), block.samples());

@@ -174,21 +174,26 @@ namespace planet::map {
             if (chunk == nullptr) {
                 auto const offx = cell_number * chunk_type::width;
                 auto const offy = row_number * chunk_type::height;
-                storage.emplace_back(std::pair{
-                        coordinates{
-                                row.left_edge + coordinates::value_type(offx),
-                                bottom_edge + coordinates::value_type(offy)},
-                        std::make_unique<chunk_type>([=,
-                                                      this](auto const x,
-                                                            auto const y) {
-                            auto const relx = offx + x;
-                            auto const rely = offy + y;
-                            return init(
-                                    {row.left_edge
-                                             + coordinates::value_type(relx),
-                                     bottom_edge
-                                             + coordinates::value_type(rely)});
-                        })});
+                storage.emplace_back(
+                        std::pair{
+                                coordinates{
+                                        row.left_edge
+                                                + coordinates::value_type(offx),
+                                        bottom_edge
+                                                + coordinates::value_type(offy)},
+                                std::make_unique<chunk_type>([=,
+                                                              this](auto const x,
+                                                                    auto const y) {
+                                    auto const relx = offx + x;
+                                    auto const rely = offy + y;
+                                    return init(
+                                            {row.left_edge
+                                                     + coordinates::value_type(
+                                                             relx),
+                                             bottom_edge
+                                                     + coordinates::value_type(
+                                                             rely)});
+                                })});
                 chunk = storage.back().second.get();
                 on_chunk_created.push({storage.back().first, chunk});
             }

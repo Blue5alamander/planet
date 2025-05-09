@@ -396,8 +396,9 @@ namespace {
 
         co_return co_await print(
                 world, player,
-                player.process_outcome(planet::client::connection(
-                        planet::io::commands(), commands)));
+                player.process_outcome(
+                        planet::client::connection(
+                                planet::io::commands(), commands)));
     }
 
 
