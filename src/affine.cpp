@@ -63,6 +63,11 @@ void planet::affine::load(serialise::box &box, point3d &p) {
     box.named("_p:a:p3", x, y, z);
     p = {x, y, z};
 }
+namespace {
+    auto const p3 = planet::log::format("_p:a:p3", [](auto &os, auto &box) {
+        os << planet::serialise::load_from_box<planet::affine::point3d>(box);
+    });
+}
 
 
 /// ## `planet::affine::rectangle2d`
