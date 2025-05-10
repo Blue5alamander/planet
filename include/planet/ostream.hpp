@@ -12,14 +12,8 @@ namespace planet {
 
 
     namespace affine {
-        inline std::ostream &operator<<(std::ostream &os, point2d const p) {
-            return os << '(' << p.x() << ", " << p.y() << ')';
-        }
         inline std::ostream &operator<<(std::ostream &os, extents2d const e) {
             return os << e.width << "×" << e.height;
-        }
-        inline std::ostream &operator<<(std::ostream &os, rectangle2d const r) {
-            return os << r.extents << '@' << r.top_left;
         }
         inline std::ostream &operator<<(std::ostream &os, matrix3d const &m) {
             return os << "{{" << m[{0, 0}] << ", " << m[{1, 0}] << ", "
@@ -30,17 +24,23 @@ namespace planet {
                       << m[{0, 3}] << ", " << m[{1, 3}] << ", " << m[{2, 3}]
                       << ", " << m[{3, 3}] << "}}";
         }
+        inline std::ostream &operator<<(std::ostream &os, point2d const p) {
+            return os << '(' << p.x() << ", " << p.y() << ')';
+        }
+        inline std::ostream &operator<<(std::ostream &os, rectangle2d const r) {
+            return os << r.extents << '@' << r.top_left;
+        }
     }
 
 
-    namespace map {
+    namespace hexmap {
         inline std::ostream &operator<<(std::ostream &os, coordinates const p) {
             return os << '(' << p.column() << ", " << p.row() << ')';
         }
     }
 
 
-    namespace hexmap {
+    namespace map {
         inline std::ostream &operator<<(std::ostream &os, coordinates const p) {
             return os << '(' << p.column() << ", " << p.row() << ')';
         }
