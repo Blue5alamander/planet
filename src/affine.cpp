@@ -139,9 +139,17 @@ planet::affine::transform3d &
 
 planet::affine::transform3d planet::affine::transform3d::perspective(
         float const scale, float const theta) {
+    /**
+     * The matrix is from the article _[The perspective projection matrix in
+     * Vulkan](https://www.vincentparizet.com/blog/posts/vulkan_perspective_matrix/)_
+     * which describes the deriviation.
+     *
+     * This matrix also does not perform the aspect correction for the Vulkan
+     * coordinate system.
+     */
     float const fov_rad = theta * pi / 2.0f;
     float const focal_length = scale / std::tan(fov_rad / 2.0f);
-    float const x = focal_length; // * 1920.0f / 1080.0f;
+    float const x = focal_length;
     float const y = focal_length;
 
     return {{std::array{
@@ -154,7 +162,6 @@ planet::affine::transform3d planet::affine::transform3d::perspective(
                     std::array{1.0f / x, 0.0f, 0.0f, 0.0f},
                     std::array{0.0f, 1.0f / y, 0.0f, 0.0f},
                     std::array{0.0f, 0.0f, 0.0f, -1.0f},
-                    /// TODO Double check the below row
                     std::array{0.0f, 0.0f, 1.0f, 0.0f}}}};
 }
 
