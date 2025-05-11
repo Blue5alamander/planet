@@ -43,7 +43,7 @@ namespace planet::camera {
             /// #### Perspective transform scaling
             float perspective_scale = 3.333f;
             /// #### Perspective field of view
-            /// The units for this are as a multiple of 90°.
+            /// The "units" for this are a multiple of 90°.
             float perspective_fov = 1.0f;
         };
 
