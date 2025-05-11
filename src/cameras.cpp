@@ -49,7 +49,7 @@ planet::camera::target3dxy::target3dxy(parameters const &p) : target{p} {
 planet::affine::point2d
         planet::camera::target3dxy::into(affine::point3d const &p) {
     auto const p2 = view.into(p);
-    return {p2.x(), -p2.y()};
+    return {p2.x(), p2.y()};
 }
 
 
@@ -59,22 +59,17 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
 }
 
 
-planet::affine::transform3d
-        planet::camera::target3dxy::current_perspective_transform() const {
-    float const scale = 3.333f;
-    float const theta = 1.0f;
-    return affine::transform3d::perspective(scale, theta);
-}
-
-
 void planet::camera::target3dxy::tick_update() {
     initial.tick_update();
-    /// TODO Do the current update from the target
+    /// TODO Do the animated current update from the target
+    current = target;
     view = {initial.view.into(), initial.view.outof()};
     view.scale(1.0f, 1.0f, 1.0f / initial.current_scale)
             .translate(current.view_offset)
-            .rotate_x(-0.125f)
+            .rotate_x(current.view_angle)
             .translate(current.view_direction * current.distance);
+    perspective = affine::transform3d::perspective(
+            current.perspective_scale, current.perspective_fov);
 }
 felspar::coro::task<void>
         planet::camera::target3dxy::updates(felspar::io::warden &warden) {

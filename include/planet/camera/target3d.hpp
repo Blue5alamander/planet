@@ -34,13 +34,17 @@ namespace planet::camera {
             float distance = {3};
             /// #### View angle
             /**
-             * This is how oblique the camera is to looking at the ground. An
-             * angle of zero means that the camera is pointing straight down,
-             * and an angle of one means it is pointing straight up.
+             * This is how oblique the camera is to looking at the ground.
              *
-             * This angle amounts to a rotation around the y axis.
+             * The angle is the rotation around the y-axis where zero means that
+             * the camera is pointing straight down.
              */
-            float view_angle = {0.25f};
+            float view_angle = {-0.25f * 1 / 3};
+            /// #### Perspective transform scaling
+            float perspective_scale = 3.333f;
+            /// #### Perspective field of view
+            /// The units for this are as a multiple of 90°.
+            float perspective_fov = 1.0f;
         };
 
 
@@ -57,12 +61,11 @@ namespace planet::camera {
         parameters target = {}, current = target;
 
 
-        /// ### Return the transform for the current parameters
-        affine::transform3d current_perspective_transform() const;
-
-
         /// ### Current matrix transforms
         affine::transform3d view;
+
+        /// ### Return the transform for the current parameters
+        affine::transform3d perspective;
 
         /// #### The `into` transform
         affine::point2d into(affine::point3d const &);

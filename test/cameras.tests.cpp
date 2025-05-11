@@ -16,7 +16,7 @@ namespace {
         check(v.y()) == 0.0f;
         check(v.z()) == -3.0f;
         check(v.h) == 1.0f;
-        auto const f = camera.current_perspective_transform().into() * v;
+        auto const f = camera.perspective.into() * v;
         check(f.x()) == 0.0f;
         check(f.y()) == 0.0f;
         check(f.z()) == 1.0f / 3.0f;
