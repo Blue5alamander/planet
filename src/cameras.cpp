@@ -1,5 +1,6 @@
 #include <planet/camera/orthogonal_birdseye.hpp>
 #include <planet/camera/target3d.hpp>
+#include <planet/log.hpp>
 
 
 using namespace std::literals;
@@ -54,8 +55,43 @@ planet::affine::point2d
 
 
 planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
-        affine::point2d const &, float) {
-    return {};
+        affine::point2d const &xy, float const z) {
+    static affine::point3d constexpr xynormal{0, 0, 1};
+
+    /// Centre of the plane in world coordinates
+    affine::point3d const plane_centre{0, 0, z};
+    /// Start and end of the camera ray in camera coordinates
+    float const fov_rad = current.perspective_fov * pi / 2.0f;
+    float const focal_length =
+            current.perspective_scale / std::tan(fov_rad / 2.0f);
+    affine::point3d const start_camera{0, 0, 0};
+    affine::point3d const end_camera{xy, -focal_length};
+    /// Convert start & end to world coordinates
+    auto const start_world = view.outof(start_camera);
+    auto const end_world = view.outof(end_camera);
+    /// Direction of the ray
+    auto const dir{(end_world - start_world).normalise()};
+    /// Ray intersection algorithm
+    auto const dot_normal = dir.dot(xynormal);
+    if (dot_normal == 0.0f) {
+        planet::log::warning(
+                "Camera ray is parallel to xy plane. Position", xy,
+                "start_world", start_world, "end_world", end_world, "direction",
+                dir);
+        return plane_centre;
+    } else {
+        auto const numerator = xynormal.dot(plane_centre - start_world);
+        auto const t = numerator / dot_normal;
+        if (t > 0.00001f) {
+            return {(start_world + dir * t).xy(), z};
+        } else {
+            planet::log::warning(
+                    "Camera ray points away from the plane. Position", xy,
+                    "start_world", start_world, "end_world", end_world,
+                    "direction", dir);
+            return plane_centre;
+        }
+    }
 }
 
 
