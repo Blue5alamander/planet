@@ -48,7 +48,7 @@ planet::camera::target3dxy::target3dxy(parameters const &p) : target{p} {
 
 planet::affine::point2d
         planet::camera::target3dxy::into(affine::point3d const &p) {
-    auto const p2 = view.into(p);
+    auto const p2 = perspective.into() * view.into(p);
     return {p2.x(), p2.y()};
 }
 
