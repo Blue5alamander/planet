@@ -27,5 +27,3 @@ add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(tools)
 add_subdirectory(tooling)
-
-target_compile_definitions(felspar-coro INTERFACE FELSPAR_CORO_SKIP_LIFETIME_CHECKS)
