@@ -129,7 +129,8 @@ planet::audio::stereo_generator planet::audio::music::output() {
         if (not generator) {
             std::scoped_lock _{mtx};
             if (queue.size()) {
-                generator = master.attenuate(queue.front()());
+                generator = master.attenuate(
+                        std::move(queue.front().next().value()));
                 playing.store(true, std::memory_order_relaxed);
             }
         }

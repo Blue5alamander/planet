@@ -20,9 +20,9 @@ namespace planet::audio {
     using stereo_generator = felspar::coro::generator<stereo_buffer>;
 
 
-    /// Converts a mono buffer to a stereo buffer
+    /// ## Converts a mono buffer to a stereo buffer
     template<typename Clock>
-    inline felspar::coro::generator<stereo_buffer> stereobuffer(
+    inline stereo_generator stereobuffer(
             felspar::coro::generator<buffer_storage<Clock, 1>> mono) {
         felspar::memory::accumulation_buffer<float> output{
                 default_buffer_samples * 50};

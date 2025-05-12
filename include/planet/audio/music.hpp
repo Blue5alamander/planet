@@ -30,13 +30,7 @@ namespace planet::audio {
         /// The generator will be handled to the audio processing thread
 
 
-        /**
-         * TODO This would have to change from using `std::function` if we want
-         * to be able to use the lifetime tracking features of clang for
-         * coroutines. This is because `std::function`'s `operator()` is not
-         * marked with the correct attribute.
-         */
-        using start_tune_function = std::function<stereo_generator()>;
+        using start_tune_function = felspar::coro::generator<stereo_generator>;
 
 
         /// ### Playing flag
