@@ -80,7 +80,7 @@ namespace planet::audio {
     /// ## Apply a gain level to the audio
     template<typename Clock, std::size_t Channels>
     inline felspar::coro::generator<buffer_storage<Clock, Channels>> gain(
-            linear_gain const &gain,
+            linear_gain gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         auto const mul = gain.load();
         felspar::memory::accumulation_buffer<float> output{
