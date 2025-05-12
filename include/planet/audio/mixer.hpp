@@ -26,6 +26,9 @@ namespace planet::audio {
                 generators.push_back({std::move(track)});
             }
         }
+        void add_track(stereo_generator track, dB_gain g) {
+            add_track(gain(g, std::move(track)));
+        }
 
         stereo_generator output();
 
