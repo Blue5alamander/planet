@@ -6,6 +6,8 @@
 #include <planet/queue/tspsc.hpp>
 #include <planet/serialise/muxing.hpp>
 
+#include <variant>
+
 
 namespace planet::comms::inproc {
 
