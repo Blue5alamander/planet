@@ -43,7 +43,7 @@ namespace planet::serialise {
             /// #### Helper for loading a type out of the message
             template<typename T>
             T load_type() {
-                return serialise::load_type<T>(box);
+                return serialise::load_from_box<T>(box);
             }
         };
 
