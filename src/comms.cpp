@@ -22,7 +22,7 @@ auto planet::comms::inproc::data::subscribe(std::string_view const n)
 
 
 void planet::comms::inproc::data::do_push(serialise::shared_bytes b) {
-    tspsc::push(std::move(b));
+    queue.push(std::move(b));
     signalling.send({});
     ++pushes;
 }
@@ -30,11 +30,11 @@ void planet::comms::inproc::data::do_push(serialise::shared_bytes b) {
 
 auto planet::comms::inproc::data::acquire()
         -> felspar::io::warden::task<std::span<serialise::shared_bytes>> {
-    auto s = tspsc::consume();
+    auto s = queue.consume();
     while (s.empty()) {
         std::array<std::byte, 16> buffer;
         co_await signalling.read_some(buffer);
-        s = tspsc::consume();
+        s = queue.consume();
     }
     deliveries += s.size();
     co_return s;

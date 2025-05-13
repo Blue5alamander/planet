@@ -22,9 +22,9 @@ namespace planet::comms::inproc {
      * get all data that appears within that box.
      */
     class data final :
-    public serialise::demuxer,
-            private queue::tspsc<serialise::shared_bytes> {
+    public serialise::demuxer {
         comms::signal signalling;
+        queue::tspsc<serialise::shared_bytes> queue;
 
         telemetry::counter pushes{name() + "__pushes"},
                 deliveries{name() + "__deliveries"};
@@ -37,6 +37,10 @@ namespace planet::comms::inproc {
          * consumes values.
          */
         data(std::string_view, felspar::io::warden &);
+
+
+        /// ### Push data
+        using serialise::demuxer::push;
 
 
         /// ### Subscribe to a given box name
