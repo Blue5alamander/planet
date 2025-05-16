@@ -21,8 +21,7 @@ namespace planet::comms::inproc {
      * Subscribers provide the box name that they wish to receive and will then
      * get all data that appears within that box.
      */
-    class data final :
-    public serialise::demuxer {
+    class data final : public serialise::demuxer {
         comms::signal signalling;
         queue::tspsc<serialise::shared_bytes> queue;
 
