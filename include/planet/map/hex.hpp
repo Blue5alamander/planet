@@ -202,6 +202,7 @@ namespace planet::hexmap {
             0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 6.0f / 6.0f};
 
     /// ### The best direction to move towards a given point
+    std::size_t best_direction_index(coordinates from, coordinates towards);
     coordinates best_direction(coordinates from, coordinates towards);
 
 

@@ -81,17 +81,21 @@ planet::hexmap::coordinates planet::hexmap::coordinates::from_position(
 }
 
 
-auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
-        -> coordinates {
+std::size_t planet::hexmap::best_direction_index(
+        coordinates const from, coordinates const to) {
     auto const angle = (to - from).centre().theta();
     for (std::size_t index{}; auto const ref : angles) {
         if (std::abs(ref - angle) <= 1.0f / 12.0f) {
-            return directions[index];
+            return index;
         } else {
             ++index;
         }
     }
-    return south_east;
+    return 5uz;
+}
+auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
+        -> coordinates {
+    return directions[best_direction_index(from, to)];
 }
 
 
