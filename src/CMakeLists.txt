@@ -25,7 +25,7 @@ add_library(planet
         ui.cpp
         version.cpp
     )
-target_compile_features(planet INTERFACE cxx_std_23)
+target_compile_features(planet PUBLIC cxx_std_23)
 target_include_directories(planet PUBLIC ../include/)
 target_compile_definitions(planet PRIVATE
     LOG_ROOT_DIRECTORY="${PLANET_LOG_ROOT_DIRECTORY}")
