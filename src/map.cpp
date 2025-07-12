@@ -91,6 +91,7 @@ std::size_t planet::hexmap::best_direction_index(
             ++index;
         }
     }
+    planet::log::warning("Didn't find a best angle, so return 5", from, to);
     return 5uz;
 }
 auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
