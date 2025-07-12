@@ -199,7 +199,7 @@ namespace planet::hexmap {
     constexpr std::array<coordinates, 6> directions{
             east, north_east, north_west, west, south_west, south_east};
     constexpr std::array<float, 6> angles{
-            0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 6.0f / 6.0f};
+            0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f};
 
     /// ### The best direction to move towards a given point
     std::size_t best_direction_index(coordinates from, coordinates towards);
