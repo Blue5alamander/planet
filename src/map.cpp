@@ -83,7 +83,11 @@ planet::hexmap::coordinates planet::hexmap::coordinates::from_position(
 
 std::size_t planet::hexmap::best_direction_index(
         coordinates const from, coordinates const to) {
-    auto const angle = (to - from).centre().theta();
+    /**
+     * TODO With a bit more of the correct mathsing this should just be a simple
+     * closed form calculation instead of running a search...
+     */
+    auto const angle = (to.centre() - from.centre()).theta();
     for (std::size_t index{}; auto const ref : angles) {
         if (std::abs(ref - angle) <= 1.0f / 12.0f) {
             return index;
@@ -91,7 +95,6 @@ std::size_t planet::hexmap::best_direction_index(
             ++index;
         }
     }
-    planet::log::warning("Didn't find a best angle, so return 5", from, to);
     return 5uz;
 }
 auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
