@@ -46,5 +46,6 @@ On Windows it's generally best to add these as submodules to your project and us
 An incomplete list of the available modules are:
 
 * [Behaviours](./include/behaviour/) -- unstable
+* [ECS](./include/ecs) -- stable
 * [Serialisation](./include/serialise/) -- stable
 * [Telemetry](./include/telemetry/)-- stable
