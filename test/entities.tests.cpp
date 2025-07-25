@@ -61,12 +61,15 @@ namespace {
                 check(int_storage.get_component<int>(e1)) == 23;
                 check(int_storage.get_component<unsigned>(e1)) == 42u;
             },
-            []() {
+            [](auto check) {
                 integral int_storage;
                 vectors vector_storage;
                 planet::ecs::entities entities{int_storage, vector_storage};
                 auto e1 = entities.create(42u, std::vector{1, 2, 3});
                 vector_storage.add_component(e1, std::vector{4, 5, 6});
+                entities.add_component(e1, true);
+                check(entities.has_component<int>(e1)) == false;
+                check(entities.has_component<std::vector<int>>(e1)) == true;
             });
 
 
@@ -132,6 +135,21 @@ namespace {
                     ++count;
                 });
                 check(count) == 1u;
+
+                count = 0;
+                entities.iterate(
+                        [&](planet::ecs::entity_id eid, float &f, bool *b) {
+                            if (b) {
+                                check(eid) == e1;
+                                check(f) == 4.0f;
+                                check(*b) == true;
+                            } else {
+                                check(eid) == e2;
+                                check(f) == 6.0f;
+                            }
+                            ++count;
+                        });
+                check(count) == 2u;
             },
             [](auto check) {
                 integral int_storage;
@@ -193,6 +211,7 @@ namespace {
                             }
                             ++count;
                         });
+                check(count) == 1u;
             });
 
 

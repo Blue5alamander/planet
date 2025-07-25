@@ -270,7 +270,23 @@ namespace planet::ecs {
 
         /// ### Iterate over components
         template<typename Lambda>
-        auto iterate(Lambda &&lambda) {
+        auto iterate(Lambda &&lambda)
+        /**
+         * The `lambda` must take an `entity_id` as the first argument.
+         * Subsequent arguments are the components that are required. A
+         * component can be taken as a reference (or const reference), in which
+         * case it must exist on the entity, otherwise the entity is skipped
+         * over. A component argument can also be taken as a pointer to a
+         * component. In this case it is optional and if the entity doesn't have
+         * the component then `nullptr` is passed as the value.
+         *
+         * This means that the lambda will only be called for all entities that
+         * have all of the components that are passed by reference.
+         *
+         * The result of the lambda is not used. Any side-effects should be
+         * effected in the body of the lambda.
+         */
+        {
             for (std::size_t idx{1}; idx < e_slots.size(); ++idx) {
                 if (e_slots[idx].entity.strong_count) {
                     entity_id eid{this, idx, e_slots[idx].entity.generation};
@@ -376,17 +392,48 @@ namespace planet::ecs {
             using tuple_type = std::tuple<entity_id &, Cs...>;
 
             static bool has_args(entities *s, entity_id &eid) {
-                return (s->has_component<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>(eid)
-                        && ...);
+                return (has_arg<Cs>(s, eid) && ...);
+            }
+            template<typename IC>
+            static bool has_arg(entities *s, entity_id &eid) {
+                if constexpr (has_storage_index_for_type<std::remove_const_t<
+                                      std::remove_reference_t<IC>>>()) {
+                    return s->has_component<
+                            std::remove_const_t<std::remove_reference_t<IC>>>(
+                            eid);
+                } else {
+                    return std::is_pointer_v<IC>
+                            and has_storage_index_for_type<std::remove_const_t<
+                                    std::remove_pointer_t<IC>>>();
+                }
             }
             static tuple_type get_args(entities *s, entity_id &eid) {
-                return {eid,
-                        s->get_component<std::remove_const_t<
-                                std::remove_reference_t<Cs>>>(eid)...};
+                return {eid, get_component<Cs>(s, eid)...};
+            }
+            template<typename IC>
+            static decltype(auto) get_component(entities *s, entity_id &eid) {
+                if constexpr (has_storage_index_for_type<std::remove_const_t<
+                                      std::remove_reference_t<IC>>>()) {
+                    return s->get_component<
+                            std::remove_const_t<std::remove_reference_t<IC>>>(
+                            eid);
+                } else {
+                    return s->maybe_get_component<
+                            std::remove_const_t<std::remove_pointer_t<IC>>>(
+                            eid);
+                }
             }
         };
 
+        template<typename Component>
+        static constexpr std::size_t has_storage_index_for_type() {
+            static constexpr std::array type_indexes{
+                    Storages::template maybe_component_index<Component>()...};
+            for (auto const &ti : type_indexes) {
+                if (ti.has_value()) { return true; }
+            }
+            return false;
+        }
         template<typename Component>
         static constexpr std::size_t get_storage_index_for_type() {
             static constexpr std::array type_indexes{
