@@ -22,6 +22,10 @@ namespace planet::affine {
         constexpr point3d(point2d const &p, float const z = {})
         : xh{p.xh}, yh{p.yh}, zh{z * p.h}, h{p.h} {}
 
+        static point3d unit_vector(point3d const &p) noexcept {
+            return p.as_unit_vector();
+        }
+
 
         /// ### Queries
         constexpr float x() const noexcept { return xh / h; }
@@ -77,7 +81,9 @@ namespace planet::affine {
 
         /// #### Unit vector
         /// TODO Make constexpr when g++ catches up
-        point3d normalise() const noexcept { return *this / std::sqrt(mag2()); }
+        point3d as_unit_vector() const noexcept {
+            return *this / std::sqrt(mag2());
+        }
     };
 
 

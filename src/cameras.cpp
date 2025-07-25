@@ -70,7 +70,7 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
     auto const start_world = view.outof(start_camera);
     auto const end_world = view.outof(end_camera);
     /// Direction of the ray
-    auto const dir{(end_world - start_world).normalise()};
+    auto const dir{(end_world - start_world).as_unit_vector()};
     /// Ray intersection algorithm
     auto const dot_normal = dir.dot(xynormal);
     if (dot_normal == 0.0f) {
