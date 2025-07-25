@@ -389,7 +389,7 @@ namespace planet::ecs {
 
         template<typename Component>
         static constexpr std::size_t get_storage_index_for_type() {
-            std::array type_indexes{
+            static constexpr std::array type_indexes{
                     Storages::template maybe_component_index<Component>()...};
             for (std::size_t idx{}; auto const &ti : type_indexes) {
                 if (ti.has_value()) { return idx; }
