@@ -80,7 +80,7 @@ namespace planet::ui {
         /// ### Manually set the state
 
         /// #### Enable
-        void enable(bool const v) noexcept { m_enabled = v; }
+        void enable(bool const v = true) noexcept { m_enabled = v; }
 
 
         /// ### Add a widget to a base plate so it can receive events
@@ -159,9 +159,9 @@ namespace planet::ui {
         /**
          * ### The coroutine for the behaviour
          *
-         * The `behaviour` method is run within `reponse`, and is started by the
-         * `add_to` method after the baseplate has been set. (Final) sub-classes
-         * will need to post a new behaviour after being moved.
+         * The `behaviour` method is run within `response`, and is started by
+         * the `add_to` method after the baseplate has been set. (Final)
+         * sub-classes will need to post a new behaviour after being moved.
          */
         felspar::coro::eager<> response;
 
