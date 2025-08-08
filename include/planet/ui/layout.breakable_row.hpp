@@ -9,6 +9,7 @@ namespace planet::ui {
 
 
     /// ## Draws the items across multiple lines when needed
+
     template<typename CT>
     struct breakable_row final : public collection_reflowable<CT, void> {
         using superclass = collection_reflowable<CT, void>;
@@ -19,10 +20,7 @@ namespace planet::ui {
         using superclass::items;
 
 
-        /// ### Padding between items in the row
-        float hpadding = {}, vpadding = {};
-
-
+        /// ### Construction
         breakable_row(collection_type c, float const hp, float const vp)
         : superclass{"planet::ui::breakable_row<C>", std::move(c)},
           hpadding{hp},
@@ -37,6 +35,10 @@ namespace planet::ui {
         : breakable_row{std::move(c), p, p} {}
         breakable_row(std::string_view const n, collection_type c, float const p)
         : breakable_row{n, std::move(c), p, p} {}
+
+
+        /// ### Padding between items in the row
+        float hpadding = {}, vpadding = {};
 
 
       private:
@@ -91,10 +93,7 @@ namespace planet::ui {
         using superclass::items;
 
 
-        /// Padding between items in the row
-        float hpadding = {}, vpadding = {};
-
-
+        /// ### Construction
         explicit breakable_row(collection_type c, float const hp, float const vp)
         : superclass{"planet::ui::breakable_row<std::tuple<Pack...>>", std::move(c)},
           hpadding{hp},
@@ -116,6 +115,10 @@ namespace planet::ui {
                 felspar::source_location const &loc =
                         felspar::source_location::current())
         : breakable_row{n, std::move(c), p, p, loc} {}
+
+
+        /// ### Padding between items in the row
+        float hpadding = {}, vpadding = {};
 
 
       private:
@@ -154,7 +157,6 @@ namespace planet::ui {
             return constrained_type{width, height};
         }
     };
-
 
     template<typename C>
     breakable_row(C) -> breakable_row<C>;
