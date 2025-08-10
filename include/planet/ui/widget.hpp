@@ -52,6 +52,10 @@ namespace planet::ui {
         }
         widget(std::string_view const n, float const z = {})
         : reflowable{n}, z_layer{z} {}
+        widget(std::string_view const n, ui::baseplate &bp, float const z = {})
+        : reflowable{n}, z_layer{z} {
+            add_to(bp);
+        }
         virtual ~widget() { deregister(baseplate, this); }
 
         widget &operator=(widget const &) = delete;
