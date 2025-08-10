@@ -120,7 +120,6 @@ planet::audio::stereo_generator planet::audio::music::output() {
     std::optional<planet::audio::stereo_generator> generator;
     while (true) {
         if (clear_flag.load(std::memory_order_relaxed)) {
-            clear_flag.store(false, std::memory_order_relaxed);
             playing.store(false, std::memory_order_relaxed);
             generator = {};
             std::scoped_lock _{mtx};
@@ -129,12 +128,16 @@ planet::audio::stereo_generator planet::audio::music::output() {
         if (not generator) {
             std::scoped_lock _{mtx};
             if (queue.size()) {
-                generator = master.attenuate(
-                        std::move(queue.front().next().value()));
-                playing.store(true, std::memory_order_relaxed);
+                auto next = queue.front().next();
+                if (next) {
+                    generator = master.attenuate(std::move(next.value()));
+                } else {
+                    queue.erase(queue.begin());
+                }
             }
         }
         if (generator) {
+            playing.store(true, std::memory_order_relaxed);
             while (auto block = generator->next()) {
                 if (clear_flag.load(std::memory_order_relaxed)) {
                     /// TODO Micro fade block
@@ -147,6 +150,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
             playing.store(false, std::memory_order_relaxed);
             generator = {};
         } else {
+            playing.store(false, std::memory_order_relaxed);
             output.ensure_length(
                     default_buffer_samples * stereo_buffer::channels);
             co_yield output.first(
@@ -160,10 +164,12 @@ felspar::coro::task<void>
         planet::audio::music::clear(felspar::io::warden &ward) {
     planet::log::info("Clearing music queue");
     clear_flag.store(true, std::memory_order_relaxed);
-    while (clear_flag.load(std::memory_order_relaxed)) {
+    while (playing.load(std::memory_order_relaxed)) {
         co_await ward.sleep(50ms);
         planet::log::debug("Still waiting for music to clear");
     }
+    clear_flag.store(false, std::memory_order_relaxed);
+    planet::log::debug("Music cleared");
 }
 
 
