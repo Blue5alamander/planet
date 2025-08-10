@@ -130,6 +130,27 @@ namespace planet::audio {
     }
 
 
+    /// ## Fade in/out
+    template<typename Clock, std::size_t Channels>
+    [[nodiscard]]
+    inline auto micro_fade_out(
+            buffer_storage<Clock, Channels> &block,
+            felspar::memory::accumulation_buffer<float> &output) {
+        auto const float_count = block.samples() * Channels;
+        output.ensure_length(float_count);
+        for (std::size_t sample{}; sample < block.samples(); ++sample) {
+            dB_gain const gain{std::lerp(
+                    0.0f, -90.0f, sample / static_cast<float>(block.samples()))};
+            auto const mul{linear_gain{gain}.load()};
+            for (std::size_t channel{}; channel < Channels; ++channel) {
+                output[sample * Channels + channel] =
+                        block[sample][channel] * mul;
+            }
+        }
+        return output.first(float_count);
+    }
+
+
     namespace literals {
         inline auto operator""_dB(unsigned long long d) {
             return dB_gain{float(d)};

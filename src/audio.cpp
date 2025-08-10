@@ -140,8 +140,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
             playing.store(true, std::memory_order_relaxed);
             while (auto block = generator->next()) {
                 if (clear_flag.load(std::memory_order_relaxed)) {
-                    /// TODO Micro fade block
-                    // co_yield block;
+                    co_yield micro_fade_out(*block, output);
                     break;
                 } else {
                     co_yield *block;
