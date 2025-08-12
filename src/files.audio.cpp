@@ -159,13 +159,13 @@ felspar::coro::generator<
 
 planet::audio::ogg::ogg(
         std::vector<std::byte> o, felspar::source_location const &l)
-: filedata{std::move(o)}, loc{l} {}
+: m_filedata{std::move(o)}, loc{l} {}
 
 
 felspar::coro::generator<
         planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
         planet::audio::ogg::stereo() {
-    impl decoder{filedata, loc};
+    impl decoder{m_filedata, loc};
     for (auto s = decoder.stereo(); auto p = s.next();) {
         co_yield std::move(*p);
     }

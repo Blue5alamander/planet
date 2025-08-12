@@ -12,7 +12,7 @@ namespace planet::audio {
     /// ## Load an ogg file
     class ogg final {
         struct impl;
-        std::vector<std::byte> filedata;
+        std::vector<std::byte> m_filedata;
         felspar::source_location loc;
 
       public:
@@ -22,6 +22,10 @@ namespace planet::audio {
                         felspar::source_location::current());
 
         felspar::coro::generator<stereo_buffer> stereo();
+
+        std::span<std::byte const> filedata() const noexcept {
+            return m_filedata;
+        }
     };
 
 
