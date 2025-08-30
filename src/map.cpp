@@ -36,6 +36,22 @@ bool planet::hexmap::is_within(affine::point2d const c, float const ir) {
 }
 
 
+auto planet::hexmap::tween_rotation(std::size_t const from, std::size_t const to)
+        -> rotation_tweening {
+    auto const rfrom{from % 6}, rto{to % 6};
+    auto const from_turn = direction_to_rotation(rfrom);
+    auto const delta_ac = (6 + rto - rfrom) % 6;
+    auto const delta_c = (6 + rfrom - rto) % 6;
+    if (delta_ac <= delta_c) {
+        return {.from = from_turn,
+                .to = from_turn + direction_to_rotation(delta_ac)};
+    } else {
+        return {.from = from_turn,
+                .to = from_turn - direction_to_rotation(delta_c)};
+    }
+}
+
+
 /// ### `planet::hexmap::coordinates`
 
 

@@ -204,6 +204,16 @@ namespace planet::hexmap {
     constexpr std::array<float, 6> angles{
             0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f};
 
+    /// ### Rotations
+    inline float direction_to_rotation(std::size_t const d) {
+        return 1.0f * d / 6.0f;
+    }
+    struct rotation_tweening {
+        float from, to;
+    };
+    rotation_tweening tween_rotation(std::size_t from, std::size_t to);
+
+
     /// ### The best direction to move towards a given point
     std::size_t best_direction_index(coordinates from, coordinates towards);
     coordinates best_direction(coordinates from, coordinates towards);

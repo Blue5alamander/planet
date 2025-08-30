@@ -217,4 +217,29 @@ namespace {
     });
 
 
+    auto const turning = suite.test(
+            "turning",
+            [](auto check) {
+                check(planet::hexmap::direction_to_rotation(
+                        planet::hexmap::east_index))
+                        == 0.0f;
+                check(planet::hexmap::direction_to_rotation(
+                        planet::hexmap::west_index))
+                        == 0.5f;
+            },
+            [](auto check) {
+                check(planet::hexmap::tween_rotation(0, 1).from) == 0.0f;
+                check(planet::hexmap::tween_rotation(0, 1).to) == 1.0f / 6.0f;
+
+                check(planet::hexmap::tween_rotation(1, 0).from) == 1.0f / 6.0f;
+                check(planet::hexmap::tween_rotation(1, 0).to) == 0.0f;
+
+                check(planet::hexmap::tween_rotation(0, 5).from) == 0.0f;
+                check(planet::hexmap::tween_rotation(0, 5).to) == -1.0f / 6.0f;
+
+                check(planet::hexmap::tween_rotation(5, 0).from) == 5.0f / 6.0f;
+                check(planet::hexmap::tween_rotation(5, 0).to) == 1.0f;
+            });
+
+
 }
