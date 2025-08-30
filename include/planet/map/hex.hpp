@@ -198,6 +198,9 @@ namespace planet::hexmap {
             west{-2, 0}, south_west{-1, -1}, south_east{1, -1};
     constexpr std::array<coordinates, 6> directions{
             east, north_east, north_west, west, south_west, south_east};
+    constexpr std::size_t east_index{0}, north_east_index{1},
+            north_west_index{2}, west_index{3}, south_west_index{4},
+            south_east_index{5};
     constexpr std::array<float, 6> angles{
             0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f};
 
