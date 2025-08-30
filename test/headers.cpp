@@ -1,4 +1,3 @@
-#include <planet/behaviour.hpp>
 #include <planet/comms.hpp>
 #include <planet/drawing.hpp>
 #include <planet/queue.hpp>
