@@ -136,7 +136,7 @@ namespace {
         feature features = feature::none;
         snake *player = nullptr;
 
-        using world_type = planet::hexmap::world_type<hex, 32>;
+        using world_type = planet::map::hex::world_type<hex, 32>;
     };
 
 
@@ -208,7 +208,7 @@ namespace {
 
 
     struct snake {
-        planet::hexmap::coordinates position = {};
+        planet::map::hex::coordinates position = {};
         std::vector<hex *> occupies;
         long vision_distance = 2;
         long health = 8;
@@ -222,7 +222,7 @@ namespace {
 
         /// The snake has moved
         felspar::coro::stream<message>
-                move(hex::world_type &world, planet::hexmap::coordinates by) {
+                move(hex::world_type &world, planet::map::hex::coordinates by) {
             position = position + by;
             auto &h = world[position];
             message outcome{vision_distance};
@@ -277,16 +277,16 @@ namespace {
     void
             draw(hex::world_type const &world,
                  snake const &player,
-                 planet::hexmap::coordinates::value_type range) {
+                 planet::map::hex::coordinates::value_type range) {
         auto const top_left =
-                player.position + planet::hexmap::coordinates{-range, range};
+                player.position + planet::map::hex::coordinates{-range, range};
         auto const bottom_right = player.position
-                + planet::hexmap::coordinates{range + 1, -range - 1};
+                + planet::map::hex::coordinates{range + 1, -range - 1};
         bool spaces = true;
         std::optional<long> current_row;
         std::string line;
         for (auto const loc :
-             planet::hexmap::coordinates::by_column(top_left, bottom_right)) {
+             planet::map::hex::coordinates::by_column(top_left, bottom_right)) {
             if (loc.row() != current_row) {
                 if (line.find_first_not_of(' ') != std::string::npos) {
                     std::cout << line << "\n\n";
@@ -363,22 +363,22 @@ namespace {
 
         planet::client::command_mapping<message> commands;
         commands["e"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::east);
+            return player.move(world, planet::map::hex::east);
         };
         commands["ne"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::north_east);
+            return player.move(world, planet::map::hex::north_east);
         };
         commands["nw"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::north_west);
+            return player.move(world, planet::map::hex::north_west);
         };
         commands["w"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::west);
+            return player.move(world, planet::map::hex::west);
         };
         commands["sw"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::south_west);
+            return player.move(world, planet::map::hex::south_west);
         };
         commands["se"] = [&world, &player](auto) {
-            return player.move(world, planet::hexmap::south_east);
+            return player.move(world, planet::map::hex::south_east);
         };
         commands["draw"] = [](auto args) -> felspar::coro::stream<message> {
             std::string_view const sv = args.next().value_or("8");

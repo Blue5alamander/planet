@@ -5,10 +5,10 @@
 #include <planet/serialise/save_buffer.hpp>
 
 
-namespace planet::map {
+namespace planet::map::square {
 
 
-    /// ## `planet::map::chunk`
+    /// ## `planet::map::square::chunk`
 
 
     template<typename Cell, std::size_t DimX, std::size_t DimY>
@@ -21,7 +21,7 @@ namespace planet::map {
     }
 
 
-    /// ## `planet::map::world`
+    /// ## `planet::map::square::world`
 
 
     template<typename Chunk>
@@ -73,7 +73,7 @@ namespace planet::map {
 }
 
 
-namespace planet::hexmap {
+namespace planet::map::hex {
 
 
     /// ## `planet::hexmap::world`

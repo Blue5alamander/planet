@@ -8,11 +8,11 @@
 #include <algorithm>
 
 
-namespace planet::hexmap {
+namespace planet::map::hex {
 
 
     template<typename Cell, std::size_t DimX, std::size_t DimY = DimX / 2>
-    using chunk = map::chunk<Cell, DimX, DimY>;
+    using chunk = square::chunk<Cell, DimX, DimY>;
 
 
     /// ## Generate the 6 vertices for a hex at the specified location
@@ -77,18 +77,19 @@ namespace planet::hexmap {
      * co-ordinate axes must be either odd or even.
      */
     class coordinates {
-        map::coordinates pos;
-        constexpr coordinates(map::coordinates p) : pos{p} {}
+        square::coordinates pos;
+        constexpr coordinates(square::coordinates p) : pos{p} {}
 
       public:
-        using value_type = map::coordinates::value_type;
+        using value_type = square::coordinates::value_type;
 
         /// ### Construction
         constexpr coordinates() noexcept {}
         constexpr coordinates(value_type x, value_type y) noexcept
         : pos{x, (y < 0 ? y - 1 : y) / 2} {}
         /// #### Create a hex co-ordinate from the compressed co-ordinates
-        static constexpr coordinates from_compressed(map::coordinates const p) {
+        static constexpr coordinates
+                from_compressed(square::coordinates const p) {
             return {p};
         }
         /// #### Create a hex co-ordinate from any (x, y) location within it
@@ -98,7 +99,9 @@ namespace planet::hexmap {
         /// ### Queries
 
         /// #### Return the compressed co-ordinates
-        constexpr map::coordinates compressed() const noexcept { return pos; }
+        constexpr square::coordinates compressed() const noexcept {
+            return pos;
+        }
 
         constexpr value_type row() const noexcept {
             return (pos.row() * 2) + (pos.column() bitand 1);
@@ -144,7 +147,7 @@ namespace planet::hexmap {
          */
         constexpr std::array<affine::point2d, 6>
                 vertices(float const r, float const ir) const noexcept {
-            return hexmap::vertices(centre(r), ir);
+            return hex::vertices(centre(r), ir);
         }
         constexpr auto vertices(float const r = 1.0f) const noexcept {
             return vertices(r, r);
@@ -225,7 +228,7 @@ namespace planet::hexmap {
         static_assert(
                 (Chunk::width bitand 1) == 0,
                 "Width of chunks storage must be even");
-        map::world<Chunk> grid{};
+        square::world<Chunk> grid{};
 
       public:
         using chunk_type = Chunk;
@@ -237,7 +240,7 @@ namespace planet::hexmap {
         world() {}
         world(coordinates const start) : grid{start} {}
         world(coordinates const start, init_function_type const ift)
-        : grid{start.compressed(), [f = std::move(ift)](map::coordinates p) {
+        : grid{start.compressed(), [f = std::move(ift)](square::coordinates p) {
                    return f(coordinates::from_compressed(p));
                }} {}
 
@@ -275,7 +278,7 @@ namespace planet::hexmap {
 
 
     template<typename C, std::size_t X, std::size_t Y = X / 2>
-    using world_type = world<chunk<C, X, Y>>;
+    using world_type = world<square::chunk<C, X, Y>>;
 
 
 }

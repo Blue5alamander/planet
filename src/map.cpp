@@ -3,13 +3,13 @@
 #include <planet/serialise.hpp>
 
 
-/// ### `planet::map::coordinates`
+/// ### `planet::map::square::coordinates`
 
 
-void planet::map::save(serialise::save_buffer &ab, coordinates const c) {
+void planet::map::square::save(serialise::save_buffer &ab, coordinates const c) {
     ab.save_box("_p:m:coord", c.x, c.y);
 }
-void planet::map::load(serialise::load_buffer &lb, coordinates &c) {
+void planet::map::square::load(serialise::load_buffer &lb, coordinates &c) {
     lb.load_box("_p:m:coord", c.x, c.y);
 }
 namespace {
@@ -21,10 +21,10 @@ namespace {
 }
 
 
-/// ### `planet::hexmap`
+/// ### `planet::map::hex`
 
 
-bool planet::hexmap::is_within(affine::point2d const c, float const ir) {
+bool planet::map::hex::is_within(affine::point2d const c, float const ir) {
     /// kx is `-cos(pi/6)` and ky is `sin(pi/6)`. kr describes the outer radius
     constexpr float kx{-0.8660254037844387f}, ky{0.5f};
     /// Our hex is point up, so swap x & y
@@ -36,8 +36,8 @@ bool planet::hexmap::is_within(affine::point2d const c, float const ir) {
 }
 
 
-auto planet::hexmap::tween_rotation(std::size_t const from, std::size_t const to)
-        -> rotation_tweening {
+auto planet::map::hex::tween_rotation(
+        std::size_t const from, std::size_t const to) -> rotation_tweening {
     auto const rfrom{from % 6}, rto{to % 6};
     auto const from_turn = direction_to_rotation(rfrom);
     auto const delta_ac = (6 + rto - rfrom) % 6;
@@ -52,7 +52,7 @@ auto planet::hexmap::tween_rotation(std::size_t const from, std::size_t const to
 }
 
 
-/// ### `planet::hexmap::coordinates`
+/// ### `planet::map::hex::coordinates`
 
 
 namespace {
@@ -67,7 +67,7 @@ namespace {
         return {(x * planet::sqrt3 / 3.0f - y / 3.0f) / oR,
                 2.0f * y / 3.0f / oR};
     }
-    cube<planet::hexmap::coordinates::value_type>
+    cube<planet::map::square::coordinates::value_type>
             round_qrs(cube<float> const c) {
         auto q = std::round(c.q);
         auto r = std::round(c.r);
@@ -82,14 +82,14 @@ namespace {
         } else {
             s = -q - r;
         }
-        return {planet::hexmap::coordinates::value_type(q),
-                planet::hexmap::coordinates::value_type(r),
-                planet::hexmap::coordinates::value_type(s)};
+        return {planet::map::square::coordinates::value_type(q),
+                planet::map::square::coordinates::value_type(r),
+                planet::map::square::coordinates::value_type(s)};
     }
 }
 
 
-planet::hexmap::coordinates planet::hexmap::coordinates::from_position(
+planet::map::hex::coordinates planet::map::hex::coordinates::from_position(
         affine::point2d const p, float const r) {
     auto const qrs = xy_to_qrs(p, r);
     auto const cube = round_qrs(qrs);
@@ -97,7 +97,7 @@ planet::hexmap::coordinates planet::hexmap::coordinates::from_position(
 }
 
 
-std::size_t planet::hexmap::best_direction_index(
+std::size_t planet::map::hex::best_direction_index(
         coordinates const from, coordinates const to) {
     /**
      * TODO With a bit more of the correct mathsing this should just be a simple
@@ -113,17 +113,17 @@ std::size_t planet::hexmap::best_direction_index(
     }
     return 5uz;
 }
-auto planet::hexmap::best_direction(coordinates const from, coordinates const to)
-        -> coordinates {
+auto planet::map::hex::best_direction(
+        coordinates const from, coordinates const to) -> coordinates {
     return directions[best_direction_index(from, to)];
 }
 
 
-void planet::hexmap::save(serialise::save_buffer &ab, coordinates const c) {
+void planet::map::hex::save(serialise::save_buffer &ab, coordinates const c) {
     ab.save_box("_p:h:coord", c.column(), c.row());
 }
-void planet::hexmap::load(serialise::load_buffer &lb, coordinates &c) {
-    coordinates::value_type col{}, row{};
+void planet::map::hex::load(serialise::load_buffer &lb, coordinates &c) {
+    square::coordinates::value_type col{}, row{};
     lb.load_box("_p:h:coord", col, row);
     c = {col, row};
 }

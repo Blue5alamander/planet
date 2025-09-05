@@ -36,14 +36,14 @@ namespace planet {
     }
 
 
-    namespace hexmap {
+    namespace map::hex {
         inline std::ostream &operator<<(std::ostream &os, coordinates const p) {
             return os << '(' << p.column() << ", " << p.row() << ')';
         }
     }
 
 
-    namespace map {
+    namespace map::square {
         inline std::ostream &operator<<(std::ostream &os, coordinates const p) {
             return os << '(' << p.column() << ", " << p.row() << ')';
         }

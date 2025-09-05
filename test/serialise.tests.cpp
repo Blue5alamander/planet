@@ -227,7 +227,7 @@ namespace {
     auto const m = suite.test(
             "square map",
             [](auto check, auto &log) {
-                planet::map::world_type<bool, 2> world{
+                planet::map::square::world_type<bool, 2> world{
                         {0, 0}, [](auto) { return true; }};
 
                 planet::serialise::save_buffer ab;
@@ -283,14 +283,14 @@ namespace {
                         == 0u;
                 check(span.empty()) == true;
 
-                planet::map::world_type<bool, 2> nw{
+                planet::map::square::world_type<bool, 2> nw{
                         {{}, {}}, [](auto) { return true; }};
                 auto lb = planet::serialise::load_buffer{bytes.cmemory()};
                 load(lb, nw);
                 check(nw[{0, 0}]) == true;
             },
             [](auto check, auto &log) {
-                planet::map::world_type<bool, 2> world{
+                planet::map::square::world_type<bool, 2> world{
                         {0, 0}, [](auto) { return true; }};
 
                 world[{0, 0}] = false;
@@ -461,7 +461,7 @@ namespace {
                                 planet::serialise::marker::b_true);
                 check(span.empty()) == true;
 
-                planet::map::world_type<bool, 2> nw{
+                planet::map::square::world_type<bool, 2> nw{
                         {{}, {}}, [](auto) { return true; }};
                 auto lb = planet::serialise::load_buffer{bytes.cmemory()};
                 load(lb, nw);

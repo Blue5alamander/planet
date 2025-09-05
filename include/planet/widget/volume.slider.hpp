@@ -11,7 +11,7 @@ namespace planet::widget::volume {
 
     /// ## Volume slider
     template<typename Background, typename Draggable>
-    struct slider : public planet::ui::range_updater {
+    struct slider final : public planet::ui::range_updater {
         using range_type =
                 planet::ui::range<Background, planet::ui::draggable<Draggable>>;
         using constrained_type = typename range_type::constrained_type;

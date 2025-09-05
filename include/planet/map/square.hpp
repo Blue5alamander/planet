@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/map/forward.hpp>
 #include <planet/serialise/forward.hpp>
 #include <planet/to_string.hpp>
 
@@ -16,12 +17,7 @@
 #include <vector>
 
 
-namespace planet::hexmap {
-    class coordinates;
-}
-
-
-namespace planet::map {
+namespace planet::map::square {
 
 
     /// ### Chunk
@@ -77,7 +73,7 @@ namespace planet::map {
      * around ±2 billion.
      */
     class coordinates {
-        friend class hexmap::coordinates;
+        friend class hex::coordinates;
 
       public:
         using value_type = std::int32_t;
