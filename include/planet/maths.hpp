@@ -9,8 +9,12 @@
 namespace planet {
 
 
-    inline auto sin(float const turn) { return std::sin(turn * tau); }
-    inline auto cos(float const turn) { return std::cos(turn * tau); }
+    inline auto sin(float const turn) {
+        return std::sin(std::fmod(turn, 1.0f) * tau);
+    }
+    inline auto cos(float const turn) {
+        return std::cos(std::fmod(turn, 1.0f) * tau);
+    }
 
 
 }

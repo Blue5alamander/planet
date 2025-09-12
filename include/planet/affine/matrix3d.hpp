@@ -98,7 +98,7 @@ namespace planet::affine {
         }
         static constexpr matrix3d
                 rotate_about(point3d const &unit_vector, float const t) {
-            float const r = t * tau;
+            float const r = std::fmod(t, 1.0f) * tau;
             /**
              * Rotation matrix taken from
              * [Maths
