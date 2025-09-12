@@ -63,6 +63,9 @@ namespace planet::affine {
                      std::array{0.0f, 0.0f, z, 0.0f},
                      std::array{0.0f, 0.0f, 0.0f, 1.0f}}};
         }
+        static constexpr matrix3d scale(point3d const &p) {
+            return scale(p.x(), p.y(), p.z());
+        }
         static constexpr matrix3d scale(float const s) {
             return scale(s, s, s);
         }
