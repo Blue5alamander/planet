@@ -10,7 +10,11 @@
 namespace planet::drawing {
 
 
-    /// BMP file format
+    /// ## BMP file format
+    /**
+     * Hard coded to 32 bits per pixel, single plane. Pixel order is BRGA (with
+     * increasing memory order).
+     */
     class bmp {
         struct _file_header {
             std::array<std::uint8_t, 14> storage = {};
@@ -37,11 +41,11 @@ namespace planet::drawing {
 
         std::vector<std::vector<std::uint8_t>> pixels;
 
-        /// Sizes
+        /// ### Sizes
         std::size_t width() const;
         std::size_t height() const;
 
-        /// Save the file
+        /// ### Save the file
         void save(std::filesystem::path const &) const;
     };
 

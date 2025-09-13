@@ -10,7 +10,7 @@
 namespace planet::drawing {
 
 
-    /// Image using a 32 bit RGBA format
+    /// ## Image using a 32 bit RGBA format
     class image {
         std::vector<rgba8bpc> pixels;
         std::size_t width;
