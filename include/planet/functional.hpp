@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <concepts>
 #include <utility>
 
 
@@ -8,7 +9,9 @@ namespace planet {
 
 
     /// ## 'by_index' -- Iterate over array/vector indexes
-    template<typename Lambda>
+
+    /// ### Unary lambda taking the index
+    template<std::invocable<std::size_t> Lambda>
     constexpr inline auto by_index(
             std::size_t const start_index,
             std::size_t const max_index,
@@ -17,10 +20,17 @@ namespace planet {
             lambda(index);
         }
     }
-    template<typename Lambda>
+    template<std::invocable<std::size_t> Lambda>
     constexpr inline auto
             by_index(std::size_t const max_index, Lambda &&lambda) {
         return by_index({}, max_index, std::forward<Lambda>(lambda));
+    }
+
+
+    /// ### Nullary lambda
+    template<std::invocable<> Lambda>
+    inline auto by_index(std::size_t const max_index, Lambda &&v) {
+        return by_index({}, max_index, [&](std::size_t) { return v(); });
     }
 
 
