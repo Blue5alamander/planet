@@ -34,4 +34,17 @@ namespace planet {
     }
 
 
+    /// ### Over a `std::span`
+    template<typename T, std::size_t N, std::invocable<std::size_t, T &> Lambda>
+    inline auto by_index(std::span<T, N> s, Lambda &&v) {
+        for (std::size_t index{}; index < s.size(); ++index) {
+            v(index, s[index]);
+        }
+    }
+    template<typename T, std::size_t N, std::invocable<std::size_t, T &> Lambda>
+    inline auto by_index(std::array<T, N> &a, Lambda &&v) {
+        by_index(std::span{a}, std::forward<Lambda>(v));
+    }
+
+
 }
