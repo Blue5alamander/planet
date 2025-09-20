@@ -173,4 +173,14 @@ namespace planet::serialise {
     }
 
 
+    template<typename F, typename S>
+    inline void save(save_buffer &ab, std::pair<F, S> const &p) {
+        ab.save_box("_s:pair", p.first, p.second);
+    }
+    template<typename F, typename S>
+    inline void load(box &b, std::pair<F, S> &p) {
+        b.named("_s:pair", p.first, p.second);
+    }
+
+
 }
