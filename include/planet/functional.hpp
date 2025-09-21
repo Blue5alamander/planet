@@ -1,8 +1,11 @@
 #pragma once
 
 
+#include <array>
 #include <concepts>
+#include <span>
 #include <utility>
+#include <vector>
 
 
 namespace planet {
@@ -41,6 +44,7 @@ namespace planet {
             v(index, s[index]);
         }
     }
+
     template<typename T, std::size_t N, std::invocable<std::size_t, T &> Lambda>
     constexpr inline auto by_index(std::array<T, N> &a, Lambda &&v) {
         by_index(std::span{a}, std::forward<Lambda>(v));
@@ -50,6 +54,11 @@ namespace planet {
             std::size_t N,
             std::regular_invocable<std::size_t, T &> Lambda>
     constexpr inline auto by_index(std::array<T, N> const &a, Lambda &&v) {
+        by_index(std::span{a}, std::forward<Lambda>(v));
+    }
+
+    template<typename T, std::invocable<std::size_t, T const &> Lambda>
+    constexpr inline auto by_index(std::vector<T> const &a, Lambda &&v) {
         by_index(std::span{a}, std::forward<Lambda>(v));
     }
 
