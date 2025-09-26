@@ -68,6 +68,7 @@ namespace planet::ecs {
             if (not eid) { detail::throw_entity_not_valid(eid, loc); }
         }
 
+
       public:
         storage() = default;
 
@@ -235,7 +236,8 @@ namespace planet::ecs {
                 detail::entity &e{entities->entity(idx)};
                 entity_id eid{entities, idx, e.generation};
                 if (e.strong_count
-                    and eid.mask(*entities_storage_index) bitand traits.mask) {
+                    and eid.mask(*entities_storage_index, loc)
+                            bitand traits.mask) {
                     traits.invoke(std::move(eid), lambda, *this, loc);
                 }
             }
@@ -249,8 +251,8 @@ namespace planet::ecs {
                                 felspar::source_location::current()) {
             assert_entities(loc);
             types<L> traits;
-            for (auto &&eid : range) {
-                if (eid.mask(*entities_storage_index) bitand traits.mask) {
+            for (entity_id const &eid : range) {
+                if (eid.mask(*entities_storage_index, loc) bitand traits.mask) {
                     traits.invoke(eid, lambda, *this, loc);
                 }
             }
