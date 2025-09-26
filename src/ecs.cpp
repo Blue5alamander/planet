@@ -57,6 +57,20 @@ void planet::ecs::detail::throw_entity_not_valid(
 }
 
 
+void planet::ecs::detail::throw_wrong_generation(
+        std::size_t const eid,
+        std::size_t const expected_gen,
+        std::size_t const actual_gen,
+        felspar::source_location const &loc) {
+    throw felspar::stdexcept::logic_error{
+            "The generation requested is not the one in the store\nEntity ID "
+                    + std::to_string(eid) + " expected generation "
+                    + std::to_string(expected_gen) + " but got generation "
+                    + std::to_string(actual_gen),
+            loc};
+}
+
+
 namespace {
     planet::telemetry::counter create_count{"planet_ecs_entities_created"};
     planet::telemetry::counter recycle_count{"planet_ecs_entities_recycled"};

@@ -2,10 +2,10 @@
 
 
 #include <planet/ecs/entity_lookup.hpp>
+#include <planet/ecs/exceptions.hpp>
 #include <planet/ecs/storage_base.hpp>
 #include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/id.hpp>
-#include <felspar/exceptions.hpp>
 
 #include <tuple>
 
@@ -159,13 +159,8 @@ namespace planet::ecs {
                        felspar::source_location const &loc =
                                felspar::source_location::current()) override {
             auto &e = e_slots.at(eid).entity;
-            if (e.generation != gen) {
-                throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store",
-                        loc};
-            } else {
-                return e;
-            }
+            assert_correct_generation(eid, gen, e.generation, loc);
+            return e;
         }
         detail::entity const &entity(
                 std::size_t const eid,
@@ -173,13 +168,8 @@ namespace planet::ecs {
                 felspar::source_location const &loc =
                         felspar::source_location::current()) const override {
             auto const &e = e_slots.at(eid).entity;
-            if (e.generation != gen) {
-                throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store",
-                        loc};
-            } else {
-                return e;
-            }
+            assert_correct_generation(eid, gen, e.generation, loc);
+            return e;
         }
         detail::entity *maybe_entity(
                 std::size_t const eid,
@@ -321,19 +311,25 @@ namespace planet::ecs {
 
 
       private:
+        static void assert_correct_generation(
+                std::size_t const eid,
+                std::size_t const expected_gen,
+                std::size_t const actual_gen,
+                felspar::source_location const &loc) {
+            if (expected_gen != actual_gen) {
+                detail::throw_wrong_generation(
+                        eid, expected_gen, actual_gen, loc);
+            }
+        }
+
         mask_type &mask_for(
                 std::size_t const storage_index,
                 std::size_t const eid,
                 std::size_t const gen,
                 felspar::source_location const &loc) override {
             auto &e = e_slots.at(eid);
-            if (e.entity.generation != gen) {
-                throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store",
-                        loc};
-            } else {
-                return e.masks[storage_index];
-            }
+            assert_correct_generation(eid, gen, e.entity.generation, loc);
+            return e.masks[storage_index];
         }
         mask_type mask_for(
                 std::size_t const storage_index,
@@ -341,13 +337,8 @@ namespace planet::ecs {
                 std::size_t const gen,
                 felspar::source_location const &loc) const override {
             auto const &e = e_slots.at(eid);
-            if (e.entity.generation != gen) {
-                throw felspar::stdexcept::logic_error{
-                        "The generation requested is not the one in the store",
-                        loc};
-            } else {
-                return e.masks[storage_index];
-            }
+            assert_correct_generation(eid, gen, e.entity.generation, loc);
+            return e.masks[storage_index];
         }
 
 
