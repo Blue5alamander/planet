@@ -234,11 +234,12 @@ namespace planet::ecs {
             for (std::size_t idx{}; idx < std::get<0>(components).size();
                  ++idx) {
                 detail::entity &e{entities->entity(idx)};
-                entity_id eid{entities, idx, e.generation};
-                if (e.strong_count
-                    and eid.mask(*entities_storage_index, loc)
-                            bitand traits.mask) {
-                    traits.invoke(std::move(eid), lambda, *this, loc);
+                if (e.strong_count) {
+                    entity_id eid{entities, idx, e.generation};
+                    if (eid.mask(*entities_storage_index, loc)
+                        bitand traits.mask) {
+                        traits.invoke(std::move(eid), lambda, *this, loc);
+                    }
                 }
             }
         }
