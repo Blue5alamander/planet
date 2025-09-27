@@ -98,7 +98,14 @@ auto planet::ui::baseplate::forward_keys() -> task_type {
         while (true) {
             auto const k = co_await key.next();
             if (auto *send_to = find_focused_widget(); send_to) {
+                planet::log::debug(
+                        "Sending key press", static_cast<int>(k.scancode),
+                        "to widget", send_to->name());
                 send_to->events.key.push(k);
+            } else {
+                planet::log::debug(
+                        "No focused widget to forward key event to",
+                        static_cast<int>(k.scancode));
             }
         }
     } catch (std::exception const &e) {
