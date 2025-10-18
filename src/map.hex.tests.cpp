@@ -185,22 +185,16 @@ namespace {
 
 
     auto const dirs = suite.test("directions", [](auto check) {
-        planet::map::hex::coordinates from{5, 7}, to{11, 7};
-        check(best_direction(from, to)) == planet::map::hex::east;
-        to = {11, 13};
-        check(best_direction(from, to)) == planet::map::hex::north_east;
-        to = {-1, 13};
-        check(best_direction(from, to)) == planet::map::hex::north_west;
-        to = {-1, 7};
-        check(best_direction(from, to)) == planet::map::hex::west;
-        to = {-1, 1};
-        check(best_direction(from, to)) == planet::map::hex::south_west;
-        to = {11, 1};
-        check(best_direction(from, to)) == planet::map::hex::south_east;
+        planet::map::hex::coordinates const from{5, 7};
+        check(best_direction(from, {11, 7})) == planet::map::hex::east;
+        check(best_direction(from, {11, 13})) == planet::map::hex::north_east;
+        check(best_direction(from, {-1, 13})) == planet::map::hex::north_west;
+        check(best_direction(from, {-1, 7})) == planet::map::hex::west;
+        check(best_direction(from, {-1, 1})) == planet::map::hex::south_west;
+        check(best_direction(from, {11, 1})) == planet::map::hex::south_east;
 
-        from = {2, 0};
-        to = {};
-        check(best_direction(from, to)) == planet::map::hex::coordinates{-2, 0};
+        check(planet::map::hex::best_direction({2, 0}, {}))
+                == planet::map::hex::coordinates{-2, 0};
     });
 
 
