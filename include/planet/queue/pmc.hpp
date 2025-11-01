@@ -76,7 +76,7 @@ namespace planet::queue {
             consumer &operator=(consumer &&) = delete;
 
             pmc *self;
-            felspar::coro::coroutine_handle<> continuation;
+            std::coroutine_handle<> continuation;
             internal_buffer_type values;
 
 
@@ -101,8 +101,7 @@ namespace planet::queue {
                     bool await_ready() const noexcept {
                         return not dr->values.empty();
                     }
-                    void await_suspend(
-                            felspar::coro::coroutine_handle<> h) noexcept {
+                    void await_suspend(std::coroutine_handle<> h) noexcept {
                         dr->continuation = h;
                     }
                     T await_resume() {

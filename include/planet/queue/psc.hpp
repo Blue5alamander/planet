@@ -30,7 +30,7 @@ namespace planet::queue {
     template<typename T>
     class psc final {
         std::vector<T> values;
-        felspar::coro::coroutine_handle<> waiting = {};
+        std::coroutine_handle<> waiting = {};
 
       public:
         using value_type = T;
@@ -61,13 +61,13 @@ namespace planet::queue {
 
 
                 psc &q;
-                felspar::coro::coroutine_handle<> mine = {};
+                std::coroutine_handle<> mine = {};
 
 
                 bool await_ready() const noexcept {
                     return not q.values.empty();
                 }
-                void await_suspend(felspar::coro::coroutine_handle<> h) {
+                void await_suspend(std::coroutine_handle<> h) {
                     if (q.waiting) {
                         throw felspar::stdexcept::logic_error{
                                 "There is already a coroutine waiting on this "
@@ -103,7 +103,7 @@ namespace planet::queue {
     template<>
     class psc<void> final {
         std::size_t pushes = {};
-        felspar::coro::coroutine_handle<> waiting = {};
+        std::coroutine_handle<> waiting = {};
 
 
       public:
@@ -135,11 +135,11 @@ namespace planet::queue {
 
 
                 psc &q;
-                felspar::coro::coroutine_handle<> mine = {};
+                std::coroutine_handle<> mine = {};
 
 
                 bool await_ready() const noexcept { return not q.empty(); }
-                void await_suspend(felspar::coro::coroutine_handle<> h) {
+                void await_suspend(std::coroutine_handle<> h) {
                     if (q.waiting) {
                         throw felspar::stdexcept::logic_error{
                                 "There is already a coroutine waiting on this "

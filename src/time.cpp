@@ -76,7 +76,7 @@ planet::time::clock::awaitable::~awaitable() {
 
 
 void planet::time::clock::awaitable::await_suspend(
-        felspar::coro::coroutine_handle<> const h) {
+        std::coroutine_handle<> const h) {
     continuation = h;
     auto const pos = std::upper_bound(
             clock.time_line.begin(), clock.time_line.end(), wake_up_time);

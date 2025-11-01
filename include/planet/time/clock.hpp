@@ -52,13 +52,13 @@ namespace planet::time {
             awaitable &operator=(awaitable &&) = delete;
 
             bool await_ready() const noexcept { return false; }
-            void await_suspend(felspar::coro::coroutine_handle<>);
+            void await_suspend(std::coroutine_handle<>);
             void await_resume() { continuation = {}; }
 
           private:
             time::clock &clock;
             time::clock::time_point wake_up_time;
-            felspar::coro::coroutine_handle<> continuation;
+            std::coroutine_handle<> continuation;
         };
         awaitable sleep(duration);
         awaitable wake_at(time_point);
@@ -86,7 +86,7 @@ namespace planet::time {
 
         struct event {
             time_point when;
-            felspar::coro::coroutine_handle<> continuation;
+            std::coroutine_handle<> continuation;
             friend bool operator<(event const &e, time_point const tp) {
                 return e.when < tp;
             }
