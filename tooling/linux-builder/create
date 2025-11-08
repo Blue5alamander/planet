@@ -8,7 +8,7 @@ if [ ! -d llvm-project ]; then
     git clone --recursive git@github.com:llvm/llvm-project.git
 fi
 git -C llvm-project fetch
-git -C llvm-project checkout llvmorg-20.1.2
+git -C llvm-project checkout llvmorg-20.1.8
 
 rm -rf build.tmp container/dist
 
