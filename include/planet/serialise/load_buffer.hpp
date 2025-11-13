@@ -42,8 +42,8 @@ namespace planet::serialise {
         /// ### Mutation
         auto
                 split(std::size_t const bytecount,
-                      felspar::source_location const &loc =
-                              felspar::source_location::current()) {
+                      std::source_location const &loc =
+                              std::source_location::current()) {
             if (buffer.size() < bytecount) {
                 throw buffer_not_big_enough{bytecount, buffer.size(), loc};
             }
@@ -55,17 +55,16 @@ namespace planet::serialise {
 
         /// ### Data extraction
         auto extract_marker(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             return marker{extract<std::uint8_t>(loc)};
         }
         std::size_t extract_size_t(
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
         template<felspar::parse::concepts::numeric T>
         T
-                extract(felspar::source_location const &loc =
-                                felspar::source_location::current()) {
+                extract(std::source_location const &loc =
+                                std::source_location::current()) {
             if (buffer.size() < sizeof(T)) {
                 throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
             } else {
@@ -74,8 +73,8 @@ namespace planet::serialise {
         }
         template<felspar::parse::concepts::numeric T>
         T extract_non_native(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             if (buffer.size() < sizeof(T)) {
                 throw buffer_not_big_enough{sizeof(T), buffer.size(), loc};
             } else {
@@ -100,8 +99,8 @@ namespace planet::serialise {
         /// #### Extract and check a marker
         void check_marker(
                 marker const m,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             auto const r = extract_marker();
             if (r != m) { throw wrong_marker{m, r, loc}; }
         }
@@ -138,11 +137,11 @@ namespace planet::serialise {
 
         void check_name_or_throw(
                 std::string_view expected,
-                felspar::source_location const & =
-                        felspar::source_location::current()) const;
+                std::source_location const & =
+                        std::source_location::current()) const;
         void check_empty_or_throw(
-                felspar::source_location const & =
-                        felspar::source_location::current()) const;
+                std::source_location const & =
+                        std::source_location::current()) const;
 
         /// #### Check the provided name and then load the fields
         template<typename... Args>
@@ -189,8 +188,8 @@ namespace planet::serialise {
          */
         [[noreturn]] void throw_unsupported_version(
                 std::uint8_t const highest,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             throw unsupported_version_number{*this, highest, loc};
         }
     };
@@ -198,8 +197,7 @@ namespace planet::serialise {
 
     inline box expect_box(
             load_buffer &l,
-            felspar::source_location const &loc =
-                    felspar::source_location::current()) {
+            std::source_location const &loc = std::source_location::current()) {
         box b;
         auto const mark = l.extract_marker();
         if (not is_box_marker(mark)) {
@@ -262,11 +260,10 @@ namespace planet::serialise {
      * templates, even when restricted by concepts.
      */
     template<typename T>
-    void
-            load(load_buffer &lb,
-                 T &t,
-                 felspar::source_location const &loc =
-                         felspar::source_location::current())
+    void load(
+            load_buffer &lb,
+            T &t,
+            std::source_location const &loc = std::source_location::current())
         requires(not felspar::parse::concepts::numeric<T>)
     {
         auto b = expect_box(lb, loc);

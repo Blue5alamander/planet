@@ -5,8 +5,6 @@
 #include <planet/ecs/entity_id.hpp>
 #include <planet/telemetry/id.hpp>
 
-#include <felspar/test/source.hpp>
-
 
 namespace planet::ecs {
 
@@ -22,45 +20,45 @@ namespace planet::ecs {
 
             [[nodiscard]] virtual detail::entity &
                     entity(std::size_t,
-                           felspar::source_location const & =
-                                   felspar::source_location::current()) = 0;
+                           std::source_location const & =
+                                   std::source_location::current()) = 0;
             [[nodiscard]] virtual detail::entity &
                     entity(std::size_t,
                            std::size_t,
-                           felspar::source_location const & =
-                                   felspar::source_location::current()) = 0;
-            [[nodiscard]] virtual detail::entity const &entity(
-                    std::size_t,
-                    std::size_t,
-                    felspar::source_location const & =
-                            felspar::source_location::current()) const = 0;
+                           std::source_location const & =
+                                   std::source_location::current()) = 0;
+            [[nodiscard]] virtual detail::entity const &
+                    entity(std::size_t,
+                           std::size_t,
+                           std::source_location const & =
+                                   std::source_location::current()) const = 0;
 
             [[nodiscard]] virtual detail::entity *maybe_entity(
                     std::size_t,
                     std::size_t,
-                    felspar::source_location const & =
-                            felspar::source_location::current()) = 0;
+                    std::source_location const & =
+                            std::source_location::current()) = 0;
 
             [[nodiscard]] virtual mask_type &mask_for(
                     std::size_t,
                     std::size_t,
                     std::size_t,
-                    felspar::source_location const & =
-                            felspar::source_location::current()) = 0;
+                    std::source_location const & =
+                            std::source_location::current()) = 0;
             [[nodiscard]] virtual mask_type mask_for(
                     std::size_t,
                     std::size_t,
                     std::size_t,
-                    felspar::source_location const & =
-                            felspar::source_location::current()) const = 0;
+                    std::source_location const & =
+                            std::source_location::current()) const = 0;
 
             [[nodiscard]] virtual std::optional<telemetry::id> const &
                     id(std::size_t) const = 0;
 
             virtual void
                     kill(entity_id const &,
-                         felspar::source_location const & =
-                                 felspar::source_location::current()) = 0;
+                         std::source_location const & =
+                                 std::source_location::current()) = 0;
 
 
           protected:
@@ -69,8 +67,8 @@ namespace planet::ecs {
             /// #### Acquire/release strong/weak counts
             virtual void
                     acquire(entity_id const &,
-                            felspar::source_location const & =
-                                    felspar::source_location::current()) = 0;
+                            std::source_location const & =
+                                    std::source_location::current()) = 0;
             virtual void release(entity_id const &) noexcept = 0;
 
             /// #### Force destroy the entity
@@ -84,7 +82,7 @@ namespace planet::ecs {
             detail::entity_lookup *const o,
             std::size_t const i,
             std::size_t const g,
-            felspar::source_location const &loc)
+            std::source_location const &loc)
     : owner{o}, generation{g}, m_id{i} {
         increment(loc);
     }
@@ -99,7 +97,7 @@ namespace planet::ecs {
 
     inline entity_id::~entity_id() { decrement(); }
 
-    inline void entity_id::increment(felspar::source_location const &loc) {
+    inline void entity_id::increment(std::source_location const &loc) {
         if (owner) { owner->acquire(*this, loc); }
     }
     inline void entity_id::decrement() noexcept {
@@ -139,13 +137,12 @@ namespace planet::ecs {
         return &owner->entity(m_id, generation);
     }
     inline mask_type &entity_id::mask(
-            std::size_t const storage_index,
-            felspar::source_location const &loc) {
+            std::size_t const storage_index, std::source_location const &loc) {
         return owner->mask_for(storage_index, m_id, generation, loc);
     }
     inline mask_type entity_id::mask(
             std::size_t const storage_index,
-            felspar::source_location const &loc) const {
+            std::source_location const &loc) const {
         return owner->mask_for(storage_index, m_id, generation, loc);
     }
 

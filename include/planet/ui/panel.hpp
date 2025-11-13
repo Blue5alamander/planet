@@ -43,8 +43,7 @@ namespace planet::ui {
          */
         panel(panel const &) = delete;
         panel(panel &&,
-              felspar::source_location const & =
-                      felspar::source_location::current());
+              std::source_location const & = std::source_location::current());
         panel &operator=(panel const &) = delete;
         panel &operator=(panel &&) = delete;
 
@@ -113,8 +112,8 @@ namespace planet::ui {
         bool has_parent() const noexcept { return m_parent; }
         /// #### Return the parent panel
         panel &
-                parent(felspar::source_location const &loc =
-                               felspar::source_location::current()) const {
+                parent(std::source_location const &loc =
+                               std::source_location::current()) const {
             if (m_parent) {
                 return *m_parent;
             } else {

@@ -21,11 +21,11 @@ namespace planet::serialise {
         char const *what() const noexcept override;
 
       protected:
-        serialisation_error(std::string, felspar::source_location const &);
+        serialisation_error(std::string, std::source_location const &);
         serialisation_error(
                 std::string,
                 std::span<std::byte const>,
-                felspar::source_location const &);
+                std::source_location const &);
 
       public:
         /// This happened inside the given box
@@ -38,8 +38,7 @@ namespace planet::serialise {
       public:
         box_name_length(
                 std::string_view name,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
 
 
@@ -52,8 +51,7 @@ namespace planet::serialise {
       public:
         invalid_charsize(
                 std::size_t,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
 
 
@@ -68,8 +66,7 @@ namespace planet::serialise {
         unsupported_version_number(
                 box const &,
                 std::uint8_t,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
 
 
@@ -78,16 +75,14 @@ namespace planet::serialise {
       public:
         box_not_empty(
                 box const &,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
     class buffer_not_big_enough : public serialisation_error {
       public:
         buffer_not_big_enough(
                 std::size_t wanted,
                 std::size_t got,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
 
 
@@ -97,30 +92,26 @@ namespace planet::serialise {
         wanted_boolean(
                 std::span<std::byte const>,
                 marker got,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
     class wanted_box : public serialisation_error {
       public:
         wanted_box(
                 std::span<std::byte const>,
                 marker got,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
     class wrong_marker : public serialisation_error {
       public:
         wrong_marker(
                 marker exected,
                 marker got,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
         wrong_marker(
                 std::span<std::byte const>,
                 marker exected,
                 marker got,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
     };
 
 

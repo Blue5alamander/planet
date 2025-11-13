@@ -28,12 +28,12 @@ namespace planet::ecs {
             void
                     lookup(entity_id const &,
                            Component **,
-                           felspar::source_location const &) override;
+                           std::source_location const &) override;
             void
                     lookup(entity_id const &,
                            Component const **,
-                           felspar::source_location const &) const override;
-            void remove(entity_id &, felspar::source_location const &) override;
+                           std::source_location const &) const override;
+            void remove(entity_id &, std::source_location const &) override;
         };
     }
 
@@ -54,16 +54,16 @@ namespace planet::ecs {
         friend class entities;
 
         void assert_entities(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             if (not entities or not entities_storage_index) {
                 detail::throw_no_entities_instance(loc);
             }
         }
         void assert_entities(
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             assert_entities();
             if (not eid) { detail::throw_entity_not_valid(eid, loc); }
         }
@@ -129,8 +129,8 @@ namespace planet::ecs {
         auto add_component(
                 entity_id &eid,
                 C &&component,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             using ctype = std::remove_cvref_t<C>;
             static constexpr auto ci = component_index<ctype>();
             assert_entities(eid, loc);
@@ -151,8 +151,8 @@ namespace planet::ecs {
         template<typename C>
         void remove_component(
                 entity_id &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             using ctype = std::remove_cvref_t<C>;
             static constexpr auto ci = maybe_component_index<ctype>();
             if constexpr (ci) {
@@ -168,8 +168,8 @@ namespace planet::ecs {
         template<typename C>
         [[nodiscard]] bool has_component(
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             static constexpr auto ci = component_index<C>();
             assert_entities(eid, loc);
             return eid.mask(*entities_storage_index) bitand (1 << ci);
@@ -179,8 +179,8 @@ namespace planet::ecs {
         template<typename C>
         [[nodiscard]] C *maybe_get_component(
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid, loc)) {
                 return &std::get<ci>(components).at(eid.id()).value(loc);
@@ -191,8 +191,8 @@ namespace planet::ecs {
         template<typename C>
         [[nodiscard]] C const *maybe_get_component(
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             static constexpr auto ci = component_index<C>();
             if (has_component<C>(eid, loc)) {
                 return &std::get<ci>(components).at(eid.id()).value(loc);
@@ -203,8 +203,8 @@ namespace planet::ecs {
         template<typename C>
         [[nodiscard]] C &get_component(
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             if (auto *p = maybe_get_component<C>(eid, loc); p) {
                 return *p;
             } else {
@@ -227,8 +227,8 @@ namespace planet::ecs {
         template<typename L>
         void
                 iterate(L &&lambda,
-                        felspar::source_location const &loc =
-                                felspar::source_location::current()) {
+                        std::source_location const &loc =
+                                std::source_location::current()) {
             assert_entities(loc);
             types<L> traits;
             for (std::size_t idx{}; idx < std::get<0>(components).size();
@@ -248,8 +248,8 @@ namespace planet::ecs {
         void
                 iterate(Range &&range,
                         L &&lambda,
-                        felspar::source_location const &loc =
-                                felspar::source_location::current()) {
+                        std::source_location const &loc =
+                                std::source_location::current()) {
             assert_entities(loc);
             types<L> traits;
             for (entity_id const &eid : range) {
@@ -263,8 +263,8 @@ namespace planet::ecs {
         /// ### Force kill the entity
         void
                 kill(entity_id const &eid,
-                     felspar::source_location const &loc =
-                             felspar::source_location::current()) {
+                     std::source_location const &loc =
+                             std::source_location::current()) {
             assert_entities();
             entities->kill(eid, loc);
         }
@@ -344,8 +344,8 @@ namespace planet::ecs {
                     invoke(entity_id const &eid,
                            L const &l,
                            storage &s,
-                           felspar::source_location const &loc =
-                                   felspar::source_location::current()) {
+                           std::source_location const &loc =
+                                   std::source_location::current()) {
                 return l(eid, s.get_component<ctype_for<Cs>>(eid, loc)...);
             }
         };
@@ -357,7 +357,7 @@ namespace planet::ecs {
         void concrete_lookup<Component, Storage>::lookup(
                 entity_id const &eid,
                 Component **component,
-                felspar::source_location const &loc) {
+                std::source_location const &loc) {
             if (eid) {
                 Storage &store = dynamic_cast<Storage &>(*this);
                 *component =
@@ -368,7 +368,7 @@ namespace planet::ecs {
         void concrete_lookup<Component, Storage>::lookup(
                 entity_id const &eid,
                 Component const **component,
-                felspar::source_location const &loc) const {
+                std::source_location const &loc) const {
             if (eid) {
                 Storage const &store = dynamic_cast<Storage const &>(*this);
                 *component =
@@ -377,7 +377,7 @@ namespace planet::ecs {
         }
         template<typename Component, typename Storage>
         void concrete_lookup<Component, Storage>::remove(
-                entity_id &eid, felspar::source_location const &loc) {
+                entity_id &eid, std::source_location const &loc) {
             Storage &store = dynamic_cast<Storage &>(*this);
             store.template remove_component<Component>(eid, loc);
         }

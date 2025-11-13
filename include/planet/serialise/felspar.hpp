@@ -35,7 +35,7 @@ namespace planet::serialise {
     }
 
 
-    void save(save_buffer &, felspar::source_location const &);
+    void save(save_buffer &, std::source_location const &);
 
 
 }

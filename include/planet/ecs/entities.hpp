@@ -149,24 +149,24 @@ namespace planet::ecs {
         /// ### Return the entity
         detail::entity &
                 entity(std::size_t const eid,
-                       felspar::source_location const & =
-                               felspar::source_location::current()) override {
+                       std::source_location const & =
+                               std::source_location::current()) override {
             return e_slots.at(eid).entity;
         }
         detail::entity &
                 entity(std::size_t const eid,
                        std::size_t const gen,
-                       felspar::source_location const &loc =
-                               felspar::source_location::current()) override {
+                       std::source_location const &loc =
+                               std::source_location::current()) override {
             auto &e = e_slots.at(eid).entity;
             assert_correct_generation(eid, gen, e.generation, loc);
             return e;
         }
-        detail::entity const &entity(
-                std::size_t const eid,
-                std::size_t const gen,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const override {
+        detail::entity const &
+                entity(std::size_t const eid,
+                       std::size_t const gen,
+                       std::source_location const &loc =
+                               std::source_location::current()) const override {
             auto const &e = e_slots.at(eid).entity;
             assert_correct_generation(eid, gen, e.generation, loc);
             return e;
@@ -174,8 +174,8 @@ namespace planet::ecs {
         detail::entity *maybe_entity(
                 std::size_t const eid,
                 std::size_t const gen,
-                felspar::source_location const & =
-                        felspar::source_location::current()) override {
+                std::source_location const & =
+                        std::source_location::current()) override {
             auto &e = e_slots.at(eid).entity;
             if (e.generation != gen) {
                 return nullptr;
@@ -229,8 +229,8 @@ namespace planet::ecs {
         template<typename Component>
         [[nodiscard]] Component &get_component(
                 entity_id &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             static constexpr auto storage =
                     get_storage_index_for_type<Component>();
             auto &store = std::get<storage>(stores);
@@ -239,8 +239,8 @@ namespace planet::ecs {
         template<typename Component>
         [[nodiscard]] Component *maybe_get_component(
                 entity_id &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             static constexpr auto storage =
                     get_storage_index_for_type<Component>();
             auto &store = std::get<storage>(stores);
@@ -293,8 +293,8 @@ namespace planet::ecs {
         /// ### Kill a single entity
         void
                 kill(entity_id const &eid,
-                     felspar::source_location const & =
-                             felspar::source_location::current()) override {
+                     std::source_location const & =
+                             std::source_location::current()) override {
             auto *entity = maybe_entity(eid.id(), eid.generation);
             if (entity) { destroy(eid, *entity); }
         }
@@ -315,7 +315,7 @@ namespace planet::ecs {
                 std::size_t const eid,
                 std::size_t const expected_gen,
                 std::size_t const actual_gen,
-                felspar::source_location const &loc) {
+                std::source_location const &loc) {
             if (expected_gen != actual_gen) {
                 detail::throw_wrong_generation(
                         eid, expected_gen, actual_gen, loc);
@@ -326,7 +326,7 @@ namespace planet::ecs {
                 std::size_t const storage_index,
                 std::size_t const eid,
                 std::size_t const gen,
-                felspar::source_location const &loc) override {
+                std::source_location const &loc) override {
             auto &e = e_slots.at(eid);
             assert_correct_generation(eid, gen, e.entity.generation, loc);
             return e.masks[storage_index];
@@ -335,7 +335,7 @@ namespace planet::ecs {
                 std::size_t const storage_index,
                 std::size_t const eid,
                 std::size_t const gen,
-                felspar::source_location const &loc) const override {
+                std::source_location const &loc) const override {
             auto const &e = e_slots.at(eid);
             assert_correct_generation(eid, gen, e.entity.generation, loc);
             return e.masks[storage_index];
@@ -344,7 +344,7 @@ namespace planet::ecs {
 
         void
                 acquire(entity_id const &eid,
-                        felspar::source_location const &) override {
+                        std::source_location const &) override {
             auto &entity = e_slots[eid.m_id].entity;
             if (entity.generation == eid.generation) {
                 entity.increment_strong();

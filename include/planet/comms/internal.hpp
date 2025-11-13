@@ -18,8 +18,7 @@ namespace planet::comms {
       public:
         internal(
                 felspar::io::warden &,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
 
         /// ### Synchronous send of data
         std::size_t write(std::span<std::byte const>);

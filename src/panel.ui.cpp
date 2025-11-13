@@ -4,8 +4,7 @@
 /// ## `panel::ui::panel`
 
 
-planet::ui::panel::panel(panel &&p, felspar::source_location const &loc)
-: panel{} {
+planet::ui::panel::panel(panel &&p, std::source_location const &loc) : panel{} {
     if (p.m_parent or not p.children.empty()) {
         throw felspar::stdexcept::logic_error{
                 "A panel cannot be moved in memory (std::move) once it is in "

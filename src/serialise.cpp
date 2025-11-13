@@ -72,7 +72,7 @@ void planet::serialise::demuxer::push(shared_bytes b) {
 
 
 void planet::serialise::box::check_name_or_throw(
-        std::string_view expected, felspar::source_location const &loc) const {
+        std::string_view expected, std::source_location const &loc) const {
     if (name != expected) {
         throw felspar::stdexcept::runtime_error{
                 "Unexpected box name\n"
@@ -84,7 +84,7 @@ void planet::serialise::box::check_name_or_throw(
 
 
 void planet::serialise::box::check_empty_or_throw(
-        felspar::source_location const &loc) const {
+        std::source_location const &loc) const {
     if (not content.empty()) { throw box_not_empty{*this, loc}; }
 }
 
@@ -148,7 +148,7 @@ namespace {
     }
 }
 std::size_t planet::serialise::load_buffer::extract_size_t(
-        felspar::source_location const &loc) {
+        std::source_location const &loc) {
     auto const bytes =
             felspar::parse::binary::be::extract<std::uint64_t>(buffer, loc);
     if constexpr (sizeof(std::size_t) < sizeof(std::uint64_t)) {
@@ -302,8 +302,7 @@ void planet::serialise::load(load_buffer &lb, std::string_view &s) {
 /// ## Types in `felspar::`
 
 
-void planet::serialise::save(
-        save_buffer &ab, felspar::source_location const &loc) {
+void planet::serialise::save(save_buffer &ab, std::source_location const &loc) {
     ab.save_box(
             "_s:sl", std::string_view{loc.file_name()},
             std::string_view{loc.function_name()}, loc.line(), loc.column());
@@ -320,13 +319,13 @@ auto const fsl = planet::log::format("_s:sl", [](auto &os, auto &box) {
 
 
 planet::serialise::serialisation_error::serialisation_error(
-        std::string m, felspar::source_location const &loc)
+        std::string m, std::source_location const &loc)
 : felspar::stdexcept::runtime_error{std::move(m), loc} {}
 
 planet::serialise::serialisation_error::serialisation_error(
         std::string m,
         std::span<std::byte const> r,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : felspar::stdexcept::runtime_error{std::move(m), loc},
   hexdump{felspar::memory::hexdump(r)} {}
 
@@ -358,7 +357,7 @@ void planet::serialise::serialisation_error::inside_box(std::string_view sv) {
 
 
 planet::serialise::box_name_length::box_name_length(
-        std::string_view box_name, felspar::source_location const &loc)
+        std::string_view box_name, std::source_location const &loc)
 : serialisation_error{
           std::string{"The box name must be between 1 and 127 bytes long\n"
                       "Name tried is '"}
@@ -367,7 +366,7 @@ planet::serialise::box_name_length::box_name_length(
 
 
 planet::serialise::box_not_empty::box_not_empty(
-        box const &b, felspar::source_location const &loc)
+        box const &b, std::source_location const &loc)
 : serialisation_error{
           "The box was not empty after loading all data from it\n"
           "Box content: "
@@ -378,7 +377,7 @@ planet::serialise::box_not_empty::box_not_empty(
 planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
         std::size_t const wanted,
         std::size_t const got,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : serialisation_error{
           "There was not enough data in the buffer to read the requested "
           "value\n"
@@ -389,14 +388,14 @@ planet::serialise::buffer_not_big_enough::buffer_not_big_enough(
 
 
 planet::serialise::invalid_charsize::invalid_charsize(
-        std::size_t const charsize, felspar::source_location const &loc)
+        std::size_t const charsize, std::source_location const &loc)
 : serialisation_error{
           "Invalid UTF character size in bytes\n"
           "Expected 1, 2 or 4. Got "
                   + std::to_string(charsize),
           loc} {}
 void planet::serialise::detail::throw_invalid_charsize(
-        std::size_t const charsize, felspar::source_location const &loc) {
+        std::size_t const charsize, std::source_location const &loc) {
     throw invalid_charsize{charsize, loc};
 }
 
@@ -404,7 +403,7 @@ void planet::serialise::detail::throw_invalid_charsize(
 planet::serialise::unsupported_version_number::unsupported_version_number(
         box const &b,
         std::uint8_t const highest,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : serialisation_error{
           "Unsupported version number in box\n"
           "Unsupported version "
@@ -418,7 +417,7 @@ planet::serialise::unsupported_version_number::unsupported_version_number(
 planet::serialise::wanted_boolean::wanted_boolean(
         std::span<std::byte const> remaining,
         marker const m,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : serialisation_error{
           std::string{"Expected b_true or b_false for a boolean\n"
                       "Got "}
@@ -429,7 +428,7 @@ planet::serialise::wanted_boolean::wanted_boolean(
 planet::serialise::wanted_box::wanted_box(
         std::span<std::byte const> remaining,
         marker const m,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : serialisation_error{
           std::string{"Expected a box marker\nGot "}
                   + std::string{to_string(m)},
@@ -437,9 +436,7 @@ planet::serialise::wanted_box::wanted_box(
 
 
 planet::serialise::wrong_marker::wrong_marker(
-        marker const expected,
-        marker const got,
-        felspar::source_location const &loc)
+        marker const expected, marker const got, std::source_location const &loc)
 : serialisation_error{
           std::string{"The wrong type marker is in the save file\n"
                       "Expected "}
@@ -451,7 +448,7 @@ planet::serialise::wrong_marker::wrong_marker(
         std::span<std::byte const> remaining,
         marker const expected,
         marker const got,
-        felspar::source_location const &loc)
+        std::source_location const &loc)
 : serialisation_error{
           std::string{"The wrong type marker is in the save file\n"
                       "Expected "}

@@ -19,8 +19,8 @@ namespace planet::ui {
         explicit pack_reflowable(
                 std::string_view const n,
                 collection_type c,
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
+                std::source_location const &loc =
+                        std::source_location::current())
         : reflowable{n}, items{std::move(c)}, created_loc{loc} {}
 
 
@@ -63,7 +63,7 @@ namespace planet::ui {
 
 
       private:
-        felspar::source_location created_loc;
+        std::source_location created_loc;
 
         template<std::size_t... I>
         void move_elements(

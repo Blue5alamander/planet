@@ -139,12 +139,11 @@ namespace planet::serialise {
     /// #### Marker for a character size
     namespace detail {
         [[noreturn]] void throw_invalid_charsize(
-                std::size_t const charsize, felspar::source_location const &);
+                std::size_t const charsize, std::source_location const &);
     }
     constexpr marker marker_for_character_size(
             std::size_t const charsize,
-            felspar::source_location const &loc =
-                    felspar::source_location::current()) {
+            std::source_location const &loc = std::source_location::current()) {
         switch (charsize) {
         case 1: return marker::u8string8;
         case 2:

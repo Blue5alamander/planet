@@ -73,11 +73,10 @@ namespace planet::serialise {
         ab.append(t);
     }
     template<felspar::parse::concepts::numeric T>
-    inline void
-            load(load_buffer &lb,
-                 T &s,
-                 felspar::source_location const &loc =
-                         felspar::source_location::current()) {
+    inline void load(
+            load_buffer &lb,
+            T &s,
+            std::source_location const &loc = std::source_location::current()) {
         auto const m = lb.extract_marker();
         if (auto const want = marker_for<T>(); m != want) {
             if (is_endian(m) and other_endian(m) == want) {

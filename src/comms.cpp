@@ -45,7 +45,7 @@ auto planet::comms::inproc::data::acquire()
 
 
 planet::comms::internal::internal(
-        felspar::io::warden &w, felspar::source_location const &loc)
+        felspar::io::warden &w, std::source_location const &loc)
 : warden{w}, pipe{warden.create_pipe(loc)} {}
 
 
@@ -59,7 +59,7 @@ std::size_t planet::comms::internal::write(std::span<std::byte const> const b) {
 
 
 planet::comms::signal::signal(
-        felspar::io::warden &w, felspar::source_location const &loc)
+        felspar::io::warden &w, std::source_location const &loc)
 : warden{w}, pipe{warden.create_pipe(loc)} {}
 
 

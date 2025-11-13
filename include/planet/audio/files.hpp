@@ -13,13 +13,12 @@ namespace planet::audio {
     class ogg final {
         struct impl;
         std::vector<std::byte> m_filedata;
-        felspar::source_location loc;
+        std::source_location loc;
 
       public:
         explicit ogg(
                 std::vector<std::byte>,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
 
         felspar::coro::generator<stereo_buffer> stereo();
 

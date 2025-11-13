@@ -12,12 +12,12 @@
 
 
 struct planet::audio::ogg::impl {
-    impl(std::span<std::byte>, felspar::source_location const &);
+    impl(std::span<std::byte>, std::source_location const &);
     ~impl();
 
     vorbis_info vi;
     vorbis_comment vc;
-    felspar::source_location loc;
+    std::source_location loc;
 
     felspar::coro::generator<
             planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
@@ -31,7 +31,7 @@ struct planet::audio::ogg::impl {
 
 
 planet::audio::ogg::impl::impl(
-        std::span<std::byte> o, felspar::source_location const &l)
+        std::span<std::byte> o, std::source_location const &l)
 : loc{l}, ogg{o}, packets{vorbis_packets()} {
     vorbis_info_init(&vi);
     vorbis_comment_init(&vc);
@@ -157,8 +157,7 @@ felspar::coro::generator<
 /// ## `planet::audio::ogg`
 
 
-planet::audio::ogg::ogg(
-        std::vector<std::byte> o, felspar::source_location const &l)
+planet::audio::ogg::ogg(std::vector<std::byte> o, std::source_location const &l)
 : m_filedata{std::move(o)}, loc{l} {}
 
 

@@ -43,7 +43,7 @@ planet::asset_manager::asset_manager(std::filesystem::path p)
 
 std::vector<std::byte> planet::asset_manager::file_data(
         std::filesystem::path const &fn,
-        felspar::source_location const &loc) const {
+        std::source_location const &loc) const {
     std::stringstream ss;
     ss << "Could not find filename " << fn << '\n';
     std::scoped_lock _{g_loaders_mtx()};
@@ -81,7 +81,7 @@ felspar::coro::generator<std::filesystem::path>
 std::optional<std::vector<std::byte>> planet::file_loader::try_load(
         std::ostream &log,
         std::filesystem::path const &fn,
-        felspar::source_location const &) const {
+        std::source_location const &) const {
     for (auto path : search_paths()) {
         auto pn = path / fn;
         log << "Looked for " << pn << '\n';

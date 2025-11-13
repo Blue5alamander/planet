@@ -14,17 +14,17 @@ namespace planet::ecs {
             virtual void
                     lookup(entity_id const &,
                            Component **,
-                           felspar::source_location const & =
-                                   felspar::source_location::current()) = 0;
-            virtual void lookup(
-                    entity_id const &,
-                    Component const **,
-                    felspar::source_location const & =
-                            felspar::source_location::current()) const = 0;
+                           std::source_location const & =
+                                   std::source_location::current()) = 0;
+            virtual void
+                    lookup(entity_id const &,
+                           Component const **,
+                           std::source_location const & =
+                                   std::source_location::current()) const = 0;
             virtual void
                     remove(entity_id &,
-                           felspar::source_location const & =
-                                   felspar::source_location::current()) = 0;
+                           std::source_location const & =
+                                   std::source_location::current()) = 0;
         };
     }
 
@@ -43,8 +43,8 @@ namespace planet::ecs {
         static C *assert_not_null(
                 C *p,
                 entity_id const &eid,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             if (p == nullptr) {
                 detail::throw_component_not_present(eid, typeid(C), loc);
             } else {
@@ -77,35 +77,35 @@ namespace planet::ecs {
 
         /// ### Fetch the component
         [[nodiscard]] component_type *
-                get(felspar::source_location const &loc =
-                            felspar::source_location::current()) {
+                get(std::source_location const &loc =
+                            std::source_location::current()) {
             component_type *component = nullptr;
             store->lookup(eid, &component, loc);
             return component;
         }
         [[nodiscard]] component_type const *
-                get(felspar::source_location const &loc =
-                            felspar::source_location::current()) const {
+                get(std::source_location const &loc =
+                            std::source_location::current()) const {
             component_type const *component = nullptr;
             store->lookup(eid, &component, loc);
             return component;
         }
         [[nodiscard]] component_type &operator()(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             return *assert_not_null(get(loc), eid, loc);
         }
         [[nodiscard]] component_type const &operator()(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             return *assert_not_null(get(loc), eid, loc);
         }
 
 
         /// ### Destroy the component
         void
-                remove(felspar::source_location const &loc =
-                               felspar::source_location::current()) {
+                remove(std::source_location const &loc =
+                               std::source_location::current()) {
             store->remove(eid, loc);
         }
     };

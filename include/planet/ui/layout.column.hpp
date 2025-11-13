@@ -93,15 +93,13 @@ namespace planet::ui {
 
         column(collection_type i,
                float const p = {},
-               felspar::source_location const &loc =
-                       felspar::source_location::current())
+               std::source_location const &loc = std::source_location::current())
         : superclass{"planet::ui::column<std::tuple<Pack...>>", std::move(i), loc},
           padding{p} {}
         column(std::string_view const n,
                collection_type i,
                float const p = {},
-               felspar::source_location const &loc =
-                       felspar::source_location::current())
+               std::source_location const &loc = std::source_location::current())
         : superclass{n, std::move(i), loc}, padding{p} {}
 
 

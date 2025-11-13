@@ -60,8 +60,8 @@ namespace planet::ui {
         /// ### Safe access to a the layout of a particular element
         element_type &
                 at(std::size_t index,
-                   felspar::source_location const &loc =
-                           felspar::source_location::current())
+                   std::source_location const &loc =
+                           std::source_location::current())
             requires(not requires { elements.at(index, loc); })
         {
             if (index >= size()) {
@@ -72,8 +72,8 @@ namespace planet::ui {
         }
         element_type &
                 at(std::size_t index,
-                   felspar::source_location const &loc =
-                           felspar::source_location::current())
+                   std::source_location const &loc =
+                           std::source_location::current())
             requires requires { elements.at(index, loc); }
         {
             if (index >= size()) {

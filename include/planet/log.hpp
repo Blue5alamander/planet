@@ -85,9 +85,7 @@ namespace planet::log {
     namespace detail {
         extern thread_local serialise::save_buffer ab;
         void write_log(
-                level,
-                serialise::shared_bytes,
-                felspar::source_location const &);
+                level, serialise::shared_bytes, std::source_location const &);
 
         template<typename T>
         concept has_own_log_implementation =
@@ -110,8 +108,7 @@ namespace planet::log {
     struct item final {
         item(level const l,
              Ms &&...m,
-             felspar::source_location const &loc =
-                     felspar::source_location::current()) {
+             std::source_location const &loc = std::source_location::current()) {
             if (l >= active.load()) {
                 (detail::log(detail::ab, std::forward<Ms>(m)), ...);
                 detail::write_log(l, detail::ab.complete(), loc);
@@ -126,8 +123,7 @@ namespace planet::log {
     template<typename... Ms>
     struct debug final {
         debug(Ms const &...m,
-              felspar::source_location const &loc =
-                      felspar::source_location::current()) {
+              std::source_location const &loc = std::source_location::current()) {
             if (level::debug >= active.load()) {
                 (detail::log(detail::ab, m), ...);
                 detail::write_log(level::debug, detail::ab.complete(), loc);
@@ -140,8 +136,7 @@ namespace planet::log {
     template<typename... Ms>
     struct info final {
         info(Ms const &...m,
-             felspar::source_location const &loc =
-                     felspar::source_location::current()) {
+             std::source_location const &loc = std::source_location::current()) {
             if (level::info >= active.load()) {
                 (detail::log(detail::ab, m), ...);
                 detail::write_log(level::info, detail::ab.complete(), loc);
@@ -154,8 +149,8 @@ namespace planet::log {
     template<typename... Ms>
     struct warning final {
         warning(Ms const &...m,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             if (level::warning >= active.load()) {
                 (detail::log(detail::ab, m), ...);
                 detail::write_log(level::warning, detail::ab.complete(), loc);
@@ -168,8 +163,7 @@ namespace planet::log {
     template<typename... Ms>
     struct error final {
         error(Ms const &...m,
-              felspar::source_location const &loc =
-                      felspar::source_location::current()) {
+              std::source_location const &loc = std::source_location::current()) {
             if (level::error >= active.load()) {
                 (detail::log(detail::ab, m), ...);
                 detail::write_log(level::error, detail::ab.complete(), loc);
@@ -186,8 +180,8 @@ namespace planet::log {
     struct critical final {
         [[noreturn]] critical(
                 Ms const &...m,
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) {
+                std::source_location const &loc =
+                        std::source_location::current()) {
             (detail::log(detail::ab, m), ...);
             detail::write_log(level::critical, detail::ab.complete(), loc);
             detail::critical_log_encountered();
@@ -204,7 +198,7 @@ namespace planet::log {
 
         log::level level;
         serialise::shared_bytes payload;
-        felspar::source_location location;
+        std::source_location location;
         std::chrono::steady_clock::time_point logged =
                 std::chrono::steady_clock::now();
     };

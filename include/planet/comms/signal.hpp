@@ -14,8 +14,7 @@ namespace planet::comms {
 
       public:
         signal(felspar::io::warden &,
-               felspar::source_location const & =
-                       felspar::source_location::current());
+               std::source_location const & = std::source_location::current());
 
 
         /// ### Send a signal to the far end of the pipe

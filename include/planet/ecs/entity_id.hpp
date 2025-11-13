@@ -4,8 +4,6 @@
 #include <planet/ecs/forward.hpp>
 #include <planet/serialise.hpp>
 
-#include <felspar/test/source.hpp>
-
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -29,8 +27,7 @@ namespace planet::ecs {
         detail::entity_lookup *owner = nullptr;
 
         void increment(
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
         void decrement() noexcept;
 
         std::size_t generation = {};
@@ -43,8 +40,7 @@ namespace planet::ecs {
                 detail::entity_lookup *,
                 std::size_t,
                 std::size_t,
-                felspar::source_location const & =
-                        felspar::source_location::current());
+                std::source_location const & = std::source_location::current());
         entity_id(entity_id &&) noexcept;
         entity_id(entity_id const &);
         ~entity_id();
@@ -62,14 +58,13 @@ namespace planet::ecs {
         detail::entity const *operator->() const;
 
 
-        mask_type &
-                mask(std::size_t,
-                     felspar::source_location const & =
-                             felspar::source_location::current());
+        mask_type &mask(
+                std::size_t,
+                std::source_location const & = std::source_location::current());
         mask_type
                 mask(std::size_t,
-                     felspar::source_location const & =
-                             felspar::source_location::current()) const;
+                     std::source_location const & =
+                             std::source_location::current()) const;
 
 
         friend bool operator==(entity_id const &, entity_id const &) noexcept =

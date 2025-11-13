@@ -2,7 +2,6 @@
 
 
 #include <felspar/coro/generator.hpp>
-#include <felspar/test/source.hpp>
 
 #include <filesystem>
 #include <optional>
@@ -21,7 +20,7 @@ namespace planet {
         virtual std::optional<std::vector<std::byte>> try_load(
                 std::ostream &log,
                 std::filesystem::path const &fn,
-                felspar::source_location const &loc) const = 0;
+                std::source_location const &loc) const = 0;
     };
 
 
@@ -36,7 +35,7 @@ namespace planet {
         std::optional<std::vector<std::byte>> try_load(
                 std::ostream &log,
                 std::filesystem::path const &fn,
-                felspar::source_location const &loc) const override;
+                std::source_location const &loc) const override;
 
         /// The paths that are to be searched for assets
         felspar::coro::generator<std::filesystem::path> search_paths() const;
@@ -58,8 +57,8 @@ namespace planet {
         /// Return the file contents or throw
         std::vector<std::byte> file_data(
                 std::filesystem::path const &,
-                felspar::source_location const & =
-                        felspar::source_location::current()) const;
+                std::source_location const & =
+                        std::source_location::current()) const;
     };
 
 

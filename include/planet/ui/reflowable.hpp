@@ -45,8 +45,8 @@ namespace planet::ui {
         /// #### Does the reflowable contain the given location
         virtual bool contains_global_coordinate(
                 affine::point2d const &p,
-                felspar::source_location const & =
-                        felspar::source_location::current()) const {
+                std::source_location const & =
+                        std::source_location::current()) const {
             if (m_position) {
                 return m_position->contains(p);
             } else {
@@ -55,8 +55,8 @@ namespace planet::ui {
         }
         /// #### The position that it has
         affine::rectangle2d const &position(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             if (m_position) {
                 return *m_position;
             } else {
@@ -71,8 +71,8 @@ namespace planet::ui {
         }
         /// #### The constraints that the item has
         constrained_type const &constraints(
-                felspar::source_location const &loc =
-                        felspar::source_location::current()) const {
+                std::source_location const &loc =
+                        std::source_location::current()) const {
             if (m_constraints) {
                 return *m_constraints;
             } else {

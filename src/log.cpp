@@ -378,7 +378,7 @@ namespace {
 void planet::log::detail::write_log(
         level const l,
         serialise::shared_bytes b,
-        felspar::source_location const &loc) {
+        std::source_location const &loc) {
     auto &lt = g_log_thread();
     lt.bus.push(planet::log::message{l, std::move(b), loc});
     ++message_count;

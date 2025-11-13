@@ -103,8 +103,8 @@ namespace planet::ui {
                 collection_type c,
                 float const hp,
                 float const vp,
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
+                std::source_location const &loc =
+                        std::source_location::current())
         : superclass{n, std::move(c), loc}, hpadding{hp}, vpadding{vp} {}
         explicit breakable_row(collection_type c, float const p)
         : breakable_row{std::move(c), p, p} {}
@@ -112,8 +112,8 @@ namespace planet::ui {
                 std::string_view const n,
                 collection_type c,
                 float const p,
-                felspar::source_location const &loc =
-                        felspar::source_location::current())
+                std::source_location const &loc =
+                        std::source_location::current())
         : breakable_row{n, std::move(c), p, p, loc} {}
 
 

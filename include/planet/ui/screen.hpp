@@ -41,7 +41,7 @@ namespace planet::ui {
         void do_draw() override {};
         bool contains_global_coordinate(
                 affine::point2d const &,
-                felspar::source_location const &) const override {
+                std::source_location const &) const override {
             return true;
         }
         bool wants_focus() const noexcept override { return true; }
