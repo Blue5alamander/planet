@@ -6,6 +6,7 @@ add_library(planet
         asset_manager.cpp
         baseplate.ui.cpp
         cameras.cpp
+        colour.cpp
         comms.cpp
         ecs.cpp
         files.audio.cpp
@@ -24,6 +25,7 @@ add_library(planet
         time.cpp
         ui.cpp
         version.cpp
+        vertex.cpp
     )
 target_compile_features(planet PUBLIC cxx_std_23)
 target_include_directories(planet PUBLIC ../include/)
