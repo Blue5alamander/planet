@@ -65,6 +65,10 @@ namespace {
                             << static_cast<unsigned>(lb.extract<std::uint8_t>())
                             << ' ' << to_string(m) << '\n';
                     break;
+                case planet::serialise::marker::u32le:
+                    std::cout << lb.extract<std::uint32_t>() << ' '
+                              << to_string(m) << '\n';
+                    break;
                 case planet::serialise::marker::i32le:
                     std::cout << lb.extract<std::int32_t>() << ' '
                               << to_string(m) << '\n';
@@ -78,6 +82,10 @@ namespace {
                               << to_string(m) << '\n';
                     break;
 
+                case planet::serialise::marker::f32le:
+                    std::cout << lb.extract<float>() << ' ' << to_string(m)
+                              << '\n';
+                    break;
                 case planet::serialise::marker::f128le:
                     std::cout << lb.extract<long double>() << ' '
                               << to_string(m) << '\n';
