@@ -71,11 +71,18 @@ namespace planet::camera {
         affine::point2d into(affine::point3d const &);
 
         /// #### The `outof` transform
+        affine::point3d out_of_for_z(affine::point2d const &, float z);
         /**
          * This takes the 2d point in the screen space and returns the point on
          * the XY plane at height Z that is being looked at.
          */
-        affine::point3d out_of_for_z(affine::point2d const &, float z);
+        /// #### The camera's position
+        affine::point3d focal_point() const { return view.outof({}); }
+        /**
+         * This is the location of the focal point for the camera in the world
+         * co-ordinate space. This can be used as a proxy for the location of
+         * the player's PoV in a scene.
+         */
 
 
         /// ### Updates the camera view over time to match the targets

@@ -64,10 +64,9 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
     float const fov_rad = current.perspective_fov * pi / 2.0f;
     float const focal_length =
             current.perspective_scale / std::tan(fov_rad / 2.0f);
-    affine::point3d const start_camera{0, 0, 0};
     affine::point3d const end_camera{xy, -focal_length};
     /// Convert start & end to world coordinates
-    auto const start_world = view.outof(start_camera);
+    auto const start_world = focal_point();
     auto const end_world = view.outof(end_camera);
     /// Direction of the ray
     auto const dir{(end_world - start_world).as_unit_vector()};
