@@ -5,8 +5,10 @@ namespace planet::vertex {
 
 
     struct coloured;
-    struct pos2d;
-    struct textured;
+    struct coloured_textured;
+    struct normal;
+    struct normal_textured;
+    struct uvpos;
 
 
 }
