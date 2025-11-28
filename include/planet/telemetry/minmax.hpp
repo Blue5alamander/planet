@@ -25,7 +25,9 @@ namespace planet::telemetry {
         using value_type = std::uint64_t;
 
 
-        max(std::string_view const n) : performance{n} {}
+        max(std::string_view const n,
+            std::source_location const &loc = std::source_location::current())
+        : performance{n, loc} {}
 
 
         value_type value() const noexcept { return m_value.load(); }

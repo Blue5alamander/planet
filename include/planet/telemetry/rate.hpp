@@ -34,7 +34,10 @@ namespace planet::telemetry {
          * will decay over. A large value will be much more smoothed than a
          * smaller value, but will also take longer to get to the right level.
          */
-        exponential_decay(std::string_view, std::size_t half_life);
+        exponential_decay(
+                std::string_view,
+                std::size_t half_life,
+                std::source_location const & = std::source_location::current());
 
 
         double value() const noexcept;
@@ -76,8 +79,11 @@ namespace planet::telemetry {
 
 
         real_time_decay(
-                std::string_view const n, std::chrono::nanoseconds const hl)
-        : performance{n}, half_life{static_cast<double>(hl.count())} {}
+                std::string_view const n,
+                std::chrono::nanoseconds const hl,
+                std::source_location const &loc =
+                        std::source_location::current())
+        : performance{n, loc}, half_life{static_cast<double>(hl.count())} {}
 
 
         double value() const noexcept;
@@ -118,13 +124,18 @@ namespace planet::telemetry {
 
 
         real_time_rate(
-                std::string_view const n, std::chrono::nanoseconds const hl)
-        : performance{n}, half_life{static_cast<double>(hl.count())} {}
+                std::string_view const n,
+                std::chrono::nanoseconds const hl,
+                std::source_location const &loc =
+                        std::source_location::current())
+        : performance{n, loc}, half_life{static_cast<double>(hl.count())} {}
         real_time_rate(
                 std::string_view const n,
                 std::chrono::nanoseconds const hl,
-                double const v)
-        : performance{n},
+                double const v,
+                std::source_location const &loc =
+                        std::source_location::current())
+        : performance{n, loc},
           m_value{v},
           half_life{static_cast<double>(hl.count())} {}
 

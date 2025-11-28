@@ -13,7 +13,7 @@ namespace planet::telemetry {
     /// ## One of any number of performance counters
     class performance : public id {
       protected:
-        performance(std::string_view);
+        performance(std::string_view, std::source_location const &);
 
 
       public:

@@ -38,8 +38,10 @@ namespace planet::telemetry {
         using comparison_type = Compare;
 
 
-        table(std::string_view const n, std::size_t const max_entries)
-        : performance{n}, max_entries{max_entries} {}
+        table(std::string_view const n,
+              std::size_t const max_entries,
+              std::source_location const &loc = std::source_location::current())
+        : performance{n, loc}, max_entries{max_entries} {}
 
 
         /// #### Queries
@@ -112,8 +114,10 @@ namespace planet::telemetry {
         using comparison_type = Compare;
 
 
-        table(std::string_view const n, std::size_t const max_entries)
-        : performance{n}, max_entries{max_entries} {}
+        table(std::string_view const n,
+              std::size_t const max_entries,
+              std::source_location const &loc = std::source_location::current())
+        : performance{n, loc}, max_entries{max_entries} {}
 
 
         /// #### Queries

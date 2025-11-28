@@ -36,9 +36,13 @@ namespace planet::telemetry {
         static constexpr std::string_view box{"_p:t:time"};
 
 
-        time(std::string_view const n) : performance{n} {}
-        time(std::string_view const n, std::chrono::nanoseconds const t)
-        : performance{n}, ns{t.count()} {}
+        time(std::string_view const n,
+             std::source_location const &loc = std::source_location::current())
+        : performance{n, loc} {}
+        time(std::string_view const n,
+             std::chrono::nanoseconds const t,
+             std::source_location const &loc = std::source_location::current())
+        : performance{n, loc}, ns{t.count()} {}
 
 
         auto value() const noexcept {

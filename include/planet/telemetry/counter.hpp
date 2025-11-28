@@ -25,9 +25,15 @@ namespace planet::telemetry {
         static constexpr std::string_view box{"_p:t:counter"};
 
 
-        counter(std::string_view const n) : performance{n} {}
-        counter(std::string_view const n, std::int64_t const v)
-        : performance{n}, count{v} {}
+        counter(std::string_view const n,
+                std::source_location const &loc =
+                        std::source_location::current())
+        : performance{n, loc} {}
+        counter(std::string_view const n,
+                std::int64_t const v,
+                std::source_location const &loc =
+                        std::source_location::current())
+        : performance{n, loc}, count{v} {}
 
 
         std::int64_t value() const noexcept { return count.load(); }

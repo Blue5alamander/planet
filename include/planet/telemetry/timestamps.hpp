@@ -46,7 +46,9 @@ namespace planet::telemetry {
         };
 
 
-        timestamps(std::string_view);
+        timestamps(
+                std::string_view,
+                std::source_location const & = std::source_location::current());
 
 
         /// ### Changing timestamps

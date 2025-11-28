@@ -82,8 +82,10 @@ std::size_t planet::telemetry::detail::load_performance(
 
 
 planet::telemetry::exponential_decay::exponential_decay(
-        std::string_view const n, std::size_t const half_life)
-: performance{n},
+        std::string_view const n,
+        std::size_t const half_life,
+        std::source_location const &loc)
+: performance{n, loc},
   decay_rate{std::pow(2.0, -1.0 / static_cast<double>(half_life))} {}
 
 
@@ -209,7 +211,8 @@ namespace {
 }
 
 
-planet::telemetry::performance::performance(std::string_view const n)
+planet::telemetry::performance::performance(
+        std::string_view const n, std::source_location const &loc)
 : id{n, id::suffix::no} {
     std::scoped_lock _{g_mtx};
     auto &perfs = g_perfs();
@@ -220,7 +223,8 @@ planet::telemetry::performance::performance(std::string_view const n)
     if (pos != perfs.end() and (*pos)->name() == n) {
         throw felspar::stdexcept::logic_error{
                 "There is already a performance counter called "
-                + std::string{n}};
+                        + std::string{n},
+                loc};
     }
     perfs.insert(pos, this);
 }
@@ -399,8 +403,9 @@ namespace {
 // ## `planet::telemetry::timestamps`
 
 
-planet::telemetry::timestamps::timestamps(std::string_view const n)
-: performance{n} {}
+planet::telemetry::timestamps::timestamps(
+        std::string_view const n, std::source_location const &loc)
+: performance{n, loc} {}
 
 
 void planet::telemetry::timestamps::set(std::string_view key) {
