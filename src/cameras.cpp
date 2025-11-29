@@ -95,11 +95,11 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
 
 
 void planet::camera::target3dxy::tick_update() {
-    initial.tick_update();
+    ortho.tick_update();
     /// TODO Do the animated current update from the target
     current = target;
-    view = {initial.view.into(), initial.view.outof()};
-    view.scale(1.0f, 1.0f, 1.0f / initial.current_scale)
+    view = {ortho.view.into(), ortho.view.outof()};
+    view.scale(1.0f, 1.0f, 1.0f / ortho.current_scale)
             .translate(current.view_offset)
             .rotate_x(current.view_angle)
             .translate(current.view_direction * current.distance);

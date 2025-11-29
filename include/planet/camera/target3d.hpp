@@ -14,8 +14,9 @@ namespace planet::camera {
      * world is built in the XY plane with the Z axis pointing up.
      *
      * The `orthogonal_birdseye` camera provides an initial set of transforms
-     * that provide basic rotation, position and scaling support. This is then
-     * further adjusted by the 3D transforms held by this camera.
+     * (held in the public `ortho` member) that provide basic rotation, position
+     * and scaling support. This is then further adjusted by the 3D transforms
+     * held by this camera.
      */
     struct target3dxy {
         /// ### Set up parameters
@@ -54,7 +55,7 @@ namespace planet::camera {
 
 
         /// ### Initial transformation
-        orthogonal_birdseye initial;
+        orthogonal_birdseye ortho;
 
 
         /// ### Targetting
