@@ -230,7 +230,12 @@ namespace planet::ecs {
         [[nodiscard]] Component &get_component(
                 entity_id &eid,
                 std::source_location const &loc =
-                        std::source_location::current()) {
+                        std::source_location::current())
+        /**
+         * Returns a component if it exists. If there is no component of the
+         * requested type for the entity then an exception will be thrown.
+         */
+        {
             static constexpr auto storage =
                     get_storage_index_for_type<Component>();
             auto &store = std::get<storage>(stores);
@@ -240,11 +245,43 @@ namespace planet::ecs {
         [[nodiscard]] Component *maybe_get_component(
                 entity_id &eid,
                 std::source_location const &loc =
-                        std::source_location::current()) {
+                        std::source_location::current())
+        /**
+         * Returns a pointer to the component if it exists for the entity. If
+         * none exists then return `nullptr` instead.
+         */
+        {
             static constexpr auto storage =
                     get_storage_index_for_type<Component>();
             auto &store = std::get<storage>(stores);
             return store.template maybe_get_component<Component>(eid, loc);
+        }
+        template<typename Component, std::invocable<> Lambda = Component (*)()>
+        [[nodiscard]] Component &always_get_component(
+                entity_id &eid,
+                Lambda &&lambda = []() { return Component{}; },
+                std::source_location const &loc =
+                        std::source_location::current())
+        /**
+         * Return the pre-existing component if it exists, but if it doesn't
+         * then use the `lambda` to create the component and then return it. The
+         * default lambda is only suitable when the required component can be
+         * default constructed.
+         */
+        {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            Component *c =
+                    store.template maybe_get_component<Component>(eid, loc);
+            if (c) {
+                return *c;
+            } else {
+                /// TODO It's likely more efficient to implement this on the
+                /// `storage`
+                return std::get<storage>(stores)
+                        .template add_component<Component>(eid, lambda())();
+            }
         }
 
 
