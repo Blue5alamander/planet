@@ -14,9 +14,9 @@
 namespace planet::ecs {
 
 
-    /// #### Description of the component being removed
+    /// #### Description of the component being added or removed
     template<typename C>
-    struct component_removal {
+    struct component_change {
         entity_id eid;
         C *component;
     };
@@ -139,6 +139,7 @@ namespace planet::ecs {
                              std::move(component));
             eid.mask(*entities_storage_index) |= (1 << ci);
             connect_component(eid, *nc);
+            std::get<ci>(addition_queues).push({eid, &*nc});
             return proxy_for<ctype>{*this, eid};
         }
         /// #### Provide a component proxy
@@ -213,11 +214,18 @@ namespace planet::ecs {
         }
 
 
-        /// ### Watching for removal of component
+        /// ### Watching for addition and removal of component
+
+        /// #### Access to the queue which will describe additions
+        template<typename C>
+        queue::pmc<component_change<C>> &on_create_queue_for() {
+            static constexpr auto ci = component_index<C>();
+            return std::get<ci>(addition_queues);
+        }
 
         /// #### Access to the queue which will describe removals
         template<typename C>
-        queue::pmc<component_removal<C>> &on_destroy_queue_for() {
+        queue::pmc<component_change<C>> &on_destroy_queue_for() {
             static constexpr auto ci = component_index<C>();
             return std::get<ci>(removal_queues);
         }
@@ -318,10 +326,9 @@ namespace planet::ecs {
         storage_type components;
 
         template<typename C>
-        using removal_queue_type = queue::pmc<component_removal<C>>;
-        using removal_queues_type =
-                std::tuple<removal_queue_type<Components>...>;
-        removal_queues_type removal_queues;
+        using change_queue_type = queue::pmc<component_change<C>>;
+        using change_queues_type = std::tuple<change_queue_type<Components>...>;
+        change_queues_type addition_queues, removal_queues;
 
         template<typename T>
         struct types : public types<decltype(&T::operator())> {};

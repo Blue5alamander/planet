@@ -295,6 +295,27 @@ namespace planet::ecs {
         }
 
 
+        /// ### Watching for addition and removal of component
+
+        /// #### Access to the queue which will describe additions
+        template<typename Component>
+        auto &on_create_queue_for() {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            return store.template on_create_queue_for<Component>();
+        }
+
+        /// #### Access to the queue which will describe removals
+        template<typename Component>
+        auto &on_destroy_queue_for() {
+            static constexpr auto storage =
+                    get_storage_index_for_type<Component>();
+            auto &store = std::get<storage>(stores);
+            return store.template on_destroy_queue_for<Component>();
+        }
+
+
         /// ### Iterate over components
         template<typename Lambda>
         auto iterate(Lambda &&lambda)
