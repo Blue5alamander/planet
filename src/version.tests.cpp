@@ -41,7 +41,9 @@ namespace {
                 check(v.git_describe) == "";
             },
             [](auto check) {
-                planet::version v{"appid2", "folder", "5.26.123", 2253, "5.25-45-g123456-dirty"};
+                planet::version v{
+                        "appid2", "folder", "5.26.123", 2253,
+                        "5.25-45-g123456-dirty"};
                 check(v.application_id) == "appid2";
                 check(v.application_folder) == "folder";
                 check(v.version_string) == "5.26.123";
