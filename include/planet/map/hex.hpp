@@ -137,6 +137,9 @@ namespace planet::map::hex {
             auto const same = std::min(r, c);
             return same + std::abs(r - same) + std::abs(c - same) / 2;
         }
+        std::size_t move_distance(coordinates const c) const noexcept {
+            return (*this - c).move_distance();
+        }
         /// #### Vertex positions
         /**
          * Return the 6 vertices for the hex, starting at the top going
