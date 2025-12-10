@@ -313,9 +313,10 @@ namespace {
                 if (out) {
                     save(planet::log::detail::ab, message);
                     auto const bytes = planet::log::detail::ab.complete();
-                    (*out).write(
+                    out->write(
                             reinterpret_cast<char const *>(bytes.data()),
                             bytes.size());
+                    out->flush();
                 }
                 print(message);
                 switch (message.level) {
