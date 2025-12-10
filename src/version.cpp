@@ -59,6 +59,18 @@ planet::version::version(
   version_string{sv},
   semver{parse(sv)},
   build{b} {}
+planet::version::version(
+        std::string_view const id,
+        std::string_view const dir,
+        std::string_view const sv,
+        std::uint16_t const b,
+        std::string_view const gd)
+: application_id{id},
+  application_folder{dir},
+  version_string{sv},
+  semver{parse(sv)},
+  build{b},
+  git_describe{gd} {}
 
 planet::version::version(serialise::box &b) { load(b, *this); }
 
@@ -84,10 +96,15 @@ void planet::load(serialise::box &b, semver &sv) {
     b.named(sv.box, sv.major, sv.minor, sv.patch);
 }
 void planet::save(serialise::save_buffer &sb, version const &v) {
-    sb.save_box(v.box, v.application_id, v.version_string, v.semver, v.build);
+    sb.save_box(
+            v.box, v.application_id, v.version_string, v.semver, v.build,
+            v.git_describe);
 }
 void planet::load(serialise::box &b, version &v) {
-    b.named(v.box, v.application_id, v.version_string, v.semver, v.build);
+    b.lambda(v.box, [&]() {
+        b.fields(v.application_id, v.version_string, v.semver, v.build);
+        if (not b.content.empty()) { b.fields(v.git_describe); }
+    });
 }
 
 
@@ -104,6 +121,9 @@ namespace {
                     os << " build " << *version.build;
                 } else {
                     os << " (no build number)";
+                }
+                if (not version.git_describe.empty()) {
+                    os << ' ' << version.git_describe;
                 }
             });
 }

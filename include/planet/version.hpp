@@ -57,6 +57,11 @@ namespace planet {
                 std::string_view appdir,
                 std::string_view semver,
                 std::uint16_t build);
+        version(std::string_view appid,
+                std::string_view appdir,
+                std::string_view semver,
+                std::uint16_t build,
+                std::string_view git_describe);
 
         explicit version(serialise::box &);
 
@@ -67,6 +72,7 @@ namespace planet {
 
         planet::semver semver;
         std::optional<std::uint16_t> build;
+        std::string git_describe;
     };
     void save(serialise::save_buffer &, semver const &);
     void load(serialise::box &, semver &);
