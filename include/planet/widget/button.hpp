@@ -133,51 +133,23 @@ namespace planet::widget {
         template<typename Q>
         struct handle;
 
+        template<typename Q>
+        struct deduce {
+            static constexpr bool reference = false;
+            using storage = Q;
+        };
         template<queue::push_void_queue Q>
-        struct handle<Q> {
+        struct deduce<Q> {
             static constexpr bool reference = true;
             using storage = Q &;
-            static felspar::coro::task<void> press(button *self, auto clicks) {
-                while (true) {
-                    auto click = co_await clicks.next();
-                    self->output_to.push();
-                }
-            }
         };
         template<typename R>
-        struct handle<felspar::coro::future<R>> {
+        struct deduce<felspar::coro::future<R>> {
             static constexpr bool reference = true;
             using storage = felspar::coro::future<R> &;
-            static felspar::coro::task<void> press(button *self, auto clicks) {
-                co_await clicks.next();
-                self->output_to.set_value();
-            }
-        };
-        template<std::invocable<> Q>
-        struct handle<Q> {
-            static constexpr bool reference = false;
-            using storage = Q;
-            static felspar::coro::task<void> press(button *self, auto clicks) {
-                while (true) {
-                    auto click = co_await clicks.next();
-                    self->output_to();
-                }
-            }
-        };
-        template<std::invocable<widget &> Q>
-        struct handle<Q> {
-            static constexpr bool reference = false;
-            using storage = Q;
-            static felspar::coro::task<void> press(button *self, auto clicks) {
-                while (true) {
-                    auto click = co_await clicks.next();
-                    self->output_to(*self);
-                }
-            }
         };
 
-
-        typename handle<std::decay_t<Output>>::storage output_to;
+        typename deduce<std::decay_t<Output>>::storage output_to;
 
 
       public:
@@ -206,14 +178,14 @@ namespace planet::widget {
         : widget{n}, output_to{std::move(o)}, graphic{std::move(g)} {}
 
         button(button &&b)
-            requires handle<output_type>::reference
+            requires deduce<output_type>::reference
         : widget{std::move(b)},
           output_to{b.output_to},
           graphic{std::move(b.graphic)} {
             if (has_baseplate()) { response.post(behaviour()); }
         }
         button(button &&b)
-            requires(not handle<output_type>::reference)
+            requires(not deduce<output_type>::reference)
         : widget{std::move(b)},
           output_to{std::move(b.output_to)},
           graphic{std::move(b.graphic)} {
@@ -242,6 +214,45 @@ namespace planet::widget {
             return handle<output_type>::press(
                     this,
                     events::identify_clicks(widget::events.mouse.stream()));
+        }
+    };
+
+    template<ui::drawable Texture, typename Output>
+    template<queue::push_void_queue Q>
+    struct button<void, Texture, Output>::handle<Q> {
+        static felspar::coro::task<void> press(button *self, auto clicks) {
+            while (true) {
+                auto click = co_await clicks.next();
+                self->output_to.push();
+            }
+        }
+    };
+    template<ui::drawable Texture, typename Output>
+    template<typename R>
+    struct button<void, Texture, Output>::handle<felspar::coro::future<R>> {
+        static felspar::coro::task<void> press(button *self, auto clicks) {
+            co_await clicks.next();
+            self->output_to.set_value();
+        }
+    };
+    template<ui::drawable Texture, typename Output>
+    template<std::invocable<> Q>
+    struct button<void, Texture, Output>::handle<Q> {
+        static felspar::coro::task<void> press(button *self, auto clicks) {
+            while (true) {
+                auto click = co_await clicks.next();
+                self->output_to();
+            }
+        }
+    };
+    template<ui::drawable Texture, typename Output>
+    template<std::invocable<button<void, Texture, Output> &> Q>
+    struct button<void, Texture, Output>::handle<Q> {
+        static felspar::coro::task<void> press(button *self, auto clicks) {
+            while (true) {
+                auto click = co_await clicks.next();
+                self->output_to(*self);
+            }
         }
     };
 
