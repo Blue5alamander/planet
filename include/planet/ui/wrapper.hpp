@@ -160,14 +160,19 @@ namespace planet::ui {
 
 
     /// ## Helpers to create a wrapper instance
+    /**
+     * When using an update lambda, the compiler can't generally deduce the
+     * parameter pack from the lambda argument, so you must explicitly pass the
+     * pack parameters to `create_wrapper`.
+     */
     template<typename T>
-    auto create_wrapper(T t) {
+    inline auto create_wrapper(T t) {
         return wrapper<>{
                 std::make_unique<detail::concrete_no_update_wrapper<T>>(
                         std::move(t))};
     }
     template<typename T>
-    auto create_wrapper(std::string_view const n, T t) {
+    inline auto create_wrapper(std::string_view const n, T t) {
         return wrapper<>{
                 n,
                 std::make_unique<detail::concrete_no_update_wrapper<T>>(
@@ -175,7 +180,7 @@ namespace planet::ui {
     }
 
     template<typename... Pack, typename T, std::invocable<T &, Pack...> U>
-    auto create_wrapper(T t, U u)
+    inline auto create_wrapper(T t, U u)
         requires std::same_as<std::invoke_result_t<U, T &, Pack...>, void>
     {
         return wrapper<Pack...>{
@@ -183,7 +188,7 @@ namespace planet::ui {
                         std::move(t), std::move(u))};
     }
     template<typename... Pack, typename T, std::invocable<T &, Pack...> U>
-    auto create_wrapper(std::string_view const n, T t, U u)
+    inline auto create_wrapper(std::string_view const n, T t, U u)
         requires std::same_as<std::invoke_result_t<U, T &, Pack...>, void>
     {
         return wrapper<Pack...>{
@@ -193,7 +198,7 @@ namespace planet::ui {
     }
 
     template<typename T, std::invocable<T &> U>
-    auto create_wrapper(std::string_view const n, T t, U c)
+    inline auto create_wrapper(std::string_view const n, T t, U c)
         requires std::same_as<
                 std::invoke_result_t<U, T &>,
                 felspar::coro::eager<>::task_type>
