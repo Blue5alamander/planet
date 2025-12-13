@@ -21,7 +21,7 @@
 
 planet::serialise::demuxer::demuxer() : id{"demuxer"} {}
 planet::serialise::demuxer::demuxer(std::string_view const n)
-: id{n, id::suffix::no} {}
+: id{n, id::suffix::suppress} {}
 
 
 void planet::serialise::demuxer::start_manager() {

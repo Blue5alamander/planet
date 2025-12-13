@@ -23,16 +23,16 @@ namespace planet::telemetry {
 
       public:
         /// ### Choose a suffix policy
-        enum class suffix { yes, no };
+        enum class suffix { add, suppress };
 
 
         /// ### Construction
         explicit id();
-        explicit id(char const *n, suffix const s = suffix::yes)
+        explicit id(char const *n, suffix const s = suffix::add)
         : id{std::string_view{n}, s} {}
-        explicit id(std::string_view const n, suffix const s = suffix::yes)
+        explicit id(std::string_view const n, suffix const s = suffix::add)
         : id{std::string{n}, s} {}
-        explicit id(std::string, suffix = suffix::yes);
+        explicit id(std::string, suffix = suffix::add);
 
         id(id const &) = delete;
         id(id &&) = default;

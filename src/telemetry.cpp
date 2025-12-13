@@ -144,7 +144,7 @@ planet::telemetry::id::id() : m_name{create_suffix()} {}
 
 
 planet::telemetry::id::id(std::string n, suffix const s)
-: m_name{s == suffix::yes ? (n + "__" + create_suffix()) : std::move(n)} {}
+: m_name{s == suffix::add ? (n + "__" + create_suffix()) : std::move(n)} {}
 
 
 /// ## `planet::telemetry::max`
@@ -213,7 +213,7 @@ namespace {
 
 planet::telemetry::performance::performance(
         std::string_view const n, std::source_location const &loc)
-: id{n, id::suffix::no} {
+: id{n, id::suffix::suppress} {
     std::scoped_lock _{g_mtx};
     auto &perfs = g_perfs();
     auto pos =

@@ -92,7 +92,7 @@ namespace planet::comms::inproc {
          */
         object(std::string_view const n,
                felspar::io::warden &w,
-               telemetry::id::suffix const s = telemetry::id::suffix::yes)
+               telemetry::id::suffix const s = telemetry::id::suffix::add)
         : id{n, s}, signalling{w} {}
 
         object(object const &) = delete;

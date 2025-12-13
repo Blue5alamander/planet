@@ -212,7 +212,7 @@ namespace {
         planet::comms::inproc::
                 object<planet::log::message, planet::serialise::shared_bytes>
                         bus{"planet_log_bus", warden,
-                            planet::telemetry::id::suffix::no};
+                            planet::telemetry::id::suffix::suppress};
         planet::comms::signal terminate{warden};
 
         log_thread() {}
