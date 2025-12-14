@@ -10,22 +10,32 @@ namespace planet::widget::volume {
 
 
     /// ## Volume slider
-    template<typename Background, typename Draggable>
+    template<typename Background, typename ColdSpot, typename HotSpot = ColdSpot &>
     struct slider final : public planet::ui::range_updater {
-        using range_type =
-                planet::ui::range<Background, planet::ui::draggable<Draggable>>;
+        using range_type = planet::ui::
+                range<Background, planet::ui::draggable<ColdSpot, HotSpot>>;
         using constrained_type = typename range_type::constrained_type;
         using reflow_parameters = typename range_type::reflow_parameters;
 
 
         slider(std::string_view const name,
                Background bg,
-               Draggable ctrl,
+               ColdSpot cold,
                planet::audio::channel &c)
         : channel{c},
           range{{name,
                  std::move(bg),
-                 {name, std::move(ctrl)},
+                 {name, std::move(cold)},
+                 {channel.gain().dB, -57, 9}}} {}
+        slider(std::string_view const name,
+               Background bg,
+               ColdSpot cold,
+               HotSpot hot,
+               planet::audio::channel &c)
+        : channel{c},
+          range{{name,
+                 std::move(bg),
+                 {name, std::move(cold), std::move(hot)},
                  {channel.gain().dB, -57, 9}}} {}
 
 

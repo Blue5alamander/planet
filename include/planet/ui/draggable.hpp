@@ -52,11 +52,19 @@ namespace planet::ui {
 
 
     /// ## A draggable UI element
-    template<typename HotSpot>
+    template<typename ColdSpot, typename HotSpot = ColdSpot &>
     class draggable final : public widget {
       public:
-        draggable(std::string_view const n, HotSpot hs)
-        : widget{n}, hotspot{std::move(hs)} {}
+        draggable(std::string_view const n, ColdSpot cs)
+        : widget{n},
+          hoverable{false},
+          coldspot{std::move(cs)},
+          hotspot{coldspot} {}
+        draggable(std::string_view const n, ColdSpot cs, HotSpot hs)
+        : widget{n},
+          hoverable{true},
+          coldspot{std::move(cs)},
+          hotspot{std::move(hs)} {}
 
 
         using constrained_type = typename widget::constrained_type;
@@ -70,23 +78,57 @@ namespace planet::ui {
 
 
       protected:
+        /**
+         * TODO Tracking what to do with the `hotspot` through `hoverable` is a
+         * bit ugly. It's almost certainly better to have a partial template
+         * specialisation for the case where `HotSpot` is `void` instead.
+         */
+        bool hoverable, hovering = false;
+        ColdSpot coldspot;
         HotSpot hotspot;
 
-        void do_draw() override { hotspot.draw(); }
+        void do_draw() override {
+            if (not hoverable) {
+                coldspot.draw();
+            } else if (hovering) {
+                hotspot.draw();
+            } else {
+                coldspot.draw();
+            }
+        }
 
 
       private:
+        void hover(std::chrono::nanoseconds const ts) override {
+            hovering = (ts.count() > 0);
+        }
         widget::reflow_parameters reflow_p;
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &constraint) override {
             reflow_p = p;
-            return hotspot.reflow(p, constraint);
+            if (not hoverable) {
+                return coldspot.reflow(p, constraint);
+            } else if (hovering) {
+                coldspot.reflow(p, constraint);
+                return hotspot.reflow(p, constraint);
+            } else {
+                hotspot.reflow(p, constraint);
+                return coldspot.reflow(p, constraint);
+            }
         }
         affine::rectangle2d do_move_sub_elements(
                 reflow_parameters const &p,
                 affine::rectangle2d const &r) override {
-            return hotspot.move_to(p, r);
+            if (not hoverable) {
+                return coldspot.move_to(p, r);
+            } else if (hovering) {
+                coldspot.move_to(p, r);
+                return hotspot.move_to(p, r);
+            } else {
+                hotspot.move_to(p, r);
+                return coldspot.move_to(p, r);
+            }
         }
         felspar::coro::task<void> behaviour() override {
             auto mouse = widget::events.mouse.values();
