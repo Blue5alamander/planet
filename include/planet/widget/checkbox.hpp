@@ -40,24 +40,24 @@ namespace planet::widget {
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &ex) override {
-            auto const on_size = on.reflow(p, ex);
-            auto const off_size = off.reflow(p, ex);
-            typename constrained_type::axis_constrained_type const w{
-                    std::max(on_size.width.min(), off_size.width.min()),
-                    std::max(on_size.width.value(), off_size.width.value()),
-                    std::min(on_size.width.max(), off_size.width.max())};
-            typename constrained_type::axis_constrained_type const h{
-                    std::max(on_size.height.min(), off_size.height.min()),
-                    std::max(on_size.height.value(), off_size.height.value()),
-                    std::min(on_size.height.max(), off_size.height.max())};
-            return {w, h};
+            if (value) {
+                off.reflow(p, ex);
+                return on.reflow(p, ex);
+            } else {
+                on.reflow(p, ex);
+                return off.reflow(p, ex);
+            }
         }
         affine::rectangle2d do_move_sub_elements(
                 reflow_parameters const &p,
                 affine::rectangle2d const &r) override {
-            /// TODO Should be the union of the two returned rectangles
-            on.move_to(p, r);
-            return off.move_to(p, r);
+            if (value) {
+                off.move_to(p, r);
+                return on.move_to(p, r);
+            } else {
+                on.move_to(p, r);
+                return off.move_to(p, r);
+            }
         }
 
         felspar::coro::task<void> behaviour() override {
