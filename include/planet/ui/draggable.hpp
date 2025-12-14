@@ -41,6 +41,9 @@ namespace planet::ui {
         /// ### Respond to the end of a drag
         virtual constrained_type drop(constrained_type const &) = 0;
         /**
+         * This must be implemented. It is passed the new location that the
+         * draggable has been placed at.
+         *
          * The returned constraint becomes the new offset in the draggable
          * widget. Nearly always this should be zero so that new drags start at
          * the current position rather than random one.
