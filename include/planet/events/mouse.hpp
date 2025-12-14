@@ -41,10 +41,6 @@ namespace planet::events {
     /// ## Mouse event processing
 
     /// ### Process a stream of mouse data into higher level events
-    /**
-     * TODO This probably needs to go. SDL already provides the mouse click
-     * number and we should always just use that.
-     */
     felspar::coro::stream<click> identify_clicks(felspar::coro::stream<mouse>);
 
 
