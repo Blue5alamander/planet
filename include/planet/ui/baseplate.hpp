@@ -40,6 +40,16 @@ namespace planet::ui {
         baseplate &operator=(baseplate &&) = delete;
 
 
+        /// ### Z layer offset for widgets drawn
+        float z_layer = {};
+        /**
+         * When a `widget` is drawn it copies this `z_layer` value to its own
+         * `z_layer`. That way there is a mechanism for layering widgets without
+         * layout code needing to know how to explicitly find and set each
+         * widget's `z_layer`.
+         */
+
+
         /// ### Base panel for local transformations
         panel pixels;
 

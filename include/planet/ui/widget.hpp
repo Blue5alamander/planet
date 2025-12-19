@@ -64,13 +64,16 @@ namespace planet::ui {
 
 
         /// ### Z layer
+        float z_layer = {};
         /**
          * Widgets with higher z layer values logically appears on top of those
          * with lower ones. This value is used for event routing to determine
          * which of a number of overlapping widgets actually get the soft focus
          * events.
+         *
+         * The value for the z layer is copied from the widget's baseplate when
+         * it is drawn.
          */
-        float z_layer = {};
 
 
         /// ### The panel describing the position
@@ -98,7 +101,10 @@ namespace planet::ui {
         /// ### Draw the widget
         void draw() {
             do_draw();
-            if (baseplate) { baseplate->add(this); }
+            if (baseplate) {
+                z_layer = baseplate->z_layer;
+                baseplate->add(this);
+            }
         }
 
 
