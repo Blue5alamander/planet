@@ -34,6 +34,12 @@ namespace planet {
         friend colour operator*(colour const &c, float const m) noexcept {
             return {c.r * m, c.g * m, c.b * m, c.a};
         }
+        friend colour &operator*=(colour &c, float const m) noexcept {
+            c.r *= m;
+            c.g *= m;
+            c.b *= m;
+            return c;
+        }
     };
     void save(planet::serialise::save_buffer &, colour const &);
     void load(planet::serialise::box &, colour &);
