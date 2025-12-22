@@ -68,7 +68,7 @@ void planet::ui::baseplate::add(widget_ptr const w) {
 
 void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
     if (w->wants_focus()
-        and (not soft_focus or soft_focus->z_layer < w->z_layer)
+        and (not soft_focus or soft_focus->z_layer() < w->z_layer())
         and w->contains_global_coordinate(last_mouse.location)) {
         soft_focus = w;
     }

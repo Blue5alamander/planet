@@ -37,6 +37,7 @@ namespace planet::ui {
         widget(widget &&w)
         : reflowable{std::move(w)},
           events{std::move(w.events)},
+          static_z_layer{w.static_z_layer},
           baseplate{std::exchange(w.baseplate, nullptr)},
           m_enabled{w.m_enabled} {
             if (baseplate) {
@@ -51,7 +52,7 @@ namespace planet::ui {
             }
         }
         widget(std::string_view const n, float const z = {})
-        : reflowable{n}, z_layer{z} {}
+        : reflowable{n}, static_z_layer{z} {}
         virtual ~widget() { deregister(baseplate, this); }
 
         widget &operator=(widget const &) = delete;
@@ -64,15 +65,18 @@ namespace planet::ui {
 
 
         /// ### Z layer
-        float z_layer = {};
+        float static_z_layer, dynamic_z_layer = {};
+        float z_layer() const noexcept {
+            return static_z_layer + dynamic_z_layer;
+        }
         /**
          * Widgets with higher z layer values logically appears on top of those
          * with lower ones. This value is used for event routing to determine
          * which of a number of overlapping widgets actually get the soft focus
          * events.
          *
-         * The value for the z layer is copied from the widget's baseplate when
-         * it is drawn.
+         * The dynamic value for the z layer is copied from the widget's baseplate
+         * when it is drawn. The static part is assigned at construction time.
          */
 
 
@@ -94,7 +98,7 @@ namespace planet::ui {
         void add_to(widget &w) {
             if (not w.baseplate) { throw_invalid_add_to_target(); }
             add_to(*w.baseplate, w.panel);
-            z_layer = w.z_layer + 1;
+            static_z_layer = w.static_z_layer + 1;
         }
 
 
@@ -102,7 +106,7 @@ namespace planet::ui {
         void draw() {
             do_draw();
             if (baseplate) {
-                z_layer = baseplate->z_layer;
+                dynamic_z_layer = baseplate->z_layer;
                 baseplate->add(this);
             }
         }
