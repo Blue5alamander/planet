@@ -75,8 +75,9 @@ namespace planet::ui {
          * which of a number of overlapping widgets actually get the soft focus
          * events.
          *
-         * The dynamic value for the z layer is copied from the widget's baseplate
-         * when it is drawn. The static part is assigned at construction time.
+         * The dynamic value for the z layer is copied from the widget's
+         * baseplate when it is drawn. The static part is assigned at
+         * construction time.
          */
 
 
