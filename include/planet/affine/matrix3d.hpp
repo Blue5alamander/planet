@@ -27,16 +27,12 @@ namespace planet::affine {
         alignas(16) std::array<float, 16> m = {1, 0, 0, 0, 0, 1, 0, 0,
                                                0, 0, 1, 0, 0, 0, 0, 1};
 
-        /// Construct the matrix from a span of 4 rows.
-        constexpr matrix3d(std::array<std::array<float, 4>, 4> const &v)
-        : m{v[0][0], v[1][0], v[2][0], v[3][0], v[0][1], v[1][1],
-            v[2][1], v[3][1], v[0][2], v[1][2], v[2][2], v[3][2],
-            v[0][3], v[1][3], v[2][3], v[3][3]} {}
-
 
       public:
         /// ### Construction
         constexpr matrix3d() {}
+
+        /// #### From a 2D x/y matrix
         constexpr matrix3d(matrix2d const &m2)
         : matrix3d{
                   {std::array{m2[{0, 0}], m2[{1, 0}], float{}, m2[{2, 0}]},
@@ -44,6 +40,15 @@ namespace planet::affine {
                    std::array{float{}, float{}, float{1}, float{}},
                    std::array{m2[{0, 2}], m2[{1, 2}], float{}, m2[{2, 2}]}}} {}
 
+        /// #### Construct the matrix from a span of 4 rows.
+        constexpr matrix3d(std::array<std::array<float, 4>, 4> const &v)
+        : m{v[0][0], v[1][0], v[2][0], v[3][0], v[0][1], v[1][1],
+            v[2][1], v[3][1], v[0][2], v[1][2], v[2][2], v[3][2],
+            v[0][3], v[1][3], v[2][3], v[3][3]} {}
+
+        /// #### Transformations
+
+        /// ##### Translation
         static constexpr matrix3d
                 translate(float const x, float const y, float const z) {
             return {
@@ -55,6 +60,7 @@ namespace planet::affine {
         static constexpr matrix3d translate(point3d const &p) {
             return translate(p.x(), p.y(), p.z());
         }
+        /// ##### Scale
         static constexpr matrix3d
                 scale(float const x, float const y, float const z) {
             return {
@@ -69,6 +75,7 @@ namespace planet::affine {
         static constexpr matrix3d scale(float const s) {
             return scale(s, s, s);
         }
+        /// ##### Rotations
         static constexpr matrix3d rotate_x(float const t) {
             float const r = t * tau;
             float const c = std::cos(r);
@@ -134,10 +141,12 @@ namespace planet::affine {
         }
 
 
+        /// ### Comparison
         friend constexpr bool
                 operator==(matrix3d const &, matrix3d const &) = default;
 
 
+        /// ### Access
         constexpr float operator[](
                 std::pair<std::size_t, std::size_t> const s) const noexcept {
             return m[(s.first bitand 3) * 4 + (s.second bitand 3)];
@@ -196,6 +205,19 @@ namespace planet::affine {
                     p.xh * a1 + p.yh * a5 + p.zh * a9 + p.h * a13,
                     p.xh * a2 + p.yh * a6 + p.zh * a10 + p.h * a14,
                     p.xh * a3 + p.yh * a7 + p.zh * a11 + p.h * a15};
+        }
+
+
+        /// ### Alterations
+        matrix3d transpose() const noexcept {
+            float const a0 = m[0], a1 = m[1], a2 = m[2], a3 = m[3], a4 = m[4],
+                        a5 = m[5], a6 = m[6], a7 = m[7], a8 = m[8], a9 = m[9],
+                        a10 = m[10], a11 = m[11], a12 = m[12], a13 = m[13],
+                        a14 = m[14], a15 = m[15];
+            return {
+                    {std::array{a0, a1, a2, a3}, std::array{a4, a5, a6, a7},
+                     std::array{a8, a9, a10, a11},
+                     std::array{a12, a13, a14, a15}}};
         }
     };
 

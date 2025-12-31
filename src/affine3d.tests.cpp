@@ -1,6 +1,7 @@
 #include <planet/affine/matrix3d.hpp>
 #include <planet/affine/point3d.hpp>
 #include <planet/affine/transform3d.hpp>
+#include <planet/ostream.hpp>
 #include <felspar/test.hpp>
 
 
@@ -97,6 +98,20 @@ namespace {
                 check(p.x()) > -1e-7f;
                 check(p.y()) == 0.0f;
                 check(p.z()) == -1.0f;
+            },
+            [](auto check) {
+                auto const m = planet::affine::matrix3d{std::array{
+                        std::array<float, 4>{0, 1, 2, 3},
+                        std::array<float, 4>{4, 5, 6, 7},
+                        std::array<float, 4>{8, 9, 10, 11},
+                        std::array<float, 4>{12, 13, 14, 15}}};
+                auto const mt = planet::affine::matrix3d{std::array{
+                        std::array<float, 4>{0, 4, 8, 12},
+                        std::array<float, 4>{1, 5, 9, 13},
+                        std::array<float, 4>{2, 6, 10, 14},
+                        std::array<float, 4>{3, 7, 11, 15}}};
+                check(m.transpose()) == mt;
+                check(mt.transpose()) == m;
             });
 
 
