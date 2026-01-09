@@ -106,4 +106,41 @@ namespace planet::time {
     void load(serialise::box &, clock &);
 
 
+    /// ## Proportion of time passed
+    /**
+     * Proportions may be more than one if the duration is longer than expected.
+     */
+    inline double proportion(clock::duration const d, clock::duration outof)
+    /**
+     * Pass in the current duration as the first parameter, and the total
+     * duration as the second. Returns the proportion of time passed.
+     */
+    {
+        return static_cast<double>(d.count())
+                / static_cast<double>(outof.count());
+    }
+
+    inline double
+            proportion(clock::time_point const current, clock::duration outof)
+    /**
+     * Pass the current time as the first parameter and the duration (since time
+     * zero) as the second parameter. Returns the propertion of time remaining.
+     */
+    {
+        return proportion(current - clock::time_point{}, outof);
+    }
+    inline double proportion(
+            clock::time_point const current, clock::time_point const ends)
+    /**
+     * Pass the current time as the first parameter and the end time as the
+     * second parameter. Returns the proportion of the total time elapsed. This
+     * function assumes a clock starting at zero (like the above game time clock
+     * does).
+     */
+    {
+        return proportion(
+                current - clock::time_point{}, ends - clock::time_point{});
+    }
+
+
 }
