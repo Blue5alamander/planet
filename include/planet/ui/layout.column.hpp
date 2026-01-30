@@ -34,15 +34,6 @@ namespace planet::ui {
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &constraint) override {
-            auto c = calculate_reflow(p, constraint);
-            while (true) {
-                auto const n = calculate_reflow(p, c);
-                if (n == c) { return n; }
-            }
-        }
-        constrained_type calculate_reflow(
-                reflow_parameters const &p,
-                constrained_type const &constraint) {
             if (items.empty()) {
                 elements.extents = affine::extents2d{{}, {}};
                 return {};
