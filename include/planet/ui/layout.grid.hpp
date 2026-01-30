@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/ui/collection.reflowable.hpp>
 #include <planet/ui/pack.reflowable.hpp>
 
 
@@ -13,50 +14,76 @@ namespace planet::ui {
      * the contained grid items.
      */
     template<typename C>
-    struct grid {
-        using collection_type = C;
-        collection_type items;
+    struct grid final : collection_reflowable<C, void> {
+        using superclass = collection_reflowable<C, void>;
+        using collection_type = typename superclass::collection_type;
+        using constrained_type = typename superclass::constrained_type;
+        using reflow_parameters = typename superclass::reflow_parameters;
+
+
+        grid(collection_type c, float const p = {})
+        : superclass{"planet::ui::grid<>", std::move(c)},
+          vpadding{p},
+          hpadding{p} {}
+        grid(collection_type c, float const h, float const v)
+        : superclass{"planet::ui::grid<>", std::move(c)},
+          vpadding{v},
+          hpadding{h} {}
+        grid(collection_type c, affine::extents2d const ex)
+        : superclass{"planet::ui::grid<>", std::move(c)},
+          vpadding{ex.height},
+          hpadding{ex.width} {}
+
+
+        using superclass::elements;
+        using superclass::items;
         /// Padding between items in the row
         float vpadding = {}, hpadding = {};
 
-        grid(collection_type c, float const p)
-        : items{std::move(c)}, vpadding{p}, hpadding{p} {}
 
-        affine::extents2d extents(affine::extents2d const outer) {
-            auto const cell = cell_size(outer);
+      private:
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &constraint) override {
+            auto const cell = cell_size(p, constraint);
             auto const w = std::min(
                     float(items.size()),
                     std::floor(
-                            (outer.width + hpadding) / (cell.width + hpadding)));
+                            (constraint.width.value() + hpadding)
+                            / (cell.width + hpadding)));
             auto const h = std::floor((items.size() + w - 1) / w);
-            return {w * cell.width + (w - 1) * hpadding,
+            constrained_type size{
+                    w * cell.width + (w - 1) * hpadding,
                     h * cell.height + (h - 1) * vpadding};
+            arrange_elements(cell, size);
+            return size;
         }
-
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const within) {
-            auto const cell = cell_size(within.extents);
+        void arrange_elements(
+                affine::extents2d const cell, constrained_type const within) {
             float x = {}, y = {};
-            for (auto &item : items) {
-                if (x > 0 and x + cell.width > within.extents.width) {
+            for (auto &element : elements) {
+                if (x > 0 and x + cell.width > within.extents().width) {
                     x = 0;
                     if (y) { y += vpadding; }
                     y += cell.height;
                 }
-                item.draw_within(
-                        t, {affine::point2d{x, y} + within.top_left, cell});
+                element.position = {affine::point2d{x, y}, cell};
                 if (x) { x += hpadding; }
                 x += cell.width;
             }
         }
 
-      private:
-        affine::extents2d cell_size(affine::extents2d const outer) const {
+        affine::extents2d cell_size(
+                reflow_parameters const &p,
+                constrained_type const &constraint) {
             float max_width = {}, max_height = {};
-            for (auto &i : items) {
-                auto const ex = i.extents(outer);
-                max_width = std::max(ex.width, max_width);
-                max_height = std::max(ex.height, max_height);
+            elements.resize_to(items);
+            for (std::size_t index{}; auto &i : items) {
+                auto const ex = i.reflow(p, constraint);
+                elements.at(index).constraints = ex;
+                max_width = std::max(ex.width.value(), max_width);
+                max_height = std::max(ex.height.value(), max_height);
+                ++index;
             }
             return {max_width, max_height};
         }
@@ -75,10 +102,14 @@ namespace planet::ui {
         using superclass::items;
 
 
-        grid(collection_type c, float const p)
+        grid(collection_type c, float const p = {})
         : superclass{"planet::ui::grid<std::tuple<Pack...>>", std::move(c)},
           vpadding{p},
           hpadding{p} {}
+        grid(collection_type c, float const h, float const v)
+        : superclass{"planet::ui::grid<std::tuple<Pack...>>", std::move(c)},
+          vpadding{v},
+          hpadding{h} {}
 
 
         /// ### Padding between items
@@ -112,6 +143,16 @@ namespace planet::ui {
                     {width, width, width}, {height, height, height}};
         }
     };
+
+
+    template<typename C>
+    grid(C) -> grid<C>;
+    template<typename C>
+    grid(C, float) -> grid<C>;
+    template<typename C>
+    grid(C, affine::extents2d) -> grid<C>;
+    template<typename C>
+    grid(C, float, float) -> grid<C>;
 
 
 }
