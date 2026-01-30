@@ -53,8 +53,8 @@ namespace planet::ui {
                             / (cell.width + hpadding)));
             auto const h = std::floor((items.size() + w - 1) / w);
             constrained_type size{
-                    w * cell.width + (w - 1) * hpadding,
-                    h * cell.height + (h - 1) * vpadding};
+                    w * (cell.width + hpadding) - hpadding,
+                    h * (cell.height + vpadding) - vpadding};
             arrange_elements(cell, size);
             return size;
         }
