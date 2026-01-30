@@ -64,12 +64,10 @@ namespace planet::ui {
             for (auto &element : elements) {
                 if (x > 0 and x + cell.width > within.extents().width) {
                     x = 0;
-                    if (y) { y += vpadding; }
-                    y += cell.height;
+                    y += cell.height + vpadding;
                 }
                 element.position = {affine::point2d{x, y}, cell};
-                if (x) { x += hpadding; }
-                x += cell.width;
+                x += cell.width + hpadding;
             }
         }
 
