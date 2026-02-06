@@ -199,7 +199,10 @@ namespace {
 
 
 namespace {
-    std::mutex g_mtx;
+    auto &g_mtx() {
+        static std::mutex m;
+        return m;
+    }
     auto &g_perfs() {
         static auto p = []() {
             std::vector<planet::telemetry::performance *> v;
@@ -214,7 +217,7 @@ namespace {
 planet::telemetry::performance::performance(
         std::string_view const n, std::source_location const &loc)
 : id{n, id::suffix::suppress} {
-    std::scoped_lock _{g_mtx};
+    std::scoped_lock _{g_mtx()};
     auto &perfs = g_perfs();
     auto pos =
             std::lower_bound(perfs.begin(), perfs.end(), n, [](auto p, auto v) {
@@ -231,7 +234,7 @@ planet::telemetry::performance::performance(
 
 
 planet::telemetry::performance::~performance() {
-    std::scoped_lock _{g_mtx};
+    std::scoped_lock _{g_mtx()};
     auto &p = g_perfs();
     p.erase(std::find(p.begin(), p.end(), this));
 }
@@ -239,7 +242,7 @@ planet::telemetry::performance::~performance() {
 
 std::size_t planet::telemetry::performance::current_values(
         serialise::save_buffer &ab) {
-    std::scoped_lock _{g_mtx};
+    std::scoped_lock _{g_mtx()};
     auto &p = g_perfs();
     return std::count_if(
             p.begin(), p.end(), [&](auto c) { return c->save(ab); });
