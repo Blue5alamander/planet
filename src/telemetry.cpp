@@ -219,11 +219,10 @@ planet::telemetry::performance::performance(
 : id{n, id::suffix::suppress} {
     std::scoped_lock _{g_mtx()};
     auto &perfs = g_perfs();
-    auto pos =
-            std::lower_bound(perfs.begin(), perfs.end(), n, [](auto p, auto v) {
-                return v > p->name();
-            });
-    if (pos != perfs.end() and (*pos)->name() == n) {
+    auto pos = std::lower_bound(
+            perfs.begin(), perfs.end(), name(),
+            [](auto p, auto const &v) { return p->name() < v; });
+    if (pos != perfs.end() and (*pos)->name() == name()) {
         throw felspar::stdexcept::logic_error{
                 "There is already a global performance index entry for "
                         + std::string{n},
@@ -236,7 +235,14 @@ planet::telemetry::performance::performance(
 planet::telemetry::performance::~performance() {
     std::scoped_lock _{g_mtx()};
     auto &p = g_perfs();
-    p.erase(std::find(p.begin(), p.end(), this));
+    auto const pos = std::find(p.begin(), p.end(), this);
+    if (pos == p.end()) {
+        planet::log::critical(
+                "Could not find global performance index record to remove for",
+                name());
+    } else {
+        p.erase(pos);
+    }
 }
 
 
