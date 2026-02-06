@@ -12,7 +12,7 @@ namespace {
         planet::telemetry::counter c1{"test-counter"};
         check([]() { planet::telemetry::counter c2{"test-counter"}; })
                 .throws(std::logic_error{
-                        "There is already a performance counter called test-counter"});
+                        "There is already a global performance index entry for test-counter"});
     });
 
 

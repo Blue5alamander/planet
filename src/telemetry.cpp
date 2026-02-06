@@ -225,7 +225,7 @@ planet::telemetry::performance::performance(
             });
     if (pos != perfs.end() and (*pos)->name() == n) {
         throw felspar::stdexcept::logic_error{
-                "There is already a performance counter called "
+                "There is already a global performance index entry for "
                         + std::string{n},
                 loc};
     }
