@@ -64,6 +64,17 @@ void planet::audio::load(serialise::box &b, dB_gain &g) {
 }
 
 
+namespace {
+    auto const dB_gain_print = planet::log::format(
+            planet::audio::dB_gain::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                planet::audio::dB_gain g;
+                load(box, g);
+                os << g.as_string();
+            });
+}
+
+
 /// ## `planet::audio::linear_gain`
 
 
