@@ -27,7 +27,7 @@ namespace planet::audio {
         static constexpr std::string_view box{"_p:a:channel"};
 
 
-        channel(dB_gain const g) : db_g{g} {}
+        channel(dB_gain const g) : db_g{g} { write_through(); }
 
 
         template<typename Clock, std::size_t Channels>
