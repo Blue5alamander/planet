@@ -3,6 +3,7 @@
 
 #include <planet/audio/buffer.hpp>
 #include <planet/audio/clocks.hpp>
+#include <planet/audio/gain.hpp>
 
 #include <felspar/coro/generator.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
@@ -23,17 +24,26 @@ namespace planet::audio {
     /// ## Converts a mono buffer to a stereo buffer
     template<typename Clock>
     inline stereo_generator stereobuffer(
-            felspar::coro::generator<buffer_storage<Clock, 1>> mono) {
+            felspar::coro::generator<buffer_storage<Clock, 1>> mono,
+            linear_gain const left,
+            linear_gain const right) {
         felspar::memory::accumulation_buffer<float> output{
                 default_buffer_samples * 50};
         for (auto block : mono) {
             output.ensure_length(block.samples() * stereo_buffer::channels);
             for (std::size_t index{}; index < block.samples(); ++index) {
-                output[index * stereo_buffer::channels + 0] = block[index][0];
-                output[index * stereo_buffer::channels + 1] = block[index][0];
+                output[index * stereo_buffer::channels + 0] =
+                        left.load() * block[index][0];
+                output[index * stereo_buffer::channels + 1] =
+                        right.load() * block[index][0];
             }
             co_yield output.first(block.samples() * stereo_buffer::channels);
         }
+    }
+    template<typename Clock>
+    inline stereo_generator stereobuffer(
+            felspar::coro::generator<buffer_storage<Clock, 1>> mono) {
+        return stereobuffer(std::move(mono), {}, {});
     }
 
 
