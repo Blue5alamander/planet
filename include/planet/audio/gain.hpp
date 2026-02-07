@@ -69,7 +69,7 @@ namespace planet::audio {
 
         friend constexpr bool
                 operator==(dB_gain const &, dB_gain const &) noexcept = default;
-        friend constexpr bool operator<=>(
+        friend constexpr auto operator<=>(
                 dB_gain const &, dB_gain const &) noexcept = default;
         std::string as_string() const;
     };
