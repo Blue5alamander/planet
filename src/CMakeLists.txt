@@ -45,6 +45,7 @@ add_test_run(check planet TESTS
         affine2d.tests.cpp
         affine3d.tests.cpp
         asset_manager.tests.cpp
+        audio.tests.cpp
         baseplate.ui.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
