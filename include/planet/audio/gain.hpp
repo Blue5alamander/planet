@@ -23,11 +23,11 @@ namespace planet::audio {
 
 
       public:
-        linear_gain() {}
-        explicit linear_gain(float);
+        constexpr linear_gain() {}
+        constexpr explicit linear_gain(float const g) : multiplier{g} {}
 
 
-        float load() const noexcept { return multiplier; }
+        constexpr float load() const noexcept { return multiplier; }
     };
 
 

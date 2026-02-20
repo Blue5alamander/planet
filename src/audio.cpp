@@ -79,12 +79,6 @@ namespace {
 }
 
 
-/// ## `planet::audio::linear_gain`
-
-
-planet::audio::linear_gain::linear_gain(float const g) : multiplier{g} {}
-
-
 /// ## `planet::audio::mixer`
 
 
