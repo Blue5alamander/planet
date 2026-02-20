@@ -61,7 +61,7 @@ namespace planet::audio {
         constexpr explicit dB_gain(float const g) : dB{g} {}
 
 
-        explicit operator linear_gain() const noexcept;
+        operator linear_gain() const noexcept;
 
 
         constexpr dB_gain operator-() const noexcept { return dB_gain{-dB}; }
