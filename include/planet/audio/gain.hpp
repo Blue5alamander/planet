@@ -51,7 +51,7 @@ namespace planet::audio {
 
     /// ## Gain in +/- dB
     struct dB_gain {
-        static constexpr std::string_view box{"_p:a:dB"};
+        static std::string_view constexpr box{"_p:a:dB"};
 
 
         float dB = {};
@@ -81,6 +81,17 @@ namespace planet::audio {
     };
     void save(serialise::save_buffer &, dB_gain const &);
     void load(serialise::box &, dB_gain &);
+
+
+    /// ### Linear interpolation between two gain values
+    inline auto
+            lerp(dB_gain const a,
+                 dB_gain const b,
+                 sample_clock const time,
+                 sample_clock const outof) {
+        return dB_gain{std::lerp(
+                a.dB, b.dB, static_cast<float>(time.count()) / outof.count())};
+    }
 
 
     /// ## Apply a gain level to the audio
