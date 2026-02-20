@@ -44,12 +44,16 @@ void planet::audio::load(serialise::box &b, channel &c) {
 
 
 planet::audio::dB_gain::operator linear_gain() const noexcept {
+    return linear_gain{static_cast<float>(*this)};
+}
+planet::audio::dB_gain::operator float() const noexcept {
     if (dB < -127.0f) {
-        return linear_gain{};
+        return {};
     } else {
-        return linear_gain{std::pow(10.0f, dB / 10.0f)};
+        return std::pow(10.0f, dB / 10.0f);
     }
 }
+
 
 std::string planet::audio::dB_gain::as_string() const {
     return std::to_string(static_cast<int>(dB + 0.5f)) + "dB";
