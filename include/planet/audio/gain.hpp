@@ -72,6 +72,13 @@ namespace planet::audio {
             return *this;
         }
 
+        friend constexpr dB_gain operator+(dB_gain const l, dB_gain const r) {
+            return dB_gain{l.dB + r.dB};
+        }
+        friend constexpr dB_gain operator-(dB_gain const l, dB_gain const r) {
+            return dB_gain{l.dB - r.dB};
+        }
+
 
         friend constexpr bool
                 operator==(dB_gain const &, dB_gain const &) noexcept = default;
