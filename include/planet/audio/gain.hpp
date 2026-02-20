@@ -91,13 +91,15 @@ namespace planet::audio {
 
 
     /// ### Linear interpolation between two gain values
+    inline auto lerp(dB_gain const a, dB_gain const b, float const t) {
+        return dB_gain{std::lerp(a.dB, b.dB, t)};
+    }
     inline auto
             lerp(dB_gain const a,
                  dB_gain const b,
                  sample_clock const time,
                  sample_clock const outof) {
-        return dB_gain{std::lerp(
-                a.dB, b.dB, static_cast<float>(time.count()) / outof.count())};
+        return lerp(a, b, static_cast<float>(time.count()) / outof.count());
     }
 
 
