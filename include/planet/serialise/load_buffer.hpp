@@ -214,6 +214,23 @@ namespace planet::serialise {
         return b;
     }
 
+    /// ### A box type that for migrating a removed item
+    struct skip_box {
+        std::string_view box;
+    };
+    inline void load(
+            load_buffer &lb,
+            skip_box const &sb,
+            std::source_location const &loc = std::source_location::current()) {
+        expect_box(lb, loc).check_name_or_throw(sb.box, loc);
+    }
+    inline void load(
+            box &box,
+            skip_box const &sb,
+            std::source_location const &loc = std::source_location::current()) {
+        expect_box(box.content, loc).check_name_or_throw(sb.box, loc);
+    }
+
 
     template<typename... Args>
     void load_buffer::load_box(std::string_view const name, Args &...args) {
