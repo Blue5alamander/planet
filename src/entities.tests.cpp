@@ -212,6 +212,117 @@ namespace {
                             ++count;
                         });
                 check(count) == 1u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(84u, 6.0f);
+                auto e3 = entities.create(4.0f);
+                // e1 has unsigned + float, e2 has unsigned + float, e3 has only
+                // float
+
+                std::size_t count{};
+                entities.iterate(
+                        [&](planet::ecs::entity_id eid, unsigned &, float &) {
+                            check(eid.id() == 1u || eid.id() == 2u);
+                            ++count;
+                        });
+                check(count) == 2u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(84u, 6.0f);
+                auto e3 = entities.create(4.0f);
+                auto e4 = entities.create();
+
+                std::size_t count{};
+                entities.iterate(
+                        [&](planet::ecs::entity_id eid, float *f, unsigned *u) {
+                            ++count;
+                            if (eid == e1) {
+                                check(f) != nullptr;
+                                check(*f) == 4.0f;
+                                check(u) != nullptr;
+                                check(*u) == 42u;
+                            } else if (eid == e2) {
+                                check(f) != nullptr;
+                                check(*f) == 6.0f;
+                                check(u) != nullptr;
+                                check(*u) == 84u;
+                            } else if (eid == e3) {
+                                check(f) != nullptr;
+                                check(*f) == 4.0f;
+                                check(u) == nullptr;
+                            } else if (eid == e4) {
+                                check(f) == nullptr;
+                                check(u) == nullptr;
+                            } else {
+                                check(false) == true;
+                            }
+                        });
+                check(count) == 4u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(4.0f);
+                // e1 has unsigned + float, e2 has only float
+
+                std::size_t count{};
+                entities.iterate(
+                        [&](planet::ecs::entity_id eid, unsigned *u, float *f) {
+                            ++count;
+                            if (eid == e1) {
+                                check(u) != nullptr;
+                                check(*u) == 42u;
+                                check(f) != nullptr;
+                                check(*f) == 4.0f;
+                            } else if (eid == e2) {
+                                check(u) == nullptr;
+                                check(f) != nullptr;
+                                check(*f) == 4.0f;
+                            } else {
+                                check(false) == true;
+                            }
+                        });
+                check(count) == 2u;
+            },
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = entities.create(42u, 4.0f);
+                auto e2 = entities.create(4.0f);
+
+                entities.iterate(
+                        [&](planet::ecs::entity_id eid, unsigned *u, float &f) {
+                            if (eid == e1) {
+                                check(u) != nullptr;
+                                check(*u) == 42u;
+                                check(f) == 4.0f;
+                                *u = 100u;
+                                f = 8.0f;
+                            } else if (eid == e2) {
+                                check(u) == nullptr;
+                                check(f) == 4.0f;
+                                f = 10.0f;
+                            }
+                        });
+
+                check(entities.get_component<unsigned>(e1)) == 100u;
+                check(entities.get_component<float>(e1)) == 8.0f;
+                check(entities.get_component<float>(e2)) == 10.0f;
             });
 
 
