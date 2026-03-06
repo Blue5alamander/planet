@@ -263,7 +263,8 @@ namespace planet::ecs {
             for (entity_id const &eid : range) {
                 if (eid
                     and (eid.mask(*entities_storage_index, loc)
-                         bitand traits.mask)) {
+                         bitand traits.mask)
+                            == traits.mask) {
                     traits.invoke(eid, lambda, *this, loc);
                 }
             }

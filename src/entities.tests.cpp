@@ -73,46 +73,8 @@ namespace {
             });
 
 
-    auto const iteration = suite.test(
-            "iteration",
-            [](auto check) {
-                integral int_storage;
-                real real_storage;
-                planet::ecs::entities entities{int_storage, real_storage};
-
-                auto e1 = int_storage.create(true, 42u);
-                check(e1.mask(0)) == 5u;
-                auto e2 = int_storage.create(4, 46u);
-                check(e2.mask(0)) == 6u;
-
-                std::size_t count{};
-                int_storage.iterate(
-                        [&](planet::ecs::entity_id eid, unsigned const &u) {
-                            if (count == 0) {
-                                check(eid.id()) == 1u;
-                                check(u) == 42u;
-                            } else if (count == 1) {
-                                check(eid.id()) == 2u;
-                                check(u) == 46u;
-                            } else {
-                                check(false) == true;
-                            }
-                            ++count;
-                        });
-                check(count) == 2u;
-
-                count = {};
-                int_storage.iterate([&](planet::ecs::entity_id eid, int &i) {
-                    if (count == 0) {
-                        check(eid.id()) == 2u;
-                        check(i) == 4;
-                    } else {
-                        check(false) == true;
-                    }
-                    ++count;
-                });
-                check(count) == 1u;
-            },
+    auto const iteration_entities = suite.test(
+            "iteration/entities",
             [](auto check) {
                 integral int_storage;
                 real real_storage;
@@ -305,6 +267,7 @@ namespace {
                 auto e1 = entities.create(42u, 4.0f);
                 auto e2 = entities.create(4.0f);
 
+                std::size_t count{};
                 entities.iterate(
                         [&](planet::ecs::entity_id eid, unsigned *u, float &f) {
                             if (eid == e1) {
@@ -318,11 +281,89 @@ namespace {
                                 check(f) == 4.0f;
                                 f = 10.0f;
                             }
+                            ++count;
                         });
+                check(count) == 2u;
 
                 check(entities.get_component<unsigned>(e1)) == 100u;
                 check(entities.get_component<float>(e1)) == 8.0f;
                 check(entities.get_component<float>(e2)) == 10.0f;
+            });
+
+
+    auto const iteration_storage = suite.test(
+            "iteration/storage",
+            [](auto check) {
+                integral int_storage;
+                real real_storage;
+                planet::ecs::entities entities{int_storage, real_storage};
+
+                auto e1 = int_storage.create(true, 42u);
+                check(e1.mask(0)) == 5u;
+                auto e2 = int_storage.create(4, 46u);
+                check(e2.mask(0)) == 6u;
+
+                std::size_t count{};
+                int_storage.iterate(
+                        [&](planet::ecs::entity_id eid, unsigned const &u) {
+                            if (count == 0) {
+                                check(eid.id()) == 1u;
+                                check(u) == 42u;
+                            } else if (count == 1) {
+                                check(eid.id()) == 2u;
+                                check(u) == 46u;
+                            } else {
+                                check(false) == true;
+                            }
+                            ++count;
+                        });
+                check(count) == 2u;
+
+                count = {};
+                int_storage.iterate([&](planet::ecs::entity_id eid, int &i) {
+                    if (count == 0) {
+                        check(eid.id()) == 2u;
+                        check(i) == 4;
+                    } else {
+                        check(false) == true;
+                    }
+                    ++count;
+                });
+                check(count) == 1u;
+
+                auto const all = std::array{e1, e1, e2};
+
+                count = {};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, unsigned const &) {
+                            ++count;
+                        });
+                check(count) == 3u;
+
+                count = {};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, int &) { ++count; });
+                check(count) == 1u;
+            },
+            [](auto check) {
+                integral int_storage;
+                planet::ecs::entities entities{int_storage};
+
+                auto e1 = entities.create(42u, true);
+                auto e2 = entities.create(6u);
+
+                auto const filtered = std::array{e1, e2};
+
+                std::size_t count{};
+                int_storage.iterate(
+                        filtered,
+                        [&](planet::ecs::entity_id eid, bool &b, unsigned &u) {
+                            check(eid) == e1;
+                            check(b) == true;
+                            check(u) == 42u;
+                            ++count;
+                        });
+                check(count) == 1u;
             });
 
 
@@ -342,6 +383,16 @@ namespace {
 
                 real_storage.remove_component<float>(e1);
                 check(real_storage.has_component<float>(e1)) == false;
+
+                auto all = std::array{e1};
+                std::size_t count{};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, int) { ++count; });
+                check(count) == 0u;
+                count = {};
+                real_storage.iterate(
+                        all, [&](planet::ecs::entity_id, float) { ++count; });
+                check(count) == 0u;
             },
             [](auto check) {
                 integral int_storage;
@@ -351,6 +402,19 @@ namespace {
                 vector_storage.remove_component<std::vector<int>>(e1);
                 check(entities.maybe_get_component<std::vector<int>>(e1))
                         == nullptr;
+
+                auto all = std::array{e1};
+                std::size_t count{};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, int) { ++count; });
+                check(count) == 0u;
+                count = {};
+                vector_storage.iterate(
+                        all,
+                        [&](planet::ecs::entity_id, std::vector<int> const &) {
+                            ++count;
+                        });
+                check(count) == 0u;
             },
             [](auto check) {
                 integral int_storage;
@@ -366,10 +430,18 @@ namespace {
                 check(e2.id()) == e1.id();
                 check(e1) != e2;
 
-                auto vectors = std::array{e1, e2};
+                auto all = std::array{e1, e2};
+                std::size_t count{};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, int) { ++count; });
+                check(count) == 0u;
+                count = {};
                 vector_storage.iterate(
-                        vectors,
-                        [](planet::ecs::entity_id, std::vector<int> const &) {});
+                        all,
+                        [&](planet::ecs::entity_id, std::vector<int> const &) {
+                            ++count;
+                        });
+                check(count) == 0u;
             },
             [](auto check) {
                 integral int_storage;
@@ -378,6 +450,19 @@ namespace {
                 auto e1 = entities.create(42u, std::vector{1, 2, 3});
                 entities.clear();
                 check(entities.is_valid(e1)) == false;
+
+                auto all = std::array{e1};
+                std::size_t count{};
+                int_storage.iterate(
+                        all, [&](planet::ecs::entity_id, int) { ++count; });
+                check(count) == 0u;
+                count = {};
+                vector_storage.iterate(
+                        all,
+                        [&](planet::ecs::entity_id, std::vector<int> const &) {
+                            ++count;
+                        });
+                check(count) == 0u;
             });
 
 
