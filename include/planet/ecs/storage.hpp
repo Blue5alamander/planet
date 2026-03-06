@@ -261,7 +261,9 @@ namespace planet::ecs {
             assert_entities(loc);
             types<L> traits;
             for (entity_id const &eid : range) {
-                if (eid.mask(*entities_storage_index, loc) bitand traits.mask) {
+                if (eid
+                    and (eid.mask(*entities_storage_index, loc)
+                         bitand traits.mask)) {
                     traits.invoke(eid, lambda, *this, loc);
                 }
             }

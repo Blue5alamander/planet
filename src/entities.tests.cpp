@@ -254,6 +254,11 @@ namespace {
                 auto e2 = entities.create();
                 check(e2.id()) == e1.id();
                 check(e1) != e2;
+
+                auto vectors = std::array{e1, e2};
+                vector_storage.iterate(
+                        vectors,
+                        [](planet::ecs::entity_id, std::vector<int> const &) {});
             },
             [](auto check) {
                 integral int_storage;
