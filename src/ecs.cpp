@@ -1,4 +1,6 @@
+#include <planet/ecs/entity_id.hpp>
 #include <planet/ecs/storage.hpp>
+#include <planet/variant.hpp>
 
 #include <felspar/exceptions.hpp>
 
@@ -14,8 +16,20 @@ namespace {
                 std::type_info const &ti,
                 std::source_location const &loc)
         : felspar::stdexcept::logic_error{
-                  std::string{m} + "\nEntity id " + std::to_string(eid.id())
-                          + " type index: " + std::string{ti.name()},
+                  [m, eid, &ti] {
+                      std::string result{m};
+                      result += "\nEntity ";
+                      planet::visit(
+                              eid.name_or_id(),
+                              [&](std::size_t id) {
+                                  result += "id " + std::to_string(id);
+                              },
+                              [&](std::string_view name) {
+                                  result += "'" + std::string{name} + "'";
+                              });
+                      result += " type index: " + std::string{ti.name()};
+                      return result;
+                  }(),
                   loc} {}
     };
 }

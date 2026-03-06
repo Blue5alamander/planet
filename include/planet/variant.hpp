@@ -10,6 +10,7 @@ namespace planet {
     namespace detail {
         template<typename... Os>
         struct mixed : private Os... {
+            mixed(Os... lambdas) : Os{std::move(lambdas)}... {}
             using Os::operator()...;
         };
     }
