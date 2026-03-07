@@ -163,11 +163,15 @@ namespace planet::serialise {
          * number and size for which fields to load.
          */
         template<typename Lambda>
-        void lambda(std::string_view const name, Lambda lambda) {
+        void
+                lambda(std::string_view const name,
+                       Lambda lambda,
+                       std::source_location const &loc =
+                               std::source_location::current()) {
             try {
-                check_name_or_throw(name);
+                check_name_or_throw(name, loc);
                 lambda();
-                check_empty_or_throw();
+                check_empty_or_throw(loc);
             } catch (serialisation_error &e) {
                 e.inside_box(name);
                 throw;
