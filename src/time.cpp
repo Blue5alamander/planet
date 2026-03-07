@@ -1,3 +1,4 @@
+#include <planet/log.hpp>
 #include <planet/time/clock.hpp>
 #include <planet/time/rate-limiter.hpp>
 
@@ -95,4 +96,84 @@ std::chrono::nanoseconds planet::time::time_limiter::wait_time() {
     ++frame_number;
     auto const wait_until = base_time + frame_time * frame_number;
     return wait_until - std::chrono::steady_clock::now();
+}
+
+
+// ## `planet::serialise` log formatters for chrono
+
+
+namespace {
+    inline void format_duration_from_ratio(
+            std::ostream &os,
+            std::int64_t const num,
+            std::int64_t const den,
+            auto const count) {
+        // Convert to nanoseconds for the smart formatter
+        auto const ns = count * (1000'000'000 * num / den);
+        auto const abs_ns = ns < 0 ? -ns : ns;
+        if (abs_ns < 1'000) {
+            os << ns << "ns";
+        } else if (abs_ns < 1'000'000) {
+            os << (ns / 1'000) << "µs";
+        } else if (abs_ns < 1'000'000'000) {
+            os << (ns / 1'000'000) << "ms";
+        } else {
+            os << (ns / 1'000'000'000) << "s";
+        }
+    }
+
+    auto const duration_print = planet::log::format(
+            "_sc::duration", [](std::ostream &os, planet::serialise::box &box) {
+                if (box.version == 2) {
+                    std::int64_t num, den;
+                    box.fields(num, den);
+                    // Check marker for count field to determine signedness
+                    auto const marker = box.content.extract_marker();
+                    if (marker == planet::serialise::marker::i64le) {
+                        auto const count = box.content.extract<std::int64_t>();
+                        format_duration_from_ratio(os, num, den, count);
+                    } else if (marker == planet::serialise::marker::u64le) {
+                        auto const count = box.content.extract<std::uint64_t>();
+                        format_duration_from_ratio(os, num, den, count);
+                    } else {
+                        os << "[unknown duration rep type " << to_string(marker)
+                           << ']';
+                    }
+                } else {
+                    auto const marker = box.content.extract_marker();
+                    if (marker == planet::serialise::marker::i64le) {
+                        auto const count = box.content.extract<std::int64_t>();
+                        format_duration_from_ratio(os, 1, 1'000'000'000, count);
+                    } else {
+                        os << "[unknown duration rep type" << to_string(marker)
+                           << ']';
+                    }
+                }
+            });
+
+    auto const game_clock_print = planet::log::format(
+            "_p:clock", [](std::ostream &os, planet::serialise::box &box) {
+                planet::time::clock c;
+                load(box, c);
+                os << "[game time +";
+                format_duration_from_ratio(
+                        os, planet::time::clock::duration::period::num,
+                        planet::time::clock::duration::period::den,
+                        c.now().time_since_epoch().count());
+                os << ']';
+            });
+
+    /**
+     * libc++ is a buggy mess with the system_clock. It gets the magnitude
+     * completely wrong, so we can't do this yet.
+     */
+    // auto const time_point_print = planet::log::format(
+    //         "_sc::time_point",
+    //         [](std::ostream &os, planet::serialise::box &box) {
+    //             std::chrono::system_clock::duration::rep d;
+    //             box.named("_sc::time_point", d);
+    //             auto const time = std::chrono::system_clock::time_point{
+    //                     std::chrono::system_clock::duration{d}};
+    //             os << time;
+    //         });
 }

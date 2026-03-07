@@ -13,13 +13,29 @@ namespace planet::serialise {
 
     template<typename Rep, typename Period>
     void save(save_buffer &ab, std::chrono::duration<Rep, Period> const d) {
-        ab.save_box("_sc::duration", d.count());
+        ab.save_box_lambda(2, "_sc::duration", [&]() {
+            std::int64_t const num = Period::num;
+            std::int64_t const den = Period::den;
+            auto const count = d.count();
+            save(ab, num, den, count);
+        });
     }
     template<typename Rep, typename Period>
     void load(box &b, std::chrono::duration<Rep, Period> &d) {
-        decltype(d.count()) c;
-        b.named("_sc::duration", c);
-        d = std::chrono::duration<Rep, Period>{c};
+        b.lambda("_sc::duration", [&]() {
+            if (b.version == 2) {
+                std::int64_t num = {}, den = {};
+                Rep count = {};
+                b.fields(num, den, count);
+                d = std::chrono::duration<Rep, Period>{count};
+            } else if (b.version == 1) {
+                Rep count;
+                b.named("_sc::duration", count);
+                d = std::chrono::duration<Rep, Period>{count};
+            } else {
+                b.throw_unsupported_version(2);
+            }
+        });
     }
 
 

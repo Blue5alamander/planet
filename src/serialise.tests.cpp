@@ -1,7 +1,11 @@
 #include <planet/serialise.hpp>
+#include <planet/time.hpp>
 #include <felspar/test.hpp>
 
 #include <felspar/memory/hexdump.hpp>
+
+
+using namespace std::chrono_literals;
 
 
 static_assert(
@@ -546,6 +550,104 @@ namespace {
 
         check(load_type<planet::affine::point2d>(lb)) == p;
         check(load_type<planet::affine::transform2d>(lb)) == t;
+    });
+
+
+    auto const cd = suite.test(
+            "chrono duration",
+            [](auto check, auto &log) {
+                // Test version 2 format with different period types
+                using namespace std::chrono_literals;
+                std::chrono::nanoseconds ns = 500ns;
+                std::chrono::microseconds us = 100us;
+                std::chrono::milliseconds ms = 50ms;
+                std::chrono::seconds s = 2s;
+
+                planet::serialise::save_buffer ab;
+                save(ab, ns, us, ms, s);
+                auto bytes{ab.complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                std::chrono::nanoseconds ns2;
+                std::chrono::microseconds us2;
+                std::chrono::milliseconds ms2;
+                std::chrono::seconds s2;
+                load(lb, ns2);
+                load(lb, us2);
+                load(lb, ms2);
+                load(lb, s2);
+                check(ns2) == ns;
+                check(us2) == us;
+                check(ms2) == ms;
+                check(s2) == s;
+            },
+            [](auto check, auto &log) {
+                auto const ns = 12345ns;
+
+                // Simulate version 1 format by manually creating the box
+                planet::serialise::save_buffer ab;
+                ab.save_box("_sc::duration", ns.count());
+                auto bytes{ab.complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                std::chrono::nanoseconds ns2;
+                load(lb, ns2);
+                check(ns2) == ns;
+            },
+            [](auto check, auto &log) {
+                // Test game clock duration
+                using namespace std::chrono_literals;
+                planet::time::clock::duration gns = 123456789ns;
+
+                planet::serialise::save_buffer ab;
+                save(ab, gns);
+                auto bytes{ab.complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                planet::time::clock::duration gns2;
+                load(lb, gns2);
+                check(gns2) == gns;
+            });
+
+
+    auto const ct = suite.test("chrono time_point", [](auto check) {
+        auto const tp1 = std::chrono::steady_clock::now();
+        auto const tp2 = std::chrono::system_clock::now();
+        planet::time::clock clock;
+        auto const tp3 = clock.now() + 50ms;
+
+        planet::serialise::save_buffer ab;
+        save(ab, tp1, tp2, tp3);
+        auto bytes{ab.complete()};
+
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        std::chrono::steady_clock::time_point tp1_loaded;
+        std::chrono::system_clock::time_point tp2_loaded;
+        planet::time::clock::time_point tp3_loaded;
+        load(lb, tp1_loaded);
+        load(lb, tp2_loaded);
+        load(lb, tp3_loaded);
+        check(tp1_loaded) == tp1;
+        check(tp2_loaded) == tp2;
+        check(tp3_loaded) == tp3;
+    });
+
+
+    auto const gc = suite.test("game clock", [](auto check) {
+        planet::time::clock clock1;
+        clock1.advance_by(100ms);
+
+        planet::serialise::save_buffer ab;
+        save(ab, clock1);
+        auto bytes{ab.complete()};
+
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        planet::time::clock clock2;
+        load(lb, clock2);
+        check(clock2.now()) == clock1.now();
     });
 
 
