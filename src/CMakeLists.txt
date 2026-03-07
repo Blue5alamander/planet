@@ -57,6 +57,7 @@ add_test_run(check planet TESTS
         gravity.tests.cpp
         grid.layout.tests.cpp
         headers.cpp
+        log.tests.cpp
         map.hex.tests.cpp
         map.square.tests.cpp
         panel.tests.cpp
