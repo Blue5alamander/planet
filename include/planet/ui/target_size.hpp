@@ -32,11 +32,6 @@ namespace planet::ui {
         affine::extents2d extents(affine::extents2d const &) const noexcept {
             return size;
         }
-        /// TODO This looks like it should go
-        template<typename Target>
-        void draw_within(Target &t, affine::rectangle2d const bounds) {
-            content.draw_within(t, {bounds.top_left, size});
-        }
         void draw() { content.draw(); }
 
 
