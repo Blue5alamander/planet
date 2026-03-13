@@ -37,6 +37,14 @@ namespace planet::serialise {
         bool empty() const noexcept { return buffer.empty(); }
         auto size() const noexcept { return buffer.size(); }
         auto cmemory() const noexcept { return buffer; }
+        void check_empty_or_throw(
+                char const *message = "There is still data in the buffer",
+                std::source_location const &loc =
+                        std::source_location::current()) const {
+            if (not buffer.empty()) {
+                throw felspar::stdexcept::runtime_error{message, loc};
+            }
+        }
 
 
         /// ### Mutation
@@ -259,13 +267,14 @@ namespace planet::serialise {
         return s;
     }
     template<typename S>
-    inline S load_type(shared_byte_view v) {
+    inline S load_type(
+            shared_byte_view v,
+            std::source_location const &loc = std::source_location::current()) {
         auto b = load_buffer{v.cmemory()};
         auto s{load_type<S>(b)};
-        if (not b.empty()) {
-            throw felspar::stdexcept::runtime_error{
-                    "There is still data in the buffer after loading the type"};
-        }
+        b.check_empty_or_throw(
+                "There is still data in the buffer after loading the type",
+                loc);
         return s;
     }
 
@@ -294,15 +303,17 @@ namespace planet::serialise {
 
     /// ### Load directly from a file
     template<typename T>
-    void load(std::filesystem::path const &fn, T &t) {
+    void load(
+            std::filesystem::path const &fn,
+            T &t,
+            std::source_location const &loc = std::source_location::current()) {
         std::vector<char> buffer(std::filesystem::file_size(fn));
         std::ifstream{fn, std::ios::binary}.read(buffer.data(), buffer.size());
         load_buffer lb{std::as_bytes(std::span{buffer})};
         load(lb, t);
-        if (not lb.empty()) {
-            throw felspar::stdexcept::runtime_error{
-                    "There is still data in the buffer after loading the type"};
-        }
+        lb.check_empty_or_throw(
+                "There is still data in the buffer after loading the type",
+                loc);
     }
 
 
