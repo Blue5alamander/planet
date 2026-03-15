@@ -250,7 +250,7 @@ namespace planet::serialise {
             box &b,
             skip_box const &sb,
             std::source_location const &loc = std::source_location::current()) {
-        expect_box(box.content, loc).check_name_or_throw(sb.box, loc);
+        b.check_name_or_throw(sb.box, loc);
     }
 
 
