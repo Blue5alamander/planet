@@ -159,7 +159,7 @@ namespace planet::serialise {
             bool has_value = {};
             load(b.content, has_value);
             if (has_value) {
-                v.emplace();
+                if (not v) { v.emplace(); }
                 load(b.content, *v);
             } else {
                 v.reset();
