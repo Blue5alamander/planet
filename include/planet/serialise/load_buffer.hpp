@@ -237,7 +237,17 @@ namespace planet::serialise {
         expect_box(lb, loc).check_name_or_throw(sb.box, loc);
     }
     inline void load(
-            box &box,
+            load_buffer &lb,
+            skip_box &sb,
+            std::source_location const &loc = std::source_location::current()) {
+        expect_box(lb, loc).check_name_or_throw(sb.box, loc);
+    }
+    /**
+     * When a box has already been extracted from the stream, just validate
+     * the name and discard the content — no need to recurse into it.
+     */
+    inline void load(
+            box &b,
             skip_box const &sb,
             std::source_location const &loc = std::source_location::current()) {
         expect_box(box.content, loc).check_name_or_throw(sb.box, loc);
