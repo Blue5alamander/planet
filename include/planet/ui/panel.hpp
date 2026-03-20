@@ -6,6 +6,7 @@
 
 #include <felspar/coro/bus.hpp>
 #include <felspar/coro/eager.hpp>
+#include <felspar/exceptions/logic_error.hpp>
 
 
 namespace planet::ui {

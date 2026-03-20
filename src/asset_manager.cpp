@@ -1,6 +1,6 @@
 #include <planet/asset_manager.hpp>
 
-#include <felspar/exceptions.hpp>
+#include <felspar/exceptions/runtime_error.hpp>
 
 #include <fstream>
 #include <mutex>

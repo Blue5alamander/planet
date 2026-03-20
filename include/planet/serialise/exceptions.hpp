@@ -4,7 +4,7 @@
 #include <planet/serialise/forward.hpp>
 #include <planet/serialise/marker.hpp>
 
-#include <felspar/exceptions.hpp>
+#include <felspar/exceptions/runtime_error.hpp>
 
 #include <span>
 

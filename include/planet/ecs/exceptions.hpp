@@ -3,7 +3,7 @@
 
 #include <planet/ecs/forward.hpp>
 
-#include <felspar/exceptions.hpp>
+#include <felspar/exceptions/logic_error.hpp>
 
 
 namespace planet::ecs::detail {

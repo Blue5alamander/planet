@@ -2,7 +2,7 @@
 #include <planet/ecs/storage.hpp>
 #include <planet/variant.hpp>
 
-#include <felspar/exceptions.hpp>
+#include <felspar/exceptions/logic_error.hpp>
 
 
 /// ## `planet::ecs::detail`

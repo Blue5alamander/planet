@@ -4,7 +4,7 @@
 #include <planet/telemetry/id.hpp>
 #include <planet/ui/element.hpp>
 
-#include <felspar/exceptions.hpp>
+#include <felspar/exceptions/logic_error.hpp>
 
 
 namespace planet::ui {
