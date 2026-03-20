@@ -22,6 +22,9 @@ namespace planet::telemetry {
 
 
       public:
+        using value_type = std::int64_t;
+
+
         static constexpr std::string_view box{"_p:t:counter"};
 
 
@@ -30,24 +33,24 @@ namespace planet::telemetry {
                         std::source_location::current())
         : performance{n, loc} {}
         counter(std::string_view const n,
-                std::int64_t const v,
+                value_type const v,
                 std::source_location const &loc =
                         std::source_location::current())
         : performance{n, loc}, count{v} {}
 
 
-        std::int64_t value() const noexcept { return count.load(); }
+        value_type value() const noexcept { return count.load(); }
 
 
         /// ### Changing the value
         std::int64_t operator++() noexcept { return ++count; }
         std::int64_t operator--() noexcept { return --count; }
-        void operator+=(std::int64_t const c) noexcept { count += c; }
-        void operator-=(std::int64_t const c) noexcept { count -= c; }
+        void operator+=(value_type const c) noexcept { count += c; }
+        void operator-=(value_type const c) noexcept { count -= c; }
 
 
         /// #### Set to a specific value
-        void value(std::int64_t const v) noexcept { count.store(v); }
+        void value(value_type const v) noexcept { count.store(v); }
 
 
       private:
