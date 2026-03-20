@@ -18,7 +18,12 @@ namespace planet::audio {
 
 
     /// ## The amount of time for a standard buffer slice
-    sample_clock constexpr default_buffer_duration = 20ms;
+    sample_clock constexpr default_buffer_duration{512};
+    /**
+     * The audio system in SDL2 wants to use 512 as a fast clock time, so we'll
+     * align to that. We could go even smaller for even lower latency on systems
+     * that are fast enough for that.
+     */
     std::size_t constexpr default_buffer_samples =
             default_buffer_duration.count();
 
