@@ -50,7 +50,7 @@ planet::audio::dB_gain::operator float() const noexcept {
     if (dB < -127.0f) {
         return {};
     } else {
-        return std::pow(10.0f, dB / 10.0f);
+        return std::pow(10.0f, dB / 20.0f);
     }
 }
 
