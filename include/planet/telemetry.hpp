@@ -2,6 +2,7 @@
 
 
 #include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/duration.hpp>
 #include <planet/telemetry/forward.hpp>
 #include <planet/telemetry/id.hpp>
 #include <planet/telemetry/minmax.hpp>

@@ -370,6 +370,49 @@ namespace {
 }
 
 
+/// ## `planet::telemetry::steady_duration`
+
+
+planet::telemetry::steady_duration::steady_duration(
+        std::string_view const n,
+        std::size_t const half_life,
+        std::source_location const &loc)
+: performance{n, loc},
+  decay_rate{std::pow(2.0, -1.0 / static_cast<double>(half_life))} {}
+
+
+void planet::telemetry::steady_duration::add_measurement(
+        std::chrono::nanoseconds const d) noexcept {
+    auto const m = static_cast<double>(d.count());
+    auto const a = (1.0 - decay_rate) * m;
+    auto ov = m_value.load();
+    while (not m_value.compare_exchange_weak(
+            ov,
+            static_cast<std::int64_t>(
+                    static_cast<double>(ov) * decay_rate + a))) {}
+}
+
+
+bool planet::telemetry::steady_duration::save(serialise::save_buffer &ab) const {
+    auto const c = m_value.load();
+    if (c) {
+        ab.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::steady_duration::load(measurements &pd) {
+    std::int64_t c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        m_value.store(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 // ## `planet::telemetry::time`
 
 

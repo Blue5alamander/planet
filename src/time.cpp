@@ -1,4 +1,5 @@
 #include <planet/log.hpp>
+#include <planet/telemetry/duration.hpp>
 #include <planet/time/clock.hpp>
 #include <planet/time/rate-limiter.hpp>
 
@@ -161,6 +162,16 @@ namespace {
                         planet::time::clock::duration::period::den,
                         c.now().time_since_epoch().count());
                 os << ']';
+            });
+
+    auto const steady_duration_print = planet::log::format(
+            planet::telemetry::steady_duration::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::int64_t ns;
+                box.named(planet::telemetry::steady_duration::box, name, ns);
+                os << name << " = ";
+                format_duration_from_ratio(os, 1, 1'000'000'000, ns);
             });
 
     /**
