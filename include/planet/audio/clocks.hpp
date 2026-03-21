@@ -15,6 +15,7 @@ namespace planet::audio {
             std::chrono::duration<std::int64_t, std::ratio<1, 48'000>>;
 
     std::size_t constexpr samples_per_second = sample_clock::period::den;
+    std::size_t constexpr nyquist_limit = samples_per_second / 2;
 
 
     /// ## The amount of time for a standard buffer slice
