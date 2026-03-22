@@ -43,6 +43,18 @@ void planet::audio::load(serialise::box &b, channel &c) {
 /// ## `planet::audio::dB_gain`
 
 
+planet::audio::dB_gain planet::audio::dB_gain::from_linear_gain(
+        float const multiplier) noexcept {
+    if (multiplier <= 0.0f) { return dB_gain{-128.0f}; }
+    return dB_gain{20.0f * std::log10(multiplier)};
+}
+
+planet::audio::dB_gain::dB_gain(linear_gain const lg) noexcept
+: dB_gain{from_linear_gain(lg.load())} {}
+planet::audio::dB_gain::dB_gain(atomic_linear_gain const &ag) noexcept
+: dB_gain{from_linear_gain(ag.load())} {}
+
+
 planet::audio::dB_gain::operator linear_gain() const noexcept {
     return linear_gain{static_cast<float>(*this)};
 }
