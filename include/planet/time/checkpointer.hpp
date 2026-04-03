@@ -16,20 +16,24 @@ namespace planet::time {
     class checkpointer {
         using clock = std::chrono::steady_clock;
         clock::time_point last = clock::now();
+        clock::duration m_duration = {};
 
 
       public:
-        /// ### The amount of time since the last check point
+        /// ### Record a new checkpoint
         auto checkpoint() noexcept {
             auto old = std::exchange(last, clock::now());
-            return last - old;
+            m_duration = last - old;
+            return m_duration;
         }
 
-        /// ### The number of seconds since the last check point
-        auto per_second() noexcept {
-            return static_cast<double>(checkpoint().count())
-                    / clock::period::den;
-        }
+
+        /// ### The time point of the last check point
+        clock::time_point last_checkpoint() const noexcept { return last; }
+
+
+        /// ### The duration between the last two checkpoints
+        clock::duration duration() const noexcept { return m_duration; }
     };
 
 

@@ -15,6 +15,7 @@ namespace planet::time {
         /// ### Construction
         time_limiter(std::chrono::nanoseconds);
 
+
         /// ### Calculate the current wait time
         /**
          * Call this to calculate how long the thread should sleep for in order
