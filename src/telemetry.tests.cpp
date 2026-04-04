@@ -1,7 +1,10 @@
 #include <planet/serialise.hpp>
+#include <planet/telemetry/allocator.strategy.hpp>
 #include <planet/telemetry/duration.hpp>
 #include <planet/telemetry/map.hpp>
 #include <planet/telemetry/timestamps.hpp>
+
+#include <felspar/memory/slab.storage.hpp>
 #include <felspar/memory/hexdump.hpp>
 #include <felspar/test.hpp>
 
@@ -77,7 +80,7 @@ namespace {
 
 
     auto const suite_map = felspar::testsuite(
-            "telemetry.map",
+            "map",
             [](auto check) {
                 planet::telemetry::map<std::size_t, std::size_t> m{"test_map"};
                 check(m.size()) == 0u;
@@ -142,6 +145,60 @@ namespace {
                 check(loaded_content.size()) == 2u;
                 check(loaded_content[10]) == 3u;
                 check(loaded_content[20]) == 1u;
+            });
+
+
+    auto const suite_allocator_strategy = felspar::testsuite(
+            "allocator",
+            [](auto check) {
+                planet::telemetry::allocator_strategy<
+                        felspar::memory::slab_storage<1024>>
+                        telemetry_slab{"test_allocator"};
+
+                /// Allocate the same size three times and a different size once
+                constexpr std::size_t size_a = 16;
+                constexpr std::size_t size_b = 32;
+                [[maybe_unused]] auto p1 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p2 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p3 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p4 = telemetry_slab.allocate(size_b);
+
+                /// Verify copy_content returns the expected histogram
+                auto content = telemetry_slab.telemetry.copy_content();
+                check(content.size()) == 2u;
+                check(content[size_a]) == 3u;
+                check(content[size_b]) == 1u;
+            },
+            [](auto check, auto &log) {
+                /// Verify telemetry data round-trips through save/load
+                auto bytes = []() {
+                    planet::telemetry::allocator_strategy<
+                            felspar::memory::slab_storage<1024>>
+                            telemetry_slab{"test_allocator_save"};
+
+                    [[maybe_unused]] auto p1 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p2 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p3 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p4 = telemetry_slab.allocate(32);
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(
+                            sb, telemetry_slab.telemetry);
+                    return sb.complete();
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::allocator_strategy<
+                        felspar::memory::slab_storage<1024>>
+                        telemetry_slab2{"test_allocator_save"};
+                planet::telemetry::load_performance(
+                        lb, telemetry_slab2.telemetry);
+
+                auto loaded_content = telemetry_slab2.telemetry.copy_content();
+                check(loaded_content.size()) == 2u;
+                check(loaded_content[16]) == 3u;
+                check(loaded_content[32]) == 1u;
             });
 
 

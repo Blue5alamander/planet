@@ -147,6 +147,41 @@ planet::telemetry::id::id(std::string n, suffix const s)
 : m_name{s == suffix::add ? (n + "__" + create_suffix()) : std::move(n)} {}
 
 
+/// ## `planet::telemetry::map`
+
+
+namespace {
+    auto const map_print = planet::log::format(
+            "_p:t:map"sv,
+            [](std::ostream &os,
+               planet::serialise::box &box,
+               std::size_t const depth) {
+                std::string name;
+                planet::serialise::load(box.content, name);
+                auto inner = planet::serialise::expect_box(box.content);
+                inner.check_name_or_throw("_s:map");
+                auto const count = planet::serialise::load_type<std::size_t>(
+                        inner.content);
+                if (count == 0) {
+                    os << name << " (empty)";
+                } else if (count == 1) {
+                    os << name << ' ';
+                    planet::log::pretty_print(os, inner.content, depth);
+                    os << " = ";
+                    planet::log::pretty_print(os, inner.content, depth);
+                } else {
+                    os << name;
+                    for (std::size_t i{}; i < count; ++i) {
+                        os << '\n' << std::string(depth + 1, ' ');
+                        planet::log::pretty_print(os, inner.content, depth + 1);
+                        os << " = ";
+                        planet::log::pretty_print(os, inner.content, depth + 1);
+                    }
+                }
+            });
+}
+
+
 /// ## `planet::telemetry::max`
 
 

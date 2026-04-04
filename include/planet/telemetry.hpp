@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/telemetry/allocator.strategy.hpp>
 #include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/duration.hpp>
 #include <planet/telemetry/forward.hpp>
