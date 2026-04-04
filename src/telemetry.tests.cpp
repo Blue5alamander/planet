@@ -1,5 +1,6 @@
 #include <planet/serialise.hpp>
 #include <planet/telemetry/duration.hpp>
+#include <planet/telemetry/map.hpp>
 #include <planet/telemetry/timestamps.hpp>
 #include <felspar/memory/hexdump.hpp>
 #include <felspar/test.hpp>
@@ -72,6 +73,75 @@ namespace {
 
                 check(ts.times_for("first")) == first;
                 check(ts.times_for("second")) == second;
+            });
+
+
+    auto const suite_map = felspar::testsuite(
+            "telemetry.map",
+            [](auto check) {
+                planet::telemetry::map<std::size_t, std::size_t> m{"test_map"};
+                check(m.size()) == 0u;
+
+                /// Update new key inserts initial value
+                bool lambda_called = false;
+                m.update(10, 1, [&](auto &) { lambda_called = true; });
+                check(lambda_called) == false;
+                check(m.size()) == 1u;
+                auto content = m.copy_content();
+                check(content.size()) == 1u;
+                check(content[10]) == 1u;
+
+                /// Update existing key calls lambda
+                lambda_called = false;
+                std::size_t old_value = 0;
+                m.update(10, 999, [&](auto &v) {
+                    old_value = v;
+                    ++v;
+                    lambda_called = true;
+                });
+                check(lambda_called) == true;
+                check(old_value) == 1u;
+                check(m.size()) == 1u;
+                content = m.copy_content();
+                check(content.size()) == 1u;
+                check(content[10]) == 2u;
+
+                /// Update with different key
+                m.update(20, 1, [](auto &) {});
+                check(m.size()) == 2u;
+                content = m.copy_content();
+                check(content.size()) == 2u;
+                check(content[10]) == 2u;
+                check(content[20]) == 1u;
+            },
+            [](auto check, auto &log) {
+                auto bytes = [&]() {
+                    planet::telemetry::map<std::size_t, std::size_t> m{
+                            "test_map_save"};
+                    m.update(10, 1, [](auto &) {});
+                    m.update(10, 1, [](auto &n) { ++n; });
+                    m.update(10, 1, [](auto &n) { ++n; });
+                    m.update(20, 1, [](auto &) {});
+
+                    auto content = m.copy_content();
+                    check(content.size()) == 2u;
+                    check(content[10]) == 3u;
+                    check(content[20]) == 1u;
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(sb, m);
+                    return sb.complete();
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::map<std::size_t, std::size_t> m2{
+                        "test_map_save"};
+                planet::telemetry::load_performance(lb, m2);
+                auto loaded_content = m2.copy_content();
+                check(loaded_content.size()) == 2u;
+                check(loaded_content[10]) == 3u;
+                check(loaded_content[20]) == 1u;
             });
 
 
