@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/affine/forward.hpp>
 #include <planet/affine/matrix2d.hpp>
 #include <planet/serialise/forward.hpp>
 
@@ -38,12 +39,17 @@ namespace planet::affine {
             out = out * matrix2d::translate(-by);
             return *this;
         }
-        /// #### Rotate by the requested number of turns. One turn is τ radians
-        transform2d &rotate(float const turns) {
+        /// #### Rotate by the requested number of turns
+        transform2d &rotate(float const turns)
+        /// One turn is τ radians.
+        {
             in = matrix2d::rotate(turns) * in;
             out = out * matrix2d::rotate(-turns);
             return *this;
         }
+
+        /// #### Create aspect correction transform
+        static transform2d aspect_correction(extents2d const &e) noexcept;
 
 
         /// ### Transform points into and out of co-ordinate space

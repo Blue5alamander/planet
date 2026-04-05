@@ -90,6 +90,12 @@ namespace {
 /// ## `planet::affine::transform2d`
 
 
+auto planet::affine::transform2d::aspect_correction(extents2d const &e) noexcept
+        -> transform2d {
+    return transform2d{}.scale(e.height / e.width, 1.0f);
+}
+
+
 void planet::affine::save(serialise::save_buffer &ab, transform2d const &t) {
     ab.save_box("_p:a:t2", t.in, t.out);
 }
