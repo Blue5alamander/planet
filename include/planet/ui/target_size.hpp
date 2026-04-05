@@ -51,6 +51,41 @@ namespace planet::ui {
         }
     };
 
+    /// ### Fixed size spacer with no content
+    template<>
+    struct target_size<void> final : public reflowable {
+        using content_type = void;
+
+
+        target_size(affine::extents2d const s)
+        : reflowable{"planet::ui::target_size"}, size{s} {}
+
+
+        affine::extents2d size;
+
+
+        affine::extents2d extents(affine::extents2d const &) const noexcept {
+            return size;
+        }
+        void draw() {}
+
+
+      private:
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &) override {
+            return constrained_type{size};
+        }
+
+        affine::rectangle2d move_sub_elements(
+                reflow_parameters const &,
+                affine::rectangle2d const &r) override {
+            return {r.top_left, size};
+        }
+    };
+
+
+    target_size(affine::extents2d) -> target_size<void>;
+
     template<typename C>
     target_size(C, affine::extents2d) -> target_size<C>;
 
