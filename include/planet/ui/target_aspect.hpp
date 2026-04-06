@@ -38,10 +38,10 @@ namespace planet::ui {
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &c) override {
-            auto const r = scaling(aspect, c, scale::lock_aspect);
-            computed = r.extents();
-            content.reflow(p, r);
-            return r;
+            auto const size = scaling(aspect, c, scale::lock_aspect);
+            computed = size.extents();
+            content.reflow(p, size);
+            return size;
         }
 
         affine::rectangle2d move_sub_elements(
@@ -73,9 +73,9 @@ namespace planet::ui {
 
         constrained_type do_reflow(
                 reflow_parameters const &, constrained_type const &c) override {
-            auto const r = scaling(aspect, c, scale::lock_aspect);
-            computed = r.extents();
-            return r;
+            auto const size = scaling(aspect, c, scale::lock_aspect);
+            computed = size.extents();
+            return size;
         }
 
         affine::rectangle2d move_sub_elements(
