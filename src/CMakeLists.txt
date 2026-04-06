@@ -66,6 +66,7 @@ add_test_run(check planet TESTS
         row.layout.tests.cpp
         serialise.tests.cpp
         scaling.tests.cpp
+        target_aspect.layout.tests.cpp
         target_size.layout.tests.cpp
         telemetry.tests.cpp
         time.tests.cpp
