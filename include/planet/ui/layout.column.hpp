@@ -42,11 +42,12 @@ namespace planet::ui {
                 float const unused =
                         space.height - (items.size() - 1) * padding;
                 float const item_height = unused / items.size();
-                float top = {}, max_width = {};
                 constrained_type const row_space = {
                         constraint.width,
-                        {constraint.height.min(), item_height,
+                        {item_height,
+                         std::min(item_height, constraint.height.min()),
                          constraint.height.max()}};
+                float top = {}, max_width = {};
                 elements.resize_to(std::span{items});
                 for (std::size_t index{}; auto &item : items) {
                     auto const item_ex = item.reflow(p, row_space);
@@ -113,9 +114,11 @@ namespace planet::ui {
                 reflow_parameters const &p, constrained_type const &ex) {
             float const unused = ex.height.value() - (item_count - 1) * padding;
             float const item_height = unused / item_count;
-            float top = {}, max_width = {};
             constrained_type const row_space = {
-                    ex.width, {ex.height.min(), item_height, ex.height.max()}};
+                    ex.width,
+                    {item_height, std::min(item_height, ex.height.min()),
+                     ex.height.max()}};
+            float top = {}, max_width = {};
             auto const sizes = superclass::items_reflow(p, row_space);
             for (auto &item : sizes) {
                 max_width = std::max(max_width, item.width.value());

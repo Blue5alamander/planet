@@ -209,4 +209,29 @@ namespace {
             });
 
 
+    auto const aspect = suite.test(
+            "aspect_correction",
+            [](auto check) {
+                auto t = planet::affine::transform2d::aspect_correction(
+                        {1920, 1080});
+                auto p = t.into({1, 1});
+                check(ulps(p.x(), 1080.0f / 1920.0f)) < 2u;
+                check(ulps(p.y(), 1.0f)) < 2u;
+            },
+            [](auto check) {
+                auto t = planet::affine::transform2d::aspect_correction(
+                        {100, 100});
+                auto p = t.into({1, 1});
+                check(ulps(p.x(), 1.0f)) < 2u;
+                check(ulps(p.y(), 1.0f)) < 2u;
+            },
+            [](auto check) {
+                auto t = planet::affine::transform2d::aspect_correction(
+                        {960, 1080});
+                auto p = t.into({1, 1});
+                check(ulps(p.x(), 1080.0f / 960.0f)) < 2u;
+                check(ulps(p.y(), 1.0f)) < 2u;
+            });
+
+
 }
