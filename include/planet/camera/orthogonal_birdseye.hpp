@@ -38,6 +38,9 @@ namespace planet::camera {
         float current_scale = target_scale;
         float current_rotation = target_rotation;
 
+        /// #### Update the view from the `current_*` parameters
+        void update_from_current();
+
 
         /// ### Updates the camera view over time to match the targets
         /**

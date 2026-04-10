@@ -9,6 +9,14 @@ using namespace std::literals;
 /// ## `planet::camera::orthogonal_birdseye`
 
 
+void planet::camera::orthogonal_birdseye::update_from_current() {
+    view = {};
+    view.translate(-current_looking_at)
+            .rotate(current_rotation)
+            .scale(1.0f / current_scale);
+}
+
+
 void planet::camera::orthogonal_birdseye::tick_update() {
     auto const scale_difference = target_scale - current_scale;
     current_scale += scale_difference * 0.15f;
@@ -24,11 +32,7 @@ void planet::camera::orthogonal_birdseye::tick_update() {
                 std::sqrt(direction.mag2()) * 0.15f, direction.theta());
         current_looking_at = current_looking_at + translate;
     }
-
-    view = {};
-    view.translate(-current_looking_at)
-            .rotate(current_rotation)
-            .scale(1.0f / current_scale);
+    update_from_current();
 }
 felspar::coro::task<void> planet::camera::orthogonal_birdseye::updates(
         felspar::io::warden &warden) {
@@ -94,10 +98,8 @@ planet::affine::point3d planet::camera::target3dxy::out_of_for_z(
 }
 
 
-void planet::camera::target3dxy::tick_update() {
-    ortho.tick_update();
-    /// TODO Do the animated current update from the target
-    current = target;
+void planet::camera::target3dxy::update_from_current() {
+    ortho.update_from_current();
     view = {ortho.view.into(), ortho.view.outof()};
     view.scale(1.0f, 1.0f, 1.0f / ortho.current_scale)
             .translate(current.view_offset)
@@ -105,6 +107,14 @@ void planet::camera::target3dxy::tick_update() {
             .translate(current.view_direction * current.distance);
     perspective = affine::transform3d::perspective(
             current.perspective_scale, current.perspective_fov);
+}
+
+
+void planet::camera::target3dxy::tick_update() {
+    ortho.tick_update();
+    /// TODO Do the animated current update from the target
+    current = target;
+    update_from_current();
 }
 felspar::coro::task<void>
         planet::camera::target3dxy::updates(felspar::io::warden &warden) {

@@ -40,7 +40,7 @@ namespace planet::camera {
              * The angle is the rotation around the y-axis where zero means that
              * the camera is pointing straight down.
              */
-            float view_angle = {-0.25f * 1 / 3};
+            float view_angle = -0.25f * 1 / 3;
             /// #### Perspective transform scaling
             float perspective_scale = 3.333f;
             /// #### Perspective field of view
@@ -60,6 +60,8 @@ namespace planet::camera {
 
         /// ### Targetting
         parameters target = {}, current = target;
+        /// #### Update the view and perspective from the `current` parameters
+        void update_from_current();
 
 
         /// ### Current matrix transforms
