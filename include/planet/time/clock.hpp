@@ -110,16 +110,25 @@ namespace planet::time {
     /**
      * Proportions may be more than one if the duration is longer than expected.
      */
-    inline double proportion(clock::duration const d, clock::duration outof)
     /**
+     * ### Between two durations
+     *
      * Pass in the current duration as the first parameter, and the total
      * duration as the second. Returns the proportion of time passed.
      */
-    {
+    inline double proportion(clock::duration const d, clock::duration outof) {
+        return static_cast<double>(d.count())
+                / static_cast<double>(outof.count());
+    }
+    inline double proportion(
+            std::chrono::nanoseconds const d,
+            std::chrono::nanoseconds const outof) {
         return static_cast<double>(d.count())
                 / static_cast<double>(outof.count());
     }
 
+
+    /// ### Time since epoch
     inline double
             proportion(clock::time_point const current, clock::duration outof)
     /**
@@ -140,6 +149,21 @@ namespace planet::time {
     {
         return proportion(
                 current - clock::time_point{}, ends - clock::time_point{});
+    }
+
+
+    /// ### Current time between start and end
+    inline double proportion(
+            std::chrono::steady_clock::time_point const started,
+            std::chrono::steady_clock::time_point const current,
+            std::chrono::steady_clock::time_point const ends)
+    /**
+     * Pass in the start time, the current and the end time and returns the
+     * elapsed proportion. The value is not clipped at the start/end time, so
+     * can be negative or greater than one.
+     */
+    {
+        return proportion(current - started, ends - started);
     }
 
 
