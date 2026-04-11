@@ -21,7 +21,7 @@ namespace planet {
 
 
         /// ### New colours via mutation
-        colour with_alpha(float const na) const noexcept {
+        constexpr colour with_alpha(float const na) const noexcept {
             return {r, g, b, na};
         }
 
@@ -31,10 +31,11 @@ namespace planet {
 
 
         /// ### Multiply the RGB values
-        friend colour operator*(colour const &c, float const m) noexcept {
+        friend constexpr colour
+                operator*(colour const &c, float const m) noexcept {
             return {c.r * m, c.g * m, c.b * m, c.a};
         }
-        friend colour &operator*=(colour &c, float const m) noexcept {
+        friend constexpr colour &operator*=(colour &c, float const m) noexcept {
             c.r *= m;
             c.g *= m;
             c.b *= m;
