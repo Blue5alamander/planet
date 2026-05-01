@@ -33,8 +33,8 @@ namespace planet::client {
                 // blank line
             } else if (auto function = builtins.find(*first);
                        function != builtins.end()) {
-                for (auto messages = function->second(std::move(*command));
-                     auto msg = co_await messages.next();) {
+                auto messages = function->second(std::move(*command));
+                while (auto msg = co_await messages.next()) {
                     co_yield std::move(*msg);
                 }
             } else {
