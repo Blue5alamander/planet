@@ -4,6 +4,11 @@
 
 #include <felspar/memory/hexdump.hpp>
 
+// GCC 15 false positive: incorrectly warns about std::function internals being
+// uninitialised when inlining through the square::world constructor.
+#if defined(__GNUC__) and not defined(__clang__)
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
 using namespace std::chrono_literals;
 
