@@ -216,8 +216,7 @@ namespace planet::map::square {
         world() {}
         world(coordinates const start)
         : bottom_edge{start.row()}, rows{row{start.column()}} {}
-        world(coordinates const start, init_function_type ift)
-        : world{start} {
+        world(coordinates const start, init_function_type ift) : world{start} {
             init = std::move(ift);
         }
 
