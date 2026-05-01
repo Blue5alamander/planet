@@ -62,10 +62,8 @@ namespace planet::debug {
             return content.reflow(p, c);
         }
         felspar::coro::task<void> behaviour() override {
-            for (auto mc = events::identify_clicks(events.mouse.stream());
-                 auto click = co_await mc.next();) {
-                ++clicks;
-            }
+            auto mc = events::identify_clicks(events.mouse.stream());
+            while (auto click = co_await mc.next()) { ++clicks; }
         }
         void do_draw() override { content.draw(); }
         affine::rectangle2d do_move_sub_elements(
@@ -88,10 +86,8 @@ namespace planet::debug {
             return c;
         }
         felspar::coro::task<void> behaviour() override {
-            for (auto mc = events::identify_clicks(events.mouse.stream());
-                 auto click = co_await mc.next();) {
-                ++clicks;
-            }
+            auto mc = events::identify_clicks(events.mouse.stream());
+            while (auto click = co_await mc.next()) { ++clicks; }
         }
         void do_draw() override {
             *os << name() << " do_draw @ " << position() << '\n';
