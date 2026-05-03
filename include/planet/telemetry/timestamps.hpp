@@ -61,9 +61,6 @@ namespace planet::telemetry {
          * `stamp::last` time is updated.
          */
 
-        /// #### Unset a timestamp
-        void unset(std::string_view);
-
 
         /// ### Returns true if the key is set
         bool is_set(std::string_view) const;

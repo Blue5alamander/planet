@@ -504,9 +504,6 @@ void planet::telemetry::timestamps::set(std::string_view key) {
         ++pos->second.count;
     }
 }
-void planet::telemetry::timestamps::unset(std::string_view const key) {
-    history.erase(history.find(key));
-}
 
 
 bool planet::telemetry::timestamps::is_set(std::string_view const key) const {

@@ -56,9 +56,6 @@ namespace {
                     check(times.is_set("second")) == false;
                     times.set("second");
                     check(times.is_set("second")) == true;
-                    times.unset("first");
-                    check(times.is_set("first")) == false;
-                    check(times.is_set("second")) == true;
 
                     planet::serialise::save_buffer sb;
                     planet::telemetry::save_performance(sb, times);
@@ -71,7 +68,7 @@ namespace {
                 planet::serialise::load_buffer lb{bytes};
                 planet::telemetry::timestamps ts{"test1"};
                 planet::telemetry::load_performance(lb, ts);
-                check(ts.is_set("first")) == false;
+                check(ts.is_set("first")) == true;
                 check(ts.is_set("second")) == true;
 
                 check(ts.times_for("first")) == first;
