@@ -1,7 +1,9 @@
 #include <planet/serialise.hpp>
 #include <planet/telemetry/allocator.strategy.hpp>
+#include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/duration.hpp>
 #include <planet/telemetry/map.hpp>
+#include <planet/telemetry/minmax.hpp>
 #include <planet/telemetry/timestamps.hpp>
 
 #include <felspar/memory/slab.storage.hpp>
@@ -13,101 +15,153 @@ namespace {
 
 
     auto const suite_allocator_strategy = felspar::testsuite(
-        "allocator",
-        [](auto check) {
-            planet::telemetry::allocator_strategy<
-            felspar::memory::slab_storage<1024>>
-            telemetry_slab{"test_allocator"};
-
-            /// Allocate the same size three times and a different size once
-            constexpr std::size_t size_a = 16;
-            constexpr std::size_t size_b = 32;
-            [[maybe_unused]] auto p1 = telemetry_slab.allocate(size_a);
-            [[maybe_unused]] auto p2 = telemetry_slab.allocate(size_a);
-            [[maybe_unused]] auto p3 = telemetry_slab.allocate(size_a);
-            [[maybe_unused]] auto p4 = telemetry_slab.allocate(size_b);
-
-            /// Verify copy_content returns the expected histogram
-            auto content = telemetry_slab.telemetry.copy_content();
-            check(content.size()) == 2u;
-            check(content[size_a]) == 3u;
-            check(content[size_b]) == 1u;
-        },
-        [](auto check, auto &log) {
-            /// Verify telemetry data round-trips through save/load
-            auto bytes = []() {
+            "allocator",
+            [](auto check) {
                 planet::telemetry::allocator_strategy<
-                felspar::memory::slab_storage<1024>>
-                telemetry_slab{"test_allocator_save"};
+                        felspar::memory::slab_storage<1024>>
+                        telemetry_slab{"test_allocator"};
 
-                [[maybe_unused]] auto p1 = telemetry_slab.allocate(16);
-                [[maybe_unused]] auto p2 = telemetry_slab.allocate(16);
-                [[maybe_unused]] auto p3 = telemetry_slab.allocate(16);
-                [[maybe_unused]] auto p4 = telemetry_slab.allocate(32);
+                /// Allocate the same size three times and a different size once
+                constexpr std::size_t size_a = 16;
+                constexpr std::size_t size_b = 32;
+                [[maybe_unused]] auto p1 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p2 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p3 = telemetry_slab.allocate(size_a);
+                [[maybe_unused]] auto p4 = telemetry_slab.allocate(size_b);
 
-                planet::serialise::save_buffer sb;
-                planet::telemetry::save_performance(
-                    sb, telemetry_slab.telemetry);
-                return sb.complete();
-            }();
-            log << felspar::memory::hexdump(bytes.cmemory());
+                /// Verify copy_content returns the expected histogram
+                auto content = telemetry_slab.telemetry.copy_content();
+                check(content.size()) == 2u;
+                check(content[size_a]) == 3u;
+                check(content[size_b]) == 1u;
+            },
+            [](auto check, auto &log) {
+                /// Verify telemetry data round-trips through save/load
+                auto bytes = []() {
+                    planet::telemetry::allocator_strategy<
+                            felspar::memory::slab_storage<1024>>
+                            telemetry_slab{"test_allocator_save"};
 
-            planet::serialise::load_buffer lb{bytes};
-            planet::telemetry::allocator_strategy<
-            felspar::memory::slab_storage<1024>>
-            telemetry_slab2{"test_allocator_save"};
-            planet::telemetry::load_performance(
-                lb, telemetry_slab2.telemetry);
+                    [[maybe_unused]] auto p1 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p2 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p3 = telemetry_slab.allocate(16);
+                    [[maybe_unused]] auto p4 = telemetry_slab.allocate(32);
 
-            auto loaded_content = telemetry_slab2.telemetry.copy_content();
-            check(loaded_content.size()) == 2u;
-            check(loaded_content[16]) == 3u;
-            check(loaded_content[32]) == 1u;
-        });
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(
+                            sb, telemetry_slab.telemetry);
+                    return sb.complete();
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::allocator_strategy<
+                        felspar::memory::slab_storage<1024>>
+                        telemetry_slab2{"test_allocator_save"};
+                planet::telemetry::load_performance(
+                        lb, telemetry_slab2.telemetry);
+
+                auto loaded_content = telemetry_slab2.telemetry.copy_content();
+                check(loaded_content.size()) == 2u;
+                check(loaded_content[16]) == 3u;
+                check(loaded_content[32]) == 1u;
+            });
+
+
+    auto const suite_counter = felspar::testsuite(
+            "counter",
+            [](auto check) {
+                planet::telemetry::counter parent{"cp_parent"};
+                planet::telemetry::counter child{"cp_child", parent};
+
+                check(parent.value()) == 0;
+                check(child.value()) == 0;
+
+                ++child;
+                check(child.value()) == 1;
+                check(parent.value()) == 1;
+
+                /// Incrementing parent directly does not propagate to child
+                ++parent;
+                check(parent.value()) == 2;
+                check(child.value()) == 1;
+
+                child += 3;
+                check(child.value()) == 4;
+                check(parent.value()) == 5;
+            },
+            [](auto check, auto &log) {
+                auto const bytes = []() {
+                    planet::telemetry::counter parent{"cp_save_parent"};
+                    planet::telemetry::counter child1{"cp_save_child1", parent};
+                    planet::telemetry::counter child2{"cp_save_child2", parent};
+
+                    ++child1;
+                    ++child1;
+                    ++child2;
+                    ++parent;
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(
+                            sb, parent, child1, child2);
+                    return sb.complete();
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::telemetry::counter p{"cp_save_parent"};
+                planet::telemetry::counter c1{"cp_save_child1", p},
+                        c2{"cp_save_child2", p};
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::load_performance(lb, p, c1, c2);
+
+                check(c1.value()) == 2;
+                check(c2.value()) == 1;
+                check(p.value()) == 4;
+            });
 
 
     auto const suite_map = felspar::testsuite(
-        "map",
-        [](auto check) {
-            planet::telemetry::map<std::size_t, std::size_t> m{"test_map"};
-            check(m.size()) == 0u;
+            "map",
+            [](auto check) {
+                planet::telemetry::map<std::size_t, std::size_t> m{"test_map"};
+                check(m.size()) == 0u;
 
-            /// Update new key inserts initial value
-            bool lambda_called = false;
-            m.update(10, 1, [&](auto &) { lambda_called = true; });
-            check(lambda_called) == false;
-            check(m.size()) == 1u;
-            auto content = m.copy_content();
-            check(content.size()) == 1u;
-            check(content[10]) == 1u;
+                /// Update new key inserts initial value
+                bool lambda_called = false;
+                m.update(10, 1, [&](auto &) { lambda_called = true; });
+                check(lambda_called) == false;
+                check(m.size()) == 1u;
+                auto content = m.copy_content();
+                check(content.size()) == 1u;
+                check(content[10]) == 1u;
 
-            /// Update existing key calls lambda
-            lambda_called = false;
-            std::size_t old_value = 0;
-            m.update(10, 999, [&](auto &v) {
-                old_value = v;
-                ++v;
-                lambda_called = true;
-            });
-            check(lambda_called) == true;
-            check(old_value) == 1u;
-            check(m.size()) == 1u;
-            content = m.copy_content();
-            check(content.size()) == 1u;
-            check(content[10]) == 2u;
+                /// Update existing key calls lambda
+                lambda_called = false;
+                std::size_t old_value = 0;
+                m.update(10, 999, [&](auto &v) {
+                    old_value = v;
+                    ++v;
+                    lambda_called = true;
+                });
+                check(lambda_called) == true;
+                check(old_value) == 1u;
+                check(m.size()) == 1u;
+                content = m.copy_content();
+                check(content.size()) == 1u;
+                check(content[10]) == 2u;
 
-            /// Update with different key
-            m.update(20, 1, [](auto &) {});
-            check(m.size()) == 2u;
-            content = m.copy_content();
-            check(content.size()) == 2u;
-            check(content[10]) == 2u;
-            check(content[20]) == 1u;
-        },
-        [](auto check, auto &log) {
-            auto bytes = [&]() {
-                planet::telemetry::map<std::size_t, std::size_t> m{
-                    "test_map_save"};
+                /// Update with different key
+                m.update(20, 1, [](auto &) {});
+                check(m.size()) == 2u;
+                content = m.copy_content();
+                check(content.size()) == 2u;
+                check(content[10]) == 2u;
+                check(content[20]) == 1u;
+            },
+            [](auto check, auto &log) {
+                auto bytes = [&]() {
+                    planet::telemetry::map<std::size_t, std::size_t> m{
+                            "test_map_save"};
                     m.update(10, 1, [](auto &) {});
                     m.update(10, 1, [](auto &n) { ++n; });
                     m.update(10, 1, [](auto &n) { ++n; });
@@ -121,18 +175,18 @@ namespace {
                     planet::serialise::save_buffer sb;
                     planet::telemetry::save_performance(sb, m);
                     return sb.complete();
-            }();
-            log << felspar::memory::hexdump(bytes.cmemory());
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
 
-            planet::serialise::load_buffer lb{bytes};
-            planet::telemetry::map<std::size_t, std::size_t> m2{
-                "test_map_save"};
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::map<std::size_t, std::size_t> m2{
+                        "test_map_save"};
                 planet::telemetry::load_performance(lb, m2);
                 auto loaded_content = m2.copy_content();
                 check(loaded_content.size()) == 2u;
                 check(loaded_content[10]) == 3u;
                 check(loaded_content[20]) == 1u;
-        });
+            });
 
 
     auto const suite_steady_duration = felspar::testsuite(
@@ -166,6 +220,56 @@ namespace {
                 planet::telemetry::steady_duration d2{"test_sd_save", 8};
                 planet::telemetry::load_performance(lb, d2);
                 check(d2.value().count()) > 0;
+            });
+
+
+    auto const suite_max = felspar::testsuite(
+            "max",
+            [](auto check) {
+                planet::telemetry::max parent{"mp_parent"};
+                planet::telemetry::max child{"mp_child", parent};
+
+                child.value(5);
+                check(child.value()) == 5u;
+                check(parent.value()) == 5u;
+
+                /// Setting directly on parent does not propagate to child
+                parent.value(10);
+                check(parent.value()) == 10u;
+                check(child.value()) == 5u;
+
+                /// A smaller value does not replace the recorded max
+                child.value(3);
+                check(child.value()) == 5u;
+                check(parent.value()) == 10u;
+
+                /// A larger value updates both child and parent
+                child.value(15);
+                check(child.value()) == 15u;
+                check(parent.value()) == 15u;
+            },
+            [](auto check, auto &log) {
+                auto [bytes, cv, pv] = []() {
+                    planet::telemetry::max parent{"mp_save_parent"};
+                    planet::telemetry::max child{"mp_save_child", parent};
+
+                    child.value(5);
+                    parent.value(10);
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(sb, parent, child);
+                    return std::tuple{
+                            sb.complete(), child.value(), parent.value()};
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::telemetry::max p{"mp_save_parent"};
+                planet::telemetry::max c{"mp_save_child", p};
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::load_performance(lb, p, c);
+
+                check(c.value()) == cv;
+                check(p.value()) == pv;
             });
 
 

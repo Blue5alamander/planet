@@ -186,6 +186,7 @@ namespace {
 
 
 void planet::telemetry::max::value(value_type const v) noexcept {
+    if (parent) { parent->value(v); }
     while (true) {
         auto const old = m_value.load();
         auto const m = std::max(old, v);
