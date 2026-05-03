@@ -18,8 +18,14 @@ namespace planet::telemetry {
      * Stores timestamps when a particular key has been presented to the user.
      * Designed for tutorial hints and "don't show this again" checkboxes on
      * dialogue boxes.
+     *
+     * When setting a `parent` `timestamps` instance, anything set on the child
+     * will also be set on the parent. This update is not atomic, so there may
+     * be a small difference in the timestamps captured.
      */
     class timestamps final : public performance {
+        timestamps *parent = nullptr;
+
       public:
         static constexpr std::string_view box{"_p:t:timestamps"};
 
@@ -48,6 +54,10 @@ namespace planet::telemetry {
 
         timestamps(
                 std::string_view,
+                std::source_location const & = std::source_location::current());
+        timestamps(
+                std::string_view,
+                timestamps &,
                 std::source_location const & = std::source_location::current());
 
 

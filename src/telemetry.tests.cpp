@@ -46,8 +46,9 @@ namespace {
             });
 
 
-    auto const suite =
-            felspar::testsuite("timestamps", [](auto check, auto &log) {
+    auto const suite = felspar::testsuite(
+            "timestamps",
+            [](auto check, auto &log) {
                 auto [bytes, first, second] = [&]() {
                     planet::telemetry::timestamps times{"test1"};
 
@@ -73,6 +74,47 @@ namespace {
 
                 check(ts.times_for("first")) == first;
                 check(ts.times_for("second")) == second;
+            },
+            [](auto check, auto &log) {
+                auto [bytes, ckey, pkey, parent_only] = [&]() {
+                    planet::telemetry::timestamps parent{"ts_parent"};
+                    planet::telemetry::timestamps child{"ts_child", parent};
+
+                    check(parent.is_set("key")) == false;
+                    check(child.is_set("key")) == false;
+
+                    child.set("key");
+
+                    check(child.is_set("key")) == true;
+                    check(parent.is_set("key")) == true;
+                    check(parent.is_set("other")) == false;
+
+                    /// Setting directly on parent does not propagate to child
+                    parent.set("parent-only");
+                    check(parent.is_set("parent-only")) == true;
+                    check(child.is_set("parent-only")) == false;
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(sb, parent, child);
+                    return std::tuple{
+                            sb.complete(), child.times_for("key"),
+                            parent.times_for("key"),
+                            parent.times_for("parent-only")};
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::telemetry::timestamps p{"ts_parent"}, c{"ts_child", p};
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::load_performance(lb, p, c);
+
+                check(p.is_set("key")) == true;
+                check(c.is_set("key")) == true;
+                check(p.is_set("parent-only")) == true;
+                check(c.is_set("parent-only")) == false;
+
+                check(c.times_for("key")) == ckey;
+                check(p.times_for("key")) == pkey;
+                check(p.times_for("parent-only")) == parent_only;
             });
 
 

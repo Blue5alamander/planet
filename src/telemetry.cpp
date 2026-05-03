@@ -493,9 +493,15 @@ namespace {
 planet::telemetry::timestamps::timestamps(
         std::string_view const n, std::source_location const &loc)
 : performance{n, loc} {}
+planet::telemetry::timestamps::timestamps(
+        std::string_view const n,
+        timestamps &ts,
+        std::source_location const &loc)
+: performance{n, loc}, parent{&ts} {}
 
 
 void planet::telemetry::timestamps::set(std::string_view key) {
+    if (parent) { parent->set(key); }
     auto pos = history.find(key);
     if (pos == history.end()) {
         history.insert(std::pair{std::string{key}, stamps{}});
