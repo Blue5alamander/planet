@@ -90,9 +90,8 @@ namespace planet::serialise {
     }
 
 
-    template<typename T, std::size_t N, typename L>
-    inline void save_poly_list(
-            save_buffer &ab, std::span<T, N> const a, L &&lambda) {
+    template<std::ranges::range R, typename L>
+    inline void save_poly_list(save_buffer &ab, R const &a, L &&lambda) {
         ab.append(marker::poly_list);
         ab.append_size_t(a.size());
         for (auto &&item : a) { lambda(ab, item); }
