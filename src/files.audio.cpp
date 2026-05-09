@@ -2,6 +2,7 @@
 
 #include <felspar/exceptions/runtime_error.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
+#include <felspar/parse/extract.le.hpp>
 
 #include <optional>
 
@@ -168,4 +169,27 @@ felspar::coro::generator<
     for (auto s = decoder.stereo(); auto p = s.next();) {
         co_yield std::move(*p);
     }
+}
+
+
+planet::audio::sample_clock planet::audio::ogg::duration() const {
+    /**
+     * The last OGG page's granule position holds the total PCM sample count.
+     * Scan backward for the last "OggS" capture pattern and read the 8-byte
+     * little-endian granule position at offset +6.
+     */
+    for (auto i = static_cast<std::ptrdiff_t>(m_filedata.size()) - 27; i >= 0;
+         --i) {
+        if (m_filedata[i] == std::byte{'O'}
+            and m_filedata[i + 1] == std::byte{'g'}
+            and m_filedata[i + 2] == std::byte{'g'}
+            and m_filedata[i + 3] == std::byte{'S'}) {
+            auto const granule =
+                    felspar::parse::binary::le::unchecked_extract<std::int64_t>(
+                            std::span<std::byte const, 8>{
+                                    m_filedata.data() + i + 6, 8});
+            return sample_clock{granule};
+        }
+    }
+    throw felspar::stdexcept::runtime_error{"No OggS block found", loc};
 }

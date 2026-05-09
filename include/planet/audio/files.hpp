@@ -25,6 +25,8 @@ namespace planet::audio {
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
         }
+
+        planet::audio::sample_clock duration() const;
     };
 
 
