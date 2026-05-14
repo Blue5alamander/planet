@@ -64,6 +64,25 @@ namespace planet::telemetry {
             return strategy.allocate(bytes);
         }
 
+        [[nodiscard]] felspar::memory::allocation_result
+                allocate_at_least(std::size_t const bytes)
+            requires felspar::memory::overallocating_allocator_strategy<Strategy>
+        {
+            telemetry.update(bytes, 1u, [](auto &n) { ++n; });
+            return strategy.allocate_at_least(bytes);
+        }
+
+        [[nodiscard]] felspar::memory::allocation_result
+                try_allocate_at_least(std::size_t const bytes)
+            requires felspar::memory::overallocating_allocator_strategy<Strategy>
+        {
+            auto result = strategy.try_allocate_at_least(bytes);
+            if (result.ptr) {
+                telemetry.update(bytes, 1u, [](auto &n) { ++n; });
+            }
+            return result;
+        }
+
 
         /// ### Deallocation
         void deallocate(void *const ptr, std::size_t const bytes) {
