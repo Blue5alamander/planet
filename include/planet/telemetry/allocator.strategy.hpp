@@ -39,6 +39,26 @@ namespace planet::telemetry {
                 std::source_location const loc = std::source_location::current())
         : strategy{std::forward<Args>(args)...}, telemetry{name, loc} {}
 
+        /// #### Factory callable to construct strategy in-place
+        /**
+         * For non-movable strategies (e.g. those containing a `std::mutex`),
+         * pass a zero-argument callable that returns a `Strategy` prvalue.
+         * Mandatory copy elision constructs `strategy` directly from the
+         * factory's return value — no move constructor needed.
+         *
+         * ```cpp
+         * allocator_strategy<pool_strategy<Sizes, fallback_t>> as{
+         *     "name", [](){ return pool_strategy<...>{[](){ ... }}; }};
+         * ```
+         */
+        template<typename Factory>
+            requires std::same_as<std::invoke_result_t<Factory>, Strategy>
+        allocator_strategy(
+                std::string_view const name,
+                Factory &&factory,
+                std::source_location const loc = std::source_location::current())
+        : strategy{std::forward<Factory>(factory)()}, telemetry{name, loc} {}
+
         /// #### Non-copyable
         allocator_strategy(allocator_strategy const &) = delete;
         allocator_strategy &operator=(allocator_strategy const &) = delete;
@@ -53,6 +73,8 @@ namespace planet::telemetry {
             requires(std::is_move_assignable_v<Strategy>)
         = default;
 
+
+        using strategy_type = Strategy;
 
         Strategy strategy;
         map<std::size_t, std::size_t> telemetry;
