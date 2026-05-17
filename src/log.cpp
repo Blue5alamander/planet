@@ -337,7 +337,14 @@ namespace {
                         flushing) {
                         flushing->flush();
                     }
-                    std::exit(120);
+                    /**
+                     * Use `_Exit` rather than `exit`: we're running on the log
+                     * thread, and `exit` would run static destructors here --
+                     * including `~log_thread`, which would then try to join the
+                     * thread it's running on. Everything durable is already
+                     * flushed above, so terminate immediately.
+                     */
+                    std::_Exit(120);
                 }
             }
         }
@@ -367,7 +374,7 @@ void planet::log::detail::critical_log_encountered() {
      * function doesn't actually return.
      */
     std::this_thread::sleep_for(2s);
-    std::exit(121);
+    std::_Exit(121);
 }
 
 
