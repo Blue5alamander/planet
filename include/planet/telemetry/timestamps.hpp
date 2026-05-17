@@ -52,6 +52,7 @@ namespace planet::telemetry {
         };
 
 
+        /// ### Construction
         timestamps(
                 std::string_view,
                 std::source_location const & = std::source_location::current());
@@ -59,6 +60,16 @@ namespace planet::telemetry {
                 std::string_view,
                 timestamps &,
                 std::source_location const & = std::source_location::current());
+
+
+        /// ### Destructor
+        ~timestamps() { stop_telemetry(); }
+        /**
+         * Detaches from the telemetry registry (via `stop_telemetry`) before
+         * the `mutex` and `history` members are destroyed, so a concurrent
+         * `current_values` call on another thread cannot lock a destroyed
+         * mutex or walk a destroyed map.
+         */
 
 
         /// ### Changing timestamps

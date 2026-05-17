@@ -13,7 +13,41 @@ namespace planet::telemetry {
     /// ## One of any number of performance counters
     class performance : public id {
       protected:
-        performance(std::string_view, std::source_location const &);
+        /// ### How a new counter registers in the global registry
+        enum class registration { automatic, deferred };
+        /**
+         * `automatic` (the default) registers the counter from within the
+         * `performance` base constructor. `deferred` skips that: the derived
+         * class **must** call `register_telemetry` itself once its own members
+         * are constructed. Deferral is required for any counter whose `save`
+         * touches non-trivially-constructible members (e.g. a `mutex`), so a
+         * concurrent `current_values` cannot reach a half-built object.
+         */
+        performance(
+                std::string_view,
+                std::source_location const &,
+                registration = registration::automatic);
+
+        /// ### Add this counter to the global registry
+        void register_telemetry(std::source_location const &);
+        /**
+         * For `deferred`-registration derived classes; call exactly once, as
+         * the last action of the derived constructor. Throws if a counter with
+         * the same name is already registered.
+         */
+
+        /// ### Detach from the global performance registry
+        void stop_telemetry() noexcept;
+        /**
+         * Removes this object from the registry that `current_values` walks.
+         * Idempotent and safe to call from any thread.
+         *
+         * A derived class with non-trivially-destructible members (e.g. a
+         * `mutex` or a container) **must** call this as the first statement of
+         * its own destructor, while its vtable is still valid, so that a
+         * concurrent `current_values` on another thread cannot touch those
+         * members part-way through destruction.
+         */
 
 
       public:
@@ -36,7 +70,7 @@ namespace planet::telemetry {
          */
 
         /// #### Save this performance counter
-        [[nodiscard]] virtual bool save(serialise::save_buffer &) const = 0;
+        [[nodiscard]] virtual bool save(serialise::save_buffer &) const;
         /**
          * Returns `true` if the performance counter has been saved to the
          * buffer.
@@ -45,6 +79,12 @@ namespace planet::telemetry {
          * type of counter. The first field in the box is always the counter's
          * name. The following data is the measurements and the format is
          * determined by the box name.
+         *
+         * Every concrete counter is expected to override this. The base
+         * implementation returns `false` and exists only so that a virtual
+         * call that lands here while a derived object is part-way through
+         * construction or destruction resolves to a harmless no-op rather than
+         * `__cxa_pure_virtual`.
          */
 
         /// #### Load performance counters

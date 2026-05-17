@@ -251,8 +251,16 @@ namespace {
 
 
 planet::telemetry::performance::performance(
-        std::string_view const n, std::source_location const &loc)
+        std::string_view const n,
+        std::source_location const &loc,
+        registration const r)
 : id{n, id::suffix::suppress} {
+    if (r == registration::automatic) { register_telemetry(loc); }
+}
+
+
+void planet::telemetry::performance::register_telemetry(
+        std::source_location const &loc) {
     std::scoped_lock _{g_mtx()};
     auto &perfs = g_perfs();
     auto pos = std::lower_bound(
@@ -261,24 +269,33 @@ planet::telemetry::performance::performance(
     if (pos != perfs.end() and (*pos)->name() == name()) {
         throw felspar::stdexcept::logic_error{
                 "There is already a global performance index entry for "
-                        + std::string{n},
+                        + std::string{name()},
                 loc};
     }
     perfs.insert(pos, this);
 }
 
 
-planet::telemetry::performance::~performance() {
+void planet::telemetry::performance::stop_telemetry() noexcept {
     std::scoped_lock _{g_mtx()};
     auto &p = g_perfs();
-    auto const pos = std::find(p.begin(), p.end(), this);
-    if (pos == p.end()) {
-        planet::log::critical(
-                "Could not find global performance index record to remove for",
-                name());
-    } else {
+    if (auto const pos = std::find(p.begin(), p.end(), this); pos != p.end()) {
         p.erase(pos);
     }
+}
+
+
+planet::telemetry::performance::~performance() { stop_telemetry(); }
+
+
+bool planet::telemetry::performance::save(serialise::save_buffer &) const {
+    /**
+     * The base `save` is a placeholder for virtual calls that land here while a
+     * derived counter is mid-construction or mid-destruction (its vtable
+     * momentarily degraded to this abstract base). It must touch no derived
+     * state. Concrete counters always override it.
+     */
+    return false;
 }
 
 
@@ -493,12 +510,16 @@ namespace {
 
 planet::telemetry::timestamps::timestamps(
         std::string_view const n, std::source_location const &loc)
-: performance{n, loc} {}
+: performance{n, loc, performance::registration::deferred} {
+    register_telemetry(loc);
+}
 planet::telemetry::timestamps::timestamps(
         std::string_view const n,
         timestamps &ts,
         std::source_location const &loc)
-: performance{n, loc}, parent{&ts} {}
+: performance{n, loc, performance::registration::deferred}, parent{&ts} {
+    register_telemetry(loc);
+}
 
 
 void planet::telemetry::timestamps::set(std::string_view key) {
