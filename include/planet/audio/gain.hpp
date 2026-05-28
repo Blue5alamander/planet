@@ -26,7 +26,7 @@ namespace planet::audio {
         constexpr linear_gain() {}
         constexpr explicit linear_gain(float const g) : multiplier{g} {}
 
-
+        constexpr void store(float const m) noexcept { multiplier = m; }
         constexpr float load() const noexcept { return multiplier; }
     };
 
