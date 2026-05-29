@@ -60,6 +60,7 @@ add_test_run(check planet TESTS
         log.tests.cpp
         map.hex.tests.cpp
         map.square.tests.cpp
+        mixer.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
         range.ui.tests.cpp

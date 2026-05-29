@@ -5,6 +5,8 @@
 
 #include <felspar/memory/small_vector.hpp>
 
+#include <mutex>
+
 
 namespace planet::audio {
 
@@ -22,6 +24,7 @@ namespace planet::audio {
 
 
         void add_track(stereo_generator track) {
+            std::scoped_lock _{mtx};
             if (generators.has_room()) {
                 generators.push_back({std::move(track)});
             }
@@ -40,6 +43,9 @@ namespace planet::audio {
             /// The number of samples that have been placed in the output so far
             std::size_t samples = {};
         };
+        /// Guards `generators`, which is written from caller threads via
+        /// `add_track` and read/restructured from the audio thread in `raw_mix`.
+        std::mutex mtx;
         felspar::memory::small_vector<track, 50> generators;
         stereo_generator raw_mix();
     };
