@@ -2,10 +2,9 @@
 
 
 #include <planet/audio/stereo.hpp>
+#include <planet/queue/tspsc.hpp>
 
 #include <felspar/memory/small_vector.hpp>
-
-#include <mutex>
 
 
 namespace planet::audio {
@@ -15,7 +14,9 @@ namespace planet::audio {
     /// Can be given arbitrary input streams and produces output of the same format
     class mixer final {
       public:
-        mixer(channel &c) : master{c} {}
+        mixer(channel &c) : master{c} {
+            incoming.reserve(generators.capacity());
+        }
 
         mixer(mixer const &) = delete;
         mixer(mixer &&) = delete;
@@ -24,10 +25,7 @@ namespace planet::audio {
 
 
         void add_track(stereo_generator track) {
-            std::scoped_lock _{mtx};
-            if (generators.has_room()) {
-                generators.push_back({std::move(track)});
-            }
+            incoming.push(std::move(track));
         }
         void add_track(stereo_generator track, dB_gain g) {
             add_track(gain(g, std::move(track)));
@@ -43,9 +41,10 @@ namespace planet::audio {
             /// The number of samples that have been placed in the output so far
             std::size_t samples = {};
         };
-        /// Guards `generators`, which is written from caller threads via
-        /// `add_track` and read/restructured from the audio thread in `raw_mix`.
-        std::mutex mtx;
+        /// Tracks waiting to join the mix. `add_track` pushes from any thread;
+        /// `raw_mix` drains this into `generators` at the start of each buffer,
+        /// keeping `generators` itself audio-thread-only (no lock needed).
+        planet::queue::tspsc<stereo_generator> incoming;
         felspar::memory::small_vector<track, 50> generators;
         stereo_generator raw_mix();
     };
