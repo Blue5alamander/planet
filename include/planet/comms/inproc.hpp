@@ -104,9 +104,16 @@ namespace planet::comms::inproc {
         /// ### Send an object to receiving thread
         template<typename T>
         void push(T t) {
+            /**
+             * Update our own counter **before** the item is published or the
+             * consumer woken. For a poison-pill message (e.g. `events::quit`)
+             * the consumer's reaction can be to destroy this very queue — it
+             * may live as a local in the consumer thread — so touching any
+             * member after the item becomes visible would be a use-after-free.
+             */
+            ++sends;
             tspsc::push(variant_type{std::move(t)});
             signalling.send({});
-            ++sends;
         }
 
 

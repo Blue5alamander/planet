@@ -22,9 +22,10 @@ auto planet::comms::inproc::data::subscribe(std::string_view const n)
 
 
 void planet::comms::inproc::data::do_push(serialise::shared_bytes b) {
+    /// Bump the counter before publishing — see the note on `object::push`.
+    ++pushes;
     queue.push(std::move(b));
     signalling.send({});
-    ++pushes;
 }
 
 
