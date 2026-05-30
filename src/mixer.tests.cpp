@@ -128,6 +128,29 @@ namespace {
     });
 
 
+    /// `bind_playback_clock` makes an externally-owned atomic findable
+    /// through the mixer; an unbound mixer reports null.
+    auto const playback_clock =
+            felspar::testsuite("mixer.playback_clock", [](auto check) {
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+
+                check(m.playback_clock()) == nullptr;
+
+                std::atomic<planet::audio::sample_clock> head{
+                        planet::audio::sample_clock{512}};
+                m.bind_playback_clock(head);
+
+                check(m.playback_clock()) == &head;
+                check(m.playback_clock()->load())
+                        == planet::audio::sample_clock{512};
+
+                head.store(planet::audio::sample_clock{1024});
+                check(m.playback_clock()->load())
+                        == planet::audio::sample_clock{1024};
+            });
+
+
     /// The producer is bounded to `depth` blocks ahead: even given far more
     /// time than it needs, it must not buffer past the configured latency.
     auto const lead_bound =

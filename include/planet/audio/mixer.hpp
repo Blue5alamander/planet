@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/audio/clocks.hpp>
 #include <planet/audio/stereo.hpp>
 #include <planet/functional.hpp>
 #include <planet/queue/tspsc.hpp>
@@ -126,6 +127,29 @@ namespace planet::audio {
         }
 
 
+        /// ### Bind the SDL playback-head clock
+        /**
+         * Called by `planet::sdl::audio_output::attach` before the producer
+         * thread starts. The atomic is owned by the `audio_output`; the
+         * binding lets anything holding only the mixer find the shared
+         * audio-clock value the SDL callback advertises.
+         */
+        void bind_playback_clock(std::atomic<sample_clock> const &c) noexcept {
+            playback = &c;
+        }
+
+        /// ### SDL playback-head clock, or `nullptr` if not yet bound
+        /**
+         * Returns a pointer to the atomic published by `audio_output`'s
+         * callback (end-time of the next block SDL will play). Pointer
+         * rather than reference so an unattached mixer (e.g. in tests) is
+         * representable.
+         */
+        std::atomic<sample_clock> const *playback_clock() const noexcept {
+            return playback;
+        }
+
+
         /// ### Bounded producer lead in blocks (derived from `latency`)
         std::size_t buffer_depth() const noexcept { return depth; }
 
@@ -174,6 +198,9 @@ namespace planet::audio {
         std::size_t read_slot = 0;
         std::size_t read_marker = 0;
         std::atomic<std::uint64_t> underruns = 0;
+
+        /// Bound by `audio_output::attach`; null until then.
+        std::atomic<sample_clock> const *playback = nullptr;
     };
 
 
