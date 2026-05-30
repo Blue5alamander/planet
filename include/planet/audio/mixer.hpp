@@ -10,7 +10,6 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cstdint>
 #include <semaphore>
 #include <thread>
@@ -35,24 +34,20 @@ namespace planet::audio {
         /**
          * Compile-time cap on the number of blocks buffered between the
          * producer thread and the consuming audio callback. The depth actually
-         * used is derived from the requested `latency` (see the constructor);
-         * this only bounds the backing storage and the semaphore.
+         * used is derived from the latency the audio output passes to
+         * `bind_playback_clock`; this only bounds the backing storage and the
+         * semaphore.
          */
         static constexpr std::size_t max_ring_depth = 16;
 
 
         /// ### Construction
-        explicit mixer(
-                channel &c,
-                std::chrono::steady_clock::duration latency =
-                        std::chrono::milliseconds{20});
+        explicit mixer(channel &c);
         /**
-         * `latency` is the fixed lead the mixer keeps between rendering and
-         * playback: the producer thread is bounded to stay at most this far
-         * ahead of the consuming callback. It therefore sets both the buffered
-         * depth and the pre-roll, so a track handed to `add_track` becomes
-         * audible `latency` later (give or take one block). It is measured on
-         * top of the audio device's own buffer.
+         * The mixer is unattached until `bind_playback_clock` is called: that
+         * is the step that sets the ring depth (from a latency supplied by the
+         * audio output) and pre-rolls silence. `begin` must therefore be
+         * preceded by `bind_playback_clock`, which `audio_output::attach` does.
          */
 
         mixer(mixer const &) = delete;
@@ -80,14 +75,14 @@ namespace planet::audio {
         /// ### Start the producer thread
         void begin();
         /**
-         * Launches the producer thread. The ring is declared full of silence
-         * at construction time, so the audio callback may begin pulling from
-         * `next_frame` immediately — every `add_track` therefore becomes
+         * Launches the producer thread. The ring was declared full of silence
+         * by `bind_playback_clock`, so the audio callback may begin pulling
+         * from `next_frame` immediately — every `add_track` therefore becomes
          * audible exactly `latency` later, with no startup window in which
          * that promise can be undercut. The producer wakes only as the
          * callback frees ring slots, so it stays bounded at `depth` blocks of
-         * lead. Call exactly once, when the mixer is attached to an audio
-         * output.
+         * lead. Call exactly once, after `bind_playback_clock`, when the
+         * mixer is attached to an audio output.
          */
 
 
@@ -134,16 +129,26 @@ namespace planet::audio {
         }
 
 
-        /// ### Bind the SDL playback-head clock
+        /// ### Bind the SDL playback-head clock and configure the ring
         /**
          * Called by `planet::sdl::audio_output::attach` before the producer
-         * thread starts. The atomic is owned by the `audio_output`; the
-         * binding lets anything holding only the mixer find the shared
-         * audio-clock value the SDL callback advertises.
+         * thread starts. Does three things:
+         *
+         * 1. Binds the atomic published by the `audio_output`'s callback so
+         *    anything holding only the mixer can find the shared audio-clock
+         *    value (`playback_clock()`).
+         * 2. Sets the producer's bounded lead from `latency` — the fixed
+         *    distance the producer can stay ahead of the consuming callback.
+         *    A track handed to `add_track` therefore becomes audible
+         *    `latency` later (give or take one block), measured on top of
+         *    the audio device's own buffer.
+         * 3. Pre-rolls the ring with silence so the callback can begin
+         *    consuming immediately, without a startup window in which the
+         *    fixed-latency promise could be undercut.
          */
-        void bind_playback_clock(std::atomic<sample_clock> const &c) noexcept {
-            playback = &c;
-        }
+        void bind_playback_clock(
+                std::atomic<sample_clock> const &c,
+                sample_clock latency) noexcept;
 
         /// ### SDL playback-head clock, or `nullptr` if not yet bound
         /**
@@ -174,27 +179,34 @@ namespace planet::audio {
             /// The number of samples that have been placed in the output so far
             std::size_t samples = {};
         };
-        /// Tracks waiting to join the mix. `add_track` pushes from any thread;
-        /// `raw_mix` drains this into `generators` at the start of each buffer,
-        /// keeping `generators` itself producer-thread-only (no lock needed).
+        /**
+         * Tracks waiting to join the mix. `add_track` pushes from any thread;
+         * `raw_mix` drains this into `generators` at the start of each buffer,
+         * keeping `generators` itself producer-thread-only (no lock needed).
+         */
         planet::queue::tspsc<stereo_generator> incoming;
         felspar::memory::small_vector<track, 50> generators;
         stereo_generator raw_mix();
 
-        /// Bounded producer lead in blocks, derived from `latency`. The
-        /// producer can be at most this many blocks ahead of the consumer, so
-        /// the realized latency is fixed at `depth` blocks rather than the
-        /// whole backing ring.
-        std::size_t depth;
+        /**
+         * Bounded producer lead in blocks, derived from the latency the audio
+         * output passes to `bind_playback_clock`. The producer can be at most
+         * this many blocks ahead of the consumer, so the realized latency is
+         * fixed at `depth` blocks rather than the whole backing ring. Zero
+         * until `bind_playback_clock` is called.
+         */
+        std::size_t depth = 0;
 
-        /// Pre-rendered ring shared with the audio callback. Backed by the
-        /// compile-time cap; only the first `depth` slots are ever used. Each
-        /// slot holds the latest published block as a refcounted
-        /// `shared_buffer<float>` slice from the producer's accumulation
-        /// buffer; future tap subscribers can hold their own ref on the same
-        /// slice without an extra copy. Initialized to zero-filled buffers in
-        /// the constructor so the callback sees pre-rolled silence before the
-        /// producer thread starts.
+        /**
+         * Pre-rendered ring shared with the audio callback. Backed by the
+         * compile-time cap; only the first `depth` slots are ever used. Each
+         * slot holds the latest published block as a refcounted
+         * `shared_buffer<float>` slice from the producer's accumulation buffer;
+         * future tap subscribers can hold their own ref on the same slice
+         * without an extra copy. Initialized to zero-filled buffers in the
+         * constructor so the callback sees pre-rolled silence before the
+         * producer thread starts.
+         */
         using slot = felspar::memory::shared_buffer<float>;
         std::array<slot, max_ring_depth> slots = {};
         std::atomic<int> ready_count = 0;

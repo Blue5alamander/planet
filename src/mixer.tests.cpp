@@ -88,14 +88,16 @@ namespace {
             });
 
 
-    /// The ring is pre-rolled with silence at construction, so the callback
-    /// hears `depth` blocks of zeros first; the track added before `begin`
-    /// then becomes audible exactly `latency` later — the fixed-latency
-    /// promise this design is built on.
+    /// The ring is pre-rolled with silence by `bind_playback_clock`, so the
+    /// callback hears `depth` blocks of zeros first; the track added before
+    /// `begin` then becomes audible exactly `latency` later — the
+    /// fixed-latency promise this design is built on.
     auto const threaded = felspar::testsuite("mixer.threaded", [](auto check) {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
-        planet::audio::mixer m{master, 20ms};
+        planet::audio::mixer m{master};
+        std::atomic<planet::audio::sample_clock> head{};
+        m.bind_playback_clock(head, planet::audio::sample_clock{1024});
         m.add_track(constant_forever(0.25f));
         m.begin();
 
@@ -139,7 +141,7 @@ namespace {
 
                 std::atomic<planet::audio::sample_clock> head{
                         planet::audio::sample_clock{512}};
-                m.bind_playback_clock(head);
+                m.bind_playback_clock(head, planet::audio::sample_clock{1024});
 
                 check(m.playback_clock()) == &head;
                 check(m.playback_clock()->load())
@@ -157,11 +159,13 @@ namespace {
             felspar::testsuite("mixer.lead_bound", [](auto check) {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixer m{master, 20ms};
+                planet::audio::mixer m{master};
+                std::atomic<planet::audio::sample_clock> head{};
+                m.bind_playback_clock(head, planet::audio::sample_clock{1024});
                 m.add_track(constant_forever(0.1f));
                 m.begin();
 
-                /// 20ms of latency is two ~10.7ms blocks.
+                /// 1024 samples of latency is two 512-sample blocks.
                 check(m.buffer_depth()) == std::size_t{2};
                 /// An unbounded producer would render hundreds of blocks here;
                 /// the ring must cap it at exactly `depth`.

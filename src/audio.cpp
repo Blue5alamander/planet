@@ -102,10 +102,8 @@ namespace {
      * Number of blocks needed to buffer `latency` of audio, clamped to at least
      * one block and capped by the mixer's compile-time storage.
      */
-    std::size_t depth_for(std::chrono::steady_clock::duration const latency) {
-        auto const samples =
-                std::chrono::duration_cast<planet::audio::sample_clock>(latency)
-                        .count();
+    std::size_t depth_for(planet::audio::sample_clock const latency) {
+        auto const samples = latency.count();
         auto const blocks =
                 (samples + planet::audio::default_buffer_samples - 1)
                 / static_cast<std::int64_t>(
@@ -123,10 +121,16 @@ namespace {
 }
 
 
-planet::audio::mixer::mixer(
-        channel &c, std::chrono::steady_clock::duration const latency)
-: master{c}, depth{depth_for(latency)}, slots_free{0} {
+planet::audio::mixer::mixer(channel &c) : master{c}, slots_free{0} {
     incoming.reserve(generators.capacity());
+}
+
+
+void planet::audio::mixer::bind_playback_clock(
+        std::atomic<sample_clock> const &c,
+        sample_clock const latency) noexcept {
+    playback = &c;
+    depth = depth_for(latency);
     /**
      * Declare the ring pre-rolled with silence. Each slot is given a freshly
      * allocated zero-filled `shared_buffer<float>` of one block, so the first
@@ -197,6 +201,11 @@ planet::audio::mixer::~mixer() {
 
 
 void planet::audio::mixer::begin() {
+    if (depth == 0) {
+        planet::log::critical(
+                "mixer::begin called before bind_playback_clock — depth is "
+                "zero, so the producer would block forever on slots_free");
+    }
     producer = std::thread{[this]() { run(); }};
 }
 
