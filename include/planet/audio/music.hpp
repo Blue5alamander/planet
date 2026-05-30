@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <planet/audio/channel.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/stereo.hpp>
 
@@ -23,7 +22,7 @@ namespace planet::audio {
     class music {
       public:
         /// ### Construction and output
-        music(channel &c) : master{c} {}
+        music() = default;
 
         /// #### Audio output
         stereo_generator output();
@@ -56,8 +55,6 @@ namespace planet::audio {
          * manipulated in the same thread that performs the auto generation.
          */
         linear_gain auto_fade;
-        /// The user requested gain value
-        channel &master;
     };
 
 

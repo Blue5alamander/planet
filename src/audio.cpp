@@ -1,3 +1,4 @@
+#include <planet/audio/channel.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/music.hpp>
@@ -245,7 +246,7 @@ planet::audio::stereo_generator planet::audio::music::output() {
             if (queue.size()) {
                 auto next = queue.front().next();
                 if (next) {
-                    generator = master.attenuate(std::move(next.value()));
+                    generator = std::move(next.value());
                 } else {
                     queue.erase(queue.begin());
                 }
