@@ -79,32 +79,16 @@ namespace planet::audio {
         /// ### Start the producer thread
         void begin();
         /**
-         * Launches the producer thread, which fills the ring up to `depth`
-         * blocks ahead and then stays bounded at that lead. Call exactly once,
-         * when the mixer is attached to an audio output. The callback must not
-         * consume until `activate` reports the pre-roll is complete.
+         * Launches the producer thread. The ring is declared full of silence
+         * at construction time, so the audio callback may begin pulling from
+         * `next_frame` immediately — every `add_track` therefore becomes
+         * audible exactly `latency` later, with no startup window in which
+         * that promise can be undercut. The producer wakes only as the
+         * callback frees ring slots, so it stays bounded at `depth` blocks of
+         * lead. Call exactly once, when the mixer is attached to an audio
+         * output.
          */
 
-
-        /// ### Whether the stream has finished its pre-roll
-        bool activate() noexcept
-        /**
-         * Returns `true` once the producer has filled the ring (`depth`
-         * blocks), then latches. Call once per audio callback (not per frame).
-         * Until it returns `true` the callback must not consume from this
-         * mixer, so consumption only ever starts with a full `latency` of
-         * buffer in hand.
-         */
-        {
-            if (not started) {
-                if (ready_count.load(std::memory_order_acquire)
-                    < static_cast<int>(depth)) {
-                    return false;
-                }
-                started = true;
-            }
-            return true;
-        }
 
         /// ### Next stereo frame for the audio callback
         std::array<float, stereo_buffer::channels> next_frame() noexcept
@@ -189,7 +173,6 @@ namespace planet::audio {
         /// Audio-callback-thread-only consumer state
         std::size_t read_slot = 0;
         std::size_t read_marker = 0;
-        bool started = false;
         std::atomic<std::uint64_t> underruns = 0;
     };
 

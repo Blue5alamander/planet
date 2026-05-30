@@ -98,8 +98,10 @@ namespace {
 
 
 namespace {
-    /// Number of blocks needed to buffer `latency` of audio, clamped to at
-    /// least one block and capped by the mixer's compile-time storage.
+    /**
+     * Number of blocks needed to buffer `latency` of audio, clamped to at least
+     * one block and capped by the mixer's compile-time storage.
+     */
     std::size_t depth_for(std::chrono::steady_clock::duration const latency) {
         auto const samples =
                 std::chrono::duration_cast<planet::audio::sample_clock>(latency)
@@ -123,10 +125,17 @@ namespace {
 
 planet::audio::mixer::mixer(
         channel &c, std::chrono::steady_clock::duration const latency)
-: master{c},
-  depth{depth_for(latency)},
-  slots_free{static_cast<std::ptrdiff_t>(depth)} {
+: master{c}, depth{depth_for(latency)}, slots_free{0} {
     incoming.reserve(generators.capacity());
+    /**
+     * Declare the ring pre-rolled with silence. The slot storage is
+     * zero-initialised, so the first `depth` blocks the callback consumes are
+     * silence — exactly what synchronous pre-roll would have produced before
+     * any track was added. The producer is held off (`slots_free` starts at
+     * zero) until the callback frees its first slot, so it can never race the
+     * callback into a slot the callback is still reading.
+     */
+    ready_count.store(static_cast<int>(depth), std::memory_order_release);
 }
 
 

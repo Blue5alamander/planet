@@ -39,21 +39,6 @@ namespace {
     }
 
 
-    /// An infinite source that stalls `per_block` before every block, so the
-    /// producer thread fills the ring at a controllable, observable rate.
-    planet::audio::stereo_generator slow_source(
-            float const v, std::chrono::milliseconds const per_block) {
-        while (true) {
-            std::this_thread::sleep_for(per_block);
-            auto buf = felspar::memory::shared_buffer<float>::allocate(
-                    planet::audio::default_buffer_samples
-                            * planet::audio::stereo_buffer::channels,
-                    v);
-            co_yield planet::audio::stereo_buffer{std::move(buf)};
-        }
-    }
-
-
     auto const correctness = felspar::testsuite("mixer", [](auto check) {
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
@@ -103,9 +88,10 @@ namespace {
             });
 
 
-    /// The producer thread renders into the ring and `next_frame` delivers the
-    /// pre-rolled blocks intact (proving the producer/ring/deep-copy path),
-    /// with no underruns while the ring is full.
+    /// The ring is pre-rolled with silence at construction, so the callback
+    /// hears `depth` blocks of zeros first; the track added before `begin`
+    /// then becomes audible exactly `latency` later — the fixed-latency
+    /// promise this design is built on.
     auto const threaded = felspar::testsuite("mixer.threaded", [](auto check) {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -113,44 +99,33 @@ namespace {
         m.add_track(constant_forever(0.25f));
         m.begin();
 
-        /// Let the producer thread fill the whole ring.
+        std::size_t const block = planet::audio::default_buffer_samples;
+        std::size_t const depth = m.buffer_depth();
+
+        /// The first `depth` blocks must be the constructor's pre-rolled
+        /// silence, regardless of how fast the producer thread is.
+        bool silence_clean = true;
+        for (std::size_t i{}; i < depth * block; ++i) {
+            auto const f = m.next_frame();
+            if (f[0] != 0.0f or f[1] != 0.0f) { silence_clean = false; }
+        }
+        check(silence_clean) == true;
+
+        /// Let the producer fill the ring with track audio before draining
+        /// it in a tight loop — otherwise the consumer can outrun the
+        /// per-wrap render and surface spurious underruns.
         std::this_thread::sleep_for(20ms);
 
-        check(m.activate()) == true;
-
-        std::size_t const frames =
-                m.buffer_depth() * planet::audio::default_buffer_samples;
-        bool all_constant = true;
-        std::size_t produced{};
-        for (std::size_t i{}; i < frames; ++i) {
+        bool track_clean = true;
+        for (std::size_t i{}; i < depth * block; ++i) {
             auto const f = m.next_frame();
-            if (f[0] != 0.25f or f[1] != 0.25f) { all_constant = false; }
-            ++produced;
+            if (f[0] != 0.25f or f[1] != 0.25f) { track_clean = false; }
         }
-        check(all_constant) == true;
-        check(produced) == frames;
+        check(track_clean) == true;
         check(m.underrun_count()) == std::uint64_t{};
         /// The mixer destructor must stop and join the producer thread
         /// cleanly here (a deadlock would hang the test).
     });
-
-
-    /// `activate` gates consumption until the producer has pre-filled the ring
-    /// (`depth` blocks), so playback only starts with a full `latency` buffered.
-    auto const start_gate =
-            felspar::testsuite("mixer.start_gate", [](auto check) {
-                using namespace std::chrono_literals;
-                planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixer m{master, 20ms};
-                /// 40ms/block means the ring cannot be full for a while after
-                /// `begin`, so the first `activate` reliably sees it unfilled.
-                m.add_track(slow_source(0.5f, 40ms));
-                m.begin();
-
-                check(m.activate()) == false;
-                std::this_thread::sleep_for(40ms * (m.buffer_depth() + 1));
-                check(m.activate()) == true;
-            });
 
 
     /// The producer is bounded to `depth` blocks ahead: even given far more
