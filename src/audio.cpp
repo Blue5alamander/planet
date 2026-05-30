@@ -2,14 +2,16 @@
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/music.hpp>
 #include <planet/audio/oscillator.hpp>
+#include <planet/functional.hpp>
 #include <planet/log.hpp>
 #include <planet/serialise.hpp>
 #include <planet/numbers.hpp>
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
+#include <algorithm>
 #include <cmath>
-#include <complex>
+#include <exception>
 
 
 /// ## `planet::audio::atomic_linear_gain`
@@ -94,6 +96,39 @@ namespace {
 /// ## `planet::audio::mixer`
 
 
+namespace {
+    /// Number of blocks needed to buffer `latency` of audio, clamped to at
+    /// least one block and capped by the mixer's compile-time storage.
+    std::size_t depth_for(std::chrono::steady_clock::duration const latency) {
+        auto const samples =
+                std::chrono::duration_cast<planet::audio::sample_clock>(latency)
+                        .count();
+        auto const blocks =
+                (samples + planet::audio::default_buffer_samples - 1)
+                / static_cast<std::int64_t>(
+                        planet::audio::default_buffer_samples);
+        auto const wanted = std::max<std::int64_t>(1, blocks);
+        if (wanted
+            > static_cast<std::int64_t>(planet::audio::mixer::max_ring_depth)) {
+            planet::log::critical(
+                    "Requested mixer latency needs", wanted,
+                    "ring blocks which exceeds the maximum of",
+                    planet::audio::mixer::max_ring_depth);
+        }
+        return static_cast<std::size_t>(wanted);
+    }
+}
+
+
+planet::audio::mixer::mixer(
+        channel &c, std::chrono::steady_clock::duration const latency)
+: master{c},
+  depth{depth_for(latency)},
+  slots_free{static_cast<std::ptrdiff_t>(depth)} {
+    incoming.reserve(generators.capacity());
+}
+
+
 auto planet::audio::mixer::output() -> stereo_generator {
     return master.attenuate(raw_mix());
 }
@@ -133,6 +168,60 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
         });
         output.ensure_length(default_buffer_samples * stereo_buffer::channels);
         co_yield output.first(default_buffer_samples * stereo_buffer::channels);
+    }
+}
+
+
+planet::audio::mixer::~mixer() {
+    if (producer.joinable()) {
+        stop_flag.store(true, std::memory_order_release);
+        slots_free.release();
+        producer.join();
+    }
+}
+
+
+void planet::audio::mixer::begin() {
+    producer = std::thread{[this]() { run(); }};
+}
+
+
+void planet::audio::mixer::run() noexcept {
+    try {
+        auto gen = output();
+        while (not stop_flag.load(std::memory_order_acquire)) {
+            slots_free.acquire();
+            if (stop_flag.load(std::memory_order_acquire)) { break; }
+            auto block = gen.next();
+            auto &dst = slots[write_slot];
+            if (block) {
+                std::size_t const n = std::min<std::size_t>(
+                        block->samples(), default_buffer_samples);
+                planet::by_index(n, [&](std::size_t const s) {
+                    planet::by_index(
+                            stereo_buffer::channels, [&](std::size_t const ch) {
+                                dst[s * stereo_buffer::channels + ch] =
+                                        (*block)[s][ch];
+                            });
+                });
+                std::fill(
+                        dst.begin() + n * stereo_buffer::channels, dst.end(),
+                        0.0f);
+            } else {
+                dst.fill(0.0f);
+            }
+            write_slot = (write_slot + 1) % depth;
+            ready_count.fetch_add(1, std::memory_order_release);
+        }
+    } catch (std::exception const &e) {
+        planet::log::critical(
+                "The audio mixer producer thread caught an exception while "
+                "rendering; an audio generator must not throw",
+                e.what());
+    } catch (...) {
+        planet::log::critical(
+                "The audio mixer producer thread caught a non-standard "
+                "exception while rendering; an audio generator must not throw");
     }
 }
 

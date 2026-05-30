@@ -40,6 +40,16 @@ namespace planet::audio {
         dB_gain const &gain() const noexcept { return db_g; }
 
 
+        /// ### Current linear gain multiplier
+        /**
+         * The instantaneous linear multiplier, safe to read from any thread
+         * (including a real-time audio callback). Use this to apply the channel
+         * gain by direct multiplication when the audio is not flowing through a
+         * generator that `attenuate` could wrap.
+         */
+        float multiplier() const noexcept { return linear.load(); }
+
+
         void update(dB_gain const g) noexcept {
             db_g = g;
             write_through();
