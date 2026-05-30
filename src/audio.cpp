@@ -128,13 +128,18 @@ planet::audio::mixer::mixer(
 : master{c}, depth{depth_for(latency)}, slots_free{0} {
     incoming.reserve(generators.capacity());
     /**
-     * Declare the ring pre-rolled with silence. The slot storage is
-     * zero-initialised, so the first `depth` blocks the callback consumes are
-     * silence — exactly what synchronous pre-roll would have produced before
-     * any track was added. The producer is held off (`slots_free` starts at
-     * zero) until the callback frees its first slot, so it can never race the
-     * callback into a slot the callback is still reading.
+     * Declare the ring pre-rolled with silence. Each slot is given a freshly
+     * allocated zero-filled `shared_buffer<float>` of one block, so the first
+     * `depth` blocks the callback consumes are silence — exactly what
+     * synchronous pre-roll would have produced before any track was added.
+     * The producer is held off (`slots_free` starts at zero) until the
+     * callback frees its first slot, so it can never race the callback into a
+     * slot the callback is still reading.
      */
+    for (auto &s : slots) {
+        s = felspar::memory::shared_buffer<float>::allocate(
+                default_buffer_samples * stereo_buffer::channels, 0.0f);
+    }
     ready_count.store(static_cast<int>(depth), std::memory_order_release);
 }
 
@@ -199,27 +204,53 @@ void planet::audio::mixer::begin() {
 void planet::audio::mixer::run() noexcept {
     try {
         auto gen = output();
+        /**
+         * The producer's own accumulation_buffer. Each iteration copies the
+         * upstream block's samples into the accumulator and yields the head
+         * `default_buffer_samples * channels` floats as a
+         * `shared_buffer<float>` via `first()` — the same idiom `raw_mix` and
+         * `gain` already use. Each call returns a fresh refcounted slice; the
+         * accumulator grows and reallocates as needed, keeping older slices
+         * alive via the shared control block until the last consumer (including
+         * any future tap subscribers) drops them.
+         */
+        felspar::memory::accumulation_buffer<float> publish{
+                default_buffer_samples * stereo_buffer::channels * 50};
         while (not stop_flag.load(std::memory_order_acquire)) {
             slots_free.acquire();
             if (stop_flag.load(std::memory_order_acquire)) { break; }
             auto block = gen.next();
-            auto &dst = slots[write_slot];
+            std::size_t const block_floats =
+                    default_buffer_samples * stereo_buffer::channels;
+            publish.ensure_length(block_floats);
             if (block) {
                 std::size_t const n = std::min<std::size_t>(
                         block->samples(), default_buffer_samples);
                 planet::by_index(n, [&](std::size_t const s) {
                     planet::by_index(
                             stereo_buffer::channels, [&](std::size_t const ch) {
-                                dst[s * stereo_buffer::channels + ch] =
+                                publish[s * stereo_buffer::channels + ch] =
                                         (*block)[s][ch];
                             });
                 });
-                std::fill(
-                        dst.begin() + n * stereo_buffer::channels, dst.end(),
-                        0.0f);
+                planet::by_index(
+                        block_floats - n * stereo_buffer::channels,
+                        [&](std::size_t const i) {
+                            publish[n * stereo_buffer::channels + i] = 0.0f;
+                        });
             } else {
-                dst.fill(0.0f);
+                planet::by_index(block_floats, [&](std::size_t const i) {
+                    publish[i] = 0.0f;
+                });
             }
+            /**
+             * Publish a fresh refcounted slice into the slot. The previous
+             * slot's slice is dropped here on the producer thread; if no
+             * other consumer still holds it, its refcount falls back into
+             * the accumulator's vector and the memory is reclaimed off the
+             * real-time audio thread.
+             */
+            slots[write_slot] = publish.first(block_floats);
             write_slot = (write_slot + 1) % depth;
             ready_count.fetch_add(1, std::memory_order_release);
         }

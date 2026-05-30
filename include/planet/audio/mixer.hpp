@@ -98,6 +98,12 @@ namespace planet::audio {
          * counts an underrun) when no block is ready. Frees a ring slot —
          * waking the producer — each time a whole block has been consumed.
          * Never blocks. Only ever called from the single audio-callback thread.
+         *
+         * Reads through the slot's `shared_buffer<float>` handle without
+         * touching its refcount: the producer thread owns the slot, and the
+         * callback only reads via `.data()`. The slot's handle is overwritten
+         * (with the next published block) only on the producer thread, after
+         * `slots_free.release()` here gives it permission.
          */
         {
             if (read_marker == 0
@@ -106,10 +112,11 @@ namespace planet::audio {
                 return {};
             }
             auto const base = read_marker * stereo_buffer::channels;
+            float const *const samples = slots[read_slot].data();
             std::array<float, stereo_buffer::channels> frame;
             planet::by_index(
                     stereo_buffer::channels, [&](std::size_t const ch) {
-                        frame[ch] = slots[read_slot][base + ch];
+                        frame[ch] = samples[base + ch];
                     });
             if (++read_marker == default_buffer_samples) {
                 read_marker = 0;
@@ -181,9 +188,14 @@ namespace planet::audio {
         std::size_t depth;
 
         /// Pre-rendered ring shared with the audio callback. Backed by the
-        /// compile-time cap; only the first `depth` slots are ever used.
-        using slot = std::
-                array<float, default_buffer_samples * stereo_buffer::channels>;
+        /// compile-time cap; only the first `depth` slots are ever used. Each
+        /// slot holds the latest published block as a refcounted
+        /// `shared_buffer<float>` slice from the producer's accumulation
+        /// buffer; future tap subscribers can hold their own ref on the same
+        /// slice without an extra copy. Initialized to zero-filled buffers in
+        /// the constructor so the callback sees pre-rolled silence before the
+        /// producer thread starts.
+        using slot = felspar::memory::shared_buffer<float>;
         std::array<slot, max_ring_depth> slots = {};
         std::atomic<int> ready_count = 0;
         std::counting_semaphore<max_ring_depth> slots_free;
