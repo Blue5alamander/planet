@@ -11,6 +11,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <semaphore>
 #include <thread>
@@ -61,11 +62,40 @@ namespace planet::audio {
 
         /// ### Add a track to the mix
         /// Safe to call from any thread; drained on the producer thread.
+        /**
+         * The track starts as soon as the producer next drains the queue —
+         * audible `driver::latency` later, the fixed-latency promise the mixer
+         * is built on. Pushes a `sample_clock::min()` sentinel so the producer
+         * applies no scheduling delay at all (exactly the historical
+         * behaviour), independent of whether a driver is bound.
+         */
         void add_track(stereo_generator track) {
-            incoming.push(std::move(track));
+            incoming.push({std::move(track), sample_clock::min()});
         }
         void add_track(stereo_generator track, dB_gain g) {
             add_track(gain(g, std::move(track)));
+        }
+
+        /// ### Add a track scheduled to start at a real-world wall-clock time
+        /**
+         * `play_at` is a `steady_clock` instant. The track is converted to an
+         * absolute producer-sample position using the driver's fixed
+         * `wall_clock_epoch` (captured once per `reconnect`), so the same
+         * `play_at` always lands on the same sample for the whole session. The
+         * producer outputs silence until that position, then mixes the track
+         * in. If `play_at` is already in the past relative to the producer's
+         * write position the track starts as soon as possible (no negative
+         * delay). On a mixer with no driver bound the time cannot be resolved,
+         * so the track starts as soon as possible.
+         */
+        void add_track(
+                stereo_generator track,
+                std::chrono::steady_clock::time_point play_at);
+        void add_track(
+                stereo_generator track,
+                dB_gain g,
+                std::chrono::steady_clock::time_point const play_at) {
+            add_track(gain(g, std::move(track)), play_at);
         }
 
         /// ### Mixed output generator
@@ -189,13 +219,26 @@ namespace planet::audio {
             stereo_generator audio;
             /// The number of samples that have been placed in the output so far
             std::size_t samples = {};
+            /// Silence still to be written before this track starts mixing in
+            std::size_t delay_samples = {};
+        };
+        /**
+         * A track waiting to join the mix together with the absolute
+         * producer-sample position it should start at. `add_track` resolves
+         * `play_at` into `target_position`; a `sample_clock::min()` value means
+         * "as soon as possible" (no scheduling delay). `raw_mix` turns the
+         * target into `track::delay_samples` against its own write position.
+         */
+        struct scheduled_track {
+            stereo_generator audio;
+            sample_clock target_position;
         };
         /**
          * Tracks waiting to join the mix. `add_track` pushes from any thread;
          * `raw_mix` drains this into `generators` at the start of each buffer,
          * keeping `generators` itself producer-thread-only (no lock needed).
          */
-        planet::queue::tspsc<stereo_generator> incoming;
+        planet::queue::tspsc<scheduled_track> incoming;
         felspar::memory::small_vector<track, 50> generators;
         stereo_generator raw_mix();
 

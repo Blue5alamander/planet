@@ -4,6 +4,7 @@
 #include <planet/audio/clocks.hpp>
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 
 
@@ -42,6 +43,24 @@ namespace planet::audio {
 
         /// ### Latency in samples (== block_size * block_count)
         sample_clock const latency;
+
+        /// ### Wall-clock anchor for sample-position zero
+        /**
+         * The real-world (`steady_clock`) instant that corresponds to the
+         * mixer producer's first output sample. Captured **once** when the
+         * driver is constructed — i.e. once per `reconnect`, because the
+         * backend re-emplaces the driver each time it renegotiates a device —
+         * and never written again. Holding the audio↔wall offset fixed for the
+         * whole session means a given wall-clock `play_at` always maps to the
+         * same audio sample: no per-callback rounding can make successive calls
+         * disagree about which sample a time represents.
+         *
+         * `mixer::add_track(track, play_at)` reads this to convert a scheduled
+         * wall-clock time into an absolute producer-sample position. It is a
+         * plain `const` member (not atomic): written before the driver pointer
+         * is published to any mixer, then only ever read.
+         */
+        std::chrono::steady_clock::time_point const wall_clock_epoch;
     };
 
 

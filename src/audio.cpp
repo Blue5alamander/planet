@@ -12,6 +12,7 @@
 #include <felspar/memory/accumulation_buffer.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <exception>
 
@@ -103,7 +104,8 @@ planet::audio::driver::driver(
 : block_size{block_size},
   block_count{block_count},
   latency{sample_clock{
-          static_cast<sample_clock::rep>(block_size * block_count)}} {
+          static_cast<sample_clock::rep>(block_size * block_count)}},
+  wall_clock_epoch{std::chrono::steady_clock::now()} {
     if (block_count > mixer::max_ring_depth) {
         planet::log::critical(
                 "Audio driver block_count", block_count,
@@ -163,6 +165,23 @@ void planet::audio::mixer::bind_driver(driver const &d) noexcept {
 }
 
 
+void planet::audio::mixer::add_track(
+        stereo_generator track,
+        std::chrono::steady_clock::time_point const play_at) {
+    /**
+     * Resolve the wall-clock `play_at` into an absolute producer-sample
+     * position using the driver's fixed `wall_clock_epoch`. The epoch maps to
+     * producer sample zero, so the target is simply the elapsed time since the
+     * epoch in samples. With no driver bound the wall-clock cannot be
+     * resolved, so fall back to the "as soon as possible" sentinel.
+     */
+    sample_clock const target = drv ? std::chrono::duration_cast<sample_clock>(
+                                              play_at - drv->wall_clock_epoch)
+                                    : sample_clock::min();
+    incoming.push({std::move(track), target});
+}
+
+
 auto planet::audio::mixer::output() -> stereo_generator {
     return master.attenuate(raw_mix());
 }
@@ -171,30 +190,59 @@ auto planet::audio::mixer::output() -> stereo_generator {
 auto planet::audio::mixer::raw_mix() -> stereo_generator {
     felspar::memory::accumulation_buffer<float> output{
             default_buffer_samples * 50};
+    /// Absolute count of samples this generator has produced so far.
+    std::uint64_t producer_position{};
     while (true) {
         for (auto &waiting : incoming.consume()) {
             if (generators.has_room()) {
-                generators.push_back({std::move(waiting)});
+                /**
+                 * Turn the track's absolute target position into the silence
+                 * it needs ahead of its first audio. A target at or before the
+                 * current write position (including the `sample_clock::min()`
+                 * "as soon as possible" sentinel) yields no delay.
+                 */
+                sample_clock const now_pos{
+                        static_cast<sample_clock::rep>(producer_position)};
+                std::size_t delay = {};
+                if (waiting.target_position > now_pos) {
+                    delay = static_cast<std::size_t>(
+                            (waiting.target_position - now_pos).count());
+                }
+                generators.push_back({std::move(waiting.audio), {}, delay});
             }
         }
         generators.erase_if([&output](auto &gen) {
             while (gen.samples < default_buffer_samples) {
-                auto buffer = gen.audio.next();
-                if (buffer) {
-                    output.ensure_length(
-                            (gen.samples + buffer->samples())
-                            * stereo_buffer::channels);
-                    for (std::size_t sample{}; sample < buffer->samples();
-                         ++sample) {
-                        std::size_t const idx = (gen.samples + sample)
-                                * stereo_buffer::channels;
-                        auto const src = (*buffer)[sample];
-                        output.at(idx + 0) += src[0];
-                        output.at(idx + 1) += src[1];
-                    }
-                    gen.samples += buffer->samples();
+                if (gen.delay_samples > 0) {
+                    /**
+                     * Advance past the scheduled silence. Nothing is written:
+                     * the additive mix leaves these positions at whatever the
+                     * other tracks contributed (or zero), which is exactly the
+                     * silence we want for this track.
+                     */
+                    std::size_t const room =
+                            default_buffer_samples - gen.samples;
+                    std::size_t const skip = std::min(gen.delay_samples, room);
+                    gen.samples += skip;
+                    gen.delay_samples -= skip;
                 } else {
-                    return true;
+                    auto buffer = gen.audio.next();
+                    if (buffer) {
+                        output.ensure_length(
+                                (gen.samples + buffer->samples())
+                                * stereo_buffer::channels);
+                        for (std::size_t sample{}; sample < buffer->samples();
+                             ++sample) {
+                            std::size_t const idx = (gen.samples + sample)
+                                    * stereo_buffer::channels;
+                            auto const src = (*buffer)[sample];
+                            output.at(idx + 0) += src[0];
+                            output.at(idx + 1) += src[1];
+                        }
+                        gen.samples += buffer->samples();
+                    } else {
+                        return true;
+                    }
                 }
             }
             gen.samples -= default_buffer_samples;
@@ -202,6 +250,7 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
         });
         output.ensure_length(default_buffer_samples * stereo_buffer::channels);
         co_yield output.first(default_buffer_samples * stereo_buffer::channels);
+        producer_position += default_buffer_samples;
     }
 }
 

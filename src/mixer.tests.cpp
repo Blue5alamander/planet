@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
+#include <vector>
 
 
 namespace {
@@ -217,6 +218,110 @@ namespace {
                 /// And the mixer destructor must still join the new
                 /// producer thread cleanly here — a deadlock would
                 /// hang the test.
+            });
+
+
+    /// Pull `blocks` blocks straight from `output()` (no producer thread) and
+    /// return the flattened left-channel samples. Single-threaded, so the
+    /// scheduling maths is exercised deterministically with no timing jitter.
+    std::vector<float>
+            pull_left(planet::audio::mixer &m, std::size_t const blocks) {
+        std::vector<float> out;
+        auto gen = m.output();
+        for (std::size_t b{}; b < blocks; ++b) {
+            auto block = gen.next();
+            if (not block) { break; }
+            for (std::size_t s{}; s < block->samples(); ++s) {
+                out.push_back((*block)[s][0]);
+            }
+        }
+        return out;
+    }
+
+
+    /// A track scheduled at the driver's `wall_clock_epoch` has a zero target
+    /// position, so it plays from the very first sample — identical to the
+    /// immediate overload.
+    auto const schedule_immediate =
+            felspar::testsuite("mixer.schedule.immediate", [](auto check) {
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv{
+                        planet::audio::default_buffer_samples, 2};
+                m.bind_driver(drv);
+                m.add_track(constant_forever(0.25f), drv.wall_clock_epoch);
+
+                auto const left = pull_left(m, 2);
+                check(left.front()) == 0.25f;
+                check(left.back()) == 0.25f;
+            });
+
+
+    /// A track scheduled 20ms after the epoch (== 960 samples at 48kHz) is
+    /// preceded by exactly that many samples of silence, then plays.
+    auto const schedule_delayed =
+            felspar::testsuite("mixer.schedule.delayed", [](auto check) {
+                using namespace std::chrono_literals;
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv{
+                        planet::audio::default_buffer_samples, 2};
+                m.bind_driver(drv);
+
+                /// 20ms is an exact 960 samples (and an exact 20'000'000ns), so
+                /// neither the wall->sample nor sample->wall conversion rounds.
+                std::size_t const expected_silence = 960;
+                m.add_track(
+                        constant_forever(0.25f), drv.wall_clock_epoch + 20ms);
+
+                auto const left = pull_left(m, 4);
+                bool silence_clean = true;
+                for (std::size_t i{}; i < expected_silence; ++i) {
+                    if (left[i] != 0.0f) { silence_clean = false; }
+                }
+                check(silence_clean) == true;
+                bool audio_clean = true;
+                for (std::size_t i{expected_silence}; i < left.size(); ++i) {
+                    if (left[i] != 0.25f) { audio_clean = false; }
+                }
+                check(audio_clean) == true;
+                check(left[expected_silence - 1]) == 0.0f;
+                check(left[expected_silence]) == 0.25f;
+            });
+
+
+    /// A track scheduled in the past relative to the epoch clamps to "as soon
+    /// as possible" — it plays from the first sample with no negative delay.
+    auto const schedule_late =
+            felspar::testsuite("mixer.schedule.late", [](auto check) {
+                using namespace std::chrono_literals;
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv{
+                        planet::audio::default_buffer_samples, 2};
+                m.bind_driver(drv);
+                m.add_track(constant_forever(0.25f), drv.wall_clock_epoch - 1s);
+
+                auto const left = pull_left(m, 2);
+                check(left.front()) == 0.25f;
+                check(left.back()) == 0.25f;
+            });
+
+
+    /// On a mixer with no driver bound the wall-clock cannot be resolved, so a
+    /// scheduled track falls back to playing as soon as possible.
+    auto const schedule_unbound =
+            felspar::testsuite("mixer.schedule.unbound", [](auto check) {
+                using namespace std::chrono_literals;
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                m.add_track(
+                        constant_forever(0.25f),
+                        std::chrono::steady_clock::now() + 1s);
+
+                auto const left = pull_left(m, 2);
+                check(left.front()) == 0.25f;
+                check(left.back()) == 0.25f;
             });
 
 
