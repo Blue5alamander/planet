@@ -1,5 +1,6 @@
 #include <planet/audio/channel.hpp>
 #include <planet/audio/clocks.hpp>
+#include <planet/audio/driver.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/mixer.hpp>
 
@@ -88,7 +89,7 @@ namespace {
             });
 
 
-    /// The ring is pre-rolled with silence by `bind_playback_clock`, so the
+    /// The ring is pre-rolled with silence by `bind_driver`, so the
     /// callback hears `depth` blocks of zeros first; the track added before
     /// `begin` then becomes audible exactly `latency` later — the
     /// fixed-latency promise this design is built on.
@@ -96,8 +97,8 @@ namespace {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
-        std::atomic<planet::audio::sample_clock> head{};
-        m.bind_playback_clock(head, planet::audio::sample_clock{1024});
+        planet::audio::driver drv{planet::audio::default_buffer_samples, 2};
+        m.bind_driver(drv);
         m.add_track(constant_forever(0.25f));
         m.begin();
 
@@ -130,7 +131,7 @@ namespace {
     });
 
 
-    /// `bind_playback_clock` makes an externally-owned atomic findable
+    /// `bind_driver` makes the driver's playback-head atomic findable
     /// through the mixer; an unbound mixer reports null.
     auto const playback_clock =
             felspar::testsuite("mixer.playback_clock", [](auto check) {
@@ -139,15 +140,16 @@ namespace {
 
                 check(m.playback_clock()) == nullptr;
 
-                std::atomic<planet::audio::sample_clock> head{
-                        planet::audio::sample_clock{512}};
-                m.bind_playback_clock(head, planet::audio::sample_clock{1024});
+                planet::audio::driver drv{
+                        planet::audio::default_buffer_samples, 2};
+                drv.playback_head.store(planet::audio::sample_clock{512});
+                m.bind_driver(drv);
 
-                check(m.playback_clock()) == &head;
+                check(m.playback_clock()) == &drv.playback_head;
                 check(m.playback_clock()->load())
                         == planet::audio::sample_clock{512};
 
-                head.store(planet::audio::sample_clock{1024});
+                drv.playback_head.store(planet::audio::sample_clock{1024});
                 check(m.playback_clock()->load())
                         == planet::audio::sample_clock{1024};
             });
@@ -160,8 +162,9 @@ namespace {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                std::atomic<planet::audio::sample_clock> head{};
-                m.bind_playback_clock(head, planet::audio::sample_clock{1024});
+                planet::audio::driver drv{
+                        planet::audio::default_buffer_samples, 2};
+                m.bind_driver(drv);
                 m.add_track(constant_forever(0.1f));
                 m.begin();
 

@@ -1,4 +1,5 @@
 #include <planet/audio/channel.hpp>
+#include <planet/audio/driver.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/music.hpp>
@@ -94,31 +95,28 @@ namespace {
 }
 
 
-/// ## `planet::audio::mixer`
+/// ## `planet::audio::driver`
 
 
-namespace {
-    /**
-     * Number of blocks needed to buffer `latency` of audio, clamped to at least
-     * one block and capped by the mixer's compile-time storage.
-     */
-    std::size_t depth_for(planet::audio::sample_clock const latency) {
-        auto const samples = latency.count();
-        auto const blocks =
-                (samples + planet::audio::default_buffer_samples - 1)
-                / static_cast<std::int64_t>(
-                        planet::audio::default_buffer_samples);
-        auto const wanted = std::max<std::int64_t>(1, blocks);
-        if (wanted
-            > static_cast<std::int64_t>(planet::audio::mixer::max_ring_depth)) {
-            planet::log::critical(
-                    "Requested mixer latency needs", wanted,
-                    "ring blocks which exceeds the maximum of",
-                    planet::audio::mixer::max_ring_depth);
-        }
-        return static_cast<std::size_t>(wanted);
+planet::audio::driver::driver(
+        std::size_t const block_size, std::size_t const block_count) noexcept
+: block_size{block_size},
+  block_count{block_count},
+  latency{sample_clock{
+          static_cast<sample_clock::rep>(block_size * block_count)}} {
+    if (block_count > mixer::max_ring_depth) {
+        planet::log::critical(
+                "Audio driver block_count", block_count,
+                "exceeds the mixer's maximum ring depth of",
+                mixer::max_ring_depth);
+    }
+    if (block_count == 0) {
+        planet::log::critical("Audio driver block_count must be at least 1");
     }
 }
+
+
+/// ## `planet::audio::mixer`
 
 
 planet::audio::mixer::mixer(channel &c) : master{c}, slots_free{0} {
@@ -126,25 +124,23 @@ planet::audio::mixer::mixer(channel &c) : master{c}, slots_free{0} {
 }
 
 
-void planet::audio::mixer::bind_playback_clock(
-        std::atomic<sample_clock> const &c,
-        sample_clock const latency) noexcept {
-    playback = &c;
-    depth = depth_for(latency);
+void planet::audio::mixer::bind_driver(driver const &d) noexcept {
+    drv = &d;
     /**
      * Declare the ring pre-rolled with silence. Each slot is given a freshly
      * allocated zero-filled `shared_buffer<float>` of one block, so the first
-     * `depth` blocks the callback consumes are silence — exactly what
-     * synchronous pre-roll would have produced before any track was added.
-     * The producer is held off (`slots_free` starts at zero) until the
+     * `drv->block_count` blocks the callback consumes are silence — exactly
+     * what synchronous pre-roll would have produced before any track was
+     * added. The producer is held off (`slots_free` starts at zero) until the
      * callback frees its first slot, so it can never race the callback into a
      * slot the callback is still reading.
      */
     for (auto &s : slots) {
         s = felspar::memory::shared_buffer<float>::allocate(
-                default_buffer_samples * stereo_buffer::channels, 0.0f);
+                drv->block_size * stereo_buffer::channels, 0.0f);
     }
-    ready_count.store(static_cast<int>(depth), std::memory_order_release);
+    ready_count.store(
+            static_cast<int>(drv->block_count), std::memory_order_release);
 }
 
 
@@ -201,10 +197,10 @@ planet::audio::mixer::~mixer() {
 
 
 void planet::audio::mixer::begin() {
-    if (depth == 0) {
+    if (drv == nullptr) {
         planet::log::critical(
-                "mixer::begin called before bind_playback_clock — depth is "
-                "zero, so the producer would block forever on slots_free");
+                "mixer::begin called before bind_driver — no driver bound, "
+                "so the producer would block forever on slots_free");
     }
     producer = std::thread{[this]() { run(); }};
 }
@@ -230,11 +226,11 @@ void planet::audio::mixer::run() noexcept {
             if (stop_flag.load(std::memory_order_acquire)) { break; }
             auto block = gen.next();
             std::size_t const block_floats =
-                    default_buffer_samples * stereo_buffer::channels;
+                    drv->block_size * stereo_buffer::channels;
             publish.ensure_length(block_floats);
             if (block) {
                 std::size_t const n = std::min<std::size_t>(
-                        block->samples(), default_buffer_samples);
+                        block->samples(), drv->block_size);
                 planet::by_index(n, [&](std::size_t const s) {
                     planet::by_index(
                             stereo_buffer::channels, [&](std::size_t const ch) {
@@ -260,7 +256,7 @@ void planet::audio::mixer::run() noexcept {
              * real-time audio thread.
              */
             slots[write_slot] = publish.first(block_floats);
-            write_slot = (write_slot + 1) % depth;
+            write_slot = (write_slot + 1) % drv->block_count;
             ready_count.fetch_add(1, std::memory_order_release);
         }
     } catch (std::exception const &e) {

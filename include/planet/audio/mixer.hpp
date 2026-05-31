@@ -2,6 +2,7 @@
 
 
 #include <planet/audio/clocks.hpp>
+#include <planet/audio/driver.hpp>
 #include <planet/audio/stereo.hpp>
 #include <planet/functional.hpp>
 #include <planet/queue/tspsc.hpp>
@@ -34,9 +35,9 @@ namespace planet::audio {
         /**
          * Compile-time cap on the number of blocks buffered between the
          * producer thread and the consuming audio callback. The depth actually
-         * used is derived from the latency the audio output passes to
-         * `bind_playback_clock`; this only bounds the backing storage and the
-         * semaphore.
+         * used is `driver::block_count`, taken from the `driver` the audio
+         * output passes to `bind_driver`; this only bounds the backing storage
+         * and the semaphore.
          */
         static constexpr std::size_t max_ring_depth = 16;
 
@@ -44,10 +45,10 @@ namespace planet::audio {
         /// ### Construction
         explicit mixer(channel &c);
         /**
-         * The mixer is unattached until `bind_playback_clock` is called: that
-         * is the step that sets the ring depth (from a latency supplied by the
-         * audio output) and pre-rolls silence. `begin` must therefore be
-         * preceded by `bind_playback_clock`, which `audio_output::attach` does.
+         * The mixer is unattached until `bind_driver` is called: that is the
+         * step that sets the ring depth (from the driver supplied by the audio
+         * output) and pre-rolls silence. `begin` must therefore be preceded by
+         * `bind_driver`, which `audio_output::attach` does.
          */
 
         mixer(mixer const &) = delete;
@@ -76,13 +77,13 @@ namespace planet::audio {
         void begin();
         /**
          * Launches the producer thread. The ring was declared full of silence
-         * by `bind_playback_clock`, so the audio callback may begin pulling
-         * from `next_frame` immediately — every `add_track` therefore becomes
-         * audible exactly `latency` later, with no startup window in which
-         * that promise can be undercut. The producer wakes only as the
-         * callback frees ring slots, so it stays bounded at `depth` blocks of
-         * lead. Call exactly once, after `bind_playback_clock`, when the
-         * mixer is attached to an audio output.
+         * by `bind_driver`, so the audio callback may begin pulling from
+         * `next_frame` immediately — every `add_track` therefore becomes
+         * audible exactly `driver::latency` later, with no startup window in
+         * which that promise can be undercut. The producer wakes only as the
+         * callback frees ring slots, so it stays bounded at
+         * `driver::block_count` blocks of lead. Call exactly once, after
+         * `bind_driver`, when the mixer is attached to an audio output.
          */
 
 
@@ -113,9 +114,9 @@ namespace planet::audio {
                     stereo_buffer::channels, [&](std::size_t const ch) {
                         frame[ch] = samples[base + ch];
                     });
-            if (++read_marker == default_buffer_samples) {
+            if (++read_marker == drv->block_size) {
                 read_marker = 0;
-                read_slot = (read_slot + 1) % depth;
+                read_slot = (read_slot + 1) % drv->block_count;
                 ready_count.fetch_sub(1, std::memory_order_acq_rel);
                 slots_free.release();
             }
@@ -129,26 +130,24 @@ namespace planet::audio {
         }
 
 
-        /// ### Bind the SDL playback-head clock and configure the ring
+        /// ### Bind the audio driver and configure the ring
         /**
          * Called by `planet::sdl::audio_output::attach` before the producer
          * thread starts. Does three things:
          *
-         * 1. Binds the atomic published by the `audio_output`'s callback so
-         *    anything holding only the mixer can find the shared audio-clock
-         *    value (`playback_clock()`).
-         * 2. Sets the producer's bounded lead from `latency` — the fixed
-         *    distance the producer can stay ahead of the consuming callback.
-         *    A track handed to `add_track` therefore becomes audible
-         *    `latency` later (give or take one block), measured on top of
-         *    the audio device's own buffer.
+         * 1. Stores the driver pointer so anything holding only the mixer
+         *    can find the shared audio-clock value (`playback_clock()`) and
+         *    the backend's timing/sizing parameters.
+         * 2. Sets the producer's bounded lead to `driver::block_count` — the
+         *    fixed distance the producer can stay ahead of the consuming
+         *    callback. A track handed to `add_track` therefore becomes
+         *    audible `driver::latency` later (give or take one block),
+         *    measured on top of the audio device's own buffer.
          * 3. Pre-rolls the ring with silence so the callback can begin
          *    consuming immediately, without a startup window in which the
          *    fixed-latency promise could be undercut.
          */
-        void bind_playback_clock(
-                std::atomic<sample_clock> const &c,
-                sample_clock latency) noexcept;
+        void bind_driver(driver const &) noexcept;
 
         /// ### SDL playback-head clock, or `nullptr` if not yet bound
         /**
@@ -158,12 +157,14 @@ namespace planet::audio {
          * representable.
          */
         std::atomic<sample_clock> const *playback_clock() const noexcept {
-            return playback;
+            return drv ? &drv->playback_head : nullptr;
         }
 
 
-        /// ### Bounded producer lead in blocks (derived from `latency`)
-        std::size_t buffer_depth() const noexcept { return depth; }
+        /// ### Bounded producer lead in blocks (== `driver::block_count`)
+        std::size_t buffer_depth() const noexcept {
+            return drv ? drv->block_count : 0;
+        }
 
         /// ### Blocks currently rendered and ready for the callback (telemetry)
         std::size_t buffered_blocks() const noexcept {
@@ -189,18 +190,9 @@ namespace planet::audio {
         stereo_generator raw_mix();
 
         /**
-         * Bounded producer lead in blocks, derived from the latency the audio
-         * output passes to `bind_playback_clock`. The producer can be at most
-         * this many blocks ahead of the consumer, so the realized latency is
-         * fixed at `depth` blocks rather than the whole backing ring. Zero
-         * until `bind_playback_clock` is called.
-         */
-        std::size_t depth = 0;
-
-        /**
          * Pre-rendered ring shared with the audio callback. Backed by the
-         * compile-time cap; only the first `depth` slots are ever used. Each
-         * slot holds the latest published block as a refcounted
+         * compile-time cap; only the first `drv->block_count` slots are ever
+         * used. Each slot holds the latest published block as a refcounted
          * `shared_buffer<float>` slice from the producer's accumulation buffer;
          * future tap subscribers can hold their own ref on the same slice
          * without an extra copy. Initialized to zero-filled buffers in the
@@ -224,7 +216,7 @@ namespace planet::audio {
         std::atomic<std::uint64_t> underruns = 0;
 
         /// Bound by `audio_output::attach`; null until then.
-        std::atomic<sample_clock> const *playback = nullptr;
+        driver const *drv = nullptr;
     };
 
 
