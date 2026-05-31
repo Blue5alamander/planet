@@ -125,6 +125,25 @@ planet::audio::mixer::mixer(channel &c) : master{c}, slots_free{0} {
 
 
 void planet::audio::mixer::bind_driver(driver const &d) noexcept {
+    /**
+     * Safe to call again on an already-running mixer: the audio device must
+     * already have been quiesced by the caller (so the callback thread is not
+     * consuming `next_frame`), then we stop the producer, drain leftover
+     * `slots_free` permits, and reset every piece of ring state before
+     * re-allocating slots for the new driver's `block_size`. The caller
+     * invokes `begin()` afterwards.
+     */
+    if (producer.joinable()) {
+        stop_flag.store(true, std::memory_order_release);
+        slots_free.release();
+        producer.join();
+        stop_flag.store(false, std::memory_order_release);
+        while (slots_free.try_acquire()) {}
+        read_slot = 0;
+        read_marker = 0;
+        write_slot = 0;
+    }
+
     drv = &d;
     /**
      * Declare the ring pre-rolled with silence. Each slot is given a freshly

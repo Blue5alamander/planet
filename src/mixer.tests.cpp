@@ -155,6 +155,71 @@ namespace {
             });
 
 
+    /// `bind_driver` is re-callable: simulates an `audio_output::reconnect`
+    /// where SDL renegotiates the device and the existing mixer has to
+    /// pick up a fresh driver. Pre-fix, the second `bind_driver` would
+    /// stomp the slot buffers under a running producer thread and the
+    /// second `begin()` would terminate the program by reassigning a
+    /// joinable `std::thread`. The contract is: stops the producer
+    /// cleanly, re-derives the ring depth from the new driver,
+    /// re-pre-rolls silence, and `begin()` afterwards restarts without
+    /// deadlock.
+    auto const rebind =
+            felspar::testsuite("mixer.rebind", [](auto check, auto &log) {
+                using namespace std::chrono_literals;
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv1{
+                        planet::audio::default_buffer_samples, 2};
+                m.bind_driver(drv1);
+                m.add_track(constant_forever(0.25f));
+                m.begin();
+
+                /// Cycle the first ring fully so the producer thread
+                /// actually does some work (its `slots_free.acquire` is
+                /// gated on the consumer freeing slots) — otherwise the
+                /// rebind teardown path would never observe a running
+                /// producer.
+                std::size_t const block1 = drv1.block_size;
+                std::size_t const depth1 = m.buffer_depth();
+                for (std::size_t i{}; i < depth1 * block1; ++i) {
+                    (void)m.next_frame();
+                }
+                std::this_thread::sleep_for(20ms);
+                for (std::size_t i{}; i < depth1 * block1; ++i) {
+                    (void)m.next_frame();
+                }
+                log << "after phase 1 underruns=" << m.underrun_count() << "\n";
+
+                /// Different block_count so the rebind has to re-derive
+                /// the ring depth from the new driver.
+                planet::audio::driver drv2{
+                        planet::audio::default_buffer_samples, 3};
+                m.bind_driver(drv2);
+                check(m.buffer_depth()) == std::size_t{3};
+
+                /// After the rebind the ring is silence-pre-rolled at
+                /// the new block size — that is the rebind's whole
+                /// purpose. Verify the first block reads as silence.
+                std::size_t const block2 = drv2.block_size;
+                m.begin();
+                bool silence_clean = true;
+                for (std::size_t i{}; i < block2; ++i) {
+                    auto const f = m.next_frame();
+                    if (f[0] != 0.0f or f[1] != 0.0f) {
+                        silence_clean = false;
+                        log << "non-silence at i=" << i << ": (" << f[0] << ", "
+                            << f[1] << ")\n";
+                    }
+                }
+                check(silence_clean) == true;
+
+                /// And the mixer destructor must still join the new
+                /// producer thread cleanly here — a deadlock would
+                /// hang the test.
+            });
+
+
     /// The producer is bounded to `depth` blocks ahead: even given far more
     /// time than it needs, it must not buffer past the configured latency.
     auto const lead_bound =

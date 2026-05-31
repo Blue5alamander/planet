@@ -133,7 +133,9 @@ namespace planet::audio {
         /// ### Bind the audio driver and configure the ring
         /**
          * Called by `planet::sdl::audio_output::attach` before the producer
-         * thread starts. Does three things:
+         * thread starts, and again by `audio_output::reconnect` whenever a
+         * new device is negotiated and a fresh `driver` is constructed.
+         * Does three things:
          *
          * 1. Stores the driver pointer so anything holding only the mixer
          *    can find the shared audio-clock value (`playback_clock()`) and
@@ -146,6 +148,14 @@ namespace planet::audio {
          * 3. Pre-rolls the ring with silence so the callback can begin
          *    consuming immediately, without a startup window in which the
          *    fixed-latency promise could be undercut.
+         *
+         * Safe to call more than once: if a producer thread is already
+         * running it is stopped and joined first, the ring's
+         * producer/consumer state is reset, and the slot buffers are
+         * re-allocated for the new driver's `block_size`. The audio
+         * callback must be quiesced (e.g. the SDL device closed or paused)
+         * around the call so the consumer side does not observe the reset
+         * mid-flight. Call `begin()` afterwards to restart the producer.
          */
         void bind_driver(driver const &) noexcept;
 
