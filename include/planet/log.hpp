@@ -4,12 +4,49 @@
 #include <planet/serialise.hpp>
 
 #include <atomic>
+#include <chrono>
 
 
 namespace planet::log {
 
 
     /// # log.hpp
+
+
+    /// ## Time the logging clock was started
+    std::chrono::steady_clock::time_point start_time();
+    /**
+     * The reference time against which log message time stamps are reported
+     * (the leading number on each printed log line is the offset from this).
+     * Exposed so callers can express their own captured times on the same basis
+     * and have them line up with the log output.
+     */
+
+
+    /// ## A `std::chrono::steady_clock` time point that can be logged
+    namespace steady_clock {
+        struct time_point final {
+            static constexpr std::string_view box{"_p:log:sc"};
+
+            std::chrono::steady_clock::time_point time;
+
+            time_point(std::chrono::steady_clock::time_point const tp)
+            : time{tp} {}
+        };
+        void save(serialise::save_buffer &, time_point);
+    }
+    /**
+     * Wrap a captured `std::chrono::steady_clock::time_point` in this before
+     * passing it to a log call, e.g.
+     * `planet::log::info("hit", planet::log::steady_clock::time_point{when})`.
+     * On save the time is turned into the offset from `start_time()` and stored
+     * as a `std::chrono` duration (carrying its own unit, just like any other
+     * logged duration). Resolving the offset on the machine that captured it --
+     * where the clock's epoch is meaningful -- means the log file stays correct
+     * even if it is read back on another machine. The registered formatter
+     * renders it as seconds since the start, the same basis as the time stamp at
+     * the front of each log line.
+     */
 
 
     /// ## Stop the logging thread

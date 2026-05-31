@@ -357,6 +357,34 @@ namespace {
 }
 
 
+std::chrono::steady_clock::time_point planet::log::start_time() {
+    return g_start_time();
+}
+
+
+void planet::log::steady_clock::save(
+        serialise::save_buffer &ab, time_point const tp) {
+    // Resolve the offset from the start here, on the machine that captured the
+    // time, and store it as a fixed-unit duration so the value remains correct
+    // wherever the log is later read.
+    ab.save_box(
+            time_point::box,
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    tp.time - start_time()));
+}
+namespace {
+    auto const steady_clock_time_point = planet::log::format(
+            planet::log::steady_clock::time_point::box,
+            [](auto &os, auto &box) {
+                std::chrono::nanoseconds elapsed;
+                box.named(planet::log::steady_clock::time_point::box, elapsed);
+                os << std::fixed
+                   << std::chrono::duration<double>(elapsed).count()
+                   << std::defaultfloat;
+            });
+}
+
+
 void planet::log::stop_thread() {
     auto &thread = g_log_thread();
     thread.stop_thread();
