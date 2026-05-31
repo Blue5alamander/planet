@@ -44,8 +44,8 @@ namespace planet::log {
      * logged duration). Resolving the offset on the machine that captured it --
      * where the clock's epoch is meaningful -- means the log file stays correct
      * even if it is read back on another machine. The registered formatter
-     * renders it as seconds since the start, the same basis as the time stamp at
-     * the front of each log line.
+     * renders it as seconds since the start, the same basis as the time stamp
+     * at the front of each log line.
      */
 
 
