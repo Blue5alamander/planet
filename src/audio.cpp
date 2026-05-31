@@ -172,6 +172,15 @@ void planet::audio::mixer::bind_driver(driver const &d) noexcept {
 
     drv = &d;
     /**
+     * Cache the ring geometry the producer thread and audio callback need so
+     * neither dereferences `drv` on its hot path: the `driver` is owned by the
+     * `audio_output`, which is destroyed before the mixers it drove, so `drv`
+     * can dangle before `~mixer` joins the producer thread. See the
+     * `block_size`/`block_count` members.
+     */
+    block_size = d.block_size;
+    block_count = d.block_count;
+    /**
      * Declare the ring pre-rolled with silence. Each slot is given a freshly
      * allocated zero-filled `shared_buffer<float>` of one block, so the first
      * `drv->block_count` blocks the callback consumes are silence — exactly
@@ -343,11 +352,11 @@ void planet::audio::mixer::run() noexcept {
             if (stop_flag.load(std::memory_order_acquire)) { break; }
             auto block = gen.next();
             std::size_t const block_floats =
-                    drv->block_size * stereo_buffer::channels;
+                    block_size * stereo_buffer::channels;
             publish.ensure_length(block_floats);
             if (block) {
-                std::size_t const n = std::min<std::size_t>(
-                        block->samples(), drv->block_size);
+                std::size_t const n =
+                        std::min<std::size_t>(block->samples(), block_size);
                 planet::by_index(n, [&](std::size_t const s) {
                     planet::by_index(
                             stereo_buffer::channels, [&](std::size_t const ch) {
@@ -373,7 +382,7 @@ void planet::audio::mixer::run() noexcept {
              * real-time audio thread.
              */
             slots[write_slot] = publish.first(block_floats);
-            write_slot = (write_slot + 1) % drv->block_count;
+            write_slot = (write_slot + 1) % block_count;
             ready_count.fetch_add(1, std::memory_order_release);
         }
     } catch (std::exception const &e) {

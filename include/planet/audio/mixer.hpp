@@ -162,9 +162,9 @@ namespace planet::audio {
                     stereo_buffer::channels, [&](std::size_t const ch) {
                         frame[ch] = samples[base + ch];
                     });
-            if (++read_marker == drv->block_size) {
+            if (++read_marker == block_size) {
                 read_marker = 0;
-                read_slot = (read_slot + 1) % drv->block_count;
+                read_slot = (read_slot + 1) % block_count;
                 ready_count.fetch_sub(1, std::memory_order_acq_rel);
                 slots_free.release();
             }
@@ -235,9 +235,7 @@ namespace planet::audio {
 
 
         /// ### Bounded producer lead in blocks (== `driver::block_count`)
-        std::size_t buffer_depth() const noexcept {
-            return drv ? drv->block_count : 0;
-        }
+        std::size_t buffer_depth() const noexcept { return block_count; }
 
         /// ### Blocks currently rendered and ready for the callback (telemetry)
         std::size_t buffered_blocks() const noexcept {
@@ -304,7 +302,26 @@ namespace planet::audio {
         std::size_t read_marker = 0;
         std::atomic<std::uint64_t> underruns = 0;
 
-        /// Bound by `audio_output::attach`; null until then.
+        /**
+         * Ring geometry cached from the driver by `bind_driver`. The producer
+         * thread (`run`) and the audio callback (`next_frame`) read these
+         * instead of dereferencing `drv` directly: the `driver` is owned by the
+         * `audio_output`, which is destroyed before the mixers it drove, so by
+         * the time `~mixer` joins the producer thread `drv` may already dangle.
+         * Caching the only two fields those threads need keeps them off the
+         * driver's lifetime entirely. Written only while the producer is stopped
+         * and the callback quiesced (the `bind_driver` contract), so no
+         * synchronisation beyond that is required.
+         */
+        std::size_t block_size = 0;
+        std::size_t block_count = 0;
+
+        /**
+         * Bound by `audio_output::attach`; null until then. Only ever
+         * dereferenced on threads where the owning `audio_output` is known
+         * alive — the `add_track` caller (`wall_clock_epoch`, `latency`) and
+         * holders calling `playback_clock` — never on the producer thread.
+         */
         driver const *drv = nullptr;
     };
 
