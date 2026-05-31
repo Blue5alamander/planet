@@ -83,10 +83,18 @@ namespace planet::audio {
          * `wall_clock_epoch` (captured once per `reconnect`), so the same
          * `play_at` always lands on the same sample for the whole session. The
          * producer outputs silence until that position, then mixes the track
-         * in. If `play_at` is already in the past relative to the producer's
-         * write position the track starts as soon as possible (no negative
-         * delay). On a mixer with no driver bound the time cannot be resolved,
-         * so the track starts as soon as possible.
+         * in.
+         *
+         * The target is pinned a fixed `driver::latency` ahead of the
+         * producer's write head, so a `play_at` is realised at a fixed,
+         * predictable offset rather than "as soon as possible": the start does
+         * not drift with capture-to-queue processing time, and two times
+         * scheduled from the same captured instant keep their exact relative
+         * spacing. If `play_at` is far enough in the past that even with this
+         * headroom it falls behind the producer's write position, the track
+         * starts as soon as possible (no negative delay). On a mixer with no
+         * driver bound the time cannot be resolved, so the track starts as soon
+         * as possible.
          */
         void add_track(
                 stereo_generator track,

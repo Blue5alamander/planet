@@ -171,13 +171,27 @@ void planet::audio::mixer::add_track(
     /**
      * Resolve the wall-clock `play_at` into an absolute producer-sample
      * position using the driver's fixed `wall_clock_epoch`. The epoch maps to
-     * producer sample zero, so the target is simply the elapsed time since the
-     * epoch in samples. With no driver bound the wall-clock cannot be
-     * resolved, so fall back to the "as soon as possible" sentinel.
+     * producer sample zero, so the elapsed time since the epoch gives the
+     * position on the producer's write timeline.
+     *
+     * We then pin the target a fixed `driver::latency` ahead of that position.
+     * The producer's write head sits at roughly `(now - epoch)` samples, so
+     * without this headroom a `play_at` captured "now" would land at (or behind)
+     * the write head and `raw_mix` would clamp it to "as soon as possible" — a
+     * start time that drifts with however much capture-to-queue processing
+     * happened first. Adding `latency` makes the placement position constant for
+     * a given captured instant (as long as that processing stays within the
+     * latency budget), so the realised start is a fixed, predictable offset and
+     * two scheduled times keep their exact relative spacing.
+     *
+     * With no driver bound the wall-clock cannot be resolved, so fall back to
+     * the "as soon as possible" sentinel.
      */
-    sample_clock const target = drv ? std::chrono::duration_cast<sample_clock>(
-                                              play_at - drv->wall_clock_epoch)
-                                    : sample_clock::min();
+    sample_clock const target =
+            drv ? std::chrono::duration_cast<sample_clock>(
+                          play_at - drv->wall_clock_epoch)
+                    + drv->latency
+                : sample_clock::min();
     incoming.push({std::move(track), target});
 }
 
