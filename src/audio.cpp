@@ -8,6 +8,7 @@
 #include <planet/log.hpp>
 #include <planet/serialise.hpp>
 #include <planet/numbers.hpp>
+#include <planet/telemetry/counter.hpp>
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
@@ -121,7 +122,30 @@ planet::audio::driver::driver(
 /// ## `planet::audio::mixer`
 
 
-planet::audio::mixer::mixer(channel &c) : master{c}, slots_free{0} {
+namespace {
+    /**
+     * Global parent for every mixer's `asap_scheduled` counter, so the total
+     * across all mixers is available alongside the per-mixer breakdown.
+     */
+    planet::telemetry::counter p_asap_scheduled{
+            "planet_audio__mixer__asap_scheduled"};
+}
+
+
+planet::audio::mixer::mixer(channel &c)
+: id{"planet_audio__mixer"},
+  master{c},
+  asap_scheduled{name() + "__asap_scheduled", p_asap_scheduled},
+  slots_free{0} {
+    incoming.reserve(generators.capacity());
+}
+
+
+planet::audio::mixer::mixer(std::string_view const n, channel &c)
+: id{std::string{n}},
+  master{c},
+  asap_scheduled{name() + "__asap_scheduled", p_asap_scheduled},
+  slots_free{0} {
     incoming.reserve(generators.capacity());
 }
 
@@ -176,22 +200,21 @@ void planet::audio::mixer::add_track(
      *
      * We then pin the target a fixed `driver::latency` ahead of that position.
      * The producer's write head sits at roughly `(now - epoch)` samples, so
-     * without this headroom a `play_at` captured "now" would land at (or behind)
-     * the write head and `raw_mix` would clamp it to "as soon as possible" — a
-     * start time that drifts with however much capture-to-queue processing
-     * happened first. Adding `latency` makes the placement position constant for
-     * a given captured instant (as long as that processing stays within the
-     * latency budget), so the realised start is a fixed, predictable offset and
-     * two scheduled times keep their exact relative spacing.
+     * without this headroom a `play_at` captured "now" would land at (or
+     * behind) the write head and `raw_mix` would clamp it to "as soon as
+     * possible" — a start time that drifts with however much capture-to-queue
+     * processing happened first. Adding `latency` makes the placement position
+     * constant for a given captured instant (as long as that processing stays
+     * within the latency budget), so the realised start is a fixed, predictable
+     * offset and two scheduled times keep their exact relative spacing.
      *
      * With no driver bound the wall-clock cannot be resolved, so fall back to
      * the "as soon as possible" sentinel.
      */
-    sample_clock const target =
-            drv ? std::chrono::duration_cast<sample_clock>(
-                          play_at - drv->wall_clock_epoch)
+    sample_clock const target = drv ? std::chrono::duration_cast<sample_clock>(
+                                              play_at - drv->wall_clock_epoch)
                     + drv->latency
-                : sample_clock::min();
+                                    : sample_clock::min();
     incoming.push({std::move(track), target});
 }
 
@@ -221,6 +244,18 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
                 if (waiting.target_position > now_pos) {
                     delay = static_cast<std::size_t>(
                             (waiting.target_position - now_pos).count());
+                } else if (waiting.target_position != sample_clock::min()) {
+                    /**
+                     * A track with an explicit `play_at` whose target has
+                     * already slipped behind the write head: the fixed latency
+                     * headroom did not cover the capture-to-queue delay, so it
+                     * plays as soon as possible rather than on time. Count it
+                     * so a producer that only ever schedules valid future times
+                     * can reveal when the latency is too short. The `min()`
+                     * sentinel (the immediate `add_track`) is ASAP by design
+                     * and excluded.
+                     */
+                    ++asap_scheduled;
                 }
                 generators.push_back({std::move(waiting.audio), {}, delay});
             }

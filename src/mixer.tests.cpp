@@ -56,6 +56,8 @@ namespace {
         check(s[0]) < 0.51f;
         check(s[1]) > 0.49f;
         check(s[1]) < 0.51f;
+        /// The immediate overload is ASAP by design, so it is not counted.
+        check(m.asap_scheduled_count()) == 0;
     });
 
 
@@ -266,12 +268,14 @@ namespace {
                 check(audio_clean) == true;
                 check(left[expected_silence - 1]) == 0.0f;
                 check(left[expected_silence]) == 0.25f;
+                /// On time (ahead of the write head), so not counted as ASAP.
+                check(m.asap_scheduled_count()) == 0;
             });
 
 
     /// A track scheduled 20ms after the epoch (== 960 samples at 48kHz) is
-    /// preceded by that many samples of silence plus the fixed `driver::latency`
-    /// headroom, then plays.
+    /// preceded by that many samples of silence plus the fixed
+    /// `driver::latency` headroom, then plays.
     auto const schedule_delayed =
             felspar::testsuite("mixer.schedule.delayed", [](auto check) {
                 using namespace std::chrono_literals;
@@ -303,6 +307,8 @@ namespace {
                 check(audio_clean) == true;
                 check(left[expected_silence - 1]) == 0.0f;
                 check(left[expected_silence]) == 0.25f;
+                /// On time (ahead of the write head), so not counted as ASAP.
+                check(m.asap_scheduled_count()) == 0;
             });
 
 
@@ -321,6 +327,8 @@ namespace {
                 auto const left = pull_left(m, 2);
                 check(left.front()) == 0.25f;
                 check(left.back()) == 0.25f;
+                /// Its target slipped behind the write head: counted as ASAP.
+                check(m.asap_scheduled_count()) == 1;
             });
 
 

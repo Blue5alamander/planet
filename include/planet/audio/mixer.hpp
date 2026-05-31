@@ -6,6 +6,8 @@
 #include <planet/audio/stereo.hpp>
 #include <planet/functional.hpp>
 #include <planet/queue/tspsc.hpp>
+#include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/id.hpp>
 
 #include <felspar/memory/small_vector.hpp>
 
@@ -30,7 +32,7 @@ namespace planet::audio {
      * thread by freeing a ring slot, so all synth/mix work happens off the
      * real-time thread.
      */
-    class mixer final {
+    class mixer final : private telemetry::id {
       public:
         /// ### Maximum pre-render ring depth
         /**
@@ -45,11 +47,19 @@ namespace planet::audio {
 
         /// ### Construction
         explicit mixer(channel &c);
+        /// Named overload: `name` becomes the base for this mixer's telemetry.
+        mixer(std::string_view name, channel &c);
         /**
          * The mixer is unattached until `bind_driver` is called: that is the
          * step that sets the ring depth (from the driver supplied by the audio
          * output) and pre-rolls silence. `begin` must therefore be preceded by
          * `bind_driver`, which `audio_output::attach` does.
+         *
+         * For normal use prefer the named overload: the supplied `name` (made
+         * unique by `telemetry::id`) is the base for this mixer's per-instance
+         * telemetry counters, so they can be told apart in the registry. The
+         * unnamed overload still produces a unique machine-generated name and
+         * is intended for tests and tools.
          */
 
         mixer(mixer const &) = delete;
@@ -167,6 +177,21 @@ namespace planet::audio {
             return underruns.load(std::memory_order_relaxed);
         }
 
+        /// ### Scheduled tracks that had to start "as soon as possible"
+        /**
+         * Count of tracks given an explicit `play_at` whose target had already
+         * fallen behind the producer's write head by the time it was drained —
+         * i.e. the fixed `driver::latency` headroom was not enough to absorb
+         * the capture-to-queue delay, so the track started immediately instead
+         * of at its scheduled position. For a producer that always schedules
+         * valid future times a non-zero value means the latency is too short.
+         * Does not count the immediate `add_track` overload (which is ASAP by
+         * design).
+         */
+        telemetry::counter::value_type asap_scheduled_count() const noexcept {
+            return asap_scheduled.value();
+        }
+
 
         /// ### Bind the audio driver and configure the ring
         /**
@@ -223,6 +248,9 @@ namespace planet::audio {
 
       private:
         channel &master;
+        /// Incremented (and propagated to a global parent) whenever a scheduled
+        /// track is clamped to "as soon as possible"; see `asap_scheduled_count`.
+        telemetry::counter asap_scheduled;
         struct track {
             stereo_generator audio;
             /// The number of samples that have been placed in the output so far
