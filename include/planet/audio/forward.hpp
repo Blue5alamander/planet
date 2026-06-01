@@ -9,6 +9,7 @@ namespace planet::audio {
     struct dB_gain;
     struct driver;
     class linear_gain;
+    class tap;
 
 
 }

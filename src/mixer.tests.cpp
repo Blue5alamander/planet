@@ -3,10 +3,12 @@
 #include <planet/audio/driver.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/audio/mixer.hpp>
+#include <planet/audio/tap.hpp>
 
 #include <felspar/memory/shared_buffer.hpp>
 #include <felspar/test.hpp>
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <thread>
@@ -131,6 +133,53 @@ namespace {
         check(m.underrun_count()) == std::uint64_t{};
         /// The mixer destructor must stop and join the producer thread
         /// cleanly here (a deadlock would hang the test).
+    });
+
+
+    /// A `tap` passed to the mixer receives a copy of every block the
+    /// producer thread publishes. With a single constant track at unity
+    /// master gain, each forwarded block is a full, refcounted slice of the
+    /// track's value — the same stream the audio callback consumes.
+    auto const tapping = felspar::testsuite("mixer.tap", [](auto check) {
+        using namespace std::chrono_literals;
+        planet::audio::channel master{planet::audio::dB_gain{0}};
+        /// Declared before the mixer so it outlives the producer thread the
+        /// mixer destructor joins.
+        planet::audio::tap recorder;
+        recorder.reserve(planet::audio::mixer::max_ring_depth * 4);
+        std::array<planet::audio::tap *, 1> taps{&recorder};
+        planet::audio::mixer m{master, taps};
+        planet::audio::driver drv{planet::audio::default_buffer_samples, 2};
+        m.bind_driver(drv);
+        m.add_track(constant_forever(0.25f));
+        m.begin();
+
+        std::size_t const block = planet::audio::default_buffer_samples;
+        std::size_t const depth = m.buffer_depth();
+
+        /// Free slots by consuming, letting the bounded producer publish
+        /// several blocks; the sleeps give it time to render between drains.
+        std::this_thread::sleep_for(20ms);
+        for (std::size_t i{}; i < depth * block * 3; ++i) {
+            (void)m.next_frame();
+        }
+        std::this_thread::sleep_for(20ms);
+
+        std::size_t received{};
+        bool clean = true;
+        for (auto &b : recorder.consume()) {
+            ++received;
+            if (b.size() != block * planet::audio::stereo_buffer::channels) {
+                clean = false;
+            }
+            for (auto const s : b) {
+                if (s != 0.25f) { clean = false; }
+            }
+        }
+        check(received) > std::size_t{};
+        check(clean) == true;
+        /// The mixer destructor must stop and join the producer thread here
+        /// before `recorder` is destroyed (a deadlock would hang the test).
     });
 
 

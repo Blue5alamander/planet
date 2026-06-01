@@ -3,6 +3,7 @@
 
 #include <planet/audio/clocks.hpp>
 #include <planet/audio/driver.hpp>
+#include <planet/audio/forward.hpp>
 #include <planet/audio/stereo.hpp>
 #include <planet/functional.hpp>
 #include <planet/queue/tspsc.hpp>
@@ -16,6 +17,7 @@
 #include <chrono>
 #include <cstdint>
 #include <semaphore>
+#include <span>
 #include <thread>
 
 
@@ -46,9 +48,10 @@ namespace planet::audio {
 
 
         /// ### Construction
-        explicit mixer(channel &c);
+        explicit mixer(channel &c, std::span<tap *const> const t = {})
+        : mixer{"planet_audio__mixer", c, t} {}
         /// Named overload: `name` becomes the base for this mixer's telemetry.
-        mixer(std::string_view name, channel &c);
+        mixer(std::string_view name, channel &, std::span<tap *const> = {});
         /**
          * The mixer is unattached until `bind_driver` is called: that is the
          * step that sets the ring depth (from the driver supplied by the audio
@@ -60,6 +63,13 @@ namespace planet::audio {
          * telemetry counters, so they can be told apart in the registry. The
          * unnamed overload still produces a unique machine-generated name and
          * is intended for tests and tools.
+         *
+         * `taps` are subscribers that receive a copy of every block this mixer
+         * publishes (see `tap`). The pointers are copied at construction and
+         * fixed for the mixer's lifetime, so each `tap` must outlive the mixer.
+         * The producer thread forwards to them, so wire them up before
+         * `begin`; the consumer side is drained on whatever thread owns each
+         * `tap`.
          */
 
         mixer(mixer const &) = delete;
@@ -177,6 +187,7 @@ namespace planet::audio {
             return underruns.load(std::memory_order_relaxed);
         }
 
+
         /// ### Scheduled tracks that had to start "as soon as possible"
         /**
          * Count of tracks given an explicit `play_at` whose target had already
@@ -222,6 +233,7 @@ namespace planet::audio {
          */
         void bind_driver(driver const &) noexcept;
 
+
         /// ### SDL playback-head clock, or `nullptr` if not yet bound
         /**
          * Returns a pointer to the atomic published by `audio_output`'s
@@ -237,6 +249,7 @@ namespace planet::audio {
         /// ### Bounded producer lead in blocks (== `driver::block_count`)
         std::size_t buffer_depth() const noexcept { return block_count; }
 
+
         /// ### Blocks currently rendered and ready for the callback (telemetry)
         std::size_t buffered_blocks() const noexcept {
             return static_cast<std::size_t>(
@@ -246,8 +259,10 @@ namespace planet::audio {
 
       private:
         channel &master;
-        /// Incremented (and propagated to a global parent) whenever a scheduled
-        /// track is clamped to "as soon as possible"; see `asap_scheduled_count`.
+        /**
+         * Incremented (and propagated to a global parent) whenever a scheduled
+         * track is clamped to "as soon as possible"; see `asap_scheduled_count`.
+         */
         telemetry::counter asap_scheduled;
         struct track {
             stereo_generator audio;
@@ -291,6 +306,15 @@ namespace planet::audio {
         std::atomic<int> ready_count = 0;
         std::counting_semaphore<max_ring_depth> slots_free;
 
+        /**
+         * Subscribers that receive a copy of every published block. Fixed at
+         * construction from the span passed to the constructor; the producer
+         * thread (`run`) forwards each block to all of them after writing it
+         * into the slot. Empty for a mixer constructed without taps, in which
+         * case `run` does no extra work.
+         */
+        felspar::memory::small_vector<tap *, 4> taps;
+
         /// Producer thread and its loop
         std::atomic<bool> stop_flag = false;
         std::thread producer;
@@ -309,8 +333,8 @@ namespace planet::audio {
          * `audio_output`, which is destroyed before the mixers it drove, so by
          * the time `~mixer` joins the producer thread `drv` may already dangle.
          * Caching the only two fields those threads need keeps them off the
-         * driver's lifetime entirely. Written only while the producer is stopped
-         * and the callback quiesced (the `bind_driver` contract), so no
+         * driver's lifetime entirely. Written only while the producer is
+         * stopped and the callback quiesced (the `bind_driver` contract), so no
          * synchronisation beyond that is required.
          */
         std::size_t block_size = 0;

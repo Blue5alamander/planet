@@ -4,6 +4,7 @@
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/music.hpp>
 #include <planet/audio/oscillator.hpp>
+#include <planet/audio/tap.hpp>
 #include <planet/functional.hpp>
 #include <planet/log.hpp>
 #include <planet/serialise.hpp>
@@ -132,20 +133,13 @@ namespace {
 }
 
 
-planet::audio::mixer::mixer(channel &c)
-: id{"planet_audio__mixer"},
-  master{c},
-  asap_scheduled{name() + "__asap_scheduled", p_asap_scheduled},
-  slots_free{0} {
-    incoming.reserve(generators.capacity());
-}
-
-
-planet::audio::mixer::mixer(std::string_view const n, channel &c)
+planet::audio::mixer::mixer(
+        std::string_view const n, channel &c, std::span<tap *const> const t)
 : id{std::string{n}},
   master{c},
   asap_scheduled{name() + "__asap_scheduled", p_asap_scheduled},
-  slots_free{0} {
+  slots_free{0},
+  taps{t} {
     incoming.reserve(generators.capacity());
 }
 
@@ -382,6 +376,14 @@ void planet::audio::mixer::run() noexcept {
              * real-time audio thread.
              */
             slots[write_slot] = publish.first(block_floats);
+            /**
+             * Forward a copy of the published slice to every subscribed tap.
+             * Copying a `shared_buffer<float>` is a refcount bump on the same
+             * accumulation-buffer memory, not an audio-data copy, so this stays
+             * cheap; each tap holds its own ref, keeping the slice alive until
+             * its consumer drains it.
+             */
+            for (auto *const t : taps) { t->publish(slots[write_slot]); }
             write_slot = (write_slot + 1) % block_count;
             ready_count.fetch_add(1, std::memory_order_release);
         }
