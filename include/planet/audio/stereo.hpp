@@ -6,6 +6,7 @@
 #include <planet/audio/gain.hpp>
 
 #include <felspar/coro/generator.hpp>
+#include <felspar/coro/stream.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
 
 
@@ -17,8 +18,12 @@ namespace planet::audio {
             planet::audio::buffer_storage<planet::audio::sample_clock, 2>;
 
 
-    /// ## Stereo audio source
+    /// ## Stereo audio source (synchronous, pull-based)
     using stereo_generator = felspar::coro::generator<stereo_buffer>;
+
+
+    /// ## Stereo audio source (asynchronous, may suspend on I/O)
+    using stereo_stream = felspar::coro::stream<stereo_buffer>;
 
 
     /// ## Converts a mono buffer to a stereo buffer
