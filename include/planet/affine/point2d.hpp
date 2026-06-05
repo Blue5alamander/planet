@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <planet/numbers.hpp>
+#include <planet/maths.hpp>
 
 #include <cmath>
 #include <complex>
@@ -22,9 +22,8 @@ namespace planet::affine {
         : xh{xh}, yh{yh}, h{h} {}
 
         static point2d from_polar(float const mag, float const turns) {
-            float const r = turns * tau;
-            float const x = std::cos(r);
-            float const y = std::sin(r);
+            float const x = planet::cos(turns);
+            float const y = planet::sin(turns);
             return {x * mag, y * mag};
         }
 
@@ -108,8 +107,7 @@ namespace planet::affine {
         }
         /// #### Rotate a point about the origin
         point2d rotate(float const theta) {
-            std::complex const rotate{
-                    std::cos(theta * tau), std::sin(theta * tau)};
+            std::complex const rotate{planet::cos(theta), planet::sin(theta)};
             std::complex const value{xh, yh};
             auto const result = value * rotate;
             return {result.real(), result.imag(), h};
