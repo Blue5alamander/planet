@@ -54,7 +54,7 @@ namespace planet::ui {
         constrained_type do_reflow(
                 reflow_parameters const &p,
                 constrained_type const &ex) override {
-            auto const inner = content.reflow(p, padding.remove(ex));
+            auto const inner = content.reflow(p, padding.remove_from(ex));
             auto const min_width =
                     inner.width.min() + padding.left + padding.right;
             auto const min_height =
@@ -69,7 +69,7 @@ namespace planet::ui {
                 affine::rectangle2d const &outer) override {
             auto const inner_size = content.constraints().extents();
             auto const area =
-                    within(gravity, padding.remove(outer), inner_size);
+                    within(gravity, padding.remove_from(outer), inner_size);
             content.move_to(p, area);
             return outer;
         }

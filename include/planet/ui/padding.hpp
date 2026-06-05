@@ -32,7 +32,7 @@ namespace planet::ui {
          * used when adjusting the outer sizes to what is to be passed to the
          * inner ones.
          */
-        constrained_type remove(constrained_type ex) const noexcept {
+        constrained_type remove_from(constrained_type ex) const noexcept {
             auto const wpad = left + right, hpad = top + bottom;
 
             ex.width.min(std::max(0.0f, ex.width.min() - wpad));
@@ -45,11 +45,17 @@ namespace planet::ui {
 
             return ex;
         }
-        affine::extents2d remove(affine::extents2d const ex) const noexcept {
+        affine::extents2d remove_from(float const ex) const noexcept {
+            return remove_from(affine::extents2d{ex, ex});
+        }
+        affine::extents2d
+                remove_from(affine::extents2d const ex) const noexcept {
             return {ex.width - left - right, ex.height - top - bottom};
         }
-        affine::rectangle2d remove(affine::rectangle2d const &r) const noexcept {
-            return {r.top_left + affine::point2d{left, top}, remove(r.extents)};
+        affine::rectangle2d
+                remove_from(affine::rectangle2d const &r) const noexcept {
+            return {r.top_left + affine::point2d{left, top},
+                    remove_from(r.extents)};
         }
     };
 
