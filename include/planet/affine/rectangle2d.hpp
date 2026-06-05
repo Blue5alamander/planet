@@ -22,26 +22,40 @@ namespace planet::affine {
 
 
         /// ### Determine position
-        point2d bottom_right() const noexcept { return top_left + extents; }
-        float top() const noexcept { return top_left.y(); }
-        float left() const noexcept { return top_left.x(); }
-        float bottom() const noexcept { return top() + extents.height; }
-        float right() const noexcept { return left() + extents.width; }
+        constexpr point2d top_right() const noexcept {
+            return {top(), right()};
+        }
+        constexpr point2d bottom_left() const noexcept {
+            return {bottom(), left()};
+        }
+        constexpr point2d bottom_right() const noexcept {
+            return top_left + extents;
+        }
 
-        bool contains(point2d const p) const {
+        constexpr float top() const noexcept { return top_left.y(); }
+        constexpr float left() const noexcept { return top_left.x(); }
+        constexpr float bottom() const noexcept {
+            return top() + extents.height;
+        }
+        constexpr float right() const noexcept {
+            return left() + extents.width;
+        }
+
+        constexpr bool contains(point2d const p) const {
             return p.x() >= left() and p.x() <= right() and p.y() >= top()
                     and p.y() <= bottom();
         }
-        bool contains(rectangle2d const r) const {
+        constexpr bool contains(rectangle2d const r) const {
             return contains(r.top_left) and contains(r.bottom_right());
         }
 
-        friend bool operator==(rectangle2d const &l, rectangle2d const &r) =
-                default;
+        friend constexpr bool operator==(
+                rectangle2d const &l, rectangle2d const &r) = default;
 
 
         /// ### Move the rectangle
-        friend rectangle2d operator+(rectangle2d const r, point2d const p) {
+        friend constexpr rectangle2d
+                operator+(rectangle2d const r, point2d const p) {
             return {r.top_left + p, r.extents};
         }
     };
