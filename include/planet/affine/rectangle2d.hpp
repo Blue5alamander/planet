@@ -23,10 +23,10 @@ namespace planet::affine {
 
         /// ### Determine position
         constexpr point2d top_right() const noexcept {
-            return {top(), right()};
+            return {right(), top()};
         }
         constexpr point2d bottom_left() const noexcept {
-            return {bottom(), left()};
+            return {left(), bottom()};
         }
         constexpr point2d bottom_right() const noexcept {
             return top_left + extents;
