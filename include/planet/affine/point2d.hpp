@@ -28,6 +28,10 @@ namespace planet::affine {
             return {x * mag, y * mag};
         }
 
+        static point2d unit_vector(point2d const &p) noexcept {
+            return p.as_unit_vector();
+        }
+
 
         /// ### Queries
         constexpr float x() const noexcept { return xh / h; }
@@ -44,6 +48,16 @@ namespace planet::affine {
             auto const xp = x();
             auto const yp = y();
             return xp * xp + yp * yp;
+        }
+
+        /// #### Dot product
+        constexpr float dot(point2d const &p) const noexcept {
+            return x() * p.x() + y() * p.y();
+        }
+
+        /// #### Return this point as a unit vector from the origin
+        point2d as_unit_vector() const noexcept {
+            return *this / std::sqrt(mag2());
         }
 
         /// #### Return theta as a proportion of a total revolution
