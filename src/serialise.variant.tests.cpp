@@ -192,4 +192,57 @@ namespace serialise_variant_documentation {
     });
 
 
+    /**
+     * ## Scenario 3 — `std::monostate` as an empty alternative
+     *
+     * `std::monostate` is the usual way to give a variant a "nothing here"
+     * state and to make it default constructible. It carries no data, so it
+     * serialises as a single `marker::empty` byte (`0x00`). Its `save`/`load`
+     * are provided by `planet/serialise/variant.hpp`, so an empty alternative
+     * needs no extra code from the caller.
+     *
+     * The loader peeks the marker exactly as scenario 2 does, but each
+     * alternative is matched explicitly: a box marker selects `named_ref`, the
+     * `empty` marker selects `std::monostate`, and anything else is an error.
+     */
+
+    using maybe = std::variant<std::monostate, named_ref>;
+
+    void load(planet::serialise::load_buffer &lb, maybe &m) {
+        auto const lead = lb.peek_marker();
+        if (planet::serialise::is_box_marker(lead)) {
+            auto b = planet::serialise::expect_box(lb);
+            if (b.name == named_ref::box) {
+                load(b, m.emplace<named_ref>());
+            } else {
+                throw felspar::stdexcept::runtime_error{
+                        "Unknown maybe box name"};
+            }
+        } else if (lead == planet::serialise::marker::empty) {
+            load(lb, m.emplace<std::monostate>());
+        } else {
+            throw felspar::stdexcept::runtime_error{"Unknown maybe marker"};
+        }
+    }
+
+    auto const empty =
+            suite.test("monostate alternative", [](auto check, auto &) {
+                maybe const original{std::monostate{}};
+                planet::serialise::save_buffer ab;
+                save(ab, original);
+                auto const bytes = ab.complete();
+
+                check(bytes.size()) == 1u;
+                check(static_cast<std::uint8_t>(bytes.cmemory().front()))
+                        == static_cast<std::uint8_t>(
+                                planet::serialise::marker::empty);
+
+                planet::serialise::load_buffer lb{bytes.cmemory()};
+                maybe restored{named_ref{"not empty"}};
+                load(lb, restored);
+                lb.check_empty_or_throw();
+                check(std::holds_alternative<std::monostate>(restored)) == true;
+            });
+
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/save_buffer.hpp>
 #include <planet/variant.hpp>
 
@@ -38,6 +39,22 @@ namespace planet::serialise {
     void save(save_buffer &ab, std::variant<Ts...> const &v) {
         planet::visit(
                 v, [&ab](auto const &alternative) { save(ab, alternative); });
+    }
+
+
+    /// ## `std::monostate`
+    /**
+     * Used as a variant alternative to mean "nothing here". It carries no data,
+     * so it serialises as a single `marker::empty` byte. These overloads live
+     * in `planet::serialise` (rather than next to a user type) because
+     * `monostate` belongs to `std`, and ADL on a `std::variant` alternative
+     * only considers the alternative's own associated namespaces.
+     */
+    inline void save(save_buffer &ab, std::monostate const) {
+        ab.append(marker::empty);
+    }
+    inline void load(load_buffer &lb, std::monostate &) {
+        lb.check_marker(marker::empty);
     }
 
 
