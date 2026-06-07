@@ -37,6 +37,15 @@ namespace planet::serialise {
         bool empty() const noexcept { return buffer.empty(); }
         auto size() const noexcept { return buffer.size(); }
         auto cmemory() const noexcept { return buffer; }
+        /// #### Return the leading marker without consuming it
+        marker peek_marker(
+                std::source_location const &loc =
+                        std::source_location::current()) const {
+            if (buffer.empty()) {
+                throw buffer_not_big_enough{sizeof(std::uint8_t), 0, loc};
+            }
+            return marker{static_cast<std::uint8_t>(buffer.front())};
+        }
         void check_empty_or_throw(
                 char const *message = "There is still data in the buffer",
                 std::source_location const &loc =

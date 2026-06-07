@@ -15,3 +15,4 @@
 #include <planet/serialise/muxing.hpp>
 #include <planet/serialise/save_buffer.hpp>
 #include <planet/serialise/string.hpp>
+#include <planet/serialise/variant.hpp>

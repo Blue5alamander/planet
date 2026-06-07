@@ -16,10 +16,11 @@ Serialisation allows game state to be sent over the network or saved to a file. 
 * [`planet/serialise/muxing.hpp`](./muxing.hpp) -- Sending binary data over a connection.
 * [`planet/serialise/save_buffer.hpp`](./save_buffer.hpp) -- A buffer that will receive the serialisation bytes.
 * [`planet/serialise/string.hpp`](./string.hpp) -- Serialisation of `std` string types.
+* [`planet/serialise/variant.hpp`](./variant.hpp) -- Serialisation of `std::variant`, storing the active alternative without an enclosing box. See the [variant tests](../../../src/serialise.variant.tests.cpp) for a full explanation of how to use them.
 
-There is also the convenience header [`planet/serialise.hpp`](../serialise.hpp) which includes everything.
+There is also the convenience header [`planet/serialise.hpp`](../serialise.hpp) which includes everything. You should use this anywhere that you implement `save` or `load` rather than try to work out which set of headers is minimal.
 
 
 ## Planet's boxes
 
-Box names starting with an underscore (`_`) are reserved for use by Planet.
+Box names starting with an underscore (`_`) are reserved for use by Planet. Typically `std::` types begin with `_s:` and Planet ones start with `_p:`.
