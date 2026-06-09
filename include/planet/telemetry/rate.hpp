@@ -102,10 +102,8 @@ namespace planet::telemetry {
     /**
      * Records how often an event happens, reported in events per second.
      *
-     * Although this performance counter uses an atomic to store the value, it
-     * is not thread safe for anything other than reading of the current value.
-     * Updates to the counter must be synchronised if they are to occur from
-     * more than one thread.
+     * Both the stored value and the checkpoint timer are held in atomics, so
+     * `tick()` is safe to call concurrently from any number of threads.
      *
      * Loaded values are set into the current value and the checkpoint timer
      * reset to the time that the value is loaded. Depending on the value, the
@@ -115,7 +113,12 @@ namespace planet::telemetry {
      */
     class real_time_rate final : public performance {
         std::atomic<double> m_value{};
-        time::checkpointer last;
+        std::atomic<std::chrono::steady_clock::time_point> last{
+                std::chrono::steady_clock::now()};
+        static_assert(
+                decltype(last)::is_always_lock_free,
+                "The checkpoint timer must be lock free so that `tick()` can be "
+                "called from any thread without taking a lock");
         double const half_life;
 
 

@@ -380,7 +380,8 @@ namespace {
 
 
 void planet::telemetry::real_time_rate::tick() noexcept {
-    std::chrono::nanoseconds ns{last.checkpoint()};
+    auto const now = std::chrono::steady_clock::now();
+    std::chrono::nanoseconds ns{now - last.exchange(now)};
     auto const ts = static_cast<double>(ns.count());
     auto const m = 1e9 / ts;
     auto const rt = std::pow(2.0, -ts / half_life);
@@ -402,7 +403,7 @@ bool planet::telemetry::real_time_rate::save(serialise::save_buffer &ab) const {
 bool planet::telemetry::real_time_rate::load(measurements &pd) {
     double c;
     if (load_performance_measurement(pd, name(), box, c)) {
-        last.checkpoint();
+        last.store(std::chrono::steady_clock::now());
         m_value.store(c);
         return true;
     } else {
