@@ -272,14 +272,17 @@ namespace {
             });
 
 
-    /// Pull `blocks` blocks straight from `output()` (no producer thread) and
-    /// return the flattened left-channel samples. Single-threaded, so the
-    /// scheduling maths is exercised deterministically with no timing jitter.
-    std::vector<float>
-            pull_left(planet::audio::mixer &m, std::size_t const blocks) {
+    /**
+     * Pull whole blocks straight from `output()` (no producer thread) until at
+     * least `least` of audio (measured on the `sample_clock`) has been
+     * collected, then return the flattened left channel. Block-aligned, so the
+     * result may run a little past `least`.
+     */
+    std::vector<float> pull_left(
+            planet::audio::mixer &m, planet::audio::sample_clock const least) {
         std::vector<float> out;
         auto gen = m.output();
-        for (std::size_t b{}; b < blocks; ++b) {
+        while (out.size() < static_cast<std::size_t>(least.count())) {
             auto block = gen.next();
             if (not block) { break; }
             for (std::size_t s{}; s < block->samples(); ++s) {
@@ -304,7 +307,13 @@ namespace {
 
                 auto const expected_silence =
                         static_cast<std::size_t>(drv.latency.count());
-                auto const left = pull_left(m, 4);
+                /**
+                 * Cover the silent lead-in (the latency headroom) plus a block
+                 * of audio to verify.
+                 */
+                auto const left = pull_left(
+                        m,
+                        drv.latency + planet::audio::default_buffer_duration);
                 bool silence_clean = true;
                 for (std::size_t i{}; i < expected_silence; ++i) {
                     if (left[i] != 0.0f) { silence_clean = false; }
@@ -334,16 +343,25 @@ namespace {
                         planet::audio::default_buffer_samples, 2};
                 m.bind_driver(drv);
 
-                /// 20ms is an exact 960 samples (and an exact 20'000'000ns), so
-                /// neither the wall->sample nor sample->wall conversion rounds.
-                /// The scheduled position is pinned `driver::latency` ahead, so
-                /// that constant is added to the leading silence.
+                /**
+                 * 20ms is an exact 960 samples (and an exact 20'000'000ns), so
+                 * neither the wall->sample nor sample->wall conversion rounds.
+                 * The scheduled position is pinned `driver::latency` ahead, so
+                 * that constant is added to the leading silence.
+                 */
                 std::size_t const expected_silence =
                         960 + static_cast<std::size_t>(drv.latency.count());
                 m.add_track(
                         constant_forever(0.25f), drv.wall_clock_epoch + 20ms);
 
-                auto const left = pull_left(m, 6);
+                /**
+                 * Cover the silent lead-in (the 20ms delay plus the latency
+                 * headroom) plus a block of audio to verify.
+                 */
+                auto const left = pull_left(
+                        m,
+                        20ms + drv.latency
+                                + planet::audio::default_buffer_duration);
                 bool silence_clean = true;
                 for (std::size_t i{}; i < expected_silence; ++i) {
                     if (left[i] != 0.0f) { silence_clean = false; }
@@ -373,7 +391,8 @@ namespace {
                 m.bind_driver(drv);
                 m.add_track(constant_forever(0.25f), drv.wall_clock_epoch - 1s);
 
-                auto const left = pull_left(m, 2);
+                auto const left =
+                        pull_left(m, planet::audio::default_buffer_duration);
                 check(left.front()) == 0.25f;
                 check(left.back()) == 0.25f;
                 /// Its target slipped behind the write head: counted as ASAP.
@@ -392,7 +411,8 @@ namespace {
                         constant_forever(0.25f),
                         std::chrono::steady_clock::now() + 1s);
 
-                auto const left = pull_left(m, 2);
+                auto const left =
+                        pull_left(m, planet::audio::default_buffer_duration);
                 check(left.front()) == 0.25f;
                 check(left.back()) == 0.25f;
             });
