@@ -63,9 +63,11 @@ namespace {
     });
 
 
-    /// Hammer `add_track` from one thread while another drains `output()`.
-    /// Guards the data race on `generators`; run under ThreadSanitizer to
-    /// actually detect the race (clean with the lock, dirty without it).
+    /**
+     * Hammer `add_track` from one thread while another drains `output()`.
+     * Guards the data race on `generators`; run under ThreadSanitizer to
+     * actually detect the race (clean with the lock, dirty without it).
+     */
     auto const concurrency =
             felspar::testsuite("mixer.concurrency", [](auto check) {
                 planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -94,10 +96,12 @@ namespace {
             });
 
 
-    /// The ring is pre-rolled with silence by `bind_driver`, so the
-    /// callback hears `depth` blocks of zeros first; the track added before
-    /// `begin` then becomes audible exactly `latency` later — the
-    /// fixed-latency promise this design is built on.
+    /**
+     * The ring is pre-rolled with silence by `bind_driver`, so the callback
+     * hears `depth` blocks of zeros first; the track added before `begin` then
+     * becomes audible exactly `latency` later — the fixed-latency promise this
+     * design is built on.
+     */
     auto const threaded = felspar::testsuite("mixer.threaded", [](auto check) {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -110,8 +114,10 @@ namespace {
         std::size_t const block = planet::audio::default_buffer_samples;
         std::size_t const depth = m.buffer_depth();
 
-        /// The first `depth` blocks must be the constructor's pre-rolled
-        /// silence, regardless of how fast the producer thread is.
+        /**
+         * The first `depth` blocks must be the constructor's pre-rolled
+         * silence, regardless of how fast the producer thread is.
+         */
         bool silence_clean = true;
         for (std::size_t i{}; i < depth * block; ++i) {
             auto const f = m.next_frame();
@@ -119,9 +125,11 @@ namespace {
         }
         check(silence_clean) == true;
 
-        /// Let the producer fill the ring with track audio before draining
-        /// it in a tight loop — otherwise the consumer can outrun the
-        /// per-wrap render and surface spurious underruns.
+        /**
+         * Let the producer fill the ring with track audio before draining it in
+         * a tight loop — otherwise the consumer can outrun the per-wrap render
+         * and surface spurious underruns.
+         */
         std::this_thread::sleep_for(20ms);
 
         bool track_clean = true;
@@ -131,15 +139,19 @@ namespace {
         }
         check(track_clean) == true;
         check(m.underrun_count()) == std::uint64_t{};
-        /// The mixer destructor must stop and join the producer thread
-        /// cleanly here (a deadlock would hang the test).
+        /**
+         * The mixer destructor must stop and join the producer thread cleanly
+         * here (a deadlock would hang the test).
+         */
     });
 
 
-    /// A `tap` passed to the mixer receives a copy of every block the
-    /// producer thread publishes. With a single constant track at unity
-    /// master gain, each forwarded block is a full, refcounted slice of the
-    /// track's value — the same stream the audio callback consumes.
+    /**
+     * A `tap` passed to the mixer receives a copy of every block the producer
+     * thread publishes. With a single constant track at unity master gain, each
+     * forwarded block is a full, refcounted slice of the track's value — the
+     * same stream the audio callback consumes.
+     */
     auto const tapping = felspar::testsuite("mixer.tap", [](auto check) {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -157,8 +169,10 @@ namespace {
         std::size_t const block = planet::audio::default_buffer_samples;
         std::size_t const depth = m.buffer_depth();
 
-        /// Free slots by consuming, letting the bounded producer publish
-        /// several blocks; the sleeps give it time to render between drains.
+        /**
+         * Free slots by consuming, letting the bounded producer publish several
+         * blocks; the sleeps give it time to render between drains.
+         */
         std::this_thread::sleep_for(20ms);
         for (std::size_t i{}; i < depth * block * 3; ++i) {
             (void)m.next_frame();
@@ -178,13 +192,17 @@ namespace {
         }
         check(received) > std::size_t{};
         check(clean) == true;
-        /// The mixer destructor must stop and join the producer thread here
-        /// before `recorder` is destroyed (a deadlock would hang the test).
+        /**
+         * The mixer destructor must stop and join the producer thread here
+         * before `recorder` is destroyed (a deadlock would hang the test).
+         */
     });
 
 
-    /// `bind_driver` makes the driver's playback-head atomic findable
-    /// through the mixer; an unbound mixer reports null.
+    /**
+     * `bind_driver` makes the driver's playback-head atomic findable through
+     * the mixer; an unbound mixer reports null.
+     */
     auto const playback_clock =
             felspar::testsuite("mixer.playback_clock", [](auto check) {
                 planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -207,15 +225,16 @@ namespace {
             });
 
 
-    /// `bind_driver` is re-callable: simulates an `audio_output::reconnect`
-    /// where SDL renegotiates the device and the existing mixer has to
-    /// pick up a fresh driver. Pre-fix, the second `bind_driver` would
-    /// stomp the slot buffers under a running producer thread and the
-    /// second `begin()` would terminate the program by reassigning a
-    /// joinable `std::thread`. The contract is: stops the producer
-    /// cleanly, re-derives the ring depth from the new driver,
-    /// re-pre-rolls silence, and `begin()` afterwards restarts without
-    /// deadlock.
+    /**
+     * `bind_driver` is re-callable: simulates an `audio_output::reconnect`
+     * where SDL renegotiates the device and the existing mixer has to pick up a
+     * fresh driver. Pre-fix, the second `bind_driver` would stomp the slot
+     * buffers under a running producer thread and the second `begin()` would
+     * terminate the program by reassigning a joinable `std::thread`. The
+     * contract is: stops the producer cleanly, re-derives the ring depth from
+     * the new driver, re-pre-rolls silence, and `begin()` afterwards restarts
+     * without deadlock.
+     */
     auto const rebind =
             felspar::testsuite("mixer.rebind", [](auto check, auto &log) {
                 using namespace std::chrono_literals;
@@ -227,11 +246,12 @@ namespace {
                 m.add_track(constant_forever(0.25f));
                 m.begin();
 
-                /// Cycle the first ring fully so the producer thread
-                /// actually does some work (its `slots_free.acquire` is
-                /// gated on the consumer freeing slots) — otherwise the
-                /// rebind teardown path would never observe a running
-                /// producer.
+                /**
+                 * Cycle the first ring fully so the producer thread actually
+                 * does some work (its `slots_free.acquire` is gated on the
+                 * consumer freeing slots) — otherwise the rebind teardown path
+                 * would never observe a running producer.
+                 */
                 std::size_t const block1 = drv1.block_size;
                 std::size_t const depth1 = m.buffer_depth();
                 for (std::size_t i{}; i < depth1 * block1; ++i) {
@@ -243,16 +263,20 @@ namespace {
                 }
                 log << "after phase 1 underruns=" << m.underrun_count() << "\n";
 
-                /// Different block_count so the rebind has to re-derive
-                /// the ring depth from the new driver.
+                /**
+                 * Different block_count so the rebind has to re-derive the ring
+                 * depth from the new driver.
+                 */
                 planet::audio::driver drv2{
                         planet::audio::default_buffer_samples, 3};
                 m.bind_driver(drv2);
                 check(m.buffer_depth()) == std::size_t{3};
 
-                /// After the rebind the ring is silence-pre-rolled at
-                /// the new block size — that is the rebind's whole
-                /// purpose. Verify the first block reads as silence.
+                /**
+                 * After the rebind the ring is silence-pre-rolled at the new
+                 * block size — that is the rebind's whole purpose. Verify the
+                 * first block reads as silence.
+                 */
                 std::size_t const block2 = drv2.block_size;
                 m.begin();
                 bool silence_clean = true;
@@ -266,9 +290,10 @@ namespace {
                 }
                 check(silence_clean) == true;
 
-                /// And the mixer destructor must still join the new
-                /// producer thread cleanly here — a deadlock would
-                /// hang the test.
+                /**
+                 * And the mixer destructor must still join the new producer
+                 * thread cleanly here — a deadlock would hang the test.
+                 */
             });
 
 
@@ -293,9 +318,11 @@ namespace {
     }
 
 
-    /// A track scheduled at the driver's `wall_clock_epoch` is pinned a fixed
-    /// `driver::latency` ahead of the producer's write head, so it is preceded
-    /// by exactly `latency` samples of silence and then plays.
+    /**
+     * A track scheduled at the driver's `wall_clock_epoch` is pinned a fixed
+     * `driver::latency` ahead of the producer's write head, so it is preceded
+     * by exactly `latency` samples of silence and then plays.
+     */
     auto const schedule_immediate =
             felspar::testsuite("mixer.schedule.immediate", [](auto check) {
                 planet::audio::channel master{planet::audio::dB_gain{0}};
@@ -331,9 +358,11 @@ namespace {
             });
 
 
-    /// A track scheduled 20ms after the epoch (== 960 samples at 48kHz) is
-    /// preceded by that many samples of silence plus the fixed
-    /// `driver::latency` headroom, then plays.
+    /**
+     * A track scheduled 20ms after the epoch (== 960 samples at 48kHz) is
+     * preceded by that many samples of silence plus the fixed `driver::latency`
+     * headroom, then plays.
+     */
     auto const schedule_delayed =
             felspar::testsuite("mixer.schedule.delayed", [](auto check) {
                 using namespace std::chrono_literals;
