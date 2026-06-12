@@ -16,6 +16,7 @@ add_library(planet
         image.drawing.cpp
         log.cpp
         map.cpp
+        maths.cpp
         mouse.events.cpp
         panel.ui.cpp
         serialise.cpp
@@ -60,6 +61,7 @@ add_test_run(check planet TESTS
         log.tests.cpp
         map.hex.tests.cpp
         map.square.tests.cpp
+        maths.tests.cpp
         mixer.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
