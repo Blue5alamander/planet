@@ -25,7 +25,8 @@ namespace planet::queue {
       public:
         using value_type = T;
 
-        /// ## Reserve capacity
+
+        /// ### Reserve capacity
         void reserve(std::size_t const n)
         /**
          * Pre-allocate the internal buffers so that `push` does not allocate in
@@ -39,7 +40,8 @@ namespace planet::queue {
             consuming.reserve(n);
         }
 
-        /// ## Push data
+
+        /// ### Push data
         void push(value_type t)
         /**
          * Push data to the end of the queue. This process will block to acquire
@@ -50,7 +52,8 @@ namespace planet::queue {
             queue.push_back(std::move(t));
         }
 
-        /// ## Process data
+
+        /// ### Process data
         std::span<value_type> consume()
         /**
          * Return data held by the queue. The process will block to acquire a
