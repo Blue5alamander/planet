@@ -112,8 +112,27 @@ void planet::camera::target3dxy::update_from_current() {
 
 void planet::camera::target3dxy::tick_update() {
     ortho.tick_update();
-    /// TODO Do the animated current update from the target
-    current = target;
+    /**
+     * Ease the `current` 3D parameters a fraction of the way towards the
+     * `target` each tick, the same way `ortho` eases its own values, so a
+     * change of view angle, distance or perspective glides rather than
+     * snapping.
+     *
+     * TODO The easing speed parameters should be part of the camera
+     * configuration, both for this and the ortho camera.
+     */
+    auto const approach = [](auto const c, auto const t) noexcept {
+        return c + (t - c) * 0.1f;
+    };
+    current.view_offset = approach(current.view_offset, target.view_offset);
+    current.view_direction =
+            approach(current.view_direction, target.view_direction);
+    current.distance = approach(current.distance, target.distance);
+    current.view_angle = approach(current.view_angle, target.view_angle);
+    current.perspective_scale =
+            approach(current.perspective_scale, target.perspective_scale);
+    current.perspective_fov =
+            approach(current.perspective_fov, target.perspective_fov);
     update_from_current();
 }
 felspar::coro::task<void>
