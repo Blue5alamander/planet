@@ -1,6 +1,9 @@
 #include <planet/ostream.hpp>
 #include <felspar/test.hpp>
 
+#include <set>
+#include <vector>
+
 
 namespace {
 
@@ -268,6 +271,85 @@ namespace {
                 check(planet::map::hex::tween_rotation(5, 0).from)
                         == 5.0f / 6.0f;
                 check(planet::map::hex::tween_rotation(5, 0).to) == 1.0f;
+            });
+
+
+    auto const exactly_at_range =
+            suite.test("cells_exactly_at_range", [](auto check) {
+                planet::map::hex::coordinates const centre{4, 2};
+
+                auto collect = [&](std::size_t const range) {
+                    std::vector<planet::map::hex::coordinates> hexes;
+                    for (auto const hex :
+                         planet::map::hex::cells_exactly_at_range(
+                                 centre, range)) {
+                        hexes.push_back(hex);
+                    }
+                    return hexes;
+                };
+
+                /// Range 0 is just the centre hex.
+                auto const r0 = collect(0);
+                check(r0.size()) == 1u;
+                check(r0[0]) == centre;
+
+                /// Guard the ring against an off-by-one: every yielded hex is
+                /// distinct and sits at exactly `range` from the centre.
+                auto distinct_at = [&](std::size_t const range) {
+                    auto const hexes = collect(range);
+                    std::set<planet::map::hex::coordinates> const unique(
+                            hexes.begin(), hexes.end());
+                    check(unique.size()) == hexes.size();
+                    for (auto const hex : hexes) {
+                        check(hex.move_distance(centre)) == range;
+                    }
+                    return hexes.size();
+                };
+
+                /// Range 1 is the 6 adjacent hexes, range 2 the 12 hexes two
+                /// steps out.
+                check(distinct_at(1)) == 6u;
+                check(distinct_at(2)) == 12u;
+            });
+
+
+    auto const disk_upto_range =
+            suite.test("cells_disk_upto_range", [](auto check) {
+                planet::map::hex::coordinates const centre{4, 2};
+
+                auto collect = [&](std::size_t const range) {
+                    std::vector<planet::map::hex::coordinates> hexes;
+                    for (auto const hex :
+                         planet::map::hex::cells_disk_upto_range(
+                                 centre, range)) {
+                        hexes.push_back(hex);
+                    }
+                    return hexes;
+                };
+
+                /// Range 0 is just the centre hex.
+                auto const r0 = collect(0);
+                check(r0.size()) == 1u;
+                check(r0[0]) == centre;
+
+                /// The filled disk is distinct and no hex is further than
+                /// `range` from the centre. Its size is the centred hexagonal
+                /// number `1 + 3 * range * (range + 1)`.
+                auto filled = [&](std::size_t const range) {
+                    auto const hexes = collect(range);
+                    std::set<planet::map::hex::coordinates> const unique(
+                            hexes.begin(), hexes.end());
+                    check(unique.size()) == hexes.size();
+                    for (auto const hex : hexes) {
+                        check(hex.move_distance(centre)) <= range;
+                    }
+                    return hexes.size();
+                };
+
+                /// Range 1 adds the 6 neighbours to the centre, range 2 the
+                /// next ring of 12.
+                check(filled(1)) == 7u;
+                check(filled(2)) == 19u;
             });
 
 

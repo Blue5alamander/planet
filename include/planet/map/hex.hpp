@@ -27,6 +27,8 @@ namespace planet::map::hex {
                  c + affine::point2d{0.0f, -oR},
                  c + affine::point2d{ir, -oR / 2.0f}}};
     }
+
+
     /// ## Return the bounding box
     /**
      * For a hex of a given size at a given position. The `top_left` and
@@ -39,8 +41,10 @@ namespace planet::map::hex {
         return {c + affine::point2d{-ir, oR},
                 affine::extents2d{2 * ir, -2 * oR}};
     }
-    /// ## Return true if the point is within the hex centred at the origin
+
+    /// ### Return true if the point is within the hex centred at the origin
     bool is_within(affine::point2d, float ir = 1.0f);
+
 
     /// ## Signed distance
     /**
@@ -210,6 +214,7 @@ namespace planet::map::hex {
     constexpr std::array<float, 6> angles{
             0, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f};
 
+
     /// ### Rotations
     inline float direction_to_rotation(std::size_t const d) {
         return 1.0f * d / 6.0f;
@@ -223,6 +228,27 @@ namespace planet::map::hex {
     /// ### The best direction to move towards a given point
     std::size_t best_direction_index(coordinates from, coordinates towards);
     coordinates best_direction(coordinates from, coordinates towards);
+
+
+    /// ## Iterating hexes by distance
+
+
+    /// ### The filled disk of cells up to `range` hexes from the centre
+    /**
+     * Yields every hex whose `move_distance` from `centre` is at most `range`,
+     * i.e. the filled disk. `range == 0` yields just the centre.
+     */
+    felspar::coro::generator<coordinates>
+            cells_disk_upto_range(coordinates centre, std::size_t range);
+
+
+    /// ### The ring of cells exactly `range` hexes from the centre
+    /**
+     * Walks the ring directly rather than scanning and filtering a bounding
+     * box. `range == 0` yields just the centre.
+     */
+    felspar::coro::generator<coordinates>
+            cells_exactly_at_range(coordinates centre, std::size_t range);
 
 
     /// ## Hex world

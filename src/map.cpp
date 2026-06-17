@@ -119,6 +119,39 @@ auto planet::map::hex::best_direction(
 }
 
 
+felspar::coro::generator<planet::map::hex::coordinates>
+        planet::map::hex::cells_disk_upto_range(
+                coordinates const centre, std::size_t const range) {
+    auto const top_left = centre + coordinates(-range * 2, range * 2);
+    auto const bottom_right =
+            centre + coordinates(range * 2 + 1, -range * 2 - 1);
+    for (auto const loc : coordinates::by_column(top_left, bottom_right)) {
+        if ((centre - loc).move_distance() <= range) { co_yield loc; }
+    }
+}
+
+
+felspar::coro::generator<planet::map::hex::coordinates>
+        planet::map::hex::cells_exactly_at_range(
+                coordinates const centre, std::size_t const range) {
+    if (range == 0) {
+        co_yield centre;
+        co_return;
+    }
+    /// Walk the ring: starting from each corner `centre + directions[i] *
+    /// range`, the step along that edge is `directions[(i + 2) % 6]`.
+    using value_type = coordinates::value_type;
+    for (std::size_t i{}; i < directions.size(); ++i) {
+        auto const corner =
+                centre + directions[i] * static_cast<value_type>(range);
+        auto const step = directions[(i + 2) % 6];
+        for (std::size_t j{}; j < range; ++j) {
+            co_yield corner + step *static_cast<value_type>(j);
+        }
+    }
+}
+
+
 void planet::map::hex::save(serialise::save_buffer &ab, coordinates const c) {
     ab.save_box("_p:h:coord", c.column(), c.row());
 }
