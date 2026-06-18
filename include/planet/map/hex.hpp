@@ -175,7 +175,10 @@ namespace planet::map::hex {
         constexpr auto operator<=>(coordinates const &) const noexcept = default;
 
 
-        /// ### Produce the co-ordinates iterating through columns first
+        /// ### Produce co-ordinates
+
+
+        /// #### Iterate through columns first
         static felspar::coro::generator<coordinates>
                 by_column(coordinates top_left, coordinates bottom_right) {
             auto const start_odd = top_left.row() bitand 1;
@@ -187,6 +190,23 @@ namespace planet::map::hex {
                 }
             }
         }
+
+        /// #### The filled disk of cells up to `range` hexes from the centre
+        static felspar::coro::generator<coordinates>
+                cells_disk_upto_range(coordinates centre, std::size_t range);
+        /**
+         * Yields every hex whose `move_distance` from `centre` is at most
+         * `range`, i.e. the filled disk. `range == 0` yields just the centre.
+         */
+
+
+        /// #### The ring of cells exactly `range` hexes from the centre
+        static felspar::coro::generator<coordinates>
+                cells_exactly_at_range(coordinates centre, std::size_t range);
+        /**
+         * Walks the ring directly rather than scanning and filtering a bounding
+         * box. `range == 0` yields just the centre.
+         */
 
 
         /// ### Serialise
@@ -228,27 +248,6 @@ namespace planet::map::hex {
     /// ### The best direction to move towards a given point
     std::size_t best_direction_index(coordinates from, coordinates towards);
     coordinates best_direction(coordinates from, coordinates towards);
-
-
-    /// ## Iterating hexes by distance
-
-
-    /// ### The filled disk of cells up to `range` hexes from the centre
-    /**
-     * Yields every hex whose `move_distance` from `centre` is at most `range`,
-     * i.e. the filled disk. `range == 0` yields just the centre.
-     */
-    felspar::coro::generator<coordinates>
-            cells_disk_upto_range(coordinates centre, std::size_t range);
-
-
-    /// ### The ring of cells exactly `range` hexes from the centre
-    /**
-     * Walks the ring directly rather than scanning and filtering a bounding
-     * box. `range == 0` yields just the centre.
-     */
-    felspar::coro::generator<coordinates>
-            cells_exactly_at_range(coordinates centre, std::size_t range);
 
 
     /// ## Hex world

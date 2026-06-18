@@ -281,7 +281,7 @@ namespace {
                 auto collect = [&](std::size_t const range) {
                     std::vector<planet::map::hex::coordinates> hexes;
                     for (auto const hex :
-                         planet::map::hex::cells_exactly_at_range(
+                         planet::map::hex::coordinates::cells_exactly_at_range(
                                  centre, range)) {
                         hexes.push_back(hex);
                     }
@@ -320,7 +320,7 @@ namespace {
                 auto collect = [&](std::size_t const range) {
                     std::vector<planet::map::hex::coordinates> hexes;
                     for (auto const hex :
-                         planet::map::hex::cells_disk_upto_range(
+                         planet::map::hex::coordinates::cells_disk_upto_range(
                                  centre, range)) {
                         hexes.push_back(hex);
                     }

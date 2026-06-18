@@ -3,7 +3,7 @@
 #include <planet/serialise.hpp>
 
 
-/// ### `planet::map::square::coordinates`
+/// ## `planet::map::square::coordinates`
 
 
 void planet::map::square::save(serialise::save_buffer &ab, coordinates const c) {
@@ -21,7 +21,7 @@ namespace {
 }
 
 
-/// ### `planet::map::hex`
+/// ## `planet::map::hex`
 
 
 bool planet::map::hex::is_within(affine::point2d const c, float const ir) {
@@ -52,7 +52,29 @@ auto planet::map::hex::tween_rotation(
 }
 
 
-/// ### `planet::map::hex::coordinates`
+std::size_t planet::map::hex::best_direction_index(
+        coordinates const from, coordinates const to) {
+    /**
+     * TODO With a bit more of the correct mathsing this should just be a simple
+     * closed form calculation instead of running a search...
+     */
+    auto const angle = (to.centre() - from.centre()).theta();
+    for (std::size_t index{}; auto const ref : angles) {
+        if (std::abs(ref - angle) <= 1.0f / 12.0f) {
+            return index;
+        } else {
+            ++index;
+        }
+    }
+    return 5uz;
+}
+auto planet::map::hex::best_direction(
+        coordinates const from, coordinates const to) -> coordinates {
+    return directions[best_direction_index(from, to)];
+}
+
+
+/// ## `planet::map::hex::coordinates`
 
 
 namespace {
@@ -97,30 +119,8 @@ planet::map::hex::coordinates planet::map::hex::coordinates::from_position(
 }
 
 
-std::size_t planet::map::hex::best_direction_index(
-        coordinates const from, coordinates const to) {
-    /**
-     * TODO With a bit more of the correct mathsing this should just be a simple
-     * closed form calculation instead of running a search...
-     */
-    auto const angle = (to.centre() - from.centre()).theta();
-    for (std::size_t index{}; auto const ref : angles) {
-        if (std::abs(ref - angle) <= 1.0f / 12.0f) {
-            return index;
-        } else {
-            ++index;
-        }
-    }
-    return 5uz;
-}
-auto planet::map::hex::best_direction(
-        coordinates const from, coordinates const to) -> coordinates {
-    return directions[best_direction_index(from, to)];
-}
-
-
 felspar::coro::generator<planet::map::hex::coordinates>
-        planet::map::hex::cells_disk_upto_range(
+        planet::map::hex::coordinates::cells_disk_upto_range(
                 coordinates const centre, std::size_t const range) {
     auto const top_left = centre + coordinates(-range * 2, range * 2);
     auto const bottom_right =
@@ -132,14 +132,16 @@ felspar::coro::generator<planet::map::hex::coordinates>
 
 
 felspar::coro::generator<planet::map::hex::coordinates>
-        planet::map::hex::cells_exactly_at_range(
+        planet::map::hex::coordinates::cells_exactly_at_range(
                 coordinates const centre, std::size_t const range) {
     if (range == 0) {
         co_yield centre;
         co_return;
     }
-    /// Walk the ring: starting from each corner `centre + directions[i] *
-    /// range`, the step along that edge is `directions[(i + 2) % 6]`.
+    /**
+     * Walk the ring: starting from each corner `centre + directions[i] *
+     * range`, the step along that edge is `directions[(i + 2) % 6]`.
+     */
     using value_type = coordinates::value_type;
     for (std::size_t i{}; i < directions.size(); ++i) {
         auto const corner =
