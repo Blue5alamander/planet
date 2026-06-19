@@ -120,7 +120,7 @@ planet::map::hex::coordinates planet::map::hex::coordinates::from_position(
 
 
 felspar::coro::generator<planet::map::hex::coordinates>
-        planet::map::hex::coordinates::cells_disk_upto_range(
+        planet::map::hex::coordinates::cells_disc_upto_range(
                 coordinates const centre, std::size_t const range) {
     auto const top_left = centre + coordinates(-range * 2, range * 2);
     auto const bottom_right =

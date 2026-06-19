@@ -191,12 +191,12 @@ namespace planet::map::hex {
             }
         }
 
-        /// #### The filled disk of cells up to `range` hexes from the centre
+        /// #### The filled disc of cells up to `range` hexes from the centre
         static felspar::coro::generator<coordinates>
-                cells_disk_upto_range(coordinates centre, std::size_t range);
+                cells_disc_upto_range(coordinates centre, std::size_t range);
         /**
          * Yields every hex whose `move_distance` from `centre` is at most
-         * `range`, i.e. the filled disk. `range == 0` yields just the centre.
+         * `range`, i.e. the filled disc. `range == 0` yields just the centre.
          */
 
 
