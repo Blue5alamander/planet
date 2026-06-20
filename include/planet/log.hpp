@@ -246,9 +246,14 @@ namespace planet::log {
     void pretty_print(
             std::ostream &, serialise::load_buffer &, std::size_t depth = 0);
     void pretty_print(std::ostream &, serialise::box &, std::size_t depth = 0);
+    void pretty_print_whole_buffer(
+            std::ostream &, serialise::load_buffer &, std::size_t depth = 0);
     /**
      * Pretty prints the first item in the `load_buffer`, or pretty print the
      * content of a single box.
+     *
+     * `pretty_print_whole_buffer` instead renders *every* item in the buffer
+     * (the form used for a whole log message payload), not just the first.
      *
      * The `depth` describes how deeply nested the current print is, with the
      * `prefix` being pre-pended to each line output once for each tick of
@@ -363,6 +368,23 @@ namespace planet::log {
      * helpful for interpreting the log file. Typically you'd want to call this
      * just after opening a log file and before sending any more log messages,
      * that way the header will appear first in the file.'
+     */
+
+
+    /// ## Console output writer
+    namespace detail {
+        void default_console_writer(message const &) noexcept;
+    }
+    using console_writer_type = void (*)(message const &) noexcept;
+    inline std::atomic<console_writer_type> console_output =
+            &detail::default_console_writer;
+    /**
+     * Emits a human-readable log message to the console. Defaults to the
+     * built-in colourised `stdout` writer; replace the pointer (for example
+     * on Android, to redirect output to logcat) to change where and how console
+     * log lines are rendered. Each writer owns its own presentation.
+     *
+     * Set this once early during start up and the writer must not throw.
      */
 
 

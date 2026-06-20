@@ -166,41 +166,6 @@ namespace {
     }
 
 
-    void print(planet::log::message const &m) {
-        std::cout << std::fixed
-                  << static_cast<double>(
-                             (m.logged - g_start_time()).count() / 1e9)
-                  << std::defaultfloat << ' ';
-        switch (m.level) {
-        case planet::log::level::debug:
-            std::cout << "\33[0;37mDEBUG\33[0;39m ";
-            break;
-        case planet::log::level::info:
-            std::cout << "\33[0;32mINFO\33[0;39m ";
-            break;
-        case planet::log::level::warning:
-            std::cout << "\33[1;33mWARNING\33[0;39m ";
-            break;
-        case planet::log::level::error:
-            std::cout << "\33[0;31mERROR\33[0;39m ";
-            break;
-        case planet::log::level::critical:
-            std::cout << "\33[0;31mCRITICAL ERROR\33[0;39m ";
-            break;
-        }
-        planet::serialise::load_buffer buffer{m.payload.cmemory()};
-        show(std::cout, buffer, 0);
-        std::string_view fn{m.location.file_name()};
-        if (not log_root_directory.empty()
-            and fn.starts_with(log_root_directory)) {
-            fn.remove_prefix(log_root_directory.size() + 1);
-        }
-        std::cout << " \33[0;37m" << m.location.function_name() << ' ' << fn
-                  << ':' << m.location.line() << ':' << m.location.column()
-                  << "\33[0;39m" << std::endl;
-    }
-
-
     planet::telemetry::counter debug_count{"planet_log_message_debug"};
     planet::telemetry::counter info_count{"planet_log_message_info"};
     planet::telemetry::counter warning_count{"planet_log_message_warning"};
@@ -318,7 +283,7 @@ namespace {
                             bytes.size());
                     out->flush();
                 }
-                print(message);
+                planet::log::console_output.load()(message);
                 switch (message.level) {
                 case planet::log::level::debug: ++debug_count; break;
                 case planet::log::level::info: ++info_count; break;
@@ -359,6 +324,40 @@ namespace {
 
 std::chrono::steady_clock::time_point planet::log::start_time() {
     return g_start_time();
+}
+
+
+void planet::log::detail::default_console_writer(
+        planet::log::message const &m) noexcept {
+    std::cout << std::fixed
+              << static_cast<double>((m.logged - g_start_time()).count() / 1e9)
+              << std::defaultfloat << ' ';
+    switch (m.level) {
+    case planet::log::level::debug:
+        std::cout << "\33[0;37mDEBUG\33[0;39m ";
+        break;
+    case planet::log::level::info:
+        std::cout << "\33[0;32mINFO\33[0;39m ";
+        break;
+    case planet::log::level::warning:
+        std::cout << "\33[1;33mWARNING\33[0;39m ";
+        break;
+    case planet::log::level::error:
+        std::cout << "\33[0;31mERROR\33[0;39m ";
+        break;
+    case planet::log::level::critical:
+        std::cout << "\33[0;31mCRITICAL ERROR\33[0;39m ";
+        break;
+    }
+    planet::serialise::load_buffer buffer{m.payload.cmemory()};
+    show(std::cout, buffer, 0);
+    std::string_view fn{m.location.file_name()};
+    if (not log_root_directory.empty() and fn.starts_with(log_root_directory)) {
+        fn.remove_prefix(log_root_directory.size() + 1);
+    }
+    std::cout << " \33[0;37m" << m.location.function_name() << ' ' << fn << ':'
+              << m.location.line() << ':' << m.location.column() << "\33[0;39m"
+              << std::endl;
 }
 
 
@@ -429,6 +428,10 @@ void planet::log::pretty_print(
 void planet::log::pretty_print(
         std::ostream &os, serialise::box &b, std::size_t const depth) {
     show(os, b, depth);
+}
+void planet::log::pretty_print_whole_buffer(
+        std::ostream &os, serialise::load_buffer &lb, std::size_t const depth) {
+    show(os, lb, depth);
 }
 
 
