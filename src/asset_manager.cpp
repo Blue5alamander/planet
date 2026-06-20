@@ -1,4 +1,5 @@
 #include <planet/asset_manager.hpp>
+#include <planet/log.hpp>
 
 #include <felspar/exceptions/runtime_error.hpp>
 
@@ -50,7 +51,11 @@ std::vector<std::byte> planet::asset_manager::file_data(
     ss << g_loaders().size() << " asset loader(s) were tried for " << fn
        << '\n';
     for (auto const *loader : g_loaders()) {
-        if (auto data = loader->try_load(ss, fn, loc); data) { return *data; }
+        if (auto data = loader->try_load(ss, fn, loc); data) {
+            planet::log::debug(
+                    "Loaded asset", fn, "which has", data->size(), "bytes");
+            return *data;
+        }
     }
     throw felspar::stdexcept::runtime_error{ss.str(), loc};
 }
@@ -84,7 +89,7 @@ std::optional<std::vector<std::byte>> planet::file_loader::try_load(
         std::source_location const &) const {
     for (auto path : search_paths()) {
         auto pn = path / fn;
-        log << "Looked for " << pn << '\n';
+        log << "Looked for " << pn << " on the file system\n";
         if (std::filesystem::exists(pn)) { return file_data(pn); }
     }
     return {};
