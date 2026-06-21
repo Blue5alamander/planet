@@ -25,8 +25,13 @@ namespace {
         auto gen = am.search_paths();
         check(gen.next().value()) == cwd / "share/";
 #ifdef _WIN32
-        check(gen.next().value()) == std::filesystem::path{"C:\\path\\share\\"};
-        check(gen.next().value()) == std::filesystem::path{"C:\\share\\"};
+        /**
+         * The drive is whatever the test runs from: C: on a normal Windows
+         * host, but Z: under wine (which maps the Unix root there). Derive it
+         * from the cwd instead of hard-coding C: so the test passes in both.
+         */
+        check(gen.next().value()) == cwd.root_path() / "path/share/";
+        check(gen.next().value()) == cwd.root_path() / "share/";
 #else
         check(gen.next().value()) == std::filesystem::path{"/path/share/"};
         check(gen.next().value()) == std::filesystem::path{"/share/"};
