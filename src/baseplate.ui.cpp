@@ -16,10 +16,17 @@ namespace {
 planet::ui::baseplate::~baseplate() {
     if (not widgets.empty()) {
         planet::log::warning(
-                "Baseplate still has", widgets.size(),
-                "widgets attached to it");
-        for (auto w : widgets) { w->baseplate = nullptr; }
+                "Baseplate destroyed mid-frame with", widgets.size(),
+                "widgets still drawn this frame");
     }
+    /**
+     * Sever the back-pointer of every widget still bound to this baseplate.
+     * `attached` (unlike the per-frame `widgets` list) outlives drawing, so a
+     * widget that outlives the baseplate — such as a screen held in a static —
+     * is left with a null `baseplate` and will not deregister through a
+     * dangling pointer when it is finally destroyed.
+     */
+    for (auto w : attached) { w->baseplate = nullptr; }
 }
 
 

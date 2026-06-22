@@ -26,6 +26,7 @@ void planet::ui::widget::add_to(ui::baseplate &bp, ui::panel &parent) {
                 "This widget is already attached to a baseplate"};
     }
     baseplate = &bp;
+    bp.attach(this);
     parent.add_child(panel);
     response.post(behaviour());
 }

@@ -18,10 +18,25 @@ namespace planet::ui {
      * correct widget.
      */
     class baseplate final {
+        /// ### Widget bookkeeping
         friend class widget;
         using widget_ptr = widget *;
         using const_widget_ptr = widget const *;
+
+        /// #### Current frame live list
         std::vector<widget_ptr> widgets;
+
+        /// #### Widgets bound to this baseplate
+        std::vector<widget_ptr> attached;
+        /**
+         * `widgets` is rebuilt every frame — `start_frame_reset` clears it and
+         * each widget re-adds itself as it draws — so it only ever holds the
+         * widgets drawn in the current frame. `attached` instead persists for
+         * as long as a widget is bound to this baseplate through `add_to`. The
+         * destructor walks `attached` to null each widget's back-pointer, so a
+         * widget that outlives the baseplate (a screen held in a static, say)
+         * will not later try to deregister itself through a dangling pointer.
+         */
 
 
       public:
@@ -87,12 +102,15 @@ namespace planet::ui {
         /// ### Register and remove widgets from event routing
         void add(widget_ptr);
         void add(widget &w) { add(&w); }
+        /// ### Bind a widget for back-pointer cleanup on destruction
+        void attach(widget_ptr const w) { attached.push_back(w); }
         void remove(widget_ptr const w) {
             if (hard_focus == w) { hard_focus = nullptr; }
             if (soft_focus == w) { soft_focus = nullptr; }
             std::erase(widgets, w);
             std::erase(current_hovers, w);
             std::erase(previous_hovers, w);
+            std::erase(attached, w);
         }
 
 
@@ -108,6 +126,9 @@ namespace planet::ui {
             if (hard_focus == was) { hard_focus = now; }
             if (soft_focus == was) { soft_focus = now; }
             for (widget_ptr &w : widgets) {
+                if (w == was) { w = now; }
+            }
+            for (widget_ptr &w : attached) {
                 if (w == was) { w = now; }
             }
         }

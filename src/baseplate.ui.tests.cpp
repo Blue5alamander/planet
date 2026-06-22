@@ -124,4 +124,42 @@ namespace {
             });
 
 
+    auto const lifetime =
+            suite.test("widget lifetimes", [](auto check, auto &log) {
+                /**
+                 * A widget bound through `add_to` may outlive the baseplate it
+                 * was bound to — a screen kept in a static is the real case. As
+                 * the screens do, bind to the baseplate's own `pixels` panel
+                 * (the single-argument `add_to`), so the widget's panel parent
+                 * lives and dies with the baseplate alongside its back-pointer.
+                 */
+                planet::debug::button<> btn{log};
+
+                {
+                    planet::ui::baseplate bp;
+                    btn.add_to(bp);
+                }
+
+                /**
+                 * The baseplate is gone. It must have nulled the widget's
+                 * back-pointer on the way out, so binding afresh succeeds
+                 * rather than reporting the widget is already attached — and,
+                 * crucially, the widget's own later destruction will not
+                 * deregister through the dangling baseplate.
+                 */
+                planet::ui::baseplate bp2;
+                btn.add_to(bp2);
+                btn.reflow({.screen = screen}, screen);
+                btn.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+                btn.draw();
+                check(bp2.widget_count()) == 1u;
+
+                /// End the frame as the engine would, clearing the live list.
+                bp2.start_frame_reset();
+                check(bp2.widget_count()) == 0u;
+            });
+
+
 }
