@@ -1,9 +1,8 @@
 #pragma once
 
 
-#include <felspar/coro/coroutine.hpp>
-#include <felspar/coro/stream.hpp>
-#include <felspar/coro/task.hpp>
+#include <felspar/io/warden.hpp>
+#include <felspar/memory/small_vector.hpp>
 
 #include <set>
 #include <vector>
@@ -51,7 +50,21 @@ namespace planet::queue {
         std::size_t consumer_count() const { return consumers.size(); }
 
 
-        void push(T t) {
+        /// ### Pushing values
+
+        /// #### Synchronous push
+        void push(T t)
+        /**
+         * A synchronous push of data into a consumer may lead to the death of
+         * the consumer. By iterating by index we can sidestep that problem, but
+         * it also requires a little dance in how the index is incremented.
+         *
+         * If the resumption of the coroutines held could lead to the
+         * destruction of the object calling `push` then using this synchronous
+         * push will lead to undefined behaviour. In those circumstances use the
+         * asynchronous overload.
+         */
+        {
             ++value_push_count;
             for (std::size_t idx{}; idx < consumers.size();) {
                 auto *consumer = consumers[idx];
@@ -63,6 +76,41 @@ namespace planet::queue {
                     ++idx;
                 }
             }
+        }
+
+        /// #### Asynchronous push
+        void push(felspar::io::warden &ward, T t)
+        /**
+         * The consumers are woken up asynchronously. This should be used in
+         * cases where the resumption of a consumer might lead to the
+         * destruction of the object that is performing a push (e.g. a button
+         * which dismisses when the button is pressed).
+         *
+         * We don't need to worry about the death of consumers in this case as
+         * the resume happens asynchronously, so after the code that calls this
+         * `push` overload has completed and it blocks again on another
+         * awaitable.
+         */
+        {
+            ++value_push_count;
+            /**
+             * Wake the consumers in a single batched `async_resume` rather than
+             * one call each. The `small_vector` keeps this allocation free; if
+             * there are ever more consumers than it can hold we flush what we
+             * have so far and carry on, so any number of consumers is handled.
+             */
+            felspar::memory::small_vector<std::coroutine_handle<>> continuations;
+            for (auto *consumer : consumers) {
+                consumer->values.push_back(t);
+                if (auto h{std::exchange(consumer->continuation, {})}; h) {
+                    if (not continuations.has_room()) {
+                        ward.async_resume(continuations);
+                        continuations.clear();
+                    }
+                    continuations.push_back(h);
+                }
+            }
+            if (not continuations.empty()) { ward.async_resume(continuations); }
         }
 
 

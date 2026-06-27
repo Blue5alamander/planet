@@ -3,6 +3,7 @@
 
 #include <felspar/coro/coroutine.hpp>
 #include <felspar/exceptions/logic_error.hpp>
+#include <felspar/io/warden.hpp>
 
 #include <vector>
 
@@ -88,10 +89,42 @@ namespace planet::queue {
         }
 
 
-        bool push(T t) {
+        /// ### Pushing values
+
+        /// #### Synchronous push
+        bool push(T t)
+        /**
+         * A synchronous push may immediately resume the waiting consumer. If
+         * that resumption could lead to the destruction of the object calling
+         * `push` then this will result in undefined behaviour and the
+         * asynchronous overload must be used instead.
+         *
+         * Returns `true` if a waiting consumer was resumed.
+         */
+        {
             values.push_back(std::move(t));
             if (waiting) {
                 std::exchange(waiting, {}).resume();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /// #### Asynchronous push
+        bool push(felspar::io::warden &ward, T t)
+        /**
+         * The waiting consumer is resumed asynchronously. This should be used
+         * in cases where the resumption of the consumer might lead to the
+         * destruction of the object that is performing the push (e.g. a button
+         * which dismisses when the button is pressed).
+         *
+         * Returns `true` if a waiting consumer will be resumed.
+         */
+        {
+            values.push_back(std::move(t));
+            if (waiting) {
+                ward.async_resume(std::exchange(waiting, {}));
                 return true;
             } else {
                 return false;
@@ -158,10 +191,42 @@ namespace planet::queue {
         }
 
 
-        bool push() {
+        /// ### Pushing values
+
+        /// #### Synchronous push
+        bool push()
+        /**
+         * A synchronous push may immediately resume the waiting consumer. If
+         * that resumption could lead to the destruction of the object calling
+         * `push` then this will result in undefined behaviour and the
+         * asynchronous overload must be used instead.
+         *
+         * Returns `true` if a waiting consumer was resumed.
+         */
+        {
             ++pushes;
             if (waiting) {
                 std::exchange(waiting, {}).resume();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /// #### Asynchronous push
+        bool push(felspar::io::warden &ward)
+        /**
+         * The waiting consumer is resumed asynchronously. This should be used
+         * in cases where the resumption of the consumer might lead to the
+         * destruction of the object that is performing the push (e.g. a button
+         * which dismisses when the button is pressed).
+         *
+         * Returns `true` if a waiting consumer will be resumed.
+         */
+        {
+            ++pushes;
+            if (waiting) {
+                ward.async_resume(std::exchange(waiting, {}));
                 return true;
             } else {
                 return false;
