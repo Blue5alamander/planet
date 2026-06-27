@@ -1,4 +1,4 @@
-# Serialisation
+# serialise
 
 Serialisation allows game state to be sent over the network or saved to a file. All serialisation is binary and is comprised of a sequence of nested boxes.
 

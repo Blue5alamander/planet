@@ -1,4 +1,4 @@
-# ECS
+# ecs
 
 * [`planet/ecs/component_proxy.hpp`](./component_proxy.hpp) -- A smart pointer which holds a reference to the component storage and an `entity_id` and is able to provide the component on demand.
 * [`planet/ecs/entities.hpp`](./entities.hpp) -- Manages the entities within the system and holds references to all component storages. A game will create a single instance of this type which will hold references to all entity storages.

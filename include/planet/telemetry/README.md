@@ -1,4 +1,4 @@
-# Telemetry
+# telemetry
 
 The telemetry module allows for the recording of various statistics about ongoing processes. This can vary from the current number of frames per second the GPU is outputting to game statistics like how many kills the player has made.
 
