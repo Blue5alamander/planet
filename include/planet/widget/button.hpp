@@ -8,6 +8,7 @@
 #include <planet/ui/widget.hpp>
 
 #include <felspar/coro/future.hpp>
+#include <felspar/io/warden.hpp>
 
 
 namespace planet::widget {
@@ -56,12 +57,24 @@ namespace planet::widget {
         : widget{std::move(b)},
           press_value{std::move(b.press_value)},
           output_to{b.output_to},
-          graphic{std::move(b.graphic)} {
+          graphic{std::move(b.graphic)},
+          ward{b.ward} {
             if (has_baseplate()) { response.post(behaviour()); }
         }
 
 
+        /// ### Attributes
+
         Texture graphic;
+
+        /// #### Asynchronous push warden
+        felspar::io::warden *ward = nullptr;
+        /**
+         * When set, a button press resumes the consumer asynchronously through
+         * this warden. Use this when the press might destroy the button (for
+         * example a button that dismisses the screen it lives on). When left
+         * `nullptr` the press pushes synchronously.
+         */
 
 
       private:
@@ -85,7 +98,11 @@ namespace planet::widget {
             static felspar::coro::task<void> press(button *self, auto clicks) {
                 while (true) {
                     auto click = co_await clicks.next();
-                    self->output_to.push(self->press_value);
+                    if (self->ward) {
+                        self->output_to.push(*self->ward, self->press_value);
+                    } else {
+                        self->output_to.push(self->press_value);
+                    }
                 }
             }
         };
@@ -94,7 +111,11 @@ namespace planet::widget {
             static felspar::coro::task<void> press(button *self, auto clicks) {
                 while (true) {
                     auto click = co_await clicks.next();
-                    self->output_to.push(self->press_value);
+                    if (self->ward) {
+                        self->output_to.push(*self->ward, self->press_value);
+                    } else {
+                        self->output_to.push(self->press_value);
+                    }
                 }
             }
         };
@@ -181,19 +202,32 @@ namespace planet::widget {
             requires deduce<output_type>::reference
         : widget{std::move(b)},
           output_to{b.output_to},
-          graphic{std::move(b.graphic)} {
+          graphic{std::move(b.graphic)},
+          ward{b.ward} {
             if (has_baseplate()) { response.post(behaviour()); }
         }
         button(button &&b)
             requires(not deduce<output_type>::reference)
         : widget{std::move(b)},
           output_to{std::move(b.output_to)},
-          graphic{std::move(b.graphic)} {
+          graphic{std::move(b.graphic)},
+          ward{b.ward} {
             if (has_baseplate()) { response.post(behaviour()); }
         }
 
 
+        /// ### Attributes
+
         Texture graphic;
+
+        /// #### Asynchronous push warden
+        felspar::io::warden *ward = nullptr;
+        /**
+         * When set, a button press resumes the consumer asynchronously through
+         * this warden. Use this when the press might destroy the button (for
+         * example a button that dismisses the screen it lives on). When left
+         * `nullptr` the press pushes synchronously.
+         */
 
 
       protected:
@@ -223,7 +257,11 @@ namespace planet::widget {
         static felspar::coro::task<void> press(button *self, auto clicks) {
             while (true) {
                 auto click = co_await clicks.next();
-                self->output_to.push();
+                if (self->ward) {
+                    self->output_to.push(*self->ward);
+                } else {
+                    self->output_to.push();
+                }
             }
         }
     };
