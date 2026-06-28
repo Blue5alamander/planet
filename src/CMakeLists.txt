@@ -35,6 +35,7 @@ target_compile_definitions(planet PRIVATE
 target_link_libraries(planet
         felspar-io
         felspar-parse
+        FLAC
         ogg
         Threads::Threads
         vorbis

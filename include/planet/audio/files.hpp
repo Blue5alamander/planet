@@ -9,7 +9,29 @@
 namespace planet::audio {
 
 
-    /// ## Load an ogg file
+    /// ## FLAC
+    class flac final {
+        struct impl;
+        std::vector<std::byte> m_filedata;
+        std::source_location loc;
+
+      public:
+        explicit flac(
+                std::vector<std::byte>,
+                std::source_location = std::source_location::current());
+
+
+        planet::audio::sample_clock duration() const;
+        felspar::coro::generator<stereo_buffer> stereo();
+
+
+        std::span<std::byte const> filedata() const noexcept {
+            return m_filedata;
+        }
+    };
+
+
+    /// ## Ogg
     class ogg final {
         struct impl;
         std::vector<std::byte> m_filedata;
@@ -18,15 +40,16 @@ namespace planet::audio {
       public:
         explicit ogg(
                 std::vector<std::byte>,
-                std::source_location const & = std::source_location::current());
+                std::source_location = std::source_location::current());
 
+
+        planet::audio::sample_clock duration() const;
         felspar::coro::generator<stereo_buffer> stereo();
+
 
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
         }
-
-        planet::audio::sample_clock duration() const;
     };
 
 

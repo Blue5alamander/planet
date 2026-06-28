@@ -2,11 +2,238 @@
 
 #include <felspar/exceptions/runtime_error.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
+#include <felspar/parse/extract.be.hpp>
 #include <felspar/parse/extract.le.hpp>
 
+#include <algorithm>
 #include <optional>
 
+#include <FLAC/stream_decoder.h>
 #include <vorbis/codec.h>
+
+
+/// ## `planet::audio::flac::impl`
+/**
+ * libFLAC pushes decoded audio to a write callback rather than letting us pull
+ * it, so we drive the decoder one frame at a time with
+ * `FLAC__stream_decoder_process_single` and hand the frame the callback just
+ * produced back out of the generator. The whole file is already in memory, so
+ * the read callback simply serves bytes from `flacdata`; the seek/tell/length
+ * callbacks are left null as the decoder does not need to seek a forward,
+ * one-shot decode.
+ */
+
+
+struct planet::audio::flac::impl {
+    impl(std::span<std::byte const>, std::source_location const &);
+    ~impl();
+
+    std::source_location loc;
+
+    felspar::coro::generator<
+            planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+            stereo();
+
+  private:
+    std::span<std::byte const> flacdata;
+    std::size_t read_position{};
+
+    FLAC__StreamDecoder *decoder{};
+    std::optional<FLAC__StreamMetadata_StreamInfo> stream_info;
+    char const *error{};
+
+    felspar::memory::accumulation_buffer<float> output{
+            default_buffer_samples * 50};
+    std::size_t frame_samples{};
+
+    static FLAC__StreamDecoderReadStatus read_callback(
+            FLAC__StreamDecoder const *, FLAC__byte[], std::size_t *, void *);
+    static FLAC__StreamDecoderWriteStatus write_callback(
+            FLAC__StreamDecoder const *,
+            FLAC__Frame const *,
+            FLAC__int32 const *const[],
+            void *);
+    static void metadata_callback(
+            FLAC__StreamDecoder const *, FLAC__StreamMetadata const *, void *);
+    static void error_callback(
+            FLAC__StreamDecoder const *, FLAC__StreamDecoderErrorStatus, void *);
+};
+
+
+planet::audio::flac::impl::impl(
+        std::span<std::byte const> f, std::source_location const &l)
+: loc{l}, flacdata{f} {
+    decoder = FLAC__stream_decoder_new();
+    if (not decoder) {
+        throw felspar::stdexcept::runtime_error{
+                "Failed to create FLAC decoder", loc};
+    }
+    if (FLAC__stream_decoder_init_stream(
+                decoder, read_callback, nullptr, nullptr, nullptr, nullptr,
+                write_callback, metadata_callback, error_callback, this)
+        != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+        FLAC__stream_decoder_delete(decoder);
+        throw felspar::stdexcept::runtime_error{
+                "Failed to initialise FLAC decoder", loc};
+    }
+    if (not FLAC__stream_decoder_process_until_end_of_metadata(decoder)) {
+        auto const message = error ? error : "Not FLAC audio data";
+        FLAC__stream_decoder_delete(decoder);
+        throw felspar::stdexcept::runtime_error{message, loc};
+    }
+    if (not stream_info) {
+        FLAC__stream_decoder_delete(decoder);
+        throw felspar::stdexcept::runtime_error{
+                "FLAC file has no STREAMINFO block", loc};
+    }
+}
+
+
+planet::audio::flac::impl::~impl() {
+    if (decoder) {
+        FLAC__stream_decoder_finish(decoder);
+        FLAC__stream_decoder_delete(decoder);
+    }
+}
+
+
+FLAC__StreamDecoderReadStatus planet::audio::flac::impl::read_callback(
+        FLAC__StreamDecoder const *,
+        FLAC__byte buffer[],
+        std::size_t *const bytes,
+        void *const client_data) {
+    auto &self = *static_cast<impl *>(client_data);
+    auto const remaining = self.flacdata.size() - self.read_position;
+    if (remaining == 0) {
+        *bytes = 0;
+        return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+    }
+    auto const count = std::min(*bytes, remaining);
+    std::copy(
+            self.flacdata.begin() + self.read_position,
+            self.flacdata.begin() + self.read_position + count,
+            reinterpret_cast<std::byte *>(buffer));
+    self.read_position += count;
+    *bytes = count;
+    return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+}
+
+
+FLAC__StreamDecoderWriteStatus planet::audio::flac::impl::write_callback(
+        FLAC__StreamDecoder const *,
+        FLAC__Frame const *const frame,
+        FLAC__int32 const *const buffer[],
+        void *const client_data) {
+    auto &self = *static_cast<impl *>(client_data);
+    auto const samples = static_cast<std::size_t>(frame->header.blocksize);
+    /**
+     * Samples are signed integers with `bits_per_sample` of resolution; scale
+     * by the full-scale magnitude to land back in the `[-1, 1)` float range.
+     */
+    auto const scale =
+            1.0f
+            / static_cast<float>(
+                    std::int64_t{1} << (frame->header.bits_per_sample - 1));
+    self.output.ensure_length(samples * stereo_buffer::channels);
+    for (std::size_t sample{}; sample < samples; ++sample) {
+        self.output.at(sample * stereo_buffer::channels + 0) =
+                static_cast<float>(buffer[0][sample]) * scale;
+        self.output.at(sample * stereo_buffer::channels + 1) =
+                static_cast<float>(buffer[1][sample]) * scale;
+    }
+    self.frame_samples = samples;
+    return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+
+
+void planet::audio::flac::impl::metadata_callback(
+        FLAC__StreamDecoder const *,
+        FLAC__StreamMetadata const *const metadata,
+        void *const client_data) {
+    if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+        static_cast<impl *>(client_data)->stream_info =
+                metadata->data.stream_info;
+    }
+}
+
+
+void planet::audio::flac::impl::error_callback(
+        FLAC__StreamDecoder const *,
+        FLAC__StreamDecoderErrorStatus const status,
+        void *const client_data) {
+    static_cast<impl *>(client_data)->error =
+            FLAC__StreamDecoderErrorStatusString[status];
+}
+
+
+felspar::coro::generator<
+        planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+        planet::audio::flac::impl::stereo() {
+    if (stream_info->channels != stereo_buffer::channels) {
+        throw felspar::stdexcept::runtime_error{
+                "This FLAC file is not stereo", loc};
+    } else if (stream_info->sample_rate != samples_per_second) {
+        throw felspar::stdexcept::runtime_error{
+                "The sample rate is wrong. Should be 48kHz and is "
+                        + std::to_string(stream_info->sample_rate) + "Hz",
+                loc};
+    }
+    while (FLAC__stream_decoder_get_state(decoder)
+           != FLAC__STREAM_DECODER_END_OF_STREAM) {
+        frame_samples = 0;
+        if (not FLAC__stream_decoder_process_single(decoder)) {
+            throw felspar::stdexcept::runtime_error{
+                    error ? error : "FLAC decoding failed", loc};
+        }
+        if (frame_samples) {
+            co_yield output.first(frame_samples * stereo_buffer::channels);
+        }
+    }
+}
+
+
+/// ## `planet::audio::flac`
+
+
+planet::audio::flac::flac(std::vector<std::byte> f, std::source_location const l)
+: m_filedata{std::move(f)}, loc{l} {}
+
+
+felspar::coro::generator<
+        planet::audio::buffer_storage<planet::audio::sample_clock, 2>>
+        planet::audio::flac::stereo() {
+    impl decoder{m_filedata, loc};
+    for (auto s = decoder.stereo(); auto p = s.next();) {
+        co_yield std::move(*p);
+    }
+}
+
+
+planet::audio::sample_clock planet::audio::flac::duration() const {
+    /**
+     * STREAMINFO is always the first metadata block, so it begins at byte 8
+     * (after the four byte "fLaC" marker and the four byte metadata block
+     * header). Its 36-bit `total_samples` field is the low 36 bits of the
+     * 64-bit big-endian value at offset 10 within the block.
+     */
+    if (m_filedata.size() < 4 or m_filedata[0] != std::byte{'f'}
+        or m_filedata[1] != std::byte{'L'} or m_filedata[2] != std::byte{'a'}
+        or m_filedata[3] != std::byte{'C'}) {
+        throw felspar::stdexcept::runtime_error{"Not a FLAC file", loc};
+    }
+    std::size_t constexpr total_samples_offset = 8 + 10;
+    if (m_filedata.size() < total_samples_offset + 8) {
+        throw felspar::stdexcept::runtime_error{
+                "FLAC STREAMINFO block is truncated", loc};
+    }
+    std::uint64_t constexpr total_samples_mask = 0xF'FFFF'FFFF;
+    auto const packed =
+            felspar::parse::binary::be::unchecked_extract<std::uint64_t>(
+                    std::span<std::byte const, 8>{
+                            m_filedata.data() + total_samples_offset, 8});
+    return sample_clock{
+            static_cast<std::int64_t>(packed bitand total_samples_mask)};
+}
 
 
 /// ## `planet::audio::ogg::impl`
@@ -158,7 +385,7 @@ felspar::coro::generator<
 /// ## `planet::audio::ogg`
 
 
-planet::audio::ogg::ogg(std::vector<std::byte> o, std::source_location const &l)
+planet::audio::ogg::ogg(std::vector<std::byte> o, std::source_location const l)
 : m_filedata{std::move(o)}, loc{l} {}
 
 
