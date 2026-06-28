@@ -1,4 +1,5 @@
 #include <planet/audio/files.hpp>
+#include <planet/serialise.hpp>
 
 #include <felspar/exceptions/runtime_error.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>
@@ -268,6 +269,17 @@ planet::audio::sample_clock planet::audio::flac::duration() const {
 }
 
 
+void planet::audio::save(planet::serialise::save_buffer &sb, flac const &f) {
+    sb.save_box(f.box, f.filedata());
+}
+void planet::audio::load(planet::serialise::box &box, flac &f) {
+    std::vector<std::byte> filedata;
+    box.named(f.box, filedata);
+    // TODO Make a friend so it can see into the impl
+    f = flac{std::move(filedata)};
+}
+
+
 /// ## `planet::audio::ogg::impl`
 
 
@@ -501,4 +513,15 @@ planet::audio::sample_clock planet::audio::ogg::duration() const {
         }
     }
     throw felspar::stdexcept::runtime_error{"No OggS block found", loc};
+}
+
+
+void planet::audio::save(planet::serialise::save_buffer &sb, ogg const &o) {
+    sb.save_box(o.box, o.filedata());
+}
+void planet::audio::load(planet::serialise::box &box, ogg &o) {
+    std::vector<std::byte> filedata;
+    box.named(o.box, filedata);
+    // TODO Make a friend so it can see into the impl
+    o = ogg{std::move(filedata)};
 }

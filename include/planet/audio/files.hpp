@@ -2,6 +2,7 @@
 
 
 #include <planet/audio/stereo.hpp>
+#include <planet/serialise/forward.hpp>
 
 #include <felspar/coro/generator.hpp>
 
@@ -20,7 +21,7 @@ namespace planet::audio {
 
 
         explicit flac(
-                std::vector<std::byte>,
+                std::vector<std::byte> = {},
                 std::source_location = std::source_location::current());
 
 
@@ -38,6 +39,9 @@ namespace planet::audio {
         /// ### Audio output
         felspar::coro::generator<stereo_buffer> stereo();
     };
+
+    void save(planet::serialise::save_buffer &, flac const &);
+    void load(planet::serialise::box &, flac &);
 
 
     /// ## Ogg
@@ -51,7 +55,7 @@ namespace planet::audio {
 
 
         explicit ogg(
-                std::vector<std::byte>,
+                std::vector<std::byte> = {},
                 std::source_location = std::source_location::current());
 
 
@@ -69,6 +73,9 @@ namespace planet::audio {
         /// ### Audio output
         felspar::coro::generator<stereo_buffer> stereo();
     };
+
+    void save(planet::serialise::save_buffer &, ogg const &);
+    void load(planet::serialise::box &, ogg &);
 
 
 }
