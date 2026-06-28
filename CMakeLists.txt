@@ -22,6 +22,9 @@ if(NOT TARGET check)
     add_custom_target(check)
 endif()
 
+option(PLANET_NO_AUDIO
+    "Build planet without the audio subsystem (omits FLAC/ogg/vorbis)" OFF)
+
 add_subdirectory(examples)
 add_subdirectory(src)
 add_subdirectory(tools)

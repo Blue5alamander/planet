@@ -1,7 +1,6 @@
 find_package(Threads REQUIRED)
 
 add_library(planet
-        audio.cpp
         affine.cpp
         asset_manager.cpp
         baseplate.ui.cpp
@@ -9,7 +8,6 @@ add_library(planet
         colour.cpp
         comms.cpp
         ecs.cpp
-        files.audio.cpp
         files.drawing.cpp
         folders.cpp
         gravity.ui.cpp
@@ -35,11 +33,22 @@ target_compile_definitions(planet PRIVATE
 target_link_libraries(planet
         felspar-io
         felspar-parse
-        FLAC
-        ogg
         Threads::Threads
-        vorbis
     )
+
+if(PLANET_NO_AUDIO)
+    target_compile_definitions(planet PUBLIC PLANET_NO_AUDIO)
+else()
+    target_sources(planet PRIVATE
+            audio.cpp
+            files.audio.cpp
+        )
+    target_link_libraries(planet
+            FLAC
+            ogg
+            vorbis
+        )
+endif()
 install(TARGETS planet LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
 
@@ -47,7 +56,6 @@ add_test_run(check planet TESTS
         affine2d.tests.cpp
         affine3d.tests.cpp
         asset_manager.tests.cpp
-        audio.tests.cpp
         baseplate.ui.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
@@ -63,7 +71,6 @@ add_test_run(check planet TESTS
         map.hex.tests.cpp
         map.square.tests.cpp
         maths.tests.cpp
-        mixer.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
         range.ui.tests.cpp
@@ -77,3 +84,9 @@ add_test_run(check planet TESTS
         time.tests.cpp
         version.tests.cpp
     )
+if(NOT PLANET_NO_AUDIO)
+    add_test_run(check planet TESTS
+            audio.tests.cpp
+            mixer.tests.cpp
+        )
+endif()
