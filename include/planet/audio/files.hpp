@@ -16,18 +16,25 @@ namespace planet::audio {
         std::source_location loc;
 
       public:
+        static std::string_view constexpr box{"_p:a:flac"};
+
+
         explicit flac(
                 std::vector<std::byte>,
                 std::source_location = std::source_location::current());
 
 
-        planet::audio::sample_clock duration() const;
-        felspar::coro::generator<stereo_buffer> stereo();
+        /// ### Queries
 
+        planet::audio::sample_clock duration() const;
 
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
         }
+
+
+        /// ### Audio output
+        felspar::coro::generator<stereo_buffer> stereo();
     };
 
 
@@ -38,18 +45,25 @@ namespace planet::audio {
         std::source_location loc;
 
       public:
+        static std::string_view constexpr box{"_p:a:ogg"};
+
+
         explicit ogg(
                 std::vector<std::byte>,
                 std::source_location = std::source_location::current());
 
 
-        planet::audio::sample_clock duration() const;
-        felspar::coro::generator<stereo_buffer> stereo();
+        /// ### Queries
 
+        planet::audio::sample_clock duration() const;
 
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
         }
+
+
+        /// ### Audio output
+        felspar::coro::generator<stereo_buffer> stereo();
     };
 
 
