@@ -195,6 +195,34 @@ felspar::coro::generator<
 /// ## `planet::audio::flac`
 
 
+namespace {
+    /**
+     * The 64-bit big-endian STREAMINFO word that packs the sample rate (20
+     * bits), the channel count (3 bits, stored as `count - 1`), the bit depth
+     * (5 bits) and the total sample count (36 bits). STREAMINFO is always the
+     * first metadata block, so it begins at byte 8 -- after the four byte
+     * "fLaC" marker and the four byte metadata block header -- and the word
+     * sits at offset 10 within the block.
+     */
+    std::uint64_t flac_streaminfo_word(
+            std::span<std::byte const> const filedata,
+            std::source_location const &loc) {
+        if (filedata.size() < 4 or filedata[0] != std::byte{'f'}
+            or filedata[1] != std::byte{'L'} or filedata[2] != std::byte{'a'}
+            or filedata[3] != std::byte{'C'}) {
+            throw felspar::stdexcept::runtime_error{"Not a FLAC file", loc};
+        }
+        std::size_t constexpr word_offset = 8 + 10;
+        if (filedata.size() < word_offset + 8) {
+            throw felspar::stdexcept::runtime_error{
+                    "FLAC STREAMINFO block is truncated", loc};
+        }
+        return felspar::parse::binary::be::unchecked_extract<std::uint64_t>(
+                std::span<std::byte const, 8>{filedata.data() + word_offset, 8});
+    }
+}
+
+
 planet::audio::flac::flac(std::vector<std::byte> f, std::source_location const l)
 : m_filedata{std::move(f)}, loc{l} {}
 
@@ -209,30 +237,34 @@ felspar::coro::generator<
 }
 
 
+std::size_t planet::audio::flac::channels() const {
+    /**
+     * The channel count is a 3-bit field stored as `count - 1`, sitting just
+     * below the 20-bit sample rate at the top of the STREAMINFO word.
+     */
+    std::uint64_t constexpr channels_mask = 0x7;
+    auto const word = flac_streaminfo_word(m_filedata, loc);
+    return static_cast<std::size_t>(((word >> 41) bitand channels_mask) + 1);
+}
+
+
+std::size_t planet::audio::flac::sample_rate() const {
+    /**
+     * The sample rate is the top 20 bits of the STREAMINFO word.
+     */
+    auto const word = flac_streaminfo_word(m_filedata, loc);
+    return static_cast<std::size_t>(word >> 44);
+}
+
+
 planet::audio::sample_clock planet::audio::flac::duration() const {
     /**
-     * STREAMINFO is always the first metadata block, so it begins at byte 8
-     * (after the four byte "fLaC" marker and the four byte metadata block
-     * header). Its 36-bit `total_samples` field is the low 36 bits of the
-     * 64-bit big-endian value at offset 10 within the block.
+     * `total_samples` is the low 36 bits of the STREAMINFO word.
      */
-    if (m_filedata.size() < 4 or m_filedata[0] != std::byte{'f'}
-        or m_filedata[1] != std::byte{'L'} or m_filedata[2] != std::byte{'a'}
-        or m_filedata[3] != std::byte{'C'}) {
-        throw felspar::stdexcept::runtime_error{"Not a FLAC file", loc};
-    }
-    std::size_t constexpr total_samples_offset = 8 + 10;
-    if (m_filedata.size() < total_samples_offset + 8) {
-        throw felspar::stdexcept::runtime_error{
-                "FLAC STREAMINFO block is truncated", loc};
-    }
     std::uint64_t constexpr total_samples_mask = 0xF'FFFF'FFFF;
-    auto const packed =
-            felspar::parse::binary::be::unchecked_extract<std::uint64_t>(
-                    std::span<std::byte const, 8>{
-                            m_filedata.data() + total_samples_offset, 8});
+    auto const word = flac_streaminfo_word(m_filedata, loc);
     return sample_clock{
-            static_cast<std::int64_t>(packed bitand total_samples_mask)};
+            static_cast<std::int64_t>(word bitand total_samples_mask)};
 }
 
 
@@ -385,6 +417,34 @@ felspar::coro::generator<
 /// ## `planet::audio::ogg`
 
 
+namespace {
+    /**
+     * Locate the Vorbis identification header -- the first packet in the
+     * stream -- and return the index of its leading 0x01 marker. The marker is
+     * followed by "vorbis", a 4-byte version, the 1-byte channel count and the
+     * 4-byte little-endian sample rate, so the caller can read those fields at
+     * fixed offsets from the returned index.
+     */
+    std::size_t vorbis_identification_header(
+            std::span<std::byte const> const filedata,
+            std::source_location const &loc) {
+        for (std::size_t i{}; i + 16 <= filedata.size(); ++i) {
+            if (filedata[i] == std::byte{0x01}
+                and filedata[i + 1] == std::byte{'v'}
+                and filedata[i + 2] == std::byte{'o'}
+                and filedata[i + 3] == std::byte{'r'}
+                and filedata[i + 4] == std::byte{'b'}
+                and filedata[i + 5] == std::byte{'i'}
+                and filedata[i + 6] == std::byte{'s'}) {
+                return i;
+            }
+        }
+        throw felspar::stdexcept::runtime_error{
+                "No Vorbis identification header found", loc};
+    }
+}
+
+
 planet::audio::ogg::ogg(std::vector<std::byte> o, std::source_location const l)
 : m_filedata{std::move(o)}, loc{l} {}
 
@@ -396,6 +456,28 @@ felspar::coro::generator<
     for (auto s = decoder.stereo(); auto p = s.next();) {
         co_yield std::move(*p);
     }
+}
+
+
+std::size_t planet::audio::ogg::channels() const {
+    /**
+     * The single byte channel count follows the 4-byte version field after the
+     * header's 7-byte signature.
+     */
+    auto const header = vorbis_identification_header(m_filedata, loc);
+    return std::to_integer<std::size_t>(m_filedata[header + 11]);
+}
+
+
+std::size_t planet::audio::ogg::sample_rate() const {
+    /**
+     * The 4-byte little-endian sample rate follows the channel count.
+     */
+    auto const header = vorbis_identification_header(m_filedata, loc);
+    return static_cast<std::size_t>(
+            felspar::parse::binary::le::unchecked_extract<std::uint32_t>(
+                    std::span<std::byte const, 4>{
+                            m_filedata.data() + header + 12, 4}));
 }
 
 

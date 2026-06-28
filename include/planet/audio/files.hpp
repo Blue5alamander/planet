@@ -26,7 +26,9 @@ namespace planet::audio {
 
         /// ### Queries
 
+        std::size_t channels() const;
         planet::audio::sample_clock duration() const;
+        std::size_t sample_rate() const;
 
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
@@ -55,7 +57,9 @@ namespace planet::audio {
 
         /// ### Queries
 
+        std::size_t channels() const;
         planet::audio::sample_clock duration() const;
+        std::size_t sample_rate() const;
 
         std::span<std::byte const> filedata() const noexcept {
             return m_filedata;
