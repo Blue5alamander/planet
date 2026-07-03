@@ -243,11 +243,39 @@ namespace planet::map::hex {
         float from, to;
     };
     rotation_tweening tween_rotation(std::size_t from, std::size_t to);
+    /**
+     * Produces the start and end rotations for animating a turn from one
+     * direction index to another (both are taken mod 6, so any of the
+     * `east_index` etc. values are fine). The rotations are in turns, matching
+     * `direction_to_rotation`, with 1 being a full revolution.
+     *
+     * The end rotation is chosen so that linearly interpolating between
+     * `from` and `to` in the returned `rotation_tweening` turns the shortest
+     * way around. Because of this the `to` value may lie outside the range
+     * [0, 1) — for example tweening from direction 0 to direction 5 gives a
+     * `to` of -1/6 rather than 5/6. When the two ways around are the same
+     * length (directly opposite directions) the turn is anticlockwise.
+     */
 
 
     /// ### The best direction to move towards a given point
     std::size_t best_direction_index(coordinates from, coordinates towards);
     coordinates best_direction(coordinates from, coordinates towards);
+    /**
+     * Chooses the neighbouring hex direction whose angle most nearly matches
+     * the direction from the centre of `from` to the centre of `towards`.
+     * `best_direction_index` returns an index into `directions` (one of
+     * `east_index` etc.) and `best_direction` returns the corresponding
+     * offset from `directions`, suitable for adding to `from` to take one
+     * step towards `towards`.
+     *
+     * Each direction covers the angles within 1/12 of a turn either side of
+     * its own angle. Angles in the wrap-around gap just below a full turn
+     * (pointing east and slightly south) fall through to `south_east_index`
+     * rather than wrapping back around to `east_index`. When `from` and
+     * `towards` are the same cell the angle is taken as zero, giving
+     * `east_index`.
+     */
 
 
     /// ## Hex world
