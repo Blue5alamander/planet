@@ -227,6 +227,28 @@ namespace {
     });
 
 
+    auto const shared_world = suite.test("world/shared", [](auto check) {
+        /**
+         * A hex world with shared chunks acts as a persistent data structure:
+         * copies share their chunks and `alter` copies a chunk the first time
+         * it is edited so that the change isn't visible in the base world.
+         */
+        planet::map::hex::world_type<long, 4, 2, std::shared_ptr> w{
+                {0, 0}, [](auto) { return 0L; }};
+        w.alter(w, {0, 0}) = 42;
+        auto const &cw = w;
+
+        auto next = w;
+        auto const &cnext = next;
+        check(&cnext.chunk_at({0, 0})) == &cw.chunk_at({0, 0});
+
+        next.alter(w, {0, 0}) = 99;
+        check(cw[{0, 0}]) == 42L;
+        check(cnext[{0, 0}]) == 99L;
+        check(&cnext.chunk_at({0, 0})) != &cw.chunk_at({0, 0});
+    });
+
+
     auto const moves = suite.test("moves", [](auto check) {
         check(planet::map::hex::coordinates{0, 0}.move_distance()) == 0u;
         check(planet::map::hex::coordinates{1, 1}.move_distance()) == 1u;

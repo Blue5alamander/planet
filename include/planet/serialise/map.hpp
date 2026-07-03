@@ -24,11 +24,11 @@ namespace planet::map::square {
     /// ## `planet::map::square::world`
 
 
-    template<typename Chunk>
-    void save(
-            serialise::save_buffer &ab,
-            std::vector<std::pair<coordinates, std::unique_ptr<Chunk>>> const
-                    &v) {
+    template<typename Pointer>
+        requires requires { typename Pointer::element_type; }
+    void
+            save(serialise::save_buffer &ab,
+                 std::vector<std::pair<coordinates, Pointer>> const &v) {
         /**
          * The default saver for this vector will produce output that will be
          * harder for the specialised loader we need to load the items back in.
@@ -41,12 +41,12 @@ namespace planet::map::square {
             save(ab, *p.second);
         }
     }
-    template<typename Chunk>
-    void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+    template<typename Chunk, template<typename...> typename Pointer>
+    void save(serialise::save_buffer &ab, world<Chunk, Pointer> const &w) {
         ab.save_box("_p:m:world", w.storage);
     }
-    template<typename Chunk>
-    void load(serialise::load_buffer &lb, world<Chunk> &w) {
+    template<typename Chunk, template<typename...> typename Pointer>
+    void load(serialise::load_buffer &lb, world<Chunk, Pointer> &w) {
         /**
          * Because we don't have a default constructor for the chunk, and the
          * internal bookkeeping that we need in the world is a bit complicated
@@ -56,6 +56,11 @@ namespace planet::map::square {
          * we can iterate through these and fetch the chunks at those positions
          * to load in -- this will overwrite the saved fields in the chunk's
          * data type and leave the others as if it was a fresh world.
+         *
+         * The cell data is loaded directly into the chunks the world already
+         * holds, so a world with shared chunks must not share them with any
+         * other world when it is loaded into -- load into a freshly
+         * constructed world.
          */
         auto box = serialise::expect_box(lb);
         box.check_name_or_throw("_p:m:world");
@@ -63,7 +68,7 @@ namespace planet::map::square {
         auto const items = box.content.extract_size_t();
         for (std::size_t index{}; index * 2 < items; ++index) {
             auto const pos = serialise::load_type<coordinates>(box.content);
-            Chunk &chunk = w.chunk_at(pos);
+            Chunk &chunk = *w.storage[w.chunk_index(pos).first].second;
             load(box.content, chunk);
         }
         box.check_empty_or_throw();
@@ -79,12 +84,12 @@ namespace planet::map::hex {
     /// ## `planet::hexmap::world`
 
 
-    template<typename Chunk>
-    void save(serialise::save_buffer &ab, world<Chunk> const &w) {
+    template<typename Chunk, template<typename...> typename Pointer>
+    void save(serialise::save_buffer &ab, world<Chunk, Pointer> const &w) {
         ab.save_box("_p:h:world", w.grid);
     }
-    template<typename Chunk>
-    void load(serialise::load_buffer &lb, world<Chunk> &w) {
+    template<typename Chunk, template<typename...> typename Pointer>
+    void load(serialise::load_buffer &lb, world<Chunk, Pointer> &w) {
         lb.load_box("_p:h:world", w.grid);
     }
 

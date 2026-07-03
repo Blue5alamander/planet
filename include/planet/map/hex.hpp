@@ -251,22 +251,31 @@ namespace planet::map::hex {
 
 
     /// ## Hex world
-    template<typename Chunk>
+    /**
+     * See [`planet::map::square::world`](./square.hpp) for a description of the
+     * `Pointer` template parameter and the chunk sharing between world copies
+     * that `std::shared_ptr` enables.
+     */
+    template<
+            typename Chunk,
+            template<typename...> typename Pointer = std::unique_ptr>
     class world {
         static_assert(
                 (Chunk::width bitand 1) == 0,
                 "Width of chunks storage must be even");
-        square::world<Chunk> grid{};
+        square::world<Chunk, Pointer> grid{};
 
       public:
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
         using init_function_type = std::function<cell_type(coordinates)>;
+        static constexpr bool shared_chunks =
+                square::world<Chunk, Pointer>::shared_chunks;
 
 
         /// ### Construction
         world() {}
-        world(coordinates const start) : grid{start} {}
+        world(coordinates const start) : grid{start.compressed()} {}
         world(coordinates const start, init_function_type const ift)
         : grid{start.compressed(), [f = std::move(ift)](square::coordinates p) {
                    return f(coordinates::from_compressed(p));
@@ -274,13 +283,24 @@ namespace planet::map::hex {
 
 
         /// ### Access into chunks
+        std::size_t chunk_count() const noexcept { return grid.chunk_count(); }
         using chunk_position = std::pair<coordinates, chunk_type *>;
-        felspar::coro::generator<chunk_position> chunks() {
+        using const_chunk_position = std::pair<coordinates, chunk_type const *>;
+        felspar::coro::generator<chunk_position> chunks()
+            requires(not shared_chunks)
+        {
             for (auto c : grid.chunks()) {
                 co_yield {coordinates::from_compressed(c.first), c.second};
             }
         }
-        chunk_type &chunk_at(coordinates const p) {
+        felspar::coro::generator<const_chunk_position> chunks() const {
+            for (auto c : grid.chunks()) {
+                co_yield {coordinates::from_compressed(c.first), c.second};
+            }
+        }
+        chunk_type &chunk_at(coordinates const p)
+            requires(not shared_chunks)
+        {
             return grid.chunk_at(p.compressed());
         }
         chunk_type const &chunk_at(coordinates const p) const {
@@ -289,7 +309,9 @@ namespace planet::map::hex {
 
 
         /// ### Access into hexes
-        cell_type &operator[](coordinates const p) {
+        cell_type &operator[](coordinates const p)
+            requires(not shared_chunks)
+        {
             return grid[p.compressed()];
         }
         cell_type const &operator[](coordinates const p) const {
@@ -297,16 +319,33 @@ namespace planet::map::hex {
         }
 
 
+        /// ### Alter a hex
+        /**
+         * See `planet::map::square::world::alter`. The chunk holding the hex
+         * is copied if it is still shared with `base` so that the change is
+         * never observable through `base`.
+         */
+        cell_type &alter(world const &base, coordinates const p)
+            requires shared_chunks
+        {
+            return grid.alter(base.grid, p.compressed());
+        }
+
+
         /// ### Serialise
-        template<typename C>
-        friend void save(serialise::save_buffer &, world<C> const &);
-        template<typename C>
-        friend void load(serialise::load_buffer &, world<C> &);
+        template<typename C, template<typename...> typename P>
+        friend void save(serialise::save_buffer &, world<C, P> const &);
+        template<typename C, template<typename...> typename P>
+        friend void load(serialise::load_buffer &, world<C, P> &);
     };
 
 
-    template<typename C, std::size_t X, std::size_t Y = X / 2>
-    using world_type = world<square::chunk<C, X, Y>>;
+    template<
+            typename C,
+            std::size_t X,
+            std::size_t Y = X / 2,
+            template<typename...> typename Pointer = std::unique_ptr>
+    using world_type = world<square::chunk<C, X, Y>, Pointer>;
 
 
 }

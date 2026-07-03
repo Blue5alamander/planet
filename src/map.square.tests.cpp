@@ -3,6 +3,8 @@
 
 #include <felspar/coro/eager.hpp>
 
+#include <concepts>
+
 
 namespace {
 
@@ -116,6 +118,85 @@ namespace {
                 numbers[{0, 0}];
                 check(cell_number) == 64u;
                 std::move(on_chunk_created).release().get();
+            });
+
+
+    auto const shared = felspar::testsuite(
+            "map::square/world/shared",
+            [](auto check) {
+                /**
+                 * Shared worlds only ever hand out `const` access when read,
+                 * so cells have to be changed through `alter`.
+                 */
+                using shared_world = planet::map::square::world_type<
+                        long, 4, 4, std::shared_ptr>;
+                static_assert(not requires(
+                        shared_world &w,
+                        planet::map::square::coordinates const p) {
+                    { w[p] } -> std::same_as<long &>;
+                });
+                static_assert(requires(
+                        shared_world &w,
+                        planet::map::square::coordinates const p) {
+                    { w[p] } -> std::same_as<long const &>;
+                });
+
+                /**
+                 * A copied world shares all of its chunks with the original,
+                 * and `alter` copies a chunk the first time it is edited.
+                 */
+                shared_world w{{0, 0}, [](auto) { return 0L; }};
+                w.alter(w, {1, 1}) = 42;
+                w.alter(w, {5, 5}) = 43;
+                check(w.chunk_count()) == 2u;
+                auto const &cw = w;
+                check(cw[{1, 1}]) == 42L;
+
+                auto next = w;
+                auto const &cnext = next;
+                check(next.chunk_count()) == 2u;
+                check(&cnext.chunk_at({1, 1})) == &cw.chunk_at({1, 1});
+                check(&cnext.chunk_at({5, 5})) == &cw.chunk_at({5, 5});
+
+                next.alter(w, {1, 1}) = 99;
+                check(cnext[{1, 1}]) == 99L;
+                check(cw[{1, 1}]) == 42L;
+                check(&cnext.chunk_at({1, 1})) != &cw.chunk_at({1, 1});
+                /// The chunk that wasn't edited is still shared
+                check(&cnext.chunk_at({5, 5})) == &cw.chunk_at({5, 5});
+                check(cnext[{5, 5}]) == 43L;
+
+                /// A second edit within the same chunk doesn't copy it again
+                auto const *const already_copied = &cnext.chunk_at({1, 1});
+                next.alter(w, {2, 2}) = 7;
+                check(&cnext.chunk_at({1, 1})) == already_copied;
+                check(cw[{2, 2}]) == 0L;
+                check(cnext[{2, 2}]) == 7L;
+            },
+            [](auto check) {
+                /// Altering a chunk that the base world never created
+                planet::map::square::world_type<long, 4, 4, std::shared_ptr> w{
+                        {0, 0}, [](auto) { return 0L; }};
+                w.alter(w, {0, 0}) = 1;
+                auto next = w;
+                next.alter(w, {9, 9}) = 2;
+                check(next.chunk_count()) == 2u;
+                check(w.chunk_count()) == 1u;
+            },
+            [](auto check) {
+                /// Copy assignment also shares chunks
+                planet::map::square::world_type<long, 4, 4, std::shared_ptr> w{
+                        {0, 0}, [](auto) { return 0L; }};
+                w.alter(w, {0, 0}) = 7;
+                planet::map::square::world_type<long, 4, 4, std::shared_ptr>
+                        other;
+                other = w;
+                auto const &cw = w;
+                auto const &cother = other;
+                check(&cother.chunk_at({0, 0})) == &cw.chunk_at({0, 0});
+                other.alter(w, {0, 0}) = 8;
+                check(cw[{0, 0}]) == 7L;
+                check(cother[{0, 0}]) == 8L;
             });
 
 
