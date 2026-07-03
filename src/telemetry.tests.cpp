@@ -2,6 +2,7 @@
 #include <planet/telemetry/allocator.strategy.hpp>
 #include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/duration.hpp>
+#include <planet/telemetry/load.hpp>
 #include <planet/telemetry/map.hpp>
 #include <planet/telemetry/minmax.hpp>
 #include <planet/telemetry/timestamps.hpp>
@@ -220,6 +221,71 @@ namespace {
                 planet::telemetry::steady_duration d2{"test_sd_save", 8};
                 planet::telemetry::load_performance(lb, d2);
                 check(d2.value().count()) > 0;
+            });
+
+
+    auto const suite_thread_load = felspar::testsuite(
+            "thread_load",
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_single", 10ms};
+                d.add_measurement(1ms, 4ms);
+                check(d.value()) > 0.0;
+                check(d.value()) <= 0.25;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_converge", 10ms};
+                for (int i = 0; i < 100; ++i) { d.add_measurement(1ms, 4ms); }
+                /// A repeating 1ms busy / 4ms window pattern is a 25% duty
+                /// cycle
+                check(d.value()) >= 0.24;
+                check(d.value()) <= 0.26;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_clamp", 10ms};
+                for (int i = 0; i < 100; ++i) { d.add_measurement(5ms, 4ms); }
+                /// Busy time longer than the window clamps to full load
+                check(d.value()) >= 0.99;
+                check(d.value()) <= 1.0;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_zero", 10ms};
+                d.add_measurement(0ns, 0ns);
+                check(d.value()) == 0.0;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                auto const [bytes, saved] = [&]() {
+                    planet::telemetry::thread_load d{"test_tl_save", 10ms};
+                    for (int i = 0; i < 100; ++i) {
+                        d.add_measurement(1ms, 4ms);
+                    }
+                    planet::serialise::save_buffer sb;
+                    check(planet::telemetry::save_performance(sb, d)) == 1u;
+                    return std::pair{sb.complete(), d.value()};
+                }();
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::thread_load d2{"test_tl_save", 10ms};
+                planet::telemetry::load_performance(lb, d2);
+                /// Loading stores the saved fraction directly
+                check(d2.value()) == saved;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_skip", 10ms};
+                planet::serialise::save_buffer sb;
+                /// A counter still at zero isn't saved at all
+                check(planet::telemetry::save_performance(sb, d)) == 0u;
+            },
+            [](auto check) {
+                using namespace std::chrono_literals;
+                planet::telemetry::thread_load d{"test_tl_raii", 100ms};
+                { planet::telemetry::thread_load::measurement const _{d}; }
+                check(d.value()) >= 0.0;
+                check(d.value()) <= 1.0;
             });
 
 

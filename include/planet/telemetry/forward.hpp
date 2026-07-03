@@ -10,6 +10,7 @@ namespace planet::telemetry {
     class performance;
     class real_time_decay;
     class real_time_rate;
+    class thread_load;
     template<typename Key, typename Value, typename Compare = std::less<Key>>
     class table;
 

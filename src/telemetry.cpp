@@ -3,6 +3,7 @@
 #include <planet/serialise/string.hpp>
 #include <planet/telemetry.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -464,6 +465,63 @@ bool planet::telemetry::steady_duration::load(measurements &pd) {
     } else {
         return false;
     }
+}
+
+
+/// ## `planet::telemetry::thread_load`
+
+
+void planet::telemetry::thread_load::add_measurement(
+        std::chrono::nanoseconds const busy) noexcept {
+    auto const now = std::chrono::steady_clock::now();
+    add_measurement(busy, now - last_end.exchange(now));
+}
+
+void planet::telemetry::thread_load::add_measurement(
+        std::chrono::nanoseconds const busy,
+        std::chrono::nanoseconds const elapsed) noexcept {
+    if (elapsed.count() <= 0) { return; }
+    auto const ratio = std::min(
+            static_cast<double>(busy.count())
+                    / static_cast<double>(elapsed.count()),
+            1.0);
+    auto const decay = decay_factor(elapsed, half_life);
+    auto const a = ratio * (1.0 - decay);
+    auto ov = m_value.load();
+    while (not m_value.compare_exchange_weak(ov, ov * decay + a)) {}
+}
+
+
+bool planet::telemetry::thread_load::save(serialise::save_buffer &ab) const {
+    auto const v = m_value.load();
+    if (v != 0.0) {
+        ab.save_box(box, name(), v);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::thread_load::load(measurements &pd) {
+    double c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        last_end.store(std::chrono::steady_clock::now());
+        m_value.store(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+namespace {
+    auto const thread_load_print = planet::log::format(
+            planet::telemetry::thread_load::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                double value;
+                box.named(planet::telemetry::thread_load::box, name, value);
+                os << name << " = " << value * 100.0 << '%';
+            });
 }
 
 
