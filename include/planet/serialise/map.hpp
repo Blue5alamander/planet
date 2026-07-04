@@ -2,6 +2,7 @@
 
 
 #include <planet/map.hpp>
+#include <planet/serialise/load_buffer.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
 

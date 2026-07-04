@@ -2,6 +2,7 @@
 
 
 #include <planet/audio/buffer.hpp>
+#include <planet/audio/clocks.hpp>
 
 #include <felspar/coro/generator.hpp>
 #include <felspar/memory/accumulation_buffer.hpp>

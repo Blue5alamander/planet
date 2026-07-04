@@ -5,6 +5,7 @@
 #include <felspar/parse/endian.hpp>
 
 #include <cstdint>
+#include <source_location>
 #include <string_view>
 
 
