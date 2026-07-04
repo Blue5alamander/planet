@@ -52,6 +52,183 @@ endif()
 install(TARGETS planet LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
 
+target_sources(planet PUBLIC
+  FILE_SET HEADERS
+  BASE_DIRS ../include/
+  FILES
+        ../include/planet/affine2d.hpp
+        ../include/planet/affine3d.hpp
+        ../include/planet/affine/extents2d.hpp
+        ../include/planet/affine/forward.hpp
+        ../include/planet/affine/matrix2d.hpp
+        ../include/planet/affine/matrix3d.hpp
+        ../include/planet/affine/point2d.hpp
+        ../include/planet/affine/point3d.hpp
+        ../include/planet/affine/rectangle2d.hpp
+        ../include/planet/affine/transform2d.hpp
+        ../include/planet/affine/transform3d.hpp
+        ../include/planet/array.hpp
+        ../include/planet/asset_manager.hpp
+        ../include/planet/camera/orthogonal_birdseye.hpp
+        ../include/planet/camera/target3d.hpp
+        ../include/planet/colour.hpp
+        ../include/planet/comms.hpp
+        ../include/planet/comms/inproc.hpp
+        ../include/planet/comms/internal.hpp
+        ../include/planet/comms/signal.hpp
+        ../include/planet/connection.hpp
+        ../include/planet/debug/ui.hpp
+        ../include/planet/drawing/colour.hpp
+        ../include/planet/drawing/files.hpp
+        ../include/planet/drawing.hpp
+        ../include/planet/drawing/image.hpp
+        ../include/planet/ecs/component_proxy.hpp
+        ../include/planet/ecs/entities.hpp
+        ../include/planet/ecs/entity.hpp
+        ../include/planet/ecs/entity_id.hpp
+        ../include/planet/ecs/entity_lookup.hpp
+        ../include/planet/ecs/exceptions.hpp
+        ../include/planet/ecs/forward.hpp
+        ../include/planet/ecs.hpp
+        ../include/planet/ecs/storage_base.hpp
+        ../include/planet/ecs/storage.hpp
+        ../include/planet/ecs/type_index.hpp
+        ../include/planet/ecs/weak_entity_id.hpp
+        ../include/planet/events/action.hpp
+        ../include/planet/events/back.hpp
+        ../include/planet/events.hpp
+        ../include/planet/events/keys.hpp
+        ../include/planet/events/mouse.hpp
+        ../include/planet/events/queue.hpp
+        ../include/planet/events/quit.hpp
+        ../include/planet/events/scroll.hpp
+        ../include/planet/folders.hpp
+        ../include/planet/functional.hpp
+        ../include/planet/log.hpp
+        ../include/planet/map/forward.hpp
+        ../include/planet/map/hex.hpp
+        ../include/planet/map.hpp
+        ../include/planet/map/square.hpp
+        ../include/planet/maths.hpp
+        ../include/planet/numbers.hpp
+        ../include/planet/ostream.hpp
+        ../include/planet/queue/concepts.hpp
+        ../include/planet/queue/forward.hpp
+        ../include/planet/queue/forwarding.hpp
+        ../include/planet/queue.hpp
+        ../include/planet/queue/pmc.hpp
+        ../include/planet/queue/psc.hpp
+        ../include/planet/queue/tspsc.hpp
+        ../include/planet/random/generator.hpp
+        ../include/planet/random.hpp
+        ../include/planet/random/pick.hpp
+        ../include/planet/serialise/affine.hpp
+        ../include/planet/serialise/base_types.hpp
+        ../include/planet/serialise/chrono.hpp
+        ../include/planet/serialise/collections.hpp
+        ../include/planet/serialise/events.hpp
+        ../include/planet/serialise/exceptions.hpp
+        ../include/planet/serialise/felspar.hpp
+        ../include/planet/serialise/forward.hpp
+        ../include/planet/serialise.hpp
+        ../include/planet/serialise/load_buffer.hpp
+        ../include/planet/serialise/map.hpp
+        ../include/planet/serialise/marker.hpp
+        ../include/planet/serialise/muxing.hpp
+        ../include/planet/serialise/save_buffer.hpp
+        ../include/planet/serialise/string.hpp
+        ../include/planet/serialise/variant.hpp
+        ../include/planet/stdin.hpp
+        ../include/planet/telemetry/allocator.strategy.hpp
+        ../include/planet/telemetry/counter.hpp
+        ../include/planet/telemetry/duration.hpp
+        ../include/planet/telemetry/forward.hpp
+        ../include/planet/telemetry.hpp
+        ../include/planet/telemetry/id.hpp
+        ../include/planet/telemetry/load.hpp
+        ../include/planet/telemetry/map.hpp
+        ../include/planet/telemetry/minmax.hpp
+        ../include/planet/telemetry/performance.hpp
+        ../include/planet/telemetry/pool.strategy.hpp
+        ../include/planet/telemetry/rate.hpp
+        ../include/planet/telemetry/table.hpp
+        ../include/planet/telemetry/time.hpp
+        ../include/planet/telemetry/timestamps.hpp
+        ../include/planet/time/checkpointer.hpp
+        ../include/planet/time/clock.hpp
+        ../include/planet/time.hpp
+        ../include/planet/time/rate-limiter.hpp
+        ../include/planet/to_string.hpp
+        ../include/planet/tuple.hpp
+        ../include/planet/ui/baseplate.hpp
+        ../include/planet/ui/box.hpp
+        ../include/planet/ui/collection.reflowable.hpp
+        ../include/planet/ui/constrained.hpp
+        ../include/planet/ui/draggable.hpp
+        ../include/planet/ui/drawable.hpp
+        ../include/planet/ui/element.hpp
+        ../include/planet/ui/forward.hpp
+        ../include/planet/ui/gravity.hpp
+        ../include/planet/ui.hpp
+        ../include/planet/ui/layoutable.hpp
+        ../include/planet/ui/layout.breakable_row.hpp
+        ../include/planet/ui/layout.column.hpp
+        ../include/planet/ui/layout.corners.hpp
+        ../include/planet/ui/layout.grid.hpp
+        ../include/planet/ui/layout.hpp
+        ../include/planet/ui/layout.row.hpp
+        ../include/planet/ui/pack.reflowable.hpp
+        ../include/planet/ui/padding.hpp
+        ../include/planet/ui/panel.hpp
+        ../include/planet/ui/range.hpp
+        ../include/planet/ui/reflowable.hpp
+        ../include/planet/ui/scale.hpp
+        ../include/planet/ui/screen.hpp
+        ../include/planet/ui/target_aspect.hpp
+        ../include/planet/ui/target_size.hpp
+        ../include/planet/ui/widget.hpp
+        ../include/planet/ui/wrapper.detail.hpp
+        ../include/planet/ui/wrapper.hpp
+        ../include/planet/variant.hpp
+        ../include/planet/version.hpp
+        ../include/planet/vertex/coloured.hpp
+        ../include/planet/vertex/coloured_textured.hpp
+        ../include/planet/vertex/forward.hpp
+        ../include/planet/vertex.hpp
+        ../include/planet/vertex/normal.hpp
+        ../include/planet/vertex/normal_textured.hpp
+        ../include/planet/vertex/uvpos.hpp
+        ../include/planet/widget/button.hpp
+        ../include/planet/widget/checkbox.hpp
+    )
+# The audio headers pull in the audio subsystem, so only verify them when
+# audio is on.
+if(NOT PLANET_NO_AUDIO)
+    target_sources(planet PUBLIC
+      FILE_SET HEADERS
+      BASE_DIRS ../include/
+      FILES
+            ../include/planet/audio/buffer.hpp
+            ../include/planet/audio/channel.hpp
+            ../include/planet/audio/clocks.hpp
+            ../include/planet/audio/driver.hpp
+            ../include/planet/audio/files.hpp
+            ../include/planet/audio/forward.hpp
+            ../include/planet/audio/gain.hpp
+            ../include/planet/audio.hpp
+            ../include/planet/audio/mixer.hpp
+            ../include/planet/audio/music.hpp
+            ../include/planet/audio/oscillator.hpp
+            ../include/planet/audio/stereo.hpp
+            ../include/planet/audio/tap.hpp
+            ../include/planet/widget/volume.slider.hpp
+            ../include/planet/widget.hpp
+        )
+endif()
+set_property(TARGET planet PROPERTY VERIFY_INTERFACE_HEADER_SETS ON)
+add_dependencies(check planet_verify_interface_header_sets)
+
+
 add_test_run(check planet TESTS
         affine2d.tests.cpp
         affine3d.tests.cpp
