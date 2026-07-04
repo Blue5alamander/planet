@@ -83,6 +83,27 @@ void planet::serialise::box::check_name_or_throw(
 }
 
 
+void planet::serialise::box::check_name_or_throw(
+        std::span<std::string_view const> const expected,
+        std::source_location const &loc) const {
+    for (auto const n : expected) {
+        if (name == n) { return; }
+    }
+    std::string names;
+    for (auto const n : expected) {
+        if (not names.empty()) { names += ", "; }
+        names += '\'';
+        names += n;
+        names += '\'';
+    }
+    throw felspar::stdexcept::runtime_error{
+            "Unexpected box name\n"
+            "Got '" + std::string{name}
+                    + "' and expected one of " + names,
+            loc};
+}
+
+
 void planet::serialise::box::check_empty_or_throw(
         std::source_location const &loc) const {
     if (not content.empty()) { throw box_not_empty{*this, loc}; }

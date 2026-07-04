@@ -10,7 +10,7 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
-using namespace std::chrono_literals;
+using namespace std::literals;
 
 
 static_assert(
@@ -522,6 +522,68 @@ namespace {
         check(bb.vec.size()) == 20480u;
         check(std::count(bb.vec.begin(), bb.vec.end(), std::byte{'-'}))
                 == 20480u;
+    });
+
+
+    std::array constexpr renames{"new_name"sv, "old_name"sv};
+    auto const rn = suite.test(
+            "renamed box",
+            [](auto check, auto &log) {
+                planet::serialise::save_buffer ab;
+                auto bytes{
+                        ab.save_box("old_name", std::uint32_t{1234}).complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                std::uint32_t value{};
+                lb.load_box(renames, value);
+                check(value) == 1234u;
+            },
+            [](auto check, auto &log) {
+                planet::serialise::save_buffer ab;
+                auto bytes{
+                        ab.save_box("new_name", std::uint32_t{5678}).complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                auto box = planet::serialise::expect_box(lb);
+                std::uint32_t value{};
+                box.named(renames, value);
+                check(value) == 5678u;
+            },
+            [](auto check, auto &log) {
+                planet::serialise::save_buffer ab;
+                auto bytes{ab.save_box("other_name", std::uint32_t{1234})
+                                   .complete()};
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                std::uint32_t value{};
+                check([&]() {
+                    lb.load_box(renames, value);
+                }).template throws_type<felspar::stdexcept::runtime_error>();
+            });
+
+
+    auto const rm = suite.test("removed field", [](auto check, auto &log) {
+        planet::serialise::save_buffer ab;
+        ab.save_box_lambda("thing", [&]() {
+            save(ab, std::uint32_t{1234});
+            ab.save_box("old_field", std::uint32_t{5678});
+            save(ab, std::uint32_t{4321});
+        });
+        auto bytes{ab.complete()};
+        felspar::memory::hexdump(log, bytes.cmemory());
+
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        auto box = planet::serialise::expect_box(lb);
+        std::uint32_t kept{}, also_kept{};
+        box.lambda("thing", [&]() {
+            static planet::serialise::skip_box constexpr removed{"old_field"};
+            box.fields(kept, removed, also_kept);
+        });
+        check(kept) == 1234u;
+        check(also_kept) == 4321u;
     });
 
 

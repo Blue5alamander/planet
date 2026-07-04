@@ -12,6 +12,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <span>
 
 
 namespace planet::serialise {
@@ -128,6 +129,13 @@ namespace planet::serialise {
         /// #### Load a complete box
         template<typename... Args>
         void load_box(std::string_view, Args &...);
+        template<typename... Args>
+        void load_box(std::span<std::string_view const>, Args &...);
+        /**
+         * A box with any of the provided names will be loaded. Use this when a
+         * box has been renamed so that save files containing the old name can
+         * still be loaded.
+         */
 
         /// #### Load fields
         template<typename... Args>
@@ -156,6 +164,16 @@ namespace planet::serialise {
                 std::string_view expected,
                 std::source_location const & =
                         std::source_location::current()) const;
+        void check_name_or_throw(
+                std::span<std::string_view const> expected,
+                std::source_location const & =
+                        std::source_location::current()) const;
+        /**
+         * Any of the provided names is accepted. Use this when a box has been
+         * renamed so that save files containing the old name can still be
+         * loaded.
+         */
+
         void check_empty_or_throw(
                 std::source_location const & =
                         std::source_location::current()) const;
@@ -172,13 +190,26 @@ namespace planet::serialise {
                 throw;
             }
         }
+        template<typename... Args>
+        void named(std::span<std::string_view const> const names, Args &&...args)
+        /**
+         * Any of the provided names is accepted before the fields are loaded.
+         * Use this when a box has been renamed so that save files containing
+         * the old name can still be loaded.
+         */
+        {
+            try {
+                check_name_or_throw(names);
+                (load(content, std::forward<Args>(args)), ...);
+                check_empty_or_throw();
+            } catch (serialisation_error &e) {
+                e.inside_box(name);
+                throw;
+            }
+        }
 
         /// #### Load via lambda
-        /**
-         * Checks the provided name and then calls the lambda to load the actual
-         * data needed. The lambda can include logic to check the box version
-         * number and size for which fields to load.
-         */
+
         template<typename Lambda>
         void
                 lambda(std::string_view const name,
@@ -194,6 +225,32 @@ namespace planet::serialise {
                 throw;
             }
         }
+        /**
+         * Checks the provided name and then calls the lambda to load the actual
+         * data needed. The lambda can include logic to check the box version
+         * number and size for which fields to load.
+         */
+
+        template<typename Lambda>
+        void
+                lambda(std::span<std::string_view const> const names,
+                       Lambda lambda,
+                       std::source_location const &loc =
+                               std::source_location::current()) {
+            try {
+                check_name_or_throw(names, loc);
+                lambda();
+                check_empty_or_throw(loc);
+            } catch (serialisation_error &e) {
+                e.inside_box(name);
+                throw;
+            }
+        }
+        /**
+         * As above, but any of the provided names is accepted. Use this when a
+         * box has been renamed so that save files containing the old name can
+         * still be loaded.
+         */
 
         /// #### Only load fields
         template<typename... Args>
@@ -202,15 +259,15 @@ namespace planet::serialise {
         }
 
 
-        /**
-         * #### The version number isn't supported
-         *
-         * Pass it the highest version number that is supported.
-         */
+        /// #### The version number isn't supported
         [[noreturn]] void throw_unsupported_version(
                 std::uint8_t const highest,
                 std::source_location const &loc =
-                        std::source_location::current()) const {
+                        std::source_location::current()) const
+        /**
+         * Pass it the highest version number that is supported.
+         */
+        {
             throw unsupported_version_number{*this, highest, loc};
         }
     };
@@ -251,21 +308,26 @@ namespace planet::serialise {
             std::source_location const &loc = std::source_location::current()) {
         expect_box(lb, loc).check_name_or_throw(sb.box, loc);
     }
-    /**
-     * When a box has already been extracted from the stream, just validate
-     * the name and discard the content — no need to recurse into it.
-     */
     inline void load(
             box &b,
             skip_box const &sb,
             std::source_location const &loc = std::source_location::current()) {
         b.check_name_or_throw(sb.box, loc);
     }
+    /**
+     * When a box has already been extracted from the stream, just validate
+     * the name and discard the content — no need to recurse into it.
+     */
 
 
     template<typename... Args>
     void load_buffer::load_box(std::string_view const name, Args &...args) {
         expect_box(*this).named(name, args...);
+    }
+    template<typename... Args>
+    void load_buffer::load_box(
+            std::span<std::string_view const> const names, Args &...args) {
+        expect_box(*this).named(names, args...);
     }
     template<typename... Args>
     void load_buffer::load_fields(Args &...args) {
