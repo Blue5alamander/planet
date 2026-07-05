@@ -6,8 +6,8 @@
  * # Serialising `std::variant`
  *
  * This file is documentation first and tests second. It shows how to round-trip
- * a `std::variant` through the serialisation layer in the two scenarios that
- * come up in practice, and the tests exist to prove the techniques shown here
+ * a `std::variant` through the serialisation layer in the scenarios that come
+ * up in practice, and the tests exist to prove the techniques shown here
  * actually work.
  *
  * The save side is generic and lives in
@@ -33,10 +33,16 @@
  * associated namespaces — `std` plus the namespaces of the alternative types —
  * not wherever the alias happens to be declared. The hand-written `load`
  * overloads here are found only because the alternatives live in this same
- * namespace, making it an associated namespace. If your alternatives are all
- * from `std` (e.g. `std::variant<int, std::string>`), or otherwise live
- * elsewhere, ADL will not see a `load` you define in your own namespace: bring
- * it into scope with a `using` declaration (or call it qualified).
+ * namespace, making it an associated namespace.
+ *
+ * When the alternatives' namespaces cannot host the loader — they are all from
+ * `std`, or from a library you should not add overloads to — declare it in
+ * `planet::serialise` instead, as scenario 4 shows. The `load_buffer` argument
+ * makes `planet::serialise` an associated namespace of every `load` call, so
+ * an overload there is found from anywhere — including the field folds inside
+ * `named` and `fields`, which call `load` from inside the machinery where a
+ * `using` declaration at your call site cannot help. For calls you write
+ * yourself a `using` declaration (or a qualified call) also works.
  */
 
 
@@ -242,6 +248,93 @@ namespace serialise_variant_documentation {
                 load(lb, restored);
                 lb.check_empty_or_throw();
                 check(std::holds_alternative<std::monostate>(restored)) == true;
+            });
+
+
+    /**
+     * ## Scenario 4 — alternatives from namespaces you cannot extend
+     *
+     * Here every alternative comes from `std`, so there is no namespace of
+     * your own that ADL will associate with the variant, and adding overloads
+     * to `std` is not allowed. A library type you shouldn't write into the
+     * namespace of — a `std::variant` of planet types, say — leaves you in the
+     * same position. This is also where a `using` declaration falls short: it
+     * only fixes up calls you write yourself, and the field folds inside
+     * `named` and `fields` call `load` from inside `planet::serialise`, out of
+     * its reach.
+     *
+     * Declare the loader in `planet::serialise` instead. The `load_buffer`
+     * argument makes `planet::serialise` an associated namespace of every
+     * `load` call, so the overload is found from anywhere — your own code and
+     * the machinery alike.
+     */
+
+    using setting = std::variant<std::int64_t, std::string>;
+
+}
+
+namespace planet::serialise {
+
+    /**
+     * Both alternatives are primitives, so the loader dispatches on the
+     * leading marker just as scenario 2 does: `marker_for` names the integer's
+     * marker and a string leads with the marker for its character size.
+     */
+    void load(load_buffer &lb, serialise_variant_documentation::setting &s) {
+        auto const lead = lb.peek_marker();
+        if (lead == marker_for<std::int64_t>()) {
+            load(lb, s.emplace<std::int64_t>());
+        } else if (lead == marker::u8string8) {
+            load(lb, s.emplace<std::string>());
+        } else {
+            throw felspar::stdexcept::runtime_error{"Unknown setting marker"};
+        }
+    }
+
+}
+
+namespace serialise_variant_documentation {
+
+    /**
+     * The `setting` field here is saved and loaded by `save_box` and `named`'s
+     * field folds — the calls from inside the machinery that only the
+     * `planet::serialise` placement can satisfy.
+     */
+    struct prefs {
+        static constexpr std::string_view box{"doc::variant::prefs"};
+        setting value;
+    };
+    planet::serialise::save_buffer &
+            save(planet::serialise::save_buffer &ab, prefs const &p) {
+        return ab.save_box(prefs::box, p.value);
+    }
+    void load(planet::serialise::box &b, prefs &p) {
+        b.named(prefs::box, p.value);
+    }
+
+    auto const elsewhere = suite.test(
+            "loader in planet::serialise", [](auto check, auto &) {
+                {
+                    prefs const original{.value = std::int64_t{42}};
+                    planet::serialise::save_buffer ab;
+                    save(ab, original);
+                    planet::serialise::load_buffer lb{ab.complete().cmemory()};
+                    prefs restored;
+                    load(lb, restored);
+                    lb.check_empty_or_throw();
+                    check(std::get<std::int64_t>(restored.value)) == 42;
+                }
+                {
+                    prefs const original{.value = std::string{"blue"}};
+                    planet::serialise::save_buffer ab;
+                    save(ab, original);
+                    planet::serialise::load_buffer lb{ab.complete().cmemory()};
+                    prefs restored;
+                    load(lb, restored);
+                    lb.check_empty_or_throw();
+                    check(std::get<std::string>(restored.value))
+                            == std::string{"blue"};
+                }
             });
 
 
