@@ -1,4 +1,5 @@
 #include <planet/audio/gain.hpp>
+#include <planet/serialise.hpp>
 #include <felspar/test.hpp>
 
 
@@ -20,6 +21,18 @@ namespace {
         // Zero/negative linear gain -> silent floor
         planet::audio::linear_gain const zero{0.0f};
         check(planet::audio::dB_gain{zero}.dB) == -128.0f;
+    });
+
+
+    auto const serialisation = suite.test("serialise", [](auto check) {
+        planet::serialise::save_buffer sb;
+        save(sb, planet::audio::linear_gain{0.5f});
+        auto const bytes = sb.complete();
+        auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+        planet::audio::linear_gain loaded;
+        load(lb, loaded);
+        lb.check_empty_or_throw();
+        check(loaded.load()) == 0.5f;
     });
 
 

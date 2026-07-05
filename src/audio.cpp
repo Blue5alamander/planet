@@ -102,21 +102,43 @@ namespace {
 
 
 planet::audio::driver::driver(
-        std::size_t const block_size, std::size_t const block_count) noexcept
-: block_size{block_size},
-  block_count{block_count},
-  latency{sample_clock{
-          static_cast<sample_clock::rep>(block_size * block_count)}},
-  wall_clock_epoch{std::chrono::steady_clock::now()} {
-    if (block_count > mixer::max_ring_depth) {
-        planet::log::critical(
+    std::size_t const block_size, std::size_t const block_count) noexcept
+    : block_size{block_size},
+block_count{block_count},
+latency{sample_clock{
+    static_cast<sample_clock::rep>(block_size * block_count)}},
+    wall_clock_epoch{std::chrono::steady_clock::now()} {
+        if (block_count > mixer::max_ring_depth) {
+            planet::log::critical(
                 "Audio driver block_count", block_count,
                 "exceeds the mixer's maximum ring depth of",
                 mixer::max_ring_depth);
+        } else if (block_count == 0) {
+            planet::log::critical("Audio driver block_count must be at least 1");
+        }
     }
-    if (block_count == 0) {
-        planet::log::critical("Audio driver block_count must be at least 1");
-    }
+
+/// ## `planet::audio::linear_gain`
+
+
+void planet::audio::save(serialise::save_buffer &sb, linear_gain const &g) {
+    sb.save_box(g.box, g.load());
+}
+void planet::audio::load(serialise::box &b, linear_gain &g) {
+    float multiplier = 1;
+    b.named(linear_gain::box, multiplier);
+    g.store(multiplier);
+}
+
+
+namespace {
+    auto const linear_gain_print = planet::log::format(
+            planet::audio::linear_gain::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                planet::audio::linear_gain g;
+                load(box, g);
+                os << "gain ×" << g.load();
+            });
 }
 
 

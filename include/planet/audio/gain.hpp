@@ -23,12 +23,17 @@ namespace planet::audio {
 
 
       public:
+        static std::string_view constexpr box{"_p:a:linear"};
+
+
         constexpr linear_gain() {}
         constexpr explicit linear_gain(float const g) : multiplier{g} {}
 
         constexpr void store(float const m) noexcept { multiplier = m; }
         constexpr float load() const noexcept { return multiplier; }
     };
+    void save(serialise::save_buffer &, linear_gain const &);
+    void load(serialise::box &, linear_gain &);
 
 
     /// ## Linear gain using an atomic multiplier
