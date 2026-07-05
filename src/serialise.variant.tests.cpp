@@ -312,8 +312,8 @@ namespace serialise_variant_documentation {
         b.named(prefs::box, p.value);
     }
 
-    auto const elsewhere = suite.test(
-            "loader in planet::serialise", [](auto check, auto &) {
+    auto const elsewhere =
+            suite.test("loader in planet::serialise", [](auto check, auto &) {
                 {
                     prefs const original{.value = std::int64_t{42}};
                     planet::serialise::save_buffer ab;
