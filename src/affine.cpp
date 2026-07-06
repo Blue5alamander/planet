@@ -6,6 +6,8 @@
 #include <planet/serialise/base_types.hpp>
 #include <planet/serialise/save_buffer.hpp>
 
+#include <algorithm>
+
 
 /// ## `planet::affine::extents2d`
 
@@ -92,7 +94,8 @@ namespace {
 
 auto planet::affine::transform2d::aspect_correction(extents2d const &e) noexcept
         -> transform2d {
-    return transform2d{}.scale(e.height / e.width, 1.0f);
+    auto const narrowest = std::min(e.width, e.height);
+    return transform2d{}.scale(narrowest / e.width, narrowest / e.height);
 }
 
 
