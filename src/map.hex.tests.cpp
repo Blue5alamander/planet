@@ -227,6 +227,52 @@ namespace {
     });
 
 
+    auto const world_cells = suite.test("world/cells", [](auto check) {
+        planet::map::hex::world_type<std::pair<long, long>, 4> w{
+                {0, 0},
+                [](auto const p) { return std::pair{p.column(), p.row()}; }};
+        /// Nothing exists until a hex is touched.
+        check(w.cells().next()).is_falsey();
+
+        /// Touching the origin builds its chunk of 8 hexes.
+        w[{0, 0}];
+
+        /**
+         * `cells()` yields decompressed hex coordinates -- not the compressed
+         * square coordinates the chunk actually stores -- paired with each hex.
+         * The init made every hex equal to its own `{column, row}`.
+         */
+        auto cells = w.cells();
+        auto const first = cells.next();
+        check(first->first) == planet::map::hex::coordinates{0, 0};
+        check(first->second) == std::pair{0L, 0L};
+        auto const second = cells.next();
+        check(second->first) == planet::map::hex::coordinates{0, 2};
+        check(second->second) == std::pair{0L, 2L};
+        auto const third = cells.next();
+        check(third->first) == planet::map::hex::coordinates{1, 1};
+        check(third->second) == std::pair{1L, 1L};
+
+        std::size_t count{3};
+        while (cells.next()) { ++count; }
+        check(count) == 8u;
+
+        /// The mutable overload hands back a live reference into the world.
+        w.cells().next()->second = std::pair{99L, 99L};
+        check(w[{0, 0}]) == std::pair{99L, 99L};
+
+        /// The `const` overload compiles and yields read-only hexes.
+        auto const &cw = w;
+        std::size_t const_count{};
+        for (auto const [location, cell] : cw.cells()) {
+            static_cast<void>(location);
+            static_cast<void>(cell);
+            ++const_count;
+        }
+        check(const_count) == 8u;
+    });
+
+
     auto const shared_world = suite.test("world/shared", [](auto check) {
         /**
          * A hex world with shared chunks acts as a persistent data structure:
@@ -315,8 +361,10 @@ namespace {
                 check(r0.size()) == 1u;
                 check(r0[0]) == centre;
 
-                /// Guard the ring against an off-by-one: every yielded hex is
-                /// distinct and sits at exactly `range` from the centre.
+                /**
+                 * Guard the ring against an off-by-one: every yielded hex is
+                 * distinct and sits at exactly `range` from the centre.
+                 */
                 auto distinct_at = [&](std::size_t const range) {
                     auto const hexes = collect(range);
                     std::set<planet::map::hex::coordinates> const unique(
@@ -328,8 +376,10 @@ namespace {
                     return hexes.size();
                 };
 
-                /// Range 1 is the 6 adjacent hexes, range 2 the 12 hexes two
-                /// steps out.
+                /**
+                 * Range 1 is the 6 adjacent hexes, range 2 the 12 hexes two
+                 * steps out.
+                 */
                 check(distinct_at(1)) == 6u;
                 check(distinct_at(2)) == 12u;
             });
@@ -354,9 +404,11 @@ namespace {
                 check(r0.size()) == 1u;
                 check(r0[0]) == centre;
 
-                /// The filled disk is distinct and no hex is further than
-                /// `range` from the centre. Its size is the centred hexagonal
-                /// number `1 + 3 * range * (range + 1)`.
+                /**
+                 * The filled disk is distinct and no hex is further than
+                 * `range` from the centre. Its size is the centred hexagonal
+                 * number `1 + 3 * range * (range + 1)`.
+                 */
                 auto filled = [&](std::size_t const range) {
                     auto const hexes = collect(range);
                     std::set<planet::map::hex::coordinates> const unique(
@@ -368,8 +420,10 @@ namespace {
                     return hexes.size();
                 };
 
-                /// Range 1 adds the 6 neighbours to the centre, range 2 the
-                /// next ring of 12.
+                /**
+                 * Range 1 adds the 6 neighbours to the centre, range 2 the next
+                 * ring of 12.
+                 */
                 check(filled(1)) == 7u;
                 check(filled(2)) == 19u;
             });

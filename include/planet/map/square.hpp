@@ -140,9 +140,14 @@ namespace planet::map::square {
         using chunk_type = Chunk;
         using chunk_position = std::pair<coordinates, chunk_type *>;
         using const_chunk_position = std::pair<coordinates, chunk_type const *>;
+
         using cell_type = typename chunk_type::cell_type;
+        using cell_position = std::pair<coordinates, cell_type &>;
+        using const_cell_position = std::pair<coordinates, cell_type const &>;
+
         using pointer_type = Pointer<Chunk>;
         using init_function_type = std::function<cell_type(coordinates)>;
+
         static constexpr std::size_t chunk_width = Chunk::width,
                                      chunk_height = Chunk::height;
 
@@ -249,6 +254,38 @@ namespace planet::map::square {
             auto const [index, rp] = chunk_index(p);
             auto const location = cell_location(rp, p);
             return (*storage[index].second)[location];
+        }
+
+        /// #### Cell locations and data
+        felspar::coro::generator<cell_position> cells()
+            requires(not shared_chunks)
+        {
+            using value_type = coordinates::value_type;
+            for (auto const [origin, chunk] : chunks()) {
+                for (std::size_t x{}; x < chunk_width; ++x) {
+                    for (std::size_t y{}; y < chunk_height; ++y) {
+                        auto const p = origin
+                                + coordinates{
+                                        static_cast<value_type>(x),
+                                        static_cast<value_type>(y)};
+                        co_yield {p, (*chunk)[{x, y}]};
+                    }
+                }
+            }
+        }
+        felspar::coro::generator<const_cell_position> cells() const {
+            using value_type = coordinates::value_type;
+            for (auto const [origin, chunk] : chunks()) {
+                for (std::size_t x{}; x < chunk_width; ++x) {
+                    for (std::size_t y{}; y < chunk_height; ++y) {
+                        auto const p = origin
+                                + coordinates{
+                                        static_cast<value_type>(x),
+                                        static_cast<value_type>(y)};
+                        co_yield {p, (*chunk)[{x, y}]};
+                    }
+                }
+            }
         }
 
 
@@ -395,14 +432,14 @@ namespace planet::map::square {
     class chunk {
         std::array<Cell, DimX * DimY> storage;
 
-    public:
+      public:
         using cell_type = Cell;
         static constexpr std::size_t width = DimX, height = DimY;
 
 
         /// ### Construction
         template<typename Init>
-        requires std::invocable<Init &, std::size_t, std::size_t>
+            requires std::invocable<Init &, std::size_t, std::size_t>
         explicit constexpr chunk(Init cell) {
             for (std::size_t x{}; x < width; ++x) {
                 for (std::size_t y{}; y < height; ++y) {
@@ -417,7 +454,7 @@ namespace planet::map::square {
             return storage.at(p.first * height + p.second);
         }
         constexpr Cell const &
-        operator[](std::pair<std::size_t, std::size_t> const p) const {
+                operator[](std::pair<std::size_t, std::size_t> const p) const {
             return storage.at(p.first * height + p.second);
         }
         std::span<Cell, DimX * DimY> cells() noexcept { return storage; }
@@ -442,10 +479,10 @@ namespace planet::map::square {
     using world_type = world<chunk<C, X, Y>, Pointer>;
     /// Standard mutable world
     template<
-    typename C,
-    std::size_t X,
-    std::size_t Y = X,
-    template<typename...> typename Pointer = std::shared_ptr>
+            typename C,
+            std::size_t X,
+            std::size_t Y = X,
+            template<typename...> typename Pointer = std::shared_ptr>
     using world_pds_type = world<chunk<C, X, Y>, Pointer>;
     /// Permanent data structure
 

@@ -118,6 +118,63 @@ namespace {
                 numbers[{0, 0}];
                 check(cell_number) == 64u;
                 std::move(on_chunk_created).release().get();
+            },
+            [](auto check) {
+                planet::map::square::world<
+                        planet::map::square::chunk<std::pair<long, long>, 4>>
+                        w{{0, 0}, [](auto const p) {
+                              return std::pair{p.column(), p.row()};
+                          }};
+                /**
+                 * Nothing is created until a cell is touched, so there is
+                 * nothing to walk yet.
+                 */
+                check(w.cells().next()).is_falsey();
+
+                /// Touching the origin builds its 4x4 chunk.
+                w[{0, 0}];
+
+                /**
+                 * `cells()` walks each chunk column-major (x outer, y inner)
+                 * and pairs every cell with its world coordinate. The init made
+                 * each cell equal to its own `{column, row}`.
+                 */
+                auto cells = w.cells();
+                auto const first = cells.next();
+                check(first->first) == planet::map::square::coordinates{0, 0};
+                check(first->second) == std::pair{0L, 0L};
+                auto const second = cells.next();
+                check(second->first) == planet::map::square::coordinates{0, 1};
+                check(second->second) == std::pair{0L, 1L};
+
+                std::size_t count{2};
+                while (cells.next()) { ++count; }
+                check(count) == 16u;
+            },
+            [](auto check) {
+                planet::map::square::world<
+                        planet::map::square::chunk<std::pair<long, long>, 4>>
+                        w{{0, 0}, [](auto const p) {
+                              return std::pair{p.column(), p.row()};
+                          }};
+                w[{0, 0}];
+
+                /**
+                 * The mutable overload hands back a live reference into the
+                 * world.
+                 */
+                w.cells().next()->second = std::pair{99L, 99L};
+                check(w[{0, 0}]) == std::pair{99L, 99L};
+
+                /// The `const` overload compiles and yields read-only cells.
+                auto const &cw = w;
+                std::size_t count{};
+                for (auto const [location, cell] : cw.cells()) {
+                    static_cast<void>(location);
+                    static_cast<void>(cell);
+                    ++count;
+                }
+                check(count) == 16u;
             });
 
 
