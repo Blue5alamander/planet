@@ -368,12 +368,13 @@ namespace planet::map::square {
                                                 + coordinates::value_type(offx),
                                         bottom_edge
                                                 + coordinates::value_type(offy)},
-                                make_chunk([=,
+                                make_chunk([left_edge = row.left_edge, offx,
+                                            offy,
                                             this](auto const x, auto const y) {
                                     auto const relx = offx + x;
                                     auto const rely = offy + y;
                                     return init(
-                                            {row.left_edge
+                                            {left_edge
                                                      + coordinates::value_type(
                                                              relx),
                                              bottom_edge
