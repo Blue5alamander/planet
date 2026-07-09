@@ -296,6 +296,8 @@ namespace planet::map::hex {
       public:
         using chunk_type = Chunk;
         using cell_type = typename chunk_type::cell_type;
+        using chunk_position = std::pair<coordinates, chunk_type *>;
+        using const_chunk_position = std::pair<coordinates, chunk_type const *>;
         using init_function_type = std::function<cell_type(coordinates)>;
         static constexpr bool shared_chunks =
                 square::world<Chunk, Pointer>::shared_chunks;
@@ -312,8 +314,8 @@ namespace planet::map::hex {
 
         /// ### Access into chunks
         std::size_t chunk_count() const noexcept { return grid.chunk_count(); }
-        using chunk_position = std::pair<coordinates, chunk_type *>;
-        using const_chunk_position = std::pair<coordinates, chunk_type const *>;
+
+        /// #### Chunk locations and data
         felspar::coro::generator<chunk_position> chunks()
             requires(not shared_chunks)
         {
@@ -326,6 +328,8 @@ namespace planet::map::hex {
                 co_yield {coordinates::from_compressed(c.first), c.second};
             }
         }
+
+        /// #### Chunk data for coordinates
         chunk_type &chunk_at(coordinates const p)
             requires(not shared_chunks)
         {
@@ -368,12 +372,21 @@ namespace planet::map::hex {
     };
 
 
+    /// #### Type aliases for general use
     template<
             typename C,
             std::size_t X,
             std::size_t Y = X / 2,
             template<typename...> typename Pointer = std::unique_ptr>
     using world_type = world<square::chunk<C, X, Y>, Pointer>;
+    /// Standard mutable world
+    template<
+    typename C,
+    std::size_t X,
+    std::size_t Y = X / 2,
+    template<typename...> typename Pointer = std::shared_ptr>
+    using world_pds_type = world<square::chunk<C, X, Y>, Pointer>;
+    /// Permanent data structure
 
 
 }

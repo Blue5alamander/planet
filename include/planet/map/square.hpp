@@ -23,54 +23,6 @@
 namespace planet::map::square {
 
 
-    /// ### Chunk
-    /**
-     * The map is split up into rectangular chunks. The `Cell` type is what is
-     * stored at each location on the map.
-     */
-    template<typename Cell, std::size_t DimX, std::size_t DimY = DimX>
-    class chunk {
-        std::array<Cell, DimX * DimY> storage;
-
-      public:
-        using cell_type = Cell;
-        static constexpr std::size_t width = DimX, height = DimY;
-
-
-        /// ### Construction
-        template<typename Init>
-            requires std::invocable<Init &, std::size_t, std::size_t>
-        explicit constexpr chunk(Init cell) {
-            for (std::size_t x{}; x < width; ++x) {
-                for (std::size_t y{}; y < height; ++y) {
-                    (*this)[{x, y}] = cell(x, y);
-                }
-            }
-        }
-
-
-        /// ### Access into the cells within the chunk
-        constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
-            return storage.at(p.first * height + p.second);
-        }
-        constexpr Cell const &
-                operator[](std::pair<std::size_t, std::size_t> const p) const {
-            return storage.at(p.first * height + p.second);
-        }
-        std::span<Cell, DimX * DimY> cells() noexcept { return storage; }
-        std::span<Cell const, DimX * DimY> cells() const noexcept {
-            return storage;
-        }
-
-
-        /// ### Serialise
-        template<typename C, std::size_t X, std::size_t Y>
-        friend void save(serialise::save_buffer &, chunk<C, X, Y> const &);
-        template<typename C, std::size_t X, std::size_t Y>
-        friend void load(serialise::load_buffer &, chunk<C, X, Y> &);
-    };
-
-
     /// ## Cell & Super-cell Co-ordinates
     /**
      * Directions when looking at the map:
@@ -172,23 +124,6 @@ namespace planet::map::square {
             typename Chunk,
             template<typename...> typename Pointer = std::unique_ptr>
     class world {
-      public:
-        using chunk_type = Chunk;
-        using cell_type = typename chunk_type::cell_type;
-        using pointer_type = Pointer<Chunk>;
-        using init_function_type = std::function<cell_type(coordinates)>;
-        static constexpr std::size_t chunk_width = Chunk::width,
-                                     chunk_height = Chunk::height;
-        /// ### True when chunks are shared between copies of the world
-        static constexpr bool shared_chunks =
-                std::is_same_v<pointer_type, std::shared_ptr<Chunk>>;
-        static_assert(
-                shared_chunks
-                        or std::is_same_v<pointer_type, std::unique_ptr<Chunk>>,
-                "Chunks must be held by either std::unique_ptr or "
-                "std::shared_ptr");
-
-      private:
         struct row {
             coordinates::value_type left_edge = {};
             /// Positions of the row's chunks within `storage`
@@ -200,7 +135,156 @@ namespace planet::map::square {
         mutable coordinates::value_type bottom_edge = {};
         mutable std::vector<row> rows;
 
+
+      public:
+        using chunk_type = Chunk;
+        using chunk_position = std::pair<coordinates, chunk_type *>;
+        using const_chunk_position = std::pair<coordinates, chunk_type const *>;
+        using cell_type = typename chunk_type::cell_type;
+        using pointer_type = Pointer<Chunk>;
+        using init_function_type = std::function<cell_type(coordinates)>;
+        static constexpr std::size_t chunk_width = Chunk::width,
+                                     chunk_height = Chunk::height;
+
+
+        /// ### True when chunks are shared between copies of the world
+        static constexpr bool shared_chunks =
+                std::is_same_v<pointer_type, std::shared_ptr<Chunk>>;
+        static_assert(
+                shared_chunks
+                        or std::is_same_v<pointer_type, std::unique_ptr<Chunk>>,
+                "Chunks must be held by either std::unique_ptr or std::shared_ptr");
+
+
+        /// ### Construction
+        world() {}
+        world(coordinates const start)
+        : bottom_edge{start.row()}, rows{row{start.column()}} {}
+        world(coordinates const start, init_function_type ift) : world{start} {
+            init = std::move(ift);
+        }
+
+        /// ### Copying and moving
+        /**
+         * Only worlds with shared chunks can be copied. The copy shares every
+         * chunk with the original, and a chunk is only copied when it is
+         * first edited through `alter`. The copy starts with an
+         * `on_chunk_created` bus that has no subscribers, and copy assignment
+         * leaves the target's bus alone.
+         */
+        world(world const &w)
+            requires shared_chunks
+        : bottom_edge{w.bottom_edge},
+          rows{w.rows},
+          storage{w.storage},
+          init{w.init} {}
+        world &operator=(world const &w)
+            requires shared_chunks
+        {
+            bottom_edge = w.bottom_edge;
+            rows = w.rows;
+            storage = w.storage;
+            init = w.init;
+            return *this;
+        }
+        world(world &&) = default;
+        world &operator=(world &&) = default;
+
+
+        /// ### Access into chunks
+        /**
+         * Worlds with shared chunks only allow `const` access so that a chunk
+         * shared with another world can never be changed by accident.
+         */
+        std::size_t chunk_count() const noexcept { return storage.size(); }
+
+        /// #### Chunk locations and data
+        felspar::coro::generator<chunk_position> chunks()
+            requires(not shared_chunks)
+        {
+            for (std::size_t i{}; i < storage.size(); ++i) {
+                auto &c = storage[i];
+                co_yield {c.first, c.second.get()};
+            }
+        }
+        felspar::coro::generator<const_chunk_position> chunks() const {
+            for (std::size_t i{}; i < storage.size(); ++i) {
+                auto &c = storage[i];
+                co_yield {c.first, c.second.get()};
+            }
+        }
+
+        /// #### Chunk data for a coordinate
+        chunk_type &chunk_at(coordinates const p)
+            requires(not shared_chunks)
+        {
+            return *storage[chunk_index(p).first].second;
+        }
+        chunk_type const &chunk_at(coordinates const p) const {
+            return *storage[chunk_index(p).first].second;
+        }
+
+
+        /// ### Chunk creation notifications
+        /**
+         * TODO Bus is probably not the best data structure here when we have
+         * real queues
+         */
+        mutable felspar::coro::bus<std::conditional_t<
+                shared_chunks,
+                const_chunk_position,
+                chunk_position>>
+                on_chunk_created;
+
+
+        /// ### Access to cells
+        cell_type &operator[](coordinates const p)
+            requires(not shared_chunks)
+        {
+            auto const [index, rp] = chunk_index(p);
+            auto const location = cell_location(rp, p);
+            return (*storage[index].second)[location];
+        }
+        cell_type const &operator[](coordinates const p) const {
+            auto const [index, rp] = chunk_index(p);
+            auto const location = cell_location(rp, p);
+            return (*storage[index].second)[location];
+        }
+
+
+        /// ### Alter a cell
+        /**
+         * Return a mutable cell so that its content can be changed. The world
+         * is treated as an edit of `base` -- typically the world that this
+         * one was copied from. If the chunk holding the cell is still shared
+         * with `base` then it is copied first, so a change made through the
+         * returned reference is never observable through `base`. Once the
+         * chunk already differs from the one `base` holds -- including when
+         * `base` is this world, or when `base` never created the chunk -- the
+         * cell is returned without any copying.
+         */
+        cell_type &alter(world const &base, coordinates const p)
+            requires shared_chunks
+        {
+            auto const [index, rp] = chunk_index(p);
+            auto &pointer = storage[index].second;
+            if (&base != this and pointer.get() == base.find_chunk(p)) {
+                pointer = std::make_shared<chunk_type>(*pointer);
+            }
+            auto const location = cell_location(rp, p);
+            return (*pointer)[location];
+        }
+
+
+        /// ### Serialise
+        template<typename C, template<typename...> typename P>
+        friend void save(serialise::save_buffer &, world<C, P> const &);
+        template<typename C, template<typename...> typename P>
+        friend void load(serialise::load_buffer &, world<C, P> &);
+
+      private:
         mutable std::vector<std::pair<coordinates, pointer_type>> storage;
+
 
         template<typename Init>
         static pointer_type make_chunk(Init init) {
@@ -298,135 +382,72 @@ namespace planet::map::square {
             if (index == no_chunk) { return nullptr; }
             return storage[index].second.get();
         }
+        init_function_type init{[](coordinates) { return cell_type{}; }};
+    };
 
-      public:
+
+    /// ## Chunk
+    /**
+     * The map is split up into rectangular chunks. The `Cell` type is what is
+     * stored at each location on the map.
+     */
+    template<typename Cell, std::size_t DimX, std::size_t DimY = DimX>
+    class chunk {
+        std::array<Cell, DimX * DimY> storage;
+
+    public:
+        using cell_type = Cell;
+        static constexpr std::size_t width = DimX, height = DimY;
+
+
         /// ### Construction
-        world() {}
-        world(coordinates const start)
-        : bottom_edge{start.row()}, rows{row{start.column()}} {}
-        world(coordinates const start, init_function_type ift) : world{start} {
-            init = std::move(ift);
-        }
-
-        /// ### Copying and moving
-        /**
-         * Only worlds with shared chunks can be copied. The copy shares every
-         * chunk with the original, and a chunk is only copied when it is
-         * first edited through `alter`. The copy starts with an
-         * `on_chunk_created` bus that has no subscribers, and copy assignment
-         * leaves the target's bus alone.
-         */
-        world(world const &w)
-            requires shared_chunks
-        : bottom_edge{w.bottom_edge},
-          rows{w.rows},
-          storage{w.storage},
-          init{w.init} {}
-        world &operator=(world const &w)
-            requires shared_chunks
-        {
-            bottom_edge = w.bottom_edge;
-            rows = w.rows;
-            storage = w.storage;
-            init = w.init;
-            return *this;
-        }
-        world(world &&) = default;
-        world &operator=(world &&) = default;
-
-
-        /// ### Access into chunks
-        /**
-         * Worlds with shared chunks only allow `const` access so that a chunk
-         * shared with another world can never be changed by accident.
-         */
-        std::size_t chunk_count() const noexcept { return storage.size(); }
-        using chunk_position = std::pair<coordinates, chunk_type *>;
-        using const_chunk_position = std::pair<coordinates, chunk_type const *>;
-        felspar::coro::generator<chunk_position> chunks()
-            requires(not shared_chunks)
-        {
-            for (std::size_t i{}; i < storage.size(); ++i) {
-                auto &c = storage[i];
-                co_yield {c.first, c.second.get()};
+        template<typename Init>
+        requires std::invocable<Init &, std::size_t, std::size_t>
+        explicit constexpr chunk(Init cell) {
+            for (std::size_t x{}; x < width; ++x) {
+                for (std::size_t y{}; y < height; ++y) {
+                    (*this)[{x, y}] = cell(x, y);
+                }
             }
         }
-        felspar::coro::generator<const_chunk_position> chunks() const {
-            for (std::size_t i{}; i < storage.size(); ++i) {
-                auto &c = storage[i];
-                co_yield {c.first, c.second.get()};
-            }
-        }
-        chunk_type &chunk_at(coordinates const p)
-            requires(not shared_chunks)
-        {
-            return *storage[chunk_index(p).first].second;
-        }
-        chunk_type const &chunk_at(coordinates const p) const {
-            return *storage[chunk_index(p).first].second;
-        }
-        mutable felspar::coro::bus<std::conditional_t<
-                shared_chunks,
-                const_chunk_position,
-                chunk_position>>
-                on_chunk_created;
 
 
-        /// ### Access to cells
-        cell_type &operator[](coordinates const p)
-            requires(not shared_chunks)
-        {
-            auto const [index, rp] = chunk_index(p);
-            auto const location = cell_location(rp, p);
-            return (*storage[index].second)[location];
+        /// ### Access into the cells within the chunk
+        constexpr Cell &operator[](std::pair<std::size_t, std::size_t> const p) {
+            return storage.at(p.first * height + p.second);
         }
-        cell_type const &operator[](coordinates const p) const {
-            auto const [index, rp] = chunk_index(p);
-            auto const location = cell_location(rp, p);
-            return (*storage[index].second)[location];
+        constexpr Cell const &
+        operator[](std::pair<std::size_t, std::size_t> const p) const {
+            return storage.at(p.first * height + p.second);
         }
-
-
-        /// ### Alter a cell
-        /**
-         * Return a mutable cell so that its content can be changed. The world
-         * is treated as an edit of `base` -- typically the world that this
-         * one was copied from. If the chunk holding the cell is still shared
-         * with `base` then it is copied first, so a change made through the
-         * returned reference is never observable through `base`. Once the
-         * chunk already differs from the one `base` holds -- including when
-         * `base` is this world, or when `base` never created the chunk -- the
-         * cell is returned without any copying.
-         */
-        cell_type &alter(world const &base, coordinates const p)
-            requires shared_chunks
-        {
-            auto const [index, rp] = chunk_index(p);
-            auto &pointer = storage[index].second;
-            if (&base != this and pointer.get() == base.find_chunk(p)) {
-                pointer = std::make_shared<chunk_type>(*pointer);
-            }
-            auto const location = cell_location(rp, p);
-            return (*pointer)[location];
+        std::span<Cell, DimX * DimY> cells() noexcept { return storage; }
+        std::span<Cell const, DimX * DimY> cells() const noexcept {
+            return storage;
         }
 
 
         /// ### Serialise
-        template<typename C, template<typename...> typename P>
-        friend void save(serialise::save_buffer &, world<C, P> const &);
-        template<typename C, template<typename...> typename P>
-        friend void load(serialise::load_buffer &, world<C, P> &);
-
-      private:
-        init_function_type init{[](coordinates) { return cell_type{}; }};
+        template<typename C, std::size_t X, std::size_t Y>
+        friend void save(serialise::save_buffer &, chunk<C, X, Y> const &);
+        template<typename C, std::size_t X, std::size_t Y>
+        friend void load(serialise::load_buffer &, chunk<C, X, Y> &);
     };
 
+    /// #### Type aliases for general use
     template<
             typename C,
             std::size_t X,
             std::size_t Y = X,
             template<typename...> typename Pointer = std::unique_ptr>
     using world_type = world<chunk<C, X, Y>, Pointer>;
+    /// Standard mutable world
+    template<
+    typename C,
+    std::size_t X,
+    std::size_t Y = X,
+    template<typename...> typename Pointer = std::shared_ptr>
+    using world_pds_type = world<chunk<C, X, Y>, Pointer>;
+    /// Permanent data structure
 
 
 }
