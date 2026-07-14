@@ -23,7 +23,9 @@ std::filesystem::path planet::base_storage_folder() {
     if (home.empty()) {
         home = std::filesystem::current_path();
     } else {
-#ifndef _WIN32
+#if defined(__APPLE__)
+        home /= "Library/Application Support";
+#elif not defined(_WIN32)
         home /= ".local/share";
 #endif
     }

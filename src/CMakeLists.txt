@@ -241,6 +241,7 @@ add_test_run(check planet TESTS
         constrained.tests.cpp
         entities.tests.cpp
         event.tests.cpp
+        folders.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
         headers.cpp
