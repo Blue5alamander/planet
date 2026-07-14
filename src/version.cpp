@@ -98,12 +98,14 @@ void planet::load(serialise::box &b, semver &sv) {
 void planet::save(serialise::save_buffer &sb, version const &v) {
     sb.save_box(
             v.box, v.application_id, v.version_string, v.semver, v.build,
-            v.git_describe);
+            v.git_describe, v.platform);
 }
 void planet::load(serialise::box &b, version &v) {
+    v.platform = platform::unknown;
     b.lambda(v.box, [&]() {
         b.fields(v.application_id, v.version_string, v.semver, v.build);
         if (not b.content.empty()) { b.fields(v.git_describe); }
+        if (not b.content.empty()) { b.fields(v.platform); }
     });
 }
 
@@ -125,5 +127,6 @@ namespace {
                 if (not version.git_describe.empty()) {
                     os << ' ' << version.git_describe;
                 }
+                os << " on " << to_string(version.platform);
             });
 }

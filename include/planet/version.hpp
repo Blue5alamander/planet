@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <planet/platform.hpp>
 #include <planet/serialise/forward.hpp>
 
 #include <compare>
@@ -73,6 +74,7 @@ namespace planet {
         planet::semver semver;
         std::optional<std::uint16_t> build;
         std::string git_describe;
+        planet::platform platform = current_platform;
     };
     void save(serialise::save_buffer &, semver const &);
     void load(serialise::box &, semver &);

@@ -17,6 +17,7 @@ add_library(planet
         maths.cpp
         mouse.events.cpp
         panel.ui.cpp
+        platform.cpp
         serialise.cpp
         scale.ui.cpp
         stdin.cpp
@@ -112,6 +113,7 @@ target_sources(planet PUBLIC
         ../include/planet/maths.hpp
         ../include/planet/numbers.hpp
         ../include/planet/ostream.hpp
+        ../include/planet/platform.hpp
         ../include/planet/queue/concepts.hpp
         ../include/planet/queue/forward.hpp
         ../include/planet/queue/forwarding.hpp
@@ -251,6 +253,7 @@ add_test_run(check planet TESTS
         maths.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
+        platform.tests.cpp
         range.ui.tests.cpp
         row.layout.tests.cpp
         serialise.tests.cpp
