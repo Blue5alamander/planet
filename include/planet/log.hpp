@@ -100,8 +100,19 @@ namespace planet::log {
      * effect. Any log messages already in flight will still arrive.
      */
 
-    /// #### Performance data print out
+    /// #### Performance data capture and print out print out
+    inline std::atomic<std::chrono::steady_clock::duration>
+            capture_performance_message_wait{std::chrono::seconds{10}};
+    /**
+     * How often the performance counter data is captured. The performance data
+     * is always captured with this wait period between captures. Because the
+     * capture takes finite time this will cause some drift in the capture times.
+     */
     inline std::atomic<bool> display_performance_messages{true};
+    /**
+     * Whether the captured performance data is printed to the logs as well as
+     * captured.
+     */
 
 
     /// #### Log output file

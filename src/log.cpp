@@ -240,7 +240,8 @@ namespace {
         felspar::io::warden::task<void> display_performance_loop() {
             planet::log::info("Starting performance counter loop");
             while (true) {
-                co_await warden.sleep(1s);
+                co_await warden.sleep(
+                        planet::log::capture_performance_message_wait.load());
                 print_performance();
             }
         }
