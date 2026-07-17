@@ -52,6 +52,16 @@ namespace {
                 check(v.semver.patch) == 123;
                 check(v.build) == 2253;
                 check(v.git_describe) == "5.25-45-g123456-dirty";
+            },
+            [](auto check) {
+                planet::version v{"appid2",
+                                  "folder",
+                                  "5.26.123",
+                                  2253,
+                                  "5.25-45-g123456-dirty",
+                                  "DEMO"};
+                check(v.git_describe) == "5.25-45-g123456-dirty";
+                check(v.flavour) == "DEMO";
             });
 
 

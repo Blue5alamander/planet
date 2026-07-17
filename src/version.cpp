@@ -71,6 +71,20 @@ planet::version::version(
   semver{parse(sv)},
   build{b},
   git_describe{gd} {}
+planet::version::version(
+        std::string_view const id,
+        std::string_view const dir,
+        std::string_view const sv,
+        std::uint16_t const b,
+        std::string_view const gd,
+        std::string_view const fl)
+: application_id{id},
+  application_folder{dir},
+  version_string{sv},
+  semver{parse(sv)},
+  build{b},
+  git_describe{gd},
+  flavour{std::string{fl}} {}
 
 planet::version::version(serialise::box &b) { load(b, *this); }
 
@@ -98,7 +112,7 @@ void planet::load(serialise::box &b, semver &sv) {
 void planet::save(serialise::save_buffer &sb, version const &v) {
     sb.save_box(
             v.box, v.application_id, v.version_string, v.semver, v.build,
-            v.git_describe, v.platform);
+            v.git_describe, v.platform, v.flavour);
 }
 void planet::load(serialise::box &b, version &v) {
     v.platform = platform::unknown;
@@ -106,6 +120,7 @@ void planet::load(serialise::box &b, version &v) {
         b.fields(v.application_id, v.version_string, v.semver, v.build);
         if (not b.content.empty()) { b.fields(v.git_describe); }
         if (not b.content.empty()) { b.fields(v.platform); }
+        if (not b.content.empty()) { b.fields(v.flavour); }
     });
 }
 
@@ -128,5 +143,6 @@ namespace {
                     os << ' ' << version.git_describe;
                 }
                 os << " on " << to_string(version.platform);
+                if (version.flavour) { os << " (" << *version.flavour << ')'; }
             });
 }
