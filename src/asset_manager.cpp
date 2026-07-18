@@ -1,5 +1,6 @@
 #include <planet/asset_manager.hpp>
 #include <planet/log.hpp>
+#include <planet/platform.hpp>
 
 #include <felspar/exceptions/runtime_error.hpp>
 
@@ -79,6 +80,23 @@ felspar::coro::generator<std::filesystem::path>
             ((cwd / base).parent_path() / "share/").lexically_normal();
     if (exe_parent != exe_based and exe_parent != current) {
         co_yield exe_parent;
+    }
+    /// ### macOS application bundle
+    /**
+     * A double-clicked `.app` launches with its working directory set to `/`,
+     * so every `cwd`-relative path above misses. Inside the bundle the
+     * executable lives in `Contents/MacOS/` and its assets in
+     * `Contents/Resources/share/`, so look there relative to the executable's
+     * own directory (`base`). `argv[0]` is absolute when launched from Finder,
+     * which makes this independent of the working directory.
+     */
+    if constexpr (current_platform == platform::macos) {
+        auto const macos_resources =
+                (cwd / base / ".." / "Resources" / "share/").lexically_normal();
+        if (macos_resources != current and macos_resources != exe_based
+            and macos_resources != exe_parent) {
+            co_yield macos_resources;
+        }
     }
 }
 

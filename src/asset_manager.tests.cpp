@@ -1,4 +1,5 @@
 #include <planet/asset_manager.hpp>
+#include <planet/platform.hpp>
 #include <felspar/test.hpp>
 
 
@@ -11,6 +12,11 @@ namespace {
         planet::file_loader am{"./"};
         auto gen = am.search_paths();
         check(gen.next().value()) == cwd / "share/";
+        if constexpr (planet::current_platform == planet::platform::macos) {
+            check(gen.next().value())
+                    == (cwd / "./" / ".." / "Resources" / "share/")
+                               .lexically_normal();
+        }
         check(gen.next().has_value()) == false;
     });
     auto const pn = suite.test("paths/pathname", [](auto check) {
@@ -18,6 +24,11 @@ namespace {
         auto gen = am.search_paths();
         check(gen.next().value()) == cwd / "share/";
         check(gen.next().value()) == cwd / "path/share/";
+        if constexpr (planet::current_platform == planet::platform::macos) {
+            check(gen.next().value())
+                    == (cwd / "./path" / ".." / "Resources" / "share/")
+                               .lexically_normal();
+        }
         check(gen.next().has_value()) == false;
     });
     auto const rn = suite.test("paths/rootname", [](auto check) {
@@ -35,6 +46,11 @@ namespace {
 #else
         check(gen.next().value()) == std::filesystem::path{"/path/share/"};
         check(gen.next().value()) == std::filesystem::path{"/share/"};
+        if constexpr (planet::current_platform == planet::platform::macos) {
+            check(gen.next().value())
+                    == (cwd / "/path" / ".." / "Resources" / "share/")
+                               .lexically_normal();
+        }
 #endif
         check(gen.next().has_value()) == false;
     });
