@@ -45,6 +45,22 @@ namespace planet {
 #endif
 
 
+    /// ### Platform categories
+    /**
+     * `unknown` is deliberately neither desktop nor mobile, so both queries
+     * return `false` for it.
+     */
+    [[nodiscard]] inline bool constexpr is_mobile(
+            platform const p = current_platform) noexcept {
+        return p == platform::android or p == platform::ios;
+    }
+    [[nodiscard]] inline bool constexpr is_desktop(
+            platform const p = current_platform) noexcept {
+        return p == platform::linux or p == platform::windows
+                or p == platform::macos;
+    }
+
+
     /// ### Convert a `platform` to and from its name
     std::string_view to_string(platform) noexcept;
     platform platform_from_string(std::string_view);

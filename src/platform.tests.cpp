@@ -11,6 +11,21 @@ static_assert(planet::current_platform == planet::platform::linux);
 #endif
 
 
+/**
+ * Mobile and desktop are disjoint; every known platform is exactly one of them,
+ * and `unknown` is neither.
+ */
+static_assert(planet::is_mobile(planet::platform::android));
+static_assert(planet::is_mobile(planet::platform::ios));
+static_assert(not planet::is_mobile(planet::platform::linux));
+static_assert(not planet::is_mobile(planet::platform::unknown));
+static_assert(planet::is_desktop(planet::platform::linux));
+static_assert(planet::is_desktop(planet::platform::windows));
+static_assert(planet::is_desktop(planet::platform::macos));
+static_assert(not planet::is_desktop(planet::platform::android));
+static_assert(not planet::is_desktop(planet::platform::unknown));
+
+
 namespace {
 
 
