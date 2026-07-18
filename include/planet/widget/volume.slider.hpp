@@ -52,10 +52,13 @@ namespace planet::widget::volume {
             range.content.updater = this;
             return range.reflow(p, c);
         }
-        void
+        planet::affine::rectangle2d
                 move_to(reflow_parameters const &p,
                         planet::affine::rectangle2d const &r) {
-            range.move_to(p, r);
+            return range.move_to(p, r);
+        }
+        constrained_type const &constraints() const {
+            return range.constraints();
         }
 
 
