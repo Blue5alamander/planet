@@ -97,11 +97,14 @@ target_sources(planet PUBLIC
         ../include/planet/ecs/weak_entity_id.hpp
         ../include/planet/events/action.hpp
         ../include/planet/events/back.hpp
+        ../include/planet/events/focus.hpp
         ../include/planet/events.hpp
         ../include/planet/events/keys.hpp
         ../include/planet/events/mouse.hpp
+        ../include/planet/events/position.hpp
         ../include/planet/events/queue.hpp
         ../include/planet/events/quit.hpp
+        ../include/planet/events/resize.hpp
         ../include/planet/events/scroll.hpp
         ../include/planet/folders.hpp
         ../include/planet/functional.hpp
