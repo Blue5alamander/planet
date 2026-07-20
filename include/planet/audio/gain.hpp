@@ -120,7 +120,7 @@ namespace planet::audio {
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         auto const mul = gain.load();
         felspar::memory::accumulation_buffer<float> output{
-                default_buffer_samples * Channels * 25};
+                buffer_samples() * Channels * 25};
 
         for (auto block : signal) {
             output.ensure_length(block.samples() * Channels);
@@ -138,7 +138,7 @@ namespace planet::audio {
             atomic_linear_gain const &gain,
             felspar::coro::generator<buffer_storage<Clock, Channels>> signal) {
         felspar::memory::accumulation_buffer<float> output{
-                default_buffer_samples * Channels * 25};
+                buffer_samples() * Channels * 25};
         auto old_mul = gain.load();
         for (auto block : signal) {
             output.ensure_length(block.samples() * Channels);

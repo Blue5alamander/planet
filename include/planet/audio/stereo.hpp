@@ -33,7 +33,7 @@ namespace planet::audio {
             linear_gain const left,
             linear_gain const right) {
         felspar::memory::accumulation_buffer<float> output{
-                default_buffer_samples * 50};
+                buffer_samples() * 50};
         for (auto block : mono) {
             output.ensure_length(block.samples() * stereo_buffer::channels);
             for (std::size_t index{}; index < block.samples(); ++index) {

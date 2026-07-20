@@ -1,5 +1,6 @@
 #include <planet/audio/clocks.hpp>
 #include <planet/audio/gain.hpp>
+#include <planet/audio/oscillator.hpp>
 #include <planet/serialise.hpp>
 #include <felspar/test.hpp>
 
@@ -67,6 +68,34 @@ namespace {
                 check(planet::audio::buffer_samples()) == std::size_t{1024};
                 check(planet::audio::buffer_duration())
                         == planet::audio::sample_clock{1024};
+                planet::audio::active_buffer_duration.store(saved);
+            });
+
+
+    /**
+     * `silence` and `oscillator` are the engine's sources: they size their
+     * storage by the cap and yield only the first `buffer_samples()` entries,
+     * so every pull returns exactly the working block. Raising the working size
+     * to 1024 makes both yield 1024, and the previous value is restored so the
+     * suite stays order-independent.
+     */
+    auto const generator_block_size =
+            felspar::testsuite("audio.generator_block_size", [](auto check) {
+                auto const yields_working_block =
+                        [&check](auto generator, std::size_t const expected) {
+                            auto block = generator.next();
+                            check(static_cast<bool>(block)) == true;
+                            check(block->size()) == expected;
+                        };
+                yields_working_block(planet::audio::silence(), 512);
+                yields_working_block(planet::audio::oscillator(0.01f), 512);
+                check(planet::audio::buffer_samples()) == std::size_t{512};
+
+                auto const saved = planet::audio::buffer_duration();
+                planet::audio::active_buffer_duration.store(
+                        planet::audio::sample_clock{1024});
+                yields_working_block(planet::audio::silence(), 1024);
+                yields_working_block(planet::audio::oscillator(0.01f), 1024);
                 planet::audio::active_buffer_duration.store(saved);
             });
 

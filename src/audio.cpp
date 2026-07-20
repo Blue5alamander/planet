@@ -250,8 +250,7 @@ auto planet::audio::mixer::output() -> stereo_generator {
 
 
 auto planet::audio::mixer::raw_mix() -> stereo_generator {
-    felspar::memory::accumulation_buffer<float> output{
-            default_buffer_samples * 50};
+    felspar::memory::accumulation_buffer<float> output{buffer_samples() * 50};
     /// Absolute count of samples this generator has produced so far.
     std::uint64_t producer_position{};
     /**
@@ -263,7 +262,7 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
      * tools pulling `output()` directly) has `block_size == 0` and falls back
      * to the default slice so it still yields whole blocks.
      */
-    std::size_t const block = block_size ? block_size : default_buffer_samples;
+    std::size_t const block = block_size ? block_size : buffer_samples();
     while (true) {
         for (auto &waiting : incoming.consume()) {
             if (generators.has_room()) {
@@ -371,7 +370,7 @@ void planet::audio::mixer::run() noexcept {
          * subscribers) drops them.
          */
         felspar::memory::accumulation_buffer<float> publish{
-                default_buffer_samples * stereo_buffer::channels * 50};
+                buffer_samples() * stereo_buffer::channels * 50};
         while (not stop_flag.load(std::memory_order_acquire)) {
             slots_free.acquire();
             if (stop_flag.load(std::memory_order_acquire)) { break; }
@@ -435,8 +434,7 @@ void planet::audio::mixer::run() noexcept {
 
 
 planet::audio::stereo_generator planet::audio::music::output() {
-    felspar::memory::accumulation_buffer<float> output{
-            default_buffer_samples * 50};
+    felspar::memory::accumulation_buffer<float> output{buffer_samples() * 50};
     std::optional<planet::audio::stereo_generator> generator;
     while (true) {
         if (clear_flag.load(std::memory_order_relaxed)) {
@@ -470,10 +468,9 @@ planet::audio::stereo_generator planet::audio::music::output() {
             generator = {};
         } else {
             playing.store(false, std::memory_order_relaxed);
-            output.ensure_length(
-                    default_buffer_samples * stereo_buffer::channels);
-            co_yield output.first(
-                    default_buffer_samples * stereo_buffer::channels);
+            std::size_t const working = buffer_samples();
+            output.ensure_length(working * stereo_buffer::channels);
+            co_yield output.first(working * stereo_buffer::channels);
         }
     }
 }
@@ -501,22 +498,31 @@ void planet::audio::music::enqueue(start_tune_function tn) {
 /// ## `planet::audio::oscillator`
 
 
-felspar::coro::generator<std::span<float>> silence() {
-    std::array<float, planet::audio::default_buffer_samples> buffer{};
-    while (true) { co_yield buffer; }
+felspar::coro::generator<std::span<float>> planet::audio::silence() {
+    std::array<float, planet::audio::max_buffer_samples> buffer{};
+    while (true) {
+        co_yield std::span{buffer}.first(planet::audio::buffer_samples());
+    }
 }
 
 
 felspar::coro::generator<std::span<float>>
         planet::audio::oscillator(float const turns) {
-    std::array<float, planet::audio::default_buffer_samples> buffer;
+    std::array<float, planet::audio::max_buffer_samples> buffer;
     std::complex const rotate{std::cos(turns * tau), std::sin(turns * tau)};
     std::complex phase{1.0f, 0.0f};
     while (true) {
-        for (auto &s : buffer) {
+        /**
+         * Render only the working block so the phase advances by exactly the
+         * number of samples yielded — filling the whole cap-sized array would
+         * advance the phase past the yielded slice and leave a discontinuity on
+         * the next pull.
+         */
+        auto slice = std::span{buffer}.first(planet::audio::buffer_samples());
+        for (auto &s : slice) {
             s = phase.imag();
             phase *= rotate;
         }
-        co_yield buffer;
+        co_yield slice;
     }
 }

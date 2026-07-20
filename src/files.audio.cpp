@@ -43,8 +43,7 @@ struct planet::audio::flac::impl {
     std::optional<FLAC__StreamMetadata_StreamInfo> stream_info;
     char const *error{};
 
-    felspar::memory::accumulation_buffer<float> output{
-            default_buffer_samples * 50};
+    felspar::memory::accumulation_buffer<float> output{buffer_samples() * 50};
     std::size_t frame_samples{};
 
     static FLAC__StreamDecoderReadStatus read_callback(
@@ -399,8 +398,7 @@ felspar::coro::generator<
     };
     vorbis_resources v{this};
 
-    felspar::memory::accumulation_buffer<float> output{
-            default_buffer_samples * 50};
+    felspar::memory::accumulation_buffer<float> output{buffer_samples() * 50};
 
     for (auto &&packet : packets) {
         if (vorbis_synthesis(&v.b, &packet) == 0) {
