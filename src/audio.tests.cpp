@@ -47,4 +47,28 @@ namespace {
     });
 
 
+    /**
+     * The published working block starts at the compile-time seed, and a store
+     * is visible to both accessors. The store is restored afterwards so the
+     * suite stays order-independent — every other test still sees the 512
+     * default.
+     *
+     * If this test ever fails then follow on tests will have the wrong value.
+     */
+    auto const buffer_size =
+            felspar::testsuite("audio.buffer_size", [](auto check) {
+                check(planet::audio::buffer_samples()) == std::size_t{512};
+                check(planet::audio::buffer_duration())
+                        == planet::audio::sample_clock{512};
+
+                auto const saved = planet::audio::buffer_duration();
+                planet::audio::active_buffer_duration.store(
+                        planet::audio::sample_clock{1024});
+                check(planet::audio::buffer_samples()) == std::size_t{1024};
+                check(planet::audio::buffer_duration())
+                        == planet::audio::sample_clock{1024};
+                planet::audio::active_buffer_duration.store(saved);
+            });
+
+
 }
