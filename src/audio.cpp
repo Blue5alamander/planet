@@ -254,6 +254,16 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
             default_buffer_samples * 50};
     /// Absolute count of samples this generator has produced so far.
     std::uint64_t producer_position{};
+    /**
+     * The slice this generator yields is the driver's runtime block size, the
+     * same `block_size` member `bind_driver` caches and `run` clamps each
+     * published block to. The yield size and `run`'s clamp are therefore the
+     * same value by construction, so nothing rendered here is truncated or
+     * zero-filled away by the producer. A mixer with no driver bound (tests,
+     * tools pulling `output()` directly) has `block_size == 0` and falls back
+     * to the default slice so it still yields whole blocks.
+     */
+    std::size_t const block = block_size ? block_size : default_buffer_samples;
     while (true) {
         for (auto &waiting : incoming.consume()) {
             if (generators.has_room()) {
@@ -285,8 +295,8 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
                 generators.push_back({std::move(waiting.audio), {}, delay});
             }
         }
-        generators.erase_if([&output](auto &gen) {
-            while (gen.samples < default_buffer_samples) {
+        generators.erase_if([&output, block](auto &gen) {
+            while (gen.samples < block) {
                 if (gen.delay_samples > 0) {
                     /**
                      * Advance past the scheduled silence. Nothing is written:
@@ -294,8 +304,7 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
                      * other tracks contributed (or zero), which is exactly the
                      * silence we want for this track.
                      */
-                    std::size_t const room =
-                            default_buffer_samples - gen.samples;
+                    std::size_t const room = block - gen.samples;
                     std::size_t const skip = std::min(gen.delay_samples, room);
                     gen.samples += skip;
                     gen.delay_samples -= skip;
@@ -319,12 +328,12 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
                     }
                 }
             }
-            gen.samples -= default_buffer_samples;
+            gen.samples -= block;
             return false;
         });
-        output.ensure_length(default_buffer_samples * stereo_buffer::channels);
-        co_yield output.first(default_buffer_samples * stereo_buffer::channels);
-        producer_position += default_buffer_samples;
+        output.ensure_length(block * stereo_buffer::channels);
+        co_yield output.first(block * stereo_buffer::channels);
+        producer_position += block;
     }
 }
 
@@ -354,12 +363,12 @@ void planet::audio::mixer::run() noexcept {
         /**
          * The producer's own accumulation_buffer. Each iteration copies the
          * upstream block's samples into the accumulator and yields the head
-         * `default_buffer_samples * channels` floats as a
-         * `shared_buffer<float>` via `first()` — the same idiom `raw_mix` and
-         * `gain` already use. Each call returns a fresh refcounted slice; the
-         * accumulator grows and reallocates as needed, keeping older slices
-         * alive via the shared control block until the last consumer (including
-         * any future tap subscribers) drops them.
+         * `block_size * channels` floats as a `shared_buffer<float>` via
+         * `first()` — the same idiom `raw_mix` and `gain` already use. Each
+         * call returns a fresh refcounted slice; the accumulator grows and
+         * reallocates as needed, keeping older slices alive via the shared
+         * control block until the last consumer (including any future tap
+         * subscribers) drops them.
          */
         felspar::memory::accumulation_buffer<float> publish{
                 default_buffer_samples * stereo_buffer::channels * 50};

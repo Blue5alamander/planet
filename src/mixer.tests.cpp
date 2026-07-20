@@ -43,6 +43,39 @@ namespace {
     }
 
 
+    /**
+     * The ramp value carried by both channels at absolute stream position `p`.
+     * Offset by one so the first sample is non-zero — a zero-filled gap then
+     * reads as exactly `0.0f` and cannot be mistaken for a genuine sample.
+     */
+    inline float ramp_value(std::size_t const p) noexcept {
+        return static_cast<float>(p + 1) * 0.001f;
+    }
+
+
+    /**
+     * An infinite source whose both channels carry the ramp value for each
+     * sample's absolute position. Lets a test confirm every sample of a known
+     * ramp survives the mixer's re-blocking into the driver's block size.
+     */
+    planet::audio::stereo_generator ramp_forever() {
+        std::size_t position{};
+        while (true) {
+            auto buf = felspar::memory::shared_buffer<float>::allocate(
+                    planet::audio::default_buffer_samples
+                    * planet::audio::stereo_buffer::channels);
+            for (std::size_t s{}; s < planet::audio::default_buffer_samples;
+                 ++s) {
+                float const v = ramp_value(position + s);
+                buf[s * planet::audio::stereo_buffer::channels + 0] = v;
+                buf[s * planet::audio::stereo_buffer::channels + 1] = v;
+            }
+            position += planet::audio::default_buffer_samples;
+            co_yield planet::audio::stereo_buffer{std::move(buf)};
+        }
+    }
+
+
     auto const correctness = felspar::testsuite("mixer", [](auto check) {
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
@@ -408,8 +441,10 @@ namespace {
             });
 
 
-    /// A track scheduled in the past relative to the epoch clamps to "as soon
-    /// as possible" — it plays from the first sample with no negative delay.
+    /**
+     * A track scheduled in the past relative to the epoch clamps to "as soon as
+     * possible" — it plays from the first sample with no negative delay.
+     */
     auto const schedule_late =
             felspar::testsuite("mixer.schedule.late", [](auto check) {
                 using namespace std::chrono_literals;
@@ -429,8 +464,10 @@ namespace {
             });
 
 
-    /// On a mixer with no driver bound the wall-clock cannot be resolved, so a
-    /// scheduled track falls back to playing as soon as possible.
+    /**
+     * On a mixer with no driver bound the wall-clock cannot be resolved, so a
+     * scheduled track falls back to playing as soon as possible.
+     */
     auto const schedule_unbound =
             felspar::testsuite("mixer.schedule.unbound", [](auto check) {
                 using namespace std::chrono_literals;
@@ -447,8 +484,10 @@ namespace {
             });
 
 
-    /// The producer is bounded to `depth` blocks ahead: even given far more
-    /// time than it needs, it must not buffer past the configured latency.
+    /**
+     * The producer is bounded to `depth` blocks ahead: even given far more time
+     * than it needs, it must not buffer past the configured latency.
+     */
     auto const lead_bound =
             felspar::testsuite("mixer.lead_bound", [](auto check) {
                 using namespace std::chrono_literals;
@@ -467,6 +506,62 @@ namespace {
                 std::this_thread::sleep_for(50ms);
                 check(m.buffered_blocks()) == m.buffer_depth();
                 check(m.underrun_count()) == std::uint64_t{};
+            });
+
+
+    /**
+     * Drive a mixer bound to a driver at `block_size` with a continuous ramp
+     * track and assert every sample the audio callback pulls after the silence
+     * lead-in carries the ramp value for its position. This is the end-to-end
+     * check that `raw_mix` yields the driver's whole block: were it to yield
+     * fewer samples, `run` would zero-fill the remainder and the gap would read
+     * as `0.0f`, failing the per-sample assert against the expected ramp value.
+     */
+    void assert_ramp_emitted_clean(auto &check, std::size_t const block_size) {
+        using namespace std::chrono_literals;
+        planet::audio::channel master{planet::audio::dB_gain{0}};
+        planet::audio::mixer m{master};
+        planet::audio::driver drv{block_size, 2};
+        m.bind_driver(drv);
+        m.add_track(ramp_forever());
+        m.begin();
+
+        std::size_t const depth = m.buffer_depth();
+        /// Drain the `bind_driver` pre-rolled silence lead-in first.
+        planet::by_index(depth * block_size, [&]() { m.next_frame(); });
+        /**
+         * Give the producer thread time to render ramp blocks ahead of the
+         * drain so the tight read loop below cannot outrun it.
+         */
+        std::this_thread::sleep_for(20ms);
+
+        planet::by_index(depth * block_size, [&](auto const i) {
+            auto const f = m.next_frame();
+            check(f[0]) == ramp_value(i);
+            check(f[1]) == ramp_value(i);
+        });
+        check(m.underrun_count()) == std::uint64_t{};
+    }
+
+
+    /**
+     * A 1024-sample driver block emits the full ramp with no truncation and no
+     * zero-fill gap — the block size `raw_mix` must yield the driver's value
+     * for, not the compile-time default of 512.
+     */
+    auto const blocksize_1024 =
+            felspar::testsuite("mixer.blocksize.1024", [](auto check) {
+                assert_ramp_emitted_clean(check, 1024);
+            });
+
+
+    /**
+     * The same at 2048, the `max_buffer_samples` cap, confirming the whole
+     * engine works end to end at the largest block it will ever produce.
+     */
+    auto const blocksize_2048 =
+            felspar::testsuite("mixer.blocksize.2048", [](auto check) {
+                assert_ramp_emitted_clean(check, 2048);
             });
 
 

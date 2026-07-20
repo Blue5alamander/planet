@@ -29,4 +29,16 @@ namespace planet::audio {
             default_buffer_duration.count();
 
 
+    /// ## The largest buffer slice the audio system will ever produce
+    sample_clock constexpr max_buffer_duration{2048};
+    /**
+     * A compile-time cap that only bounds storage. Every `std::array<float, …>`
+     * in the audio path is sized by `max_buffer_samples`, and the working block
+     * the mixer and SDL callback actually advance in is always smaller than or
+     * equal to this cap, so the arrays always have room for whatever is
+     * rendered.
+     */
+    std::size_t constexpr max_buffer_samples = max_buffer_duration.count();
+
+
 }

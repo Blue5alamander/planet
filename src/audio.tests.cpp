@@ -1,6 +1,17 @@
+#include <planet/audio/clocks.hpp>
 #include <planet/audio/gain.hpp>
 #include <planet/serialise.hpp>
 #include <felspar/test.hpp>
+
+
+static_assert(
+        planet::audio::max_buffer_duration
+                >= planet::audio::default_buffer_duration,
+        "The cap must be at least as large as the default buffer so arrays sized by it always have room for the working block");
+static_assert(
+        planet::audio::max_buffer_samples
+                == planet::audio::max_buffer_duration.count(),
+        "max_buffer_samples must track max_buffer_duration");
 
 
 namespace {
