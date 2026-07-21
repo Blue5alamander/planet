@@ -19,17 +19,6 @@ namespace planet::audio {
     std::size_t constexpr nyquist_limit = samples_per_second / 2;
 
 
-    /// ## The amount of time for a standard buffer slice
-    sample_clock constexpr default_buffer_duration{512};
-    /**
-     * The audio system in SDL2 wants to use 512 as a fast clock time, so we'll
-     * align to that. We could go even smaller for even lower latency on systems
-     * that are fast enough for that.
-     */
-    std::size_t constexpr default_buffer_samples =
-            default_buffer_duration.count();
-
-
     /// ## The largest buffer slice the audio system will ever produce
     sample_clock constexpr max_buffer_duration{2048};
     /**
@@ -47,9 +36,9 @@ namespace planet::audio {
     /**
      * The only remaining compile-time working size, and the seed the atomic
      * below starts at. The cap-vs-working-size invariant stays a compile-time
-     * check via `max_buffer_duration >= initial_buffer_duration` once
-     * `default_buffer_duration` is gone — `buffer_duration()` reads a
-     * `std::atomic` and so is not a constant expression.
+     * check via `max_buffer_duration >= initial_buffer_duration` —
+     * `buffer_duration()` reads a `std::atomic` and so is not a constant
+     * expression.
      */
     inline std::atomic<sample_clock> active_buffer_duration{
             initial_buffer_duration};

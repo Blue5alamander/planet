@@ -23,7 +23,7 @@ namespace {
             constant_source(std::size_t const buffers, float const v) {
         for (std::size_t b{}; b < buffers; ++b) {
             auto buf = felspar::memory::shared_buffer<float>::allocate(
-                    planet::audio::default_buffer_samples
+                    planet::audio::buffer_samples()
                             * planet::audio::stereo_buffer::channels,
                     v);
             co_yield planet::audio::stereo_buffer{std::move(buf)};
@@ -35,7 +35,7 @@ namespace {
     planet::audio::stereo_generator constant_forever(float const v) {
         while (true) {
             auto buf = felspar::memory::shared_buffer<float>::allocate(
-                    planet::audio::default_buffer_samples
+                    planet::audio::buffer_samples()
                             * planet::audio::stereo_buffer::channels,
                     v);
             co_yield planet::audio::stereo_buffer{std::move(buf)};
@@ -62,15 +62,14 @@ namespace {
         std::size_t position{};
         while (true) {
             auto buf = felspar::memory::shared_buffer<float>::allocate(
-                    planet::audio::default_buffer_samples
+                    planet::audio::buffer_samples()
                     * planet::audio::stereo_buffer::channels);
-            for (std::size_t s{}; s < planet::audio::default_buffer_samples;
-                 ++s) {
+            for (std::size_t s{}; s < planet::audio::buffer_samples(); ++s) {
                 float const v = ramp_value(position + s);
                 buf[s * planet::audio::stereo_buffer::channels + 0] = v;
                 buf[s * planet::audio::stereo_buffer::channels + 1] = v;
             }
-            position += planet::audio::default_buffer_samples;
+            position += planet::audio::buffer_samples();
             co_yield planet::audio::stereo_buffer{std::move(buf)};
         }
     }
@@ -84,7 +83,7 @@ namespace {
         auto out = m.output();
         auto first = out.next();
         check(static_cast<bool>(first)) == true;
-        check(first->samples()) == planet::audio::default_buffer_samples;
+        check(first->samples()) == planet::audio::buffer_samples();
         // Unity master gain, single track -> output matches the source.
         auto const s = (*first)[0];
         check(s[0]) > 0.49f;
@@ -118,8 +117,7 @@ namespace {
                 for (std::size_t i{}; i < 2'000; ++i) {
                     auto block = out.next();
                     check(static_cast<bool>(block)) == true;
-                    check(block->samples())
-                            == planet::audio::default_buffer_samples;
+                    check(block->samples()) == planet::audio::buffer_samples();
                     ++pulled;
                 }
                 stop.store(true);
@@ -139,12 +137,12 @@ namespace {
         using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
-        planet::audio::driver drv{planet::audio::default_buffer_samples, 2};
+        planet::audio::driver drv{planet::audio::buffer_samples(), 2};
         m.bind_driver(drv);
         m.add_track(constant_forever(0.25f));
         m.begin();
 
-        std::size_t const block = planet::audio::default_buffer_samples;
+        std::size_t const block = planet::audio::buffer_samples();
         std::size_t const depth = m.buffer_depth();
 
         /**
@@ -194,12 +192,12 @@ namespace {
         recorder.reserve(planet::audio::mixer::max_ring_depth * 4);
         std::array<planet::audio::tap *, 1> taps{&recorder};
         planet::audio::mixer m{master, taps};
-        planet::audio::driver drv{planet::audio::default_buffer_samples, 2};
+        planet::audio::driver drv{planet::audio::buffer_samples(), 2};
         m.bind_driver(drv);
         m.add_track(constant_forever(0.25f));
         m.begin();
 
-        std::size_t const block = planet::audio::default_buffer_samples;
+        std::size_t const block = planet::audio::buffer_samples();
         std::size_t const depth = m.buffer_depth();
 
         /**
@@ -243,8 +241,7 @@ namespace {
 
                 check(m.playback_clock()) == nullptr;
 
-                planet::audio::driver drv{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 drv.playback_head.store(planet::audio::sample_clock{512});
                 m.bind_driver(drv);
 
@@ -273,8 +270,7 @@ namespace {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                planet::audio::driver drv1{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv1{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv1);
                 m.add_track(constant_forever(0.25f));
                 m.begin();
@@ -300,8 +296,7 @@ namespace {
                  * Different block_count so the rebind has to re-derive the ring
                  * depth from the new driver.
                  */
-                planet::audio::driver drv2{
-                        planet::audio::default_buffer_samples, 3};
+                planet::audio::driver drv2{planet::audio::buffer_samples(), 3};
                 m.bind_driver(drv2);
                 check(m.buffer_depth()) == std::size_t{3};
 
@@ -360,8 +355,7 @@ namespace {
             felspar::testsuite("mixer.schedule.immediate", [](auto check) {
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                planet::audio::driver drv{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
                 m.add_track(constant_forever(0.25f), drv.wall_clock_epoch);
 
@@ -372,8 +366,7 @@ namespace {
                  * of audio to verify.
                  */
                 auto const left = pull_left(
-                        m,
-                        drv.latency + planet::audio::default_buffer_duration);
+                        m, drv.latency + planet::audio::buffer_duration());
                 bool silence_clean = true;
                 for (std::size_t i{}; i < expected_silence; ++i) {
                     if (left[i] != 0.0f) { silence_clean = false; }
@@ -401,8 +394,7 @@ namespace {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                planet::audio::driver drv{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
 
                 /**
@@ -422,8 +414,7 @@ namespace {
                  */
                 auto const left = pull_left(
                         m,
-                        20ms + drv.latency
-                                + planet::audio::default_buffer_duration);
+                        20ms + drv.latency + planet::audio::buffer_duration());
                 bool silence_clean = true;
                 for (std::size_t i{}; i < expected_silence; ++i) {
                     if (left[i] != 0.0f) { silence_clean = false; }
@@ -450,13 +441,12 @@ namespace {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                planet::audio::driver drv{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
                 m.add_track(constant_forever(0.25f), drv.wall_clock_epoch - 1s);
 
                 auto const left =
-                        pull_left(m, planet::audio::default_buffer_duration);
+                        pull_left(m, planet::audio::buffer_duration());
                 check(left.front()) == 0.25f;
                 check(left.back()) == 0.25f;
                 /// Its target slipped behind the write head: counted as ASAP.
@@ -478,7 +468,7 @@ namespace {
                         std::chrono::steady_clock::now() + 1s);
 
                 auto const left =
-                        pull_left(m, planet::audio::default_buffer_duration);
+                        pull_left(m, planet::audio::buffer_duration());
                 check(left.front()) == 0.25f;
                 check(left.back()) == 0.25f;
             });
@@ -493,8 +483,7 @@ namespace {
                 using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
-                planet::audio::driver drv{
-                        planet::audio::default_buffer_samples, 2};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
                 m.add_track(constant_forever(0.1f));
                 m.begin();
