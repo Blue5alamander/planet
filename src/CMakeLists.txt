@@ -101,7 +101,6 @@ target_sources(planet PUBLIC
         ../include/planet/events.hpp
         ../include/planet/events/keys.hpp
         ../include/planet/events/mouse.hpp
-        ../include/planet/events/position.hpp
         ../include/planet/events/queue.hpp
         ../include/planet/events/quit.hpp
         ../include/planet/events/resize.hpp

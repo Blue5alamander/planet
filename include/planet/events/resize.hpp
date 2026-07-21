@@ -3,7 +3,6 @@
 
 #include <planet/affine/extents2d.hpp>
 
-#include <chrono>
 #include <optional>
 
 
@@ -23,8 +22,6 @@ namespace planet::events {
     struct resize final {
         events::window_resize transition;
         std::optional<affine::extents2d> extents = {};
-        std::chrono::steady_clock::time_point timestamp =
-                std::chrono::steady_clock::now();
     };
 
 
