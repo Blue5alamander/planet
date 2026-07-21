@@ -149,6 +149,24 @@ namespace planet::ui {
         std::chrono::steady_clock::time_point last_reset =
                 std::chrono::steady_clock::now();
 
+        /// #### Deliver this frame's hover notifications
+        /**
+         * Run once per frame from `start_frame_reset` before the live widget
+         * list is cleared, so it sees the widgets drawn in the frame that has
+         * just finished rather than an empty list.
+         *
+         * Every widget under the pointer is notified with its accumulated
+         * hover duration, and every widget hovered last frame but not this one
+         * is notified with a zero duration. That zero is the only signal a
+         * widget gets that the pointer has left it.
+         *
+         * Unlike the focus routing this consults neither `wants_focus` nor the
+         * z layer, so all of the widgets stacked under the pointer are hovered
+         * at once rather than just the topmost.
+         */
+        void route_hover_events();
+
+
         /// ### Update a widget pointer
         void update_ptr(widget_ptr const was, widget_ptr const now) {
             if (hard_focus == was) { hard_focus = now; }
@@ -176,6 +194,21 @@ namespace planet::ui {
         }
         /// #### Update the soft focus if this widget is better
         void update_if_better_soft_focus(widget_ptr);
+
+        /// #### Give up focus held by a widget that was not drawn
+        /**
+         * Run once per frame from `start_frame_reset` before the live widget
+         * list is cleared. A widget only appears in that list by drawing
+         * itself, so one that has stopped being drawn -- a modal that has
+         * closed, or a screen that has been navigated away from -- would
+         * otherwise go on holding the focus and receiving key presses while
+         * invisible.
+         *
+         * Both kinds of focus are dropped this way, including the hard focus a
+         * widget took to capture events, since a widget that is no longer
+         * drawn has no way to release the capture itself.
+         */
+        void drop_stale_focus() noexcept;
 
 
         /// ### Event forwarding

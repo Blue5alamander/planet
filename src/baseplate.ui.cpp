@@ -5,6 +5,9 @@
 #include <planet/log.hpp>
 
 
+/// ## `planet::ui::baseplate`
+
+
 namespace {
     planet::telemetry::exponential_decay c_widget_list_length{
             "planet_ui_baseplate_widget_count", 20};
@@ -30,10 +33,40 @@ planet::ui::baseplate::~baseplate() {
 }
 
 
+/// #### Registering widgets
+
+
+void planet::ui::baseplate::add(widget_ptr const w) {
+    w->baseplate = this;
+    widgets.push_back(w);
+    update_if_better_soft_focus(w);
+}
+
+
+/// #### Focus re-computation
+
+
+void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
+    if (w->wants_focus()
+        and (not soft_focus or soft_focus->z_layer() < w->z_layer())
+        and w->contains_global_coordinate(pointer_location())) {
+        soft_focus = w;
+    }
+}
+
+
+/// #### Per-frame calculations
+
+
 void planet::ui::baseplate::start_frame_reset() {
     c_widget_list_length.add_measurement(widgets.size());
+    route_hover_events();
+    drop_stale_focus();
+    widgets.clear();
+}
 
-    // Hover handling
+
+void planet::ui::baseplate::route_hover_events() {
     auto const now = std::chrono::steady_clock::now();
     auto const elapsed = now - last_reset;
     last_reset = now;
@@ -59,36 +92,19 @@ void planet::ui::baseplate::start_frame_reset() {
     }
     previous_hovers.clear();
     std::swap(previous_hovers, current_hovers);
-
-    // Widgets and focus
-    if (soft_focus
-        and std::find(widgets.begin(), widgets.end(), soft_focus)
-                == widgets.end()) {
-        soft_focus = nullptr;
-    }
-    if (hard_focus
-        and std::find(widgets.begin(), widgets.end(), hard_focus)
-                == widgets.end()) {
-        hard_focus = nullptr;
-    }
-    widgets.clear();
 }
 
 
-void planet::ui::baseplate::add(widget_ptr const w) {
-    w->baseplate = this;
-    widgets.push_back(w);
-    update_if_better_soft_focus(w);
+void planet::ui::baseplate::drop_stale_focus() noexcept {
+    auto const was_drawn = [this](widget_ptr const w) {
+        return std::find(widgets.begin(), widgets.end(), w) != widgets.end();
+    };
+    if (soft_focus and not was_drawn(soft_focus)) { soft_focus = nullptr; }
+    if (hard_focus and not was_drawn(hard_focus)) { hard_focus = nullptr; }
 }
 
 
-void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
-    if (w->wants_focus()
-        and (not soft_focus or soft_focus->z_layer() < w->z_layer())
-        and w->contains_global_coordinate(pointer_location())) {
-        soft_focus = w;
-    }
-}
+/// #### Event routing
 
 
 auto planet::ui::baseplate::forward_mouse() -> task_type {
