@@ -37,11 +37,17 @@ void planet::ui::baseplate::start_frame_reset() {
     auto const now = std::chrono::steady_clock::now();
     auto const elapsed = now - last_reset;
     last_reset = now;
-    for (auto widget : widgets) {
-        if (widget->contains_global_coordinate(last_mouse.location)) {
-            widget->hover(widget->hover_time += elapsed);
-            current_hovers.push_back(widget);
-            std::erase(previous_hovers, widget);
+    /**
+     * With no pointer location nothing is hovered, so `current_hovers` is left
+     * empty and everything hovered last frame has its hover time reset below.
+     */
+    if (last_mouse) {
+        for (auto widget : widgets) {
+            if (widget->contains_global_coordinate(last_mouse->location)) {
+                widget->hover(widget->hover_time += elapsed);
+                current_hovers.push_back(widget);
+                std::erase(previous_hovers, widget);
+            }
         }
     }
     c_hover_list_length.add_measurement(current_hovers.size());
@@ -74,9 +80,9 @@ void planet::ui::baseplate::add(widget_ptr const w) {
 
 
 void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
-    if (w->wants_focus()
+    if (last_mouse and w->wants_focus()
         and (not soft_focus or soft_focus->z_layer() < w->z_layer())
-        and w->contains_global_coordinate(last_mouse.location)) {
+        and w->contains_global_coordinate(last_mouse->location)) {
         soft_focus = w;
     }
 }
@@ -92,7 +98,7 @@ auto planet::ui::baseplate::forward_mouse() -> task_type {
             for (widget_ptr w : widgets) { update_if_better_soft_focus(w); }
             // Now send the event to the correct widget
             if (auto *send_to = find_focused_widget(); send_to) {
-                send_to->events.mouse.push(last_mouse);
+                send_to->events.mouse.push(*last_mouse);
             }
         }
     } catch (std::exception const &e) {

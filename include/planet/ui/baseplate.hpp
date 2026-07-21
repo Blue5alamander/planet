@@ -8,6 +8,8 @@
 #include <felspar/coro/starter.hpp>
 #include <felspar/memory/stable_vector.hpp>
 
+#include <optional>
+
 
 namespace planet::ui {
 
@@ -75,7 +77,24 @@ namespace planet::ui {
 
         /// ### Event inputs and settings
         events::queue events;
+
+        /// #### The most recent mouse event
+        /**
+         * Empty when there is no pointer to speak of — before the first mouse
+         * event of the run, and after `pointer_left` reports that the pointer
+         * has gone. With no pointer location nothing can be hovered and
+         * nothing can take the soft focus.
+         */
         auto const &last_mouse_event() const noexcept { return last_mouse; }
+
+        /// #### The pointer has left
+        /**
+         * Clears the pointer location so that stale coordinates from wherever
+         * the pointer was last seen stop counting as hovers. Widgets hovered
+         * up to now have their hover time reset by the next
+         * `start_frame_reset`.
+         */
+        void pointer_left() noexcept { last_mouse = {}; }
 
 
         /// ### Reset widgets at the start of a frame
@@ -115,7 +134,7 @@ namespace planet::ui {
 
 
         /// ### Hover handling
-        events::mouse last_mouse;
+        std::optional<events::mouse> last_mouse;
         std::vector<widget_ptr> current_hovers;
         std::vector<widget_ptr> previous_hovers;
         std::chrono::steady_clock::time_point last_reset =
