@@ -56,6 +56,15 @@ namespace planet::audio {
     inline std::size_t buffer_samples() noexcept {
         return buffer_duration().count();
     }
+    /**
+     * Producers size their storage by `max_buffer_samples` but fill and yield
+     * only the first `buffer_samples()` entries. Yielding whole capacity-sized
+     * blocks would also be correct — `raw_mix` re-blocks whatever it is handed
+     * — but it would run every generator further ahead of playback than is
+     * necessary. This is fine if the generator has no dynamic inputs, but would
+     * make dynamic inputs far less responsive than the lower active duration
+     * would imply.
+     */
 
 
 }
