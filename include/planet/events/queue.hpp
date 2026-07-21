@@ -20,6 +20,7 @@ namespace planet::events {
         planet::queue::pmc<events::focus> focus;
         planet::queue::pmc<events::key> key;
         planet::queue::pmc<events::mouse> mouse;
+        planet::queue::pmc<events::window_pointer> pointer;
         planet::queue::pmc<events::position> position;
         planet::queue::pmc<events::quit> quit;
         planet::queue::pmc<events::resize> resize;

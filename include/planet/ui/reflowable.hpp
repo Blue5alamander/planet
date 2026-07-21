@@ -6,6 +6,8 @@
 
 #include <felspar/exceptions/logic_error.hpp>
 
+#include <optional>
+
 
 namespace planet::ui {
 
@@ -43,12 +45,19 @@ namespace planet::ui {
         /// #### The size of the item
         affine::extents2d size() { return constraints().extents(); }
         /// #### Does the reflowable contain the given location
+        /**
+         * An empty `p` means there is no pointer location at all -- it has
+         * left the window, or none has been seen yet. An ordinary widget
+         * contains no such location, but a catch-all layer like
+         * `planet::ui::screen` deliberately still claims it so that input
+         * routing always has somewhere to go.
+         */
         virtual bool contains_global_coordinate(
-                affine::point2d const &p,
+                std::optional<affine::point2d> const &p,
                 std::source_location const & =
                         std::source_location::current()) const {
-            if (m_position) {
-                return m_position->contains(p);
+            if (m_position and p) {
+                return m_position->contains(*p);
             } else {
                 return false;
             }

@@ -35,9 +35,14 @@ namespace {
                 == planet::affine::rectangle2d{
                         {15, 30}, planet::affine::extents2d{50, 10}};
 
-        check(r.contains_global_coordinate({16, 21})) == false;
-        check(r.contains_global_coordinate({16, 31})) == true;
-        check(r.contains_global_coordinate({16, 41})) == false;
+        check(r.contains_global_coordinate(planet::affine::point2d{16, 21}))
+                == false;
+        check(r.contains_global_coordinate(planet::affine::point2d{16, 31}))
+                == true;
+        check(r.contains_global_coordinate(planet::affine::point2d{16, 41}))
+                == false;
+        /// With no pointer at all an ordinary widget contains nothing
+        check(r.contains_global_coordinate({})) == false;
 
         check(r.slider.offset.min_extents()) == planet::affine::extents2d{0, 0};
         check(r.slider.offset.extents()) == planet::affine::extents2d{8, 0};
@@ -48,9 +53,15 @@ namespace {
                 == planet::affine::rectangle2d{
                         {23, 30}, planet::affine::extents2d{10, 10}};
 
-        check(r.slider.contains_global_coordinate({24, 21})) == false;
-        check(r.slider.contains_global_coordinate({24, 31})) == true;
-        check(r.slider.contains_global_coordinate({24, 41})) == false;
+        check(r.slider.contains_global_coordinate(
+                planet::affine::point2d{24, 21}))
+                == false;
+        check(r.slider.contains_global_coordinate(
+                planet::affine::point2d{24, 31}))
+                == true;
+        check(r.slider.contains_global_coordinate(
+                planet::affine::point2d{24, 41}))
+                == false;
     });
 
 

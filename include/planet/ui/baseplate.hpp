@@ -87,6 +87,15 @@ namespace planet::ui {
          */
         auto const &last_mouse_event() const noexcept { return last_mouse; }
 
+        /// #### The pointer location, if there is one
+        std::optional<affine::point2d> pointer_location() const noexcept {
+            if (last_mouse) {
+                return last_mouse->location;
+            } else {
+                return {};
+            }
+        }
+
         /// #### The pointer has left
         /**
          * Clears the pointer location so that stale coordinates from wherever

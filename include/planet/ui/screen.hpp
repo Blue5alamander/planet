@@ -39,8 +39,14 @@ namespace planet::ui {
             return r;
         }
         void do_draw() override {};
+        /**
+         * As the catch-all layer the screen contains every location, including
+         * the absence of one. That way it still takes the soft focus while the
+         * pointer is outside the window, or before it has been seen at all, and
+         * key presses continue to route here rather than being dropped.
+         */
         bool contains_global_coordinate(
-                affine::point2d const &,
+                std::optional<affine::point2d> const &,
                 std::source_location const &) const override {
             return true;
         }

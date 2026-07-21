@@ -38,8 +38,11 @@ void planet::ui::baseplate::start_frame_reset() {
     auto const elapsed = now - last_reset;
     last_reset = now;
     /**
-     * With no pointer location nothing is hovered, so `current_hovers` is left
-     * empty and everything hovered last frame has its hover time reset below.
+     * Hovering needs a real pointer, so unlike the soft focus this does not
+     * pass the empty location down to the widgets: a catch-all layer claims
+     * every location and would otherwise count as hovered forever. With no
+     * pointer `current_hovers` is left empty and everything hovered last frame
+     * has its hover time reset below.
      */
     if (last_mouse) {
         for (auto widget : widgets) {
@@ -80,9 +83,9 @@ void planet::ui::baseplate::add(widget_ptr const w) {
 
 
 void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
-    if (last_mouse and w->wants_focus()
+    if (w->wants_focus()
         and (not soft_focus or soft_focus->z_layer() < w->z_layer())
-        and w->contains_global_coordinate(last_mouse->location)) {
+        and w->contains_global_coordinate(pointer_location())) {
         soft_focus = w;
     }
 }

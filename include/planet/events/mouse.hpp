@@ -13,6 +13,7 @@ namespace planet::events {
 
 
     enum class button { none, left, right, middle, x1, x2 };
+    enum class window_pointer { enter, leave };
 
 
     /// ## Low-level mouse clicks and movement
