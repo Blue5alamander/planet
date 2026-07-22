@@ -32,34 +32,29 @@ namespace planet::widget::volume {
      * `min_dB`/`max_dB` default to the range the whole widget shares but can be
      * narrowed or widened per slider.
      *
-     * Whether the handle has a distinct hover appearance is chosen by the
-     * `HotSpot` type. The default is a reference that aliases the cold spot, so
-     * the handle looks the same hovered or not and `hot_spot` holds nothing.
-     * Instantiate with a `HotSpot` value type to opt in, and then `hot_spot`
-     * carries the value drawn while the pointer is over the handle.
+     * A distinct hover appearance is opted into by supplying `hot_spot`, which
+     * then carries the value drawn while the pointer is over the handle. When
+     * it is omitted `HotSpot` stays the default empty `std::monostate` and the
+     * handle looks the same hovered or not, aliasing the cold spot. The field
+     * holds the value directly (rather than mapping through the slider's
+     * aliasing-reference convention) so its type deduces from the designated
+     * initialiser; the `slider` deduction guide translates between the two
+     * conventions.
      *
      * `mute_at_minimum` (default `true`) makes the handle mute to true silence
      * once it reaches the floor of its range. Clear it for a channel that
      * should stay audible at the bottom, so the floor is just its quietest
      * gain rather than an off position.
      */
-    template<typename Background, typename ColdSpot, typename HotSpot = ColdSpot &>
+    template<
+            typename Background,
+            typename ColdSpot,
+            typename HotSpot = std::monostate>
     struct parameters {
-        /// #### Storage for the optional hover spot
-        /**
-         * Nothing (an empty `std::monostate`) when `HotSpot` is the default
-         * aliasing reference, so a non-hover call site simply omits it; the
-         * `HotSpot` value itself when a hover appearance is opted into.
-         */
-        using hot_spot_type = std::conditional_t<
-                std::is_reference_v<HotSpot>,
-                std::monostate,
-                HotSpot>;
-
         std::string_view name = "planet::widget::volume::slider";
         Background background;
         ColdSpot cold_spot;
-        [[no_unique_address]] hot_spot_type hot_spot = {};
+        HotSpot hot_spot = {};
         planet::audio::channel &channel;
         float min_dB = default_min_dB;
         float max_dB = default_max_dB;
@@ -72,7 +67,13 @@ namespace planet::widget::volume {
     struct slider final : public planet::ui::range_updater {
         using range_type = planet::ui::
                 range<Background, planet::ui::draggable<ColdSpot, HotSpot>>;
-        using parameters = volume::parameters<Background, ColdSpot, HotSpot>;
+        using parameters = volume::parameters<
+                Background,
+                ColdSpot,
+                std::conditional_t<
+                        std::is_reference_v<HotSpot>,
+                        std::monostate,
+                        HotSpot>>;
         using constrained_type = typename range_type::constrained_type;
         using reflow_parameters = typename range_type::reflow_parameters;
 
@@ -161,8 +162,13 @@ namespace planet::widget::volume {
 
 
     template<typename Background, typename ColdSpot, typename HotSpot>
-    slider(parameters<Background, ColdSpot, HotSpot>)
-            -> slider<Background, ColdSpot, HotSpot>;
+    slider(parameters<Background, ColdSpot, HotSpot>) -> slider<
+            Background,
+            ColdSpot,
+            std::conditional_t<
+                    std::is_same_v<HotSpot, std::monostate>,
+                    ColdSpot &,
+                    HotSpot>>;
 
 
 }
