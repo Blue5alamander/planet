@@ -37,6 +37,11 @@ namespace planet::widget::volume {
      * the handle looks the same hovered or not and `hot_spot` holds nothing.
      * Instantiate with a `HotSpot` value type to opt in, and then `hot_spot`
      * carries the value drawn while the pointer is over the handle.
+     *
+     * `mute_at_minimum` (default `true`) makes the handle mute to true silence
+     * once it reaches the floor of its range. Clear it for a channel that
+     * should stay audible at the bottom, so the floor is just its quietest
+     * gain rather than an off position.
      */
     template<typename Background, typename ColdSpot, typename HotSpot = ColdSpot &>
     struct parameters {
@@ -58,26 +63,8 @@ namespace planet::widget::volume {
         planet::audio::channel &channel;
         float min_dB = default_min_dB;
         float max_dB = default_max_dB;
+        bool mute_at_minimum = true;
     };
-
-
-    /// ## The channel gain for a handle sitting at `dB`
-    /**
-     * At or below the floor of its range (`min_dB`) the slider mutes to true
-     * silence; anywhere above, the channel simply takes the gain the handle
-     * rests at. `default_min_dB` is only about -57 dB — quiet but not silent —
-     * so without this the slider could never fully turn the channel off. The
-     * mute gain is the one that maps to a zero linear multiplier, which
-     * `planet::audio::dB_gain` treats as silence.
-     */
-    inline planet::audio::dB_gain
-            channel_gain(float const dB, float const min_dB) noexcept {
-        if (dB <= min_dB) {
-            return planet::audio::dB_gain::silence();
-        } else {
-            return planet::audio::dB_gain{dB};
-        }
-    }
 
 
     /// ## Volume slider
@@ -91,13 +78,33 @@ namespace planet::widget::volume {
 
 
         explicit slider(parameters p)
-        : channel{p.channel}, min_dB{p.min_dB}, range{make_box(std::move(p))} {}
+        : channel{p.channel},
+          range{make_box(std::move(p))},
+          min_dB{p.min_dB},
+          mute_at_minimum{p.mute_at_minimum} {}
 
 
         planet::audio::channel &channel;
-        /// ### The gain floor; the handle mutes to silence at or below it
-        float min_dB;
         planet::ui::box<range_type> range;
+
+
+        /// ### Mute handling
+        /**
+         * At or below the floor of its range (`min_dB`) the slider mutes to
+         * true silence; anywhere above, the channel simply takes the gain the
+         * handle rests at. `default_min_dB` is only about -57 dB — quiet but
+         * not silent — so without this the slider could never fully turn the
+         * channel off.
+         *
+         * When `mute_at_minimum` is `false` the floor no longer mutes; the
+         * handle takes its gain everywhere, so `min_dB` is just the quietest
+         * setting.
+         */
+
+        /// ##### The gain floor; the handle mutes to silence at or below it
+        float min_dB;
+        /// ##### Whether reaching the floor mutes the channel to silence
+        bool mute_at_minimum;
 
 
         /// ### Forwarding
@@ -144,7 +151,11 @@ namespace planet::widget::volume {
             }
         }
         void update(float const dB) override {
-            channel.update(channel_gain(dB, min_dB));
+            if (mute_at_minimum and dB <= min_dB) {
+                channel.update(planet::audio::dB_gain::silence());
+            } else {
+                channel.update(planet::audio::dB_gain{dB});
+            }
         }
     };
 
