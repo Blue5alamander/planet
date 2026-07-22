@@ -71,6 +71,9 @@ namespace planet::audio {
         static dB_gain from_linear_gain(float multiplier) noexcept;
 
 
+        static auto constexpr silence() { return dB_gain{-128.0f}; }
+
+
         operator linear_gain() const noexcept;
         explicit operator float() const noexcept;
 
