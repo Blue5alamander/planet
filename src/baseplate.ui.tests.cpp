@@ -15,6 +15,38 @@ namespace {
             {40, 0, 40}, {30, 0, 30}};
 
 
+    /**
+     * A widget that records the hover durations it is notified with so the
+     * hover routing can be observed. `last_was_clear` is true when the most
+     * recent notification was a zero duration -- the "pointer left" signal.
+     */
+    struct hover_probe final : public planet::ui::widget {
+        explicit hover_probe(std::string_view const n) : widget{n} {}
+
+        std::chrono::steady_clock::duration last_duration{};
+        bool last_was_clear{};
+
+        void hover(std::chrono::steady_clock::duration const d) override {
+            last_duration = d;
+            last_was_clear = (d == std::chrono::steady_clock::duration{});
+        }
+
+        bool wants_focus() const noexcept override { return false; }
+
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &c) override {
+            return c;
+        }
+        planet::affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &,
+                planet::affine::rectangle2d const &r) override {
+            return r;
+        }
+        void do_draw() override {}
+        felspar::coro::task<void> behaviour() override { co_return; }
+    };
+
+
     auto const suite = felspar::testsuite("baseplate");
 
 
@@ -121,6 +153,57 @@ namespace {
                          .location = {16, 21},
                          .clicks = 1});
                 check(btn.clicks) == 1u;
+            });
+
+
+    auto const hover_boundary =
+            suite.test("hover boundary", [](auto check, auto &) {
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                hover_probe bottom{"bottom"}, top{"top"};
+                bottom.add_to(bp, panel);
+                top.add_to(bp, panel);
+
+                /**
+                 * Both probes occupy the same rectangle so both are under the
+                 * pointer at once. The top probe is given a higher z layer so
+                 * it is visited first when hover is routed.
+                 */
+                planet::affine::rectangle2d const box{
+                        {15, 20}, planet::affine::extents2d{4, 3}};
+                bottom.reflow({.screen = screen}, screen);
+                bottom.move_to({.screen = screen}, box);
+                top.reflow({.screen = screen}, screen);
+                top.move_to({.screen = screen}, box);
+                bottom.static_z_layer = 1.0f;
+                top.static_z_layer = 2.0f;
+                bottom.draw();
+                top.draw();
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.start_frame_reset();
+
+                /// With no boundary set both widgets are hovered.
+                check(bottom.last_was_clear) == false;
+                check(top.last_was_clear) == false;
+
+                /**
+                 * Turn the top probe into a hover boundary and run another
+                 * frame. The live list was cleared by the previous frame, so
+                 * draw the probes again first.
+                 */
+                top.hover_boundary(true);
+                bottom.draw();
+                top.draw();
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.start_frame_reset();
+
+                /**
+                 * The boundary is still hovered, but the widget below it is
+                 * cleared as though the pointer had left.
+                 */
+                check(top.last_was_clear) == false;
+                check(bottom.last_was_clear) == true;
             });
 
 

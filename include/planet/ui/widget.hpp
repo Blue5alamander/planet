@@ -39,7 +39,8 @@ namespace planet::ui {
           events{std::move(w.events)},
           static_z_layer{w.static_z_layer},
           baseplate{std::exchange(w.baseplate, nullptr)},
-          m_enabled{w.m_enabled} {
+          m_enabled{w.m_enabled},
+          m_hover_boundary{w.m_hover_boundary} {
             if (baseplate) {
                 /**
                  * If a widget is moved when the baseplate is active then it's
@@ -90,6 +91,18 @@ namespace planet::ui {
         /// #### Enable
         void enable(bool const v = true) noexcept { m_enabled = v; }
 
+        /// #### Mark this widget as a hover boundary
+        /**
+         * When true this widget is still hovered, but hover does not pass
+         * through to widgets stacked below it (lower z layer) that are also
+         * under the pointer -- they receive a hover-clear as though the
+         * pointer had left them. Defaults to false so hover passes through to
+         * everything under the pointer as before.
+         */
+        void hover_boundary(bool const v = true) noexcept {
+            m_hover_boundary = v;
+        }
+
 
         /// ### Add a widget to a base plate so it can receive events
         /// This will also set the widget to visible.
@@ -117,6 +130,9 @@ namespace planet::ui {
 
         /// #### Whether the widget will accept input
         bool is_enabled() const noexcept { return m_enabled; }
+
+        /// #### Whether this widget blocks hover from reaching widgets below it
+        bool is_hover_boundary() const noexcept { return m_hover_boundary; }
 
 
         /// ### Return true if this widget can take focus
@@ -181,6 +197,7 @@ namespace planet::ui {
         std::chrono::steady_clock::duration hover_time = {};
         ui::baseplate *baseplate = nullptr;
         bool m_enabled = true;
+        bool m_hover_boundary = false;
         [[noreturn]] void throw_invalid_add_to_target();
     };
 

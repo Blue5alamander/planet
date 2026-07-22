@@ -4,6 +4,8 @@
 
 #include <planet/log.hpp>
 
+#include <algorithm>
+
 
 /// ## `planet::ui::baseplate`
 
@@ -78,11 +80,35 @@ void planet::ui::baseplate::route_hover_events() {
      * has its hover time reset below.
      */
     if (last_mouse) {
+        /**
+         * Collect everything under the pointer, then walk it from the highest
+         * z layer down. Each widget is hovered until a widget marked as a
+         * hover boundary is reached -- that one is still hovered, but it
+         * blocks hover from passing through to anything stacked beneath it, so
+         * those get a hover-clear instead. The clear idiom is the same one
+         * used on `previous_hovers` below.
+         */
+        under_pointer.clear();
         for (auto widget : widgets) {
             if (widget->contains_global_coordinate(last_mouse->location)) {
+                under_pointer.push_back(widget);
+            }
+        }
+        std::stable_sort(
+                under_pointer.begin(), under_pointer.end(),
+                [](widget_ptr const l, widget_ptr const r) noexcept {
+                    return l->z_layer() > r->z_layer();
+                });
+        bool blocked = false;
+        for (auto widget : under_pointer) {
+            if (blocked) {
+                widget->hover(widget->hover_time = {});
+                std::erase(previous_hovers, widget);
+            } else {
                 widget->hover(widget->hover_time += elapsed);
                 current_hovers.push_back(widget);
                 std::erase(previous_hovers, widget);
+                if (widget->is_hover_boundary()) { blocked = true; }
             }
         }
     }

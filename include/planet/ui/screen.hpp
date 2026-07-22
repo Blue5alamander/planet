@@ -17,11 +17,19 @@ namespace planet::ui {
      * Typically the `z_layer` used for a screen widget will be the lowest one
      * to ensure that events are routed to any other widget that overlays the
      * screen.
+     *
+     * A screen is also a hover boundary, so when screens are stacked only the
+     * topmost one receives hover -- those beneath it are cleared as though the
+     * pointer had left them.
      */
     class screen final : public widget {
       public:
-        screen(float const z = -1) : widget{"planet::ui::screen", z} {}
-        screen(std::string_view const n, float const z = -1) : widget{n, z} {}
+        screen(float const z = -1) : widget{"planet::ui::screen", z} {
+            hover_boundary();
+        }
+        screen(std::string_view const n, float const z = -1) : widget{n, z} {
+            hover_boundary();
+        }
 
 
         using widget::events;

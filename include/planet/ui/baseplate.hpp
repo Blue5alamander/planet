@@ -146,6 +146,14 @@ namespace planet::ui {
         std::optional<events::mouse> last_mouse;
         std::vector<widget_ptr> current_hovers;
         std::vector<widget_ptr> previous_hovers;
+        std::vector<widget_ptr> under_pointer;
+        /**
+         * `under_pointer` is a scratch buffer reused each frame to collect the
+         * widgets under the pointer before sorting and walking them, so the
+         * allocation is amortised rather than done fresh every frame. It is
+         * cleared at the start of `route_hover_events` and holds no state
+         * across frames.
+         */
         std::chrono::steady_clock::time_point last_reset =
                 std::chrono::steady_clock::now();
 
@@ -160,9 +168,12 @@ namespace planet::ui {
          * is notified with a zero duration. That zero is the only signal a
          * widget gets that the pointer has left it.
          *
-         * Unlike the focus routing this consults neither `wants_focus` nor the
-         * z layer, so all of the widgets stacked under the pointer are hovered
-         * at once rather than just the topmost.
+         * The widgets under the pointer are visited from the highest z layer
+         * down, each accumulating hover duration, until a widget marked as a
+         * hover boundary (see `widget::hover_boundary`) is reached. That
+         * widget is still hovered, but anything stacked beneath it is given a
+         * zero duration instead, so a tooltip or other overlay can stop hover
+         * from reaching the widgets it covers.
          */
         void route_hover_events();
 
