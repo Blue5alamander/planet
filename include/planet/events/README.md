@@ -3,7 +3,7 @@
 * [`planet/events/action.hpp`](./action.hpp) -- The `action` enumeration describing the state transitions of a mouse or keyboard key (`released`, `down`, `held`, `up`).
 * [`planet/events/back.hpp`](./back.hpp) -- The `back` message, sent when the user wants to go back.
 * [`planet/events/focus.hpp`](./focus.hpp) -- The `window_focus` enumeration (`lost`, `gained`) describing a change to the window's keyboard focus.
-* [`planet/events/keys.hpp`](./keys.hpp) -- The `scancode` enumeration of locale independent keyboard scan codes (following the USB HID specification), together with the `key` press/release event.
+* [`planet/events/keys.hpp`](./keys.hpp) -- The `scancode` enumeration of locale independent keyboard scan codes (following the USB HID specification), together with the `key` press/release event and the `modifiers` (shift, ctrl, alt, gui) it carries.
 * [`planet/events/mouse.hpp`](./mouse.hpp) -- The low-level `mouse` event and `button` enumeration, the `window_pointer` enumeration (`enter`, `leave`) describing the pointer crossing the window boundary, the higher level `click` event, and `identify_clicks` which turns a stream of mouse data into a stream of clicks.
 * [`planet/events/queue.hpp`](./queue.hpp) -- The events bus. A `queue` holds the raw event queues that the platform layer feeds and the game consumes. The window's on-screen position has no event type of its own -- it is carried straight through as an `affine::point2d`.
 * [`planet/events/quit.hpp`](./quit.hpp) -- The `quit` message, sent when the user wants to quit.

@@ -75,10 +75,30 @@ namespace planet::events {
     };
 
 
+    /// ## Modifier keys held during a key event
+    /**
+     * Each flag is true when either the left or right modifier of that kind
+     * was held when the event happened. The state travels with the event
+     * rather than being tracked from the modifiers' own key events, so a
+     * consumer never sees a stale reading when a press or release was routed
+     * elsewhere.
+     *
+     * `gui` is the USB HID name for the operating system's own key: the
+     * Windows key, the Command key on macOS, or Super/Meta on Linux.
+     */
+    struct modifiers final {
+        bool shift = false;
+        bool ctrl = false;
+        bool alt = false;
+        bool gui = false;
+    };
+
+
     /// ## A key/button press/release event
     struct key final {
         events::scancode scancode = events::scancode::none;
         events::action action = events::action::released;
+        events::modifiers modifiers = {};
         std::chrono::steady_clock::time_point timestamp =
                 std::chrono::steady_clock::now();
     };
