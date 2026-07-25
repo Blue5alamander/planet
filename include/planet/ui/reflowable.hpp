@@ -22,6 +22,7 @@ namespace planet::ui {
 
 
         /// ### Dirty calculation
+        /// TODO Remove all of this
 
         /// #### Set this item as dirty
         void set_dirty() {
