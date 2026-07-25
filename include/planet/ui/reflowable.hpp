@@ -102,6 +102,30 @@ namespace planet::ui {
         struct reflow_parameters {
             constrained_type screen;
 
+            /// ##### Depth used to set the widget dynamic z layer
+            /**
+             * Widgets record this into their `dynamic_z_layer` and pass an
+             * incremented copy on to their own sub-elements, so a widget
+             * contained inside another always ends up on a higher z layer.
+             * Layout nodes (rows, columns, boxes and other non-widget
+             * reflowables) pass the parameters through unchanged, so
+             * restructuring a layout never shifts z. Defaults to zero so the
+             * common `{.screen = ...}` call sites behave as before.
+             */
+            float depth = {};
+
+            /// ##### Parameters for a widget contained one level deeper
+            /**
+             * Returns a copy of these parameters with the depth raised by one,
+             * ready to pass into a child widget's sub-element move so the child
+             * lands on a higher z layer than its parent.
+             */
+            reflow_parameters next_z() const noexcept {
+                reflow_parameters deeper = *this;
+                deeper.depth = depth + 1.0f;
+                return deeper;
+            }
+
             /// ##### Ensure that `r` is within the `screen`
             affine::rectangle2d within(affine::rectangle2d r) const noexcept {
                 /**

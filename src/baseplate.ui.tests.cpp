@@ -47,6 +47,33 @@ namespace {
     };
 
 
+    /**
+     * A widget that contains another widget (a `debug::button`) which it moves
+     * as part of its own `do_move_sub_elements`. Used to check that widget
+     * containment raises the child onto a higher z layer than its parent.
+     */
+    struct containing_widget final : public planet::ui::widget {
+        explicit containing_widget(std::ostream &log)
+        : widget{"containing_widget"},
+          child{planet::debug::fixed_element{log, {4, 3}}} {}
+
+        planet::debug::button<planet::debug::fixed_element> child;
+
+        constrained_type do_reflow(
+                reflow_parameters const &p,
+                constrained_type const &c) override {
+            return child.reflow(p, c);
+        }
+        planet::affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &p,
+                planet::affine::rectangle2d const &r) override {
+            return child.move_to(p, r);
+        }
+        void do_draw() override {}
+        felspar::coro::task<void> behaviour() override { co_return; }
+    };
+
+
     auto const suite = felspar::testsuite("baseplate");
 
 
@@ -242,6 +269,62 @@ namespace {
                 /// End the frame as the engine would, clearing the live list.
                 bp2.start_frame_reset();
                 check(bp2.widget_count()) == 0u;
+            });
+
+
+    auto const containment_raises_z =
+            suite.test("containment raises z", [](auto check, auto &log) {
+                /**
+                 * A widget that moves a child widget as part of its own layout
+                 * ends up below that child -- widget containment is the only
+                 * thing that deepens z.
+                 */
+                containing_widget parent{log};
+                parent.reflow({.screen = screen}, screen);
+                parent.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+
+                check(parent.child.z_layer()) > parent.z_layer();
+            });
+
+
+    auto const layout_wrappers_inert =
+            suite.test("layout wrappers inert", [](auto check, auto &log) {
+                /**
+                 * Rows and columns are layout nodes, not widgets, so they must
+                 * not shift z. A button reached through `column{row{button}}`
+                 * ties a sibling button moved directly at the top level.
+                 */
+                auto ui = planet::ui::column{std::tuple{
+                        planet::ui::row{std::tuple{planet::debug::button{
+                                planet::debug::fixed_element{log, {4, 3}}}}}}};
+                auto &nested = std::get<0>(std::get<0>(ui.items).items);
+                ui.reflow({.screen = screen}, screen);
+                ui.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+
+                planet::debug::button top{
+                        planet::debug::fixed_element{log, {4, 3}}};
+                top.reflow({.screen = screen}, screen);
+                top.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+
+                check(nested.z_layer()) == top.z_layer();
+            });
+
+
+    auto const default_depth_zero =
+            suite.test("default reflow depth is zero", [](auto check, auto &) {
+                /**
+                 * The common `{.screen = ...}` call sites leave `depth` at its
+                 * default so existing layout behaviour is unchanged.
+                 */
+                planet::ui::reflowable::reflow_parameters const params{
+                        .screen = screen};
+                check(params.depth) == 0.0f;
             });
 
 

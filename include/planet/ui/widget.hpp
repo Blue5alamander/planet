@@ -176,7 +176,8 @@ namespace planet::ui {
         affine::rectangle2d move_sub_elements(
                 reflow_parameters const &p,
                 affine::rectangle2d const &r) override {
-            auto const se = do_move_sub_elements(p, r);
+            dynamic_z_layer = p.depth;
+            auto const se = do_move_sub_elements(p.next_z(), r);
             panel.move_to(se);
             return se;
         }
