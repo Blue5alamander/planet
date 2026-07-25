@@ -328,4 +328,104 @@ namespace {
             });
 
 
+    auto const z_survives_draw = suite.test(
+            "containment z survives draw", [](auto check, auto &log) {
+                /**
+                 * `move_to` assigns the containment depth to
+                 * `dynamic_z_layer`. `draw` must not overwrite it. The child is
+                 * bound to a baseplate -- the path that used to copy
+                 * `baseplate->z_layer` only runs when a widget has one -- then
+                 * laid out one level deep by its parent and drawn. The depth
+                 * value must come through intact.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                containing_widget parent{log};
+                parent.add_to(bp, panel);
+                parent.child.add_to(bp, panel);
+
+                parent.reflow({.screen = screen}, screen);
+                parent.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+
+                /// The depth assigned by `move_to` before any drawing.
+                check(parent.dynamic_z_layer) == 0.0f;
+                check(parent.child.dynamic_z_layer) == 1.0f;
+
+                parent.draw();
+                parent.child.draw();
+
+                /// The depth survives `draw` rather than being reset to zero.
+                check(parent.child.dynamic_z_layer) == 1.0f;
+                check(parent.child.z_layer()) > parent.z_layer();
+            });
+
+
+    auto const contained_wins_click = suite.test(
+            "contained widget wins the click",
+            [](auto check, auto &log) {
+                /**
+                 * Parent drawn first, then its contained child. Both sit at
+                 * static z zero and fully overlap, so only the containment
+                 * depth separates them. The click must land on the contained
+                 * child.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                containing_widget parent{log};
+                parent.add_to(bp, panel);
+                parent.child.add_to(bp, panel);
+
+                parent.reflow({.screen = screen}, screen);
+                parent.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+                parent.draw();
+                parent.child.draw();
+
+                bp.events.mouse.push(
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {16, 21}});
+                bp.events.mouse.push(
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {16, 21},
+                         .clicks = 1});
+                check(parent.child.clicks) == 1u;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * The same set up but with the parent drawn after the child.
+                 * With a depth tie the later-drawn parent would steal the soft
+                 * focus, so this order is the one the containment depth has to
+                 * rescue. The click still lands on the child.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                containing_widget parent{log};
+                parent.add_to(bp, panel);
+                parent.child.add_to(bp, panel);
+
+                parent.reflow({.screen = screen}, screen);
+                parent.move_to(
+                        {.screen = screen},
+                        {{15, 20}, planet::affine::extents2d{4, 3}});
+                parent.child.draw();
+                parent.draw();
+
+                bp.events.mouse.push(
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::down,
+                         .location = {16, 21}});
+                bp.events.mouse.push(
+                        {.button = planet::events::button::left,
+                         .action = planet::events::action::up,
+                         .location = {16, 21},
+                         .clicks = 1});
+                check(parent.child.clicks) == 1u;
+            });
+
+
 }

@@ -76,9 +76,12 @@ namespace planet::ui {
          * which of a number of overlapping widgets actually get the soft focus
          * events.
          *
-         * The dynamic value for the z layer is copied from the widget's
-         * baseplate when it is drawn. The static part is assigned at
-         * construction time.
+         * The static part is assigned at construction time, or bumped when a
+         * widget is added to another widget with `add_to(widget &)`. The
+         * dynamic part is set from the widget containment depth during
+         * `move_to` -- a widget laid out inside another always ends up above
+         * it. Layout nodes (rows, columns, boxes) pass the depth through
+         * unchanged, so restructuring a layout never shifts z.
          */
 
 
@@ -119,10 +122,7 @@ namespace planet::ui {
         /// ### Draw the widget
         void draw() {
             do_draw();
-            if (baseplate) {
-                dynamic_z_layer = baseplate->z_layer;
-                baseplate->add(this);
-            }
+            if (baseplate) { baseplate->add(this); }
         }
 
 
