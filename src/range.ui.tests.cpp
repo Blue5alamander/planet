@@ -137,4 +137,33 @@ namespace {
     });
 
 
+    auto const knob_z_from_depth =
+            suite.test("knob z from depth", [](auto check, auto &log) {
+                planet::ui::baseplate bp;
+                auto r = planet::ui::range{
+                        planet::debug::fixed_element{log, {50, 10}},
+                        planet::ui::draggable<planet::debug::fixed_element>{
+                                "hs",
+                                planet::debug::fixed_element{log, {10, 10}}},
+                        {20, 0, 100}};
+                r.add_to(bp);
+                r.reflow({.screen = screen_constraints}, screen_constraints);
+                r.move_to(
+                        {.screen = screen_constraints},
+                        {{15, 30}, planet::affine::extents2d{50, 50}});
+                r.draw();
+
+                /**
+                 * The knob is moved within the range's own sub-element move, so
+                 * the containment depth lifts it above the range. There is no
+                 * longer a manual static bump -- both share the same static z,
+                 * and the depth alone is what puts the knob on top.
+                 */
+                check(r.dynamic_z_layer) == 0.0f;
+                check(r.slider.dynamic_z_layer) == 1.0f;
+                check(r.slider.static_z_layer) == r.static_z_layer;
+                check(r.slider.z_layer()) > r.z_layer();
+            });
+
+
 }

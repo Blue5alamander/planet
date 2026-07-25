@@ -54,7 +54,7 @@ namespace planet::ui {
         void add_to(ui::baseplate &bp, ui::panel &parent) override {
             widget::add_to(bp, parent);
             slider.target = this;
-            slider.static_z_layer = widget::static_z_layer + 1;
+            slider.static_z_layer = widget::static_z_layer;
             slider.add_to(bp, widget::panel);
         }
 
