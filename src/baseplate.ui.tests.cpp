@@ -3,6 +3,7 @@
 #include <planet/ui/baseplate.hpp>
 #include <planet/ui/layout.column.hpp>
 #include <planet/ui/layout.row.hpp>
+#include <planet/ui/screen.hpp>
 #include <felspar/test.hpp>
 
 
@@ -359,6 +360,31 @@ namespace {
                 /// The depth survives `draw` rather than being reset to zero.
                 check(parent.child.dynamic_z_layer) == 1.0f;
                 check(parent.child.z_layer()) > parent.z_layer();
+            });
+
+
+    auto const screens_layer_statically =
+            suite.test("screens layer statically", [](auto check, auto &) {
+                /**
+                 * Screens cover everything, so nothing ever lays one out --
+                 * they are added to the baseplate and drawn, never moved. That
+                 * leaves the dynamic part of their z at zero, which is what
+                 * makes the static value the whole of a screen's layer: a
+                 * catch-all at -1 stays below every widget however shallow,
+                 * and a modal at 100 stays above them however deep.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::screen catch_all;
+                planet::ui::screen modal{100.0f};
+                catch_all.add_to(bp);
+                modal.add_to(bp);
+                catch_all.draw();
+                modal.draw();
+
+                check(catch_all.dynamic_z_layer) == 0.0f;
+                check(catch_all.z_layer()) == -1.0f;
+                check(modal.dynamic_z_layer) == 0.0f;
+                check(modal.z_layer()) == 100.0f;
             });
 
 

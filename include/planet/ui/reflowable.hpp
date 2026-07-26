@@ -100,6 +100,31 @@ namespace planet::ui {
         /// ### Calculate size
 
         /// #### Calculation parameters
+        /**
+         * These carry down the tree what the layout traversal needs to know
+         * about the whole, and `depth` is where the widget z layering ruleset
+         * is implemented. That ruleset has three rules, and nothing else is
+         * supposed to shift a widget's layer:
+         *
+         * - **Screens layer statically.** A `planet::ui::screen` is never
+         *   moved -- it covers everything, so there is nothing to lay out --
+         *   which leaves its dynamic part at zero and makes its static value
+         *   the whole of its layer. The statics are spread far enough apart
+         *   (a catch-all at -1, a modal at 100) to dominate any depth a real
+         *   layout reaches.
+         * - **Widget containment sets the dynamic part.** `depth` records the
+         *   containment level, so a widget laid out inside another always sits
+         *   above it. Layout nodes -- rows, columns, boxes -- pass it through
+         *   untouched, so a layout refactor cannot silently change event
+         *   routing, and widgets that merely overlap tie rather than have one
+         *   of them win arbitrarily.
+         * - **Overlays lift and barrier.** A subtree that escapes its layout
+         *   rectangle -- an open drop down, a tooltip -- is moved with `depth`
+         *   raised by a constant large enough to clear the containment depth
+         *   of everything it covers, and pairs that with a hover boundary
+         *   across its area so hover and pointer picking stop at the overlay
+         *   instead of reaching through it.
+         */
         struct reflow_parameters {
             constrained_type screen;
 

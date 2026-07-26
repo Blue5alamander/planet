@@ -1,6 +1,7 @@
 #include <planet/debug/ui.hpp>
 #include <planet/ostream.hpp>
 #include <planet/ui/range.hpp>
+#include <planet/ui/screen.hpp>
 #include <felspar/test.hpp>
 
 
@@ -162,6 +163,41 @@ namespace {
                 check(r.dynamic_z_layer) == 0.0f;
                 check(r.slider.dynamic_z_layer) == 1.0f;
                 check(r.slider.static_z_layer) == r.static_z_layer;
+                check(r.slider.z_layer()) > r.z_layer();
+            });
+
+
+    auto const knob_above_a_high_screen =
+            suite.test("knob above a high screen", [](auto check, auto &log) {
+                /**
+                 * The pitch editor's slider lives inside a modal, so the
+                 * range's static z is raised over the modal screen's before
+                 * `add_to` runs -- that is when the knob inherits it. The knob
+                 * then rises above the range from the containment depth alone,
+                 * so the static only has to clear the screen for both of them
+                 * to stay above it rather than have their drags hoovered up.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::screen modal{100.0f};
+                modal.add_to(bp);
+
+                auto r = planet::ui::range{
+                        planet::debug::fixed_element{log, {50, 10}},
+                        planet::ui::draggable<planet::debug::fixed_element>{
+                                "hs",
+                                planet::debug::fixed_element{log, {10, 10}}},
+                        {20, 0, 100}};
+                r.static_z_layer = modal.static_z_layer + 1;
+                r.add_to(modal);
+                r.reflow({.screen = screen_constraints}, screen_constraints);
+                r.move_to(
+                        {.screen = screen_constraints},
+                        {{15, 30}, planet::affine::extents2d{50, 50}});
+
+                check(r.static_z_layer) == 101.0f;
+                check(r.slider.static_z_layer) == 101.0f;
+                check(r.z_layer()) > modal.z_layer();
+                check(r.slider.z_layer()) > modal.z_layer();
                 check(r.slider.z_layer()) > r.z_layer();
             });
 

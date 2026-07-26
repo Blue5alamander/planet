@@ -14,9 +14,18 @@ namespace planet::ui {
      * buttons then a screen widget can be used to capture clicks that would
      * enter the play area.
      *
-     * Typically the `z_layer` used for a screen widget will be the lowest one
-     * to ensure that events are routed to any other widget that overlays the
-     * screen.
+     * Screens layer statically. Because a screen covers everything there is
+     * nothing to lay one out, so it is added to a baseplate and drawn but
+     * never moved, and the containment depth that
+     * `reflowable::reflow_parameters` assigns to ordinary widgets never
+     * reaches it. Its `dynamic_z_layer` therefore stays at zero and the static
+     * value passed to the constructor is the whole of its z layer -- which is
+     * why the statics are spread far enough apart to dominate the depths that
+     * widget nesting produces.
+     *
+     * Typically that static will be the lowest one (the default -1) so that
+     * events route to any other widget overlaying the screen, and a screen
+     * meant to be modal is given one well above every widget it covers.
      *
      * A screen is also a hover boundary, so when screens are stacked only the
      * topmost one receives hover -- those beneath it are cleared as though the
