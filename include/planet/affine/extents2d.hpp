@@ -47,6 +47,13 @@ namespace planet::affine {
         }
 
 
+        /// ### Component-wise scaling of a point
+        friend constexpr point2d
+                operator*(point2d const p, extents2d const e) noexcept {
+            return {p.x() * e.width, p.y() * e.height};
+        }
+
+
         /// ### Addition and subtraction
         friend constexpr point2d
                 operator+(point2d const p, extents2d const e) noexcept {

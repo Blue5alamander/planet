@@ -55,6 +55,12 @@ namespace {
                         - planet::affine::point2d{3, 4, 2};
                 check(p.x()) == -1.0f;
                 check(p.y()) == -1.0f;
+            },
+            [](auto check) {
+                auto p = planet::affine::point2d{3, 4}
+                        * planet::affine::extents2d{0.5f, 2.0f};
+                check(p.x()) == 1.5f;
+                check(p.y()) == 8.0f;
             });
 
 
