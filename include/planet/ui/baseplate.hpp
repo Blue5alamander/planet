@@ -128,6 +128,7 @@ namespace planet::ui {
             std::erase(widgets, w);
             std::erase(current_hovers, w);
             std::erase(previous_hovers, w);
+            std::erase(focus_stack, w);
             std::erase(attached, w);
         }
 
@@ -183,11 +184,11 @@ namespace planet::ui {
 
         /// ### Focus handling
         /**
-         * Soft focus is handled purely by widget the the mouse is over. In the
-         * absence of hard focus all of the forwarded events will go to the
-         * widget pointed to by the soft focus (if any). Hard focus is managed
-         * by the application and overrides the soft focus. It can be used by a
-         * widget to "capture" events even if the mouse moves away.
+         * Soft focus tracks the topmost focusable widget under the pointer
+         * and is what `has_focus` reports in the absence of hard focus. Hard
+         * focus is managed by the application and is used by a widget to
+         * "capture" events even if the mouse moves away -- it places that
+         * widget at the top of the delivery stack.
          */
         widget_ptr soft_focus = nullptr, hard_focus = nullptr;
         widget_ptr find_focused_widget() const noexcept {
@@ -195,6 +196,36 @@ namespace planet::ui {
         }
         /// #### Update the soft focus if this widget is better
         void update_if_better_soft_focus(widget_ptr);
+
+        /// #### Event delivery
+        /**
+         * Each event is offered down a stack of the focusable widgets under
+         * the pointer. The stack is ordered like the widgets appear on the
+         * display: the lowest z layer at the front of the array and the
+         * highest at the back, with any hard focus widget above everything.
+         * Delivery walks the stack from the top, and the event is pushed to
+         * the first widget with a subscriber for that event kind, so a
+         * widget that ignores a kind lets those events fall through to
+         * whatever it covers.
+         *
+         * A widget marked as a hover boundary consumes the pointer event
+         * kinds -- mouse and scroll -- whether or not anything subscribes:
+         * the event is still pushed to its queue, where it is discarded if
+         * nobody is listening. This is what makes a `screen` modal: pointer
+         * events the widgets above it do not take stop there instead of
+         * reaching what the screen covers. Keyboard events are not pointer
+         * events, so they fall through a boundary like any other widget
+         * without a key subscriber.
+         *
+         * `focus_stack` is a scratch buffer rebuilt by every delivery, so the
+         * allocation is amortised. It holds no state between deliveries.
+         */
+        std::vector<widget_ptr> focus_stack;
+        void build_focus_stack();
+        template<typename Ev>
+        widget_ptr
+                deliver(planet::queue::pmc<Ev> planet::events::queue::*,
+                        Ev const &);
 
         /// #### Give up focus held by a widget that was not drawn
         /**
