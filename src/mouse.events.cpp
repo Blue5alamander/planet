@@ -9,7 +9,7 @@ felspar::coro::stream<planet::events::click>
         if (event->action == action::up and event->clicks) {
             co_yield click{
                     event->button, event->location, event->clicks,
-                    event->timestamp};
+                    event->modifiers, event->timestamp};
         }
     }
 }
