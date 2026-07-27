@@ -116,6 +116,26 @@ namespace planet::ui {
         }
 
 
+        /// ### Forward an event to the next widget in the stack
+        /**
+         * Each event is delivered to the topmost widget in the focus stack
+         * with a subscriber for that event kind. A widget whose behaviour
+         * receives an event it chooses not to act on can pass it on to
+         * whatever it covers by handing the event to one of these.
+         * Forwarding stops where the original delivery would have: when the
+         * stack is empty, or -- for the pointer event kinds -- at a hover
+         * boundary. Returns the widget the event was pushed to, or `nullptr`
+         * if nothing was left to take it.
+         *
+         * The stack is consumed by the delivery, so an event must be
+         * forwarded while it is being handled: once the next event arrives
+         * the stack describes that event instead.
+         */
+        widget *forward(events::mouse const &);
+        widget *forward(events::key const &);
+        widget *forward(events::scroll const &);
+
+
       private:
         /// ### Register and remove widgets from event routing
         void add(widget_ptr);
@@ -203,28 +223,27 @@ namespace planet::ui {
          * the pointer. The stack is ordered like the widgets appear on the
          * display: the lowest z layer at the front of the array and the
          * highest at the back, with any hard focus widget above everything.
-         * Delivery walks the stack from the top, and the event is pushed to
-         * the first widget with a subscriber for that event kind, so a
-         * widget that ignores a kind lets those events fall through to
-         * whatever it covers.
+         * Consumption pops widgets off the top of the stack until one has a
+         * subscriber for the event kind, so a widget that ignores a kind
+         * lets those events fall through to whatever it covers, and a
+         * widget that does take the event can still pass it on down the
+         * stack afterwards through the public `forward` overloads.
          *
          * A widget marked as a hover boundary consumes the pointer event
          * kinds -- mouse and scroll -- whether or not anything subscribes:
          * the event is still pushed to its queue, where it is discarded if
-         * nobody is listening. This is what makes a `screen` modal: pointer
-         * events the widgets above it do not take stop there instead of
-         * reaching what the screen covers. Keyboard events are not pointer
-         * events, so they fall through a boundary like any other widget
-         * without a key subscriber.
-         *
-         * `focus_stack` is a scratch buffer rebuilt by every delivery, so the
-         * allocation is amortised. It holds no state between deliveries.
+         * nobody is listening, and the rest of the stack is emptied so the
+         * event cannot be forwarded past the boundary either. This is what
+         * makes a `screen` modal: pointer events the widgets above it do
+         * not take stop there instead of reaching what the screen covers.
+         * Keyboard events are not pointer events, so they fall through a
+         * boundary like any other widget without a key subscriber.
          */
         std::vector<widget_ptr> focus_stack;
         void build_focus_stack();
         template<typename Ev>
         widget_ptr
-                deliver(planet::queue::pmc<Ev> planet::events::queue::*,
+                forward(planet::queue::pmc<Ev> planet::events::queue::*,
                         Ev const &);
 
         /// #### Give up focus held by a widget that was not drawn

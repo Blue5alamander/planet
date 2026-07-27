@@ -143,6 +143,22 @@ namespace planet::ui {
         void hard_focus_off() { baseplate->hard_focus_off(this); }
 
 
+        /// ### Forward an event on down the stack
+        /**
+         * For use from the widget's own `behaviour` when it receives an
+         * event it chooses not to act on: the event continues down the
+         * focus stack to whatever this widget covers. Must be called while
+         * the event is being handled, before the next event arrives.
+         */
+        widget *forward(events::mouse const &m) {
+            return baseplate->forward(m);
+        }
+        widget *forward(events::key const &k) { return baseplate->forward(k); }
+        widget *forward(events::scroll const &s) {
+            return baseplate->forward(s);
+        }
+
+
       protected:
         /// ### Hover duration
         /**

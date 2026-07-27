@@ -5,7 +5,6 @@
 #include <planet/log.hpp>
 
 #include <algorithm>
-#include <ranges>
 
 
 /// ## `planet::ui::baseplate`
@@ -91,24 +90,39 @@ namespace {
     constexpr bool blocked_by_boundary<planet::events::key> = false;
 }
 template<typename Ev>
-auto planet::ui::baseplate::deliver(
+auto planet::ui::baseplate::forward(
         planet::queue::pmc<Ev> planet::events::queue::*const kind, Ev const &ev)
         -> widget_ptr {
-    build_focus_stack();
-    for (auto w : focus_stack | std::views::reverse) {
+    while (not focus_stack.empty()) {
+        auto *const w = focus_stack.back();
+        focus_stack.pop_back();
+        bool const boundary =
+                blocked_by_boundary<Ev> and w->is_hover_boundary();
+        /**
+         * A boundary is the last widget a pointer event can reach, so the
+         * rest of the stack is dropped before the push -- the widget can
+         * call `forward` while handling the event, and it must not be able
+         * to send it past the boundary.
+         */
+        if (boundary) { focus_stack.clear(); }
         auto &queue = w->events.*kind;
-        if (queue.consumer_count()
-            or (blocked_by_boundary<Ev> and w->is_hover_boundary())) {
-            /**
-             * The push resumes consumers synchronously, and a consumer may
-             * destroy widgets -- which mutates `focus_stack` through `remove`
-             * -- so the walk must end at the push.
-             */
+        if (queue.consumer_count() or boundary) {
             queue.push(ev);
             return w;
         }
     }
     return nullptr;
+}
+
+
+auto planet::ui::baseplate::forward(events::mouse const &m) -> widget * {
+    return forward(&events::queue::mouse, m);
+}
+auto planet::ui::baseplate::forward(events::key const &k) -> widget * {
+    return forward(&events::queue::key, k);
+}
+auto planet::ui::baseplate::forward(events::scroll const &s) -> widget * {
+    return forward(&events::queue::scroll, s);
 }
 
 
@@ -199,7 +213,8 @@ auto planet::ui::baseplate::forward_mouse() -> task_type {
              */
             soft_focus = nullptr;
             for (widget_ptr w : widgets) { update_if_better_soft_focus(w); }
-            deliver(&events::queue::mouse, *last_mouse);
+            build_focus_stack();
+            forward(*last_mouse);
         }
     } catch (std::exception const &e) {
         log::critical("Baseplate mouse forwarding exception", e.what());
@@ -210,8 +225,8 @@ auto planet::ui::baseplate::forward_keys() -> task_type {
         auto key = events.key.values();
         while (true) {
             auto const k = co_await key.next();
-            if (auto *const send_to = deliver(&events::queue::key, k);
-                send_to) {
+            build_focus_stack();
+            if (auto *const send_to = forward(k); send_to) {
                 planet::log::debug(
                         "Sending key press", static_cast<int>(k.scancode),
                         "to widget", send_to->name());
@@ -230,7 +245,8 @@ auto planet::ui::baseplate::forward_scroll() -> task_type {
         auto scroll = events.scroll.values();
         while (true) {
             auto const s = co_await scroll.next();
-            deliver(&events::queue::scroll, s);
+            build_focus_stack();
+            forward(s);
         }
     } catch (std::exception const &e) {
         log::critical("Baseplate scroll forwarding exception", e.what());
