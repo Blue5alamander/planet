@@ -17,20 +17,58 @@ namespace {
 
 
     /**
-     * Bind the field to the baseplate, lay it out over a box away from the
-     * origin and draw it so it joins the frame's live list. Only a drawn
-     * widget can be routed an event.
+     * Lay the field out over a box away from the origin and draw it so it
+     * joins the frame's live list. Only a drawn widget can be routed an event.
      */
-    void
-            place(field_type &f,
-                  planet::ui::baseplate &bp,
-                  planet::ui::panel &panel) {
-        f.add_to(bp, panel);
+    void lay_out(field_type &f) {
         f.reflow({.screen = screen}, screen);
         f.move_to(
                 {.screen = screen},
                 {{15, 20}, planet::affine::extents2d{4, 3}});
         f.draw();
+    }
+    /// Bind the field straight to the baseplate and lay it out.
+    void
+            place(field_type &f,
+                  planet::ui::baseplate &bp,
+                  planet::ui::panel &panel) {
+        f.add_to(bp, panel);
+        lay_out(f);
+    }
+    /// Bind the field above another widget -- a modal's screen -- and lay it out.
+    void place_in(field_type &f, planet::ui::widget &parent) {
+        f.add_to(parent);
+        lay_out(f);
+    }
+
+
+    /**
+     * Put a button on the display well away from the field, so that a click
+     * over it is unambiguously a click aimed at something other than the field
+     * being edited.
+     */
+    void place_away(
+            planet::debug::button<> &b,
+            planet::ui::baseplate &bp,
+            planet::ui::panel &panel) {
+        b.add_to(bp, panel);
+        b.reflow({.screen = screen}, screen);
+        b.move_to(
+                {.screen = screen}, {{1, 1}, planet::affine::extents2d{4, 3}});
+        b.draw();
+    }
+
+
+    /**
+     * Draw a frame. A widget only joins the routing by drawing itself, so the
+     * field's dismissal screen is not there to take a click until a frame has
+     * been drawn with the edit already running.
+     */
+    void
+            frame(planet::ui::baseplate &bp,
+                  std::initializer_list<planet::ui::widget *> const ws) {
+        bp.start_frame_reset();
+        for (auto *const w : ws) { w->draw(); }
     }
 
 
@@ -46,18 +84,22 @@ namespace {
     void pointer_away(planet::ui::baseplate &bp) {
         bp.events.mouse.push({.location = {1, 1}});
     }
-    /// Left click over the field.
-    void click(planet::ui::baseplate &bp) {
+    /// Left click at a location.
+    void click_at(planet::ui::baseplate &bp, planet::affine::point2d const l) {
         bp.events.mouse.push(
                 {.button = planet::events::button::left,
                  .action = planet::events::action::down,
-                 .location = {16, 21}});
+                 .location = l});
         bp.events.mouse.push(
                 {.button = planet::events::button::left,
                  .action = planet::events::action::up,
-                 .location = {16, 21},
+                 .location = l,
                  .clicks = 1});
     }
+    /// Left click over the field.
+    void click(planet::ui::baseplate &bp) { click_at(bp, {16, 21}); }
+    /// Left click over the button placed away from the field.
+    void click_elsewhere(planet::ui::baseplate &bp) { click_at(bp, {2, 2}); }
     void type(planet::ui::baseplate &bp, std::string s) {
         bp.events.text.push({.utf8 = std::move(s)});
     }
@@ -203,6 +245,146 @@ namespace {
                 check(field.events.text.values_pushed()) == 1u;
                 check(field.value()) == "Nomad";
                 check(output) == "Nomad";
+            });
+
+
+    auto const click_away = suite.test(
+            "click away",
+            [](auto check, auto &log) {
+                /**
+                 * The field holds the hard focus while it is editing, so it is
+                 * handed every click in the window whatever it was aimed at,
+                 * and passes each one down to its dismissal screen. The screen
+                 * ends the edit, keeping what was typed.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{
+                        "field", planet::debug::fixed_element{log, {4, 3}},
+                        output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+
+                click(bp);
+                type(bp, "Vagrant");
+                frame(bp, {&field, &elsewhere});
+                click_elsewhere(bp);
+
+                check(field.is_editing()) == false;
+                check(output) == "Vagrant";
+                check(field.value()) == "Vagrant";
+                check(bp.has_focus(field)) == false;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * The screen is a hover boundary, so the click that ends the
+                 * edit stops there: the button under the pointer is dismissed
+                 * past, not pressed. Pressing it takes a second click, once
+                 * the edit is over.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{
+                        "field", planet::debug::fixed_element{log, {4, 3}},
+                        output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+
+                click(bp);
+                frame(bp, {&field, &elsewhere});
+                click_elsewhere(bp);
+
+                check(elsewhere.clicks) == 0u;
+
+                frame(bp, {&field, &elsewhere});
+                click_elsewhere(bp);
+
+                check(elsewhere.clicks) == 1u;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * Ending the edit by clicking away is an end-edit like any
+                 * other, so the platform's text input -- and with it a mobile
+                 * on-screen keyboard -- is switched off.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{
+                        "field", planet::debug::fixed_element{log, {4, 3}},
+                        output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+                std::string transitions;
+                field.editing_changed = [&](bool const e) {
+                    transitions += (e ? '+' : '-');
+                };
+
+                click(bp);
+                frame(bp, {&field, &elsewhere});
+                click_elsewhere(bp);
+
+                check(transitions) == "+-";
+            },
+            [](auto check, auto &log) {
+                /**
+                 * At rest the screen is not drawn, so it is not in the routing
+                 * at all and a click on another widget reaches it as usual.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{
+                        "field", planet::debug::fixed_element{log, {4, 3}},
+                        output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+
+                click_elsewhere(bp);
+
+                check(field.is_editing()) == false;
+                check(elsewhere.clicks) == 1u;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * A field inside a modal is attached above the modal's own
+                 * screen, so its dismissal screen has to be placed above that
+                 * one too. Were it at a fixed layer instead the click that
+                 * ends an edit would walk past it to the modal's screen, which
+                 * would close the whole modal and leave the edit running.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::screen modal{"modal", 100.0f};
+                modal.add_to(bp);
+                modal.draw();
+
+                std::string output{"Nomad"};
+                field_type field{
+                        "field", planet::debug::fixed_element{log, {4, 3}},
+                        output, "Nomad"};
+                place_in(field, modal);
+
+                click(bp);
+                check(field.is_editing()) == true;
+
+                type(bp, "Vagrant");
+                frame(bp, {&modal, &field});
+                click_elsewhere(bp);
+
+                check(field.is_editing()) == false;
+                check(output) == "Vagrant";
+                /**
+                 * The modal screen is a hover boundary, so anything that got
+                 * as far as it would have been pushed to its queue whether it
+                 * subscribes or not. Nothing did.
+                 */
+                check(modal.events.mouse.values_pushed()) == 0u;
             });
 
 
