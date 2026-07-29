@@ -106,6 +106,7 @@ target_sources(planet PUBLIC
         ../include/planet/events/quit.hpp
         ../include/planet/events/resize.hpp
         ../include/planet/events/scroll.hpp
+        ../include/planet/events/text.hpp
         ../include/planet/folders.hpp
         ../include/planet/functional.hpp
         ../include/planet/log.hpp

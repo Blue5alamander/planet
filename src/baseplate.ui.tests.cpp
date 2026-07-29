@@ -1,4 +1,5 @@
 #include <planet/debug/ui.hpp>
+#include <planet/events/text.hpp>
 #include <planet/ostream.hpp>
 #include <planet/ui/baseplate.hpp>
 #include <planet/ui/layout.column.hpp>
@@ -46,6 +47,54 @@ namespace {
         void do_draw() override {}
         felspar::coro::task<void> behaviour() override { co_return; }
     };
+
+
+    /**
+     * A widget that holds a consumer open on its text queue for the whole of
+     * its behaviour and records everything delivered to it, so text routing
+     * can be observed. It is the text equivalent of `hover_probe`, but it does
+     * want focus -- delivery only reaches widgets in the focus stack.
+     */
+    struct text_probe final : public planet::ui::widget {
+        explicit text_probe(std::string_view const n) : widget{n} {}
+
+        std::vector<std::string> received;
+
+        constrained_type do_reflow(
+                reflow_parameters const &, constrained_type const &c) override {
+            return c;
+        }
+        planet::affine::rectangle2d do_move_sub_elements(
+                reflow_parameters const &,
+                planet::affine::rectangle2d const &r) override {
+            return r;
+        }
+        void do_draw() override {}
+        felspar::coro::task<void> behaviour() override {
+            auto text = events.text.values();
+            while (true) { received.push_back((co_await text.next()).utf8); }
+        }
+    };
+
+
+    /**
+     * Lay a widget out over the box every probe in the text routing tests
+     * shares, at the requested z layer, and draw it so it joins the frame's
+     * live list.
+     */
+    void
+            place(planet::ui::widget &w,
+                  planet::ui::baseplate &bp,
+                  planet::ui::panel &panel,
+                  float const z) {
+        planet::affine::rectangle2d const box{
+                {15, 20}, planet::affine::extents2d{4, 3}};
+        w.add_to(bp, panel);
+        w.reflow({.screen = screen}, screen);
+        w.move_to({.screen = screen}, box);
+        w.static_z_layer = z;
+        w.draw();
+    }
 
 
     /**
@@ -451,6 +500,85 @@ namespace {
                          .location = {16, 21},
                          .clicks = 1});
                 check(parent.child.clicks) == 1u;
+            });
+
+
+    auto const text_routing = suite.test(
+            "text routing",
+            [](auto check, auto &) {
+                /**
+                 * Two subscribers stacked over each other: the text goes to
+                 * the topmost one with a consumer on its text queue, and the
+                 * one below never sees it.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                text_probe bottom{"bottom"}, top{"top"};
+                place(bottom, bp, panel, 1.0f);
+                place(top, bp, panel, 2.0f);
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "a"});
+
+                check(top.received.size()) == 1u;
+                check(top.received.at(0)) == "a";
+                check(bottom.received.size()) == 0u;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * The widget on top subscribes to the mouse but not to text,
+                 * so the text falls through it to the probe it covers.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                text_probe bottom{"bottom"};
+                planet::debug::button<> top{log};
+                place(bottom, bp, panel, 1.0f);
+                place(top, bp, panel, 2.0f);
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "b"});
+
+                check(bottom.received.size()) == 1u;
+                check(bottom.received.at(0)) == "b";
+            },
+            [](auto check, auto &) {
+                /**
+                 * Hard focus goes on the top of the delivery stack, so the
+                 * field holding it takes the text ahead of a widget drawn
+                 * above it -- which is what keeps typing in the field being
+                 * edited rather than leaking into whatever covers it.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                text_probe focused{"focused"}, top{"top"};
+                place(focused, bp, panel, 1.0f);
+                place(top, bp, panel, 2.0f);
+                focused.hard_focus_on();
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "c"});
+
+                check(focused.received.size()) == 1u;
+                check(focused.received.at(0)) == "c";
+                check(top.received.size()) == 0u;
+            },
+            [](auto check, auto &log) {
+                /**
+                 * With nothing subscribing the event runs off the bottom of
+                 * the stack and is dropped: not an error, and nothing else is
+                 * disturbed by it.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                planet::debug::button<> btn{log};
+                place(btn, bp, panel, 1.0f);
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "d"});
+
+                check(bp.events.text.values_pushed()) == 1u;
+                check(btn.clicks) == 0u;
             });
 
 

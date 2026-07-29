@@ -9,6 +9,7 @@
 * [`planet/events/quit.hpp`](./quit.hpp) -- The `quit` message, sent when the user wants to quit.
 * [`planet/events/resize.hpp`](./resize.hpp) -- The `window_resize` enumeration (`minimise`, `maximise`, `full_screen`, `change`) and the `resize` event describing a change to the window's size.
 * [`planet/events/scroll.hpp`](./scroll.hpp) -- The `scroll` wheel event.
+* [`planet/events/text.hpp`](./text.hpp) -- The `text` event carrying the UTF-8 characters the user has typed, as opposed to the physical keys `keys.hpp` reports.
 
 
 ## Handling events

@@ -252,3 +252,29 @@ auto planet::ui::baseplate::forward_scroll() -> task_type {
         log::critical("Baseplate scroll forwarding exception", e.what());
     }
 }
+auto planet::ui::baseplate::forward_text() -> task_type {
+    try {
+        auto text = events.text.values();
+        while (true) {
+            auto const t = co_await text.next();
+            build_focus_stack();
+            /**
+             * The typed characters themselves are deliberately not logged --
+             * knowing how much text went where is enough to follow the
+             * routing, and the log is not the place for whatever the user has
+             * typed into a field.
+             */
+            if (auto *const send_to = forward(&events::queue::text, t);
+                send_to) {
+                planet::log::debug(
+                        "Sending", t.utf8.size(), "bytes of text to widget",
+                        send_to->name());
+            } else {
+                planet::log::debug(
+                        "No widget consumed", t.utf8.size(), "bytes of text");
+            }
+        }
+    } catch (std::exception const &e) {
+        log::critical("Baseplate text forwarding exception", e.what());
+    }
+}

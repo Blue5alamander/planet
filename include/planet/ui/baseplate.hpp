@@ -47,6 +47,7 @@ namespace planet::ui {
             forwarders.post(forward_mouse());
             forwarders.post(forward_keys());
             forwarders.post(forward_scroll());
+            forwarders.post(forward_text());
         }
         baseplate(baseplate const &) = delete;
         baseplate(baseplate &&) = delete;
@@ -268,6 +269,7 @@ namespace planet::ui {
         task_type forward_mouse();
         task_type forward_keys();
         task_type forward_scroll();
+        task_type forward_text();
     };
 
 

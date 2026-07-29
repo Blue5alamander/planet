@@ -8,6 +8,7 @@
 #include <planet/events/quit.hpp>
 #include <planet/events/resize.hpp>
 #include <planet/events/scroll.hpp>
+#include <planet/events/text.hpp>
 #include <planet/queue/pmc.hpp>
 
 
@@ -26,6 +27,7 @@ namespace planet::events {
         planet::queue::pmc<events::quit> quit;
         planet::queue::pmc<events::resize> resize;
         planet::queue::pmc<events::scroll> scroll;
+        planet::queue::pmc<events::text> text;
     };
 
 
