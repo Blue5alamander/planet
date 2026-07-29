@@ -1,5 +1,6 @@
 #include <planet/debug/ui.hpp>
 #include <planet/events/text.hpp>
+#include <planet/log.hpp>
 #include <planet/ostream.hpp>
 #include <planet/ui/baseplate.hpp>
 #include <planet/ui/layout.column.hpp>
@@ -134,7 +135,9 @@ namespace {
     };
 
 
-    auto const suite = felspar::testsuite("baseplate");
+    auto const suite = felspar::testsuite("baseplate", []() {
+        planet::log::active = planet::log::level::error;
+    });
 
 
     auto const ordering = suite.test("ordering", [](auto check, auto &log) {
