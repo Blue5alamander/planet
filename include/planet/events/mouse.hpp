@@ -51,7 +51,13 @@ namespace planet::events {
 
     /// ## Mouse event processing
 
-    /// ### Process a stream of mouse data into higher level events
+
+    /// ### Identifying clicks
+
+    /// #### If a single mouse event is a click
+    std::optional<click> is_mouse_click(mouse const &);
+
+    /// #### Convert a stream of mouse events to a stream of clicks
     felspar::coro::stream<click> identify_clicks(felspar::coro::stream<mouse>);
 
 
