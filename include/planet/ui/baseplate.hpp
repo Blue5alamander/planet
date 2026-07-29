@@ -135,6 +135,7 @@ namespace planet::ui {
         widget *forward(events::mouse const &);
         widget *forward(events::key const &);
         widget *forward(events::scroll const &);
+        widget *forward(events::text const &);
 
 
       private:

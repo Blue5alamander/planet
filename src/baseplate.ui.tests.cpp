@@ -59,6 +59,12 @@ namespace {
         explicit text_probe(std::string_view const n) : widget{n} {}
 
         std::vector<std::string> received;
+        /**
+         * When set the probe records what it is given and then passes it on
+         * down the stack, so whatever it covers gets its turn at the event
+         * too.
+         */
+        bool pass_on = false;
 
         constrained_type do_reflow(
                 reflow_parameters const &, constrained_type const &c) override {
@@ -72,7 +78,11 @@ namespace {
         void do_draw() override {}
         felspar::coro::task<void> behaviour() override {
             auto text = events.text.values();
-            while (true) { received.push_back((co_await text.next()).utf8); }
+            while (true) {
+                auto const t = co_await text.next();
+                received.push_back(t.utf8);
+                if (pass_on) { forward(t); }
+            }
         }
     };
 
@@ -579,6 +589,57 @@ namespace {
 
                 check(bp.events.text.values_pushed()) == 1u;
                 check(btn.clicks) == 0u;
+            });
+
+
+    auto const text_routing_policy = suite.test(
+            "text routing policy",
+            [](auto check, auto &) {
+                /**
+                 * A hover boundary is a pointer barrier, not a keyboard one.
+                 * The screen does not subscribe to text, so the characters
+                 * fall through it to the field underneath -- without which no
+                 * field placed inside a `pop_over` modal could ever be typed
+                 * into.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                text_probe field{"field"};
+                place(field, bp, panel, 1.0f);
+                /**
+                 * Screens are never laid out, so the modal is added and drawn
+                 * rather than placed. Its static z is the whole of its layer,
+                 * putting it above the field.
+                 */
+                planet::ui::screen modal{100.0f};
+                modal.add_to(bp);
+                modal.draw();
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "e"});
+
+                check(field.received.size()) == 1u;
+                check(field.received.at(0)) == "e";
+            },
+            [](auto check, auto &) {
+                /**
+                 * The probe on top takes the text and then hands it on with
+                 * `forward`, so the probe it covers receives it as well.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                text_probe bottom{"bottom"}, top{"top"};
+                place(bottom, bp, panel, 1.0f);
+                place(top, bp, panel, 2.0f);
+                top.pass_on = true;
+
+                bp.events.mouse.push({.location = {16, 21}});
+                bp.events.text.push({.utf8 = "f"});
+
+                check(top.received.size()) == 1u;
+                check(top.received.at(0)) == "f";
+                check(bottom.received.size()) == 1u;
+                check(bottom.received.at(0)) == "f";
             });
 
 

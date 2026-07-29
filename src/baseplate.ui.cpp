@@ -88,6 +88,8 @@ namespace {
     constexpr bool blocked_by_boundary = true;
     template<>
     constexpr bool blocked_by_boundary<planet::events::key> = false;
+    template<>
+    constexpr bool blocked_by_boundary<planet::events::text> = false;
 }
 template<typename Ev>
 auto planet::ui::baseplate::forward(
@@ -123,6 +125,9 @@ auto planet::ui::baseplate::forward(events::key const &k) -> widget * {
 }
 auto planet::ui::baseplate::forward(events::scroll const &s) -> widget * {
     return forward(&events::queue::scroll, s);
+}
+auto planet::ui::baseplate::forward(events::text const &t) -> widget * {
+    return forward(&events::queue::text, t);
 }
 
 
@@ -264,8 +269,7 @@ auto planet::ui::baseplate::forward_text() -> task_type {
              * routing, and the log is not the place for whatever the user has
              * typed into a field.
              */
-            if (auto *const send_to = forward(&events::queue::text, t);
-                send_to) {
+            if (auto *const send_to = forward(t); send_to) {
                 planet::log::debug(
                         "Sending", t.utf8.size(), "bytes of text to widget",
                         send_to->name());

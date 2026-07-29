@@ -157,6 +157,7 @@ namespace planet::ui {
         widget *forward(events::scroll const &s) {
             return baseplate->forward(s);
         }
+        widget *forward(events::text const &t) { return baseplate->forward(t); }
 
 
       protected:
