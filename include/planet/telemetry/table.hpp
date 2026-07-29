@@ -41,7 +41,22 @@ namespace planet::telemetry {
         table(std::string_view const n,
               std::size_t const max_entries,
               std::source_location const &loc = std::source_location::current())
-        : performance{n, loc}, max_entries{max_entries} {}
+        : performance{n, loc, performance::registration::deferred},
+          max_entries{max_entries} {
+            register_telemetry(loc);
+        }
+
+
+        /// #### Destructor
+        ~table() { stop_telemetry(); }
+        /**
+         * Detaches from the telemetry registry before the `mutex` and
+         * `content` members are destroyed, so a concurrent `current_values`
+         * call on another thread cannot lock a destroyed mutex or walk a
+         * destroyed container. Registration is deferred to the end of the
+         * constructor for the same reason: the members must be built before
+         * the counter becomes visible to `current_values`.
+         */
 
 
         /// #### Queries
@@ -117,7 +132,22 @@ namespace planet::telemetry {
         table(std::string_view const n,
               std::size_t const max_entries,
               std::source_location const &loc = std::source_location::current())
-        : performance{n, loc}, max_entries{max_entries} {}
+        : performance{n, loc, performance::registration::deferred},
+          max_entries{max_entries} {
+            register_telemetry(loc);
+        }
+
+
+        /// #### Destructor
+        ~table() { stop_telemetry(); }
+        /**
+         * Detaches from the telemetry registry before the `mutex` and
+         * `content` members are destroyed, so a concurrent `current_values`
+         * call on another thread cannot lock a destroyed mutex or walk a
+         * destroyed container. Registration is deferred to the end of the
+         * constructor for the same reason: the members must be built before
+         * the counter becomes visible to `current_values`.
+         */
 
 
         /// #### Queries

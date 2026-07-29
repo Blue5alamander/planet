@@ -582,6 +582,7 @@ planet::telemetry::timestamps::timestamps(
 
 
 void planet::telemetry::timestamps::set(std::string_view key) {
+    std::scoped_lock _{mutex};
     if (parent) { parent->set(key); }
     auto pos = history.find(key);
     if (pos == history.end()) {
@@ -594,12 +595,14 @@ void planet::telemetry::timestamps::set(std::string_view key) {
 
 
 bool planet::telemetry::timestamps::is_set(std::string_view const key) const {
+    std::scoped_lock _{mutex};
     return history.find(key) != history.end();
 }
 
 
 auto planet::telemetry::timestamps::times_for(std::string_view const key) const
         -> std::optional<stamps> {
+    std::scoped_lock _{mutex};
     auto pos = history.find(key);
     if (pos == history.end()) {
         return {};

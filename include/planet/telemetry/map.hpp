@@ -35,7 +35,21 @@ namespace planet::telemetry {
 
         map(std::string_view const n,
             std::source_location loc = std::source_location::current())
-        : performance{n, loc} {}
+        : performance{n, loc, performance::registration::deferred} {
+            register_telemetry(loc);
+        }
+
+
+        /// #### Destructor
+        ~map() { stop_telemetry(); }
+        /**
+         * Detaches from the telemetry registry before the `mutex` and
+         * `content` members are destroyed, so a concurrent `current_values`
+         * call on another thread cannot lock a destroyed mutex or walk a
+         * destroyed map. Registration is deferred to the end of the
+         * constructor for the same reason: the members must be built before
+         * the counter becomes visible to `current_values`.
+         */
 
 
         /// #### Queries
