@@ -206,6 +206,7 @@ target_sources(planet PUBLIC
         ../include/planet/vertex/uvpos.hpp
         ../include/planet/widget/button.hpp
         ../include/planet/widget/checkbox.hpp
+        ../include/planet/widget/text_input.hpp
     )
 # The audio headers pull in the audio subsystem, so only verify them when
 # audio is on.
@@ -266,6 +267,7 @@ add_test_run(check planet TESTS
         target_aspect.layout.tests.cpp
         target_size.layout.tests.cpp
         telemetry.tests.cpp
+        text_input.ui.tests.cpp
         time.tests.cpp
         version.tests.cpp
     )
