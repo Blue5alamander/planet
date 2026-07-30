@@ -2,7 +2,7 @@
 
 
 #include <planet/queue/psc.hpp>
-#include <planet/ui/drawable.hpp>
+#include <planet/text/editor.hpp>
 #include <planet/ui/screen.hpp>
 #include <planet/ui/widget.hpp>
 
@@ -14,10 +14,9 @@ namespace planet::widget {
 
     /// ## Single line text input
     /**
-     * A field that is activated with a click and then typed into. The value is
-     * held as UTF-8 and, while an edit is running, is whatever has been typed
-     * since the click -- this is the append-only field, with no caret and no
-     * correction.
+     * The event shell around a `planet::text::editor`. It **draws nothing**:
+     * everything it does is routing and focus, and every question about what
+     * the text is it asks the editor.
      *
      * ```mermaid
      * stateDiagram-v2
@@ -43,40 +42,34 @@ namespace planet::widget {
      * that finishes an edit dismisses, it does not also press whatever was
      * underneath it.
      *
-     * The widget is presentation agnostic: it holds no border, size, colour or
-     * z layer and draws only the graphic it is handed. `is_editing()` and
-     * `value()` are what the presentation layer selects on to decide how the
-     * resting and editing states look.
+     * Having no graphic, the shell has nothing to size itself from either: it
+     * reflows to the constraint it is handed and covers the rectangle it is
+     * handed. The presentation lays its own graphic out and then puts the shell
+     * over the same rectangle, which is what keeps the hit area and the visible
+     * field in agreement.
      */
-    template<ui::drawable Texture, typename Output>
+    template<typename Output>
     class text_input final : public ui::widget {
         Output &output_to;
-        std::string shown, before_edit;
-        bool editing = false;
+        text::editor edits;
         float resting_z_layer = {};
 
 
       public:
         using constrained_type = widget::constrained_type;
+        using editor_type = text::editor;
         using output_type = Output;
-        using value_type = std::string;
+        using value_type = editor_type::value_type;
 
 
-        text_input(
-                std::string_view const n,
-                Texture g,
-                output_type &o,
-                value_type v = {})
-        : widget{n}, output_to{o}, shown{std::move(v)}, graphic{std::move(g)} {}
+        text_input(std::string_view const n, output_type &o, value_type v = {})
+        : widget{n}, output_to{o}, edits{std::move(v)} {}
 
         text_input(text_input &&t)
         : widget{std::move(t)},
           output_to{t.output_to},
-          shown{std::move(t.shown)},
-          before_edit{std::move(t.before_edit)},
-          editing{t.editing},
+          edits{std::move(t.edits)},
           resting_z_layer{t.resting_z_layer},
-          graphic{std::move(t.graphic)},
           screen{std::move(t.screen)},
           ward{t.ward},
           editing_changed{std::move(t.editing_changed)} {
@@ -85,8 +78,6 @@ namespace planet::widget {
 
 
         /// ### Attributes
-
-        Texture graphic;
 
         /// #### The screen that ends an edit
         /**
@@ -134,14 +125,21 @@ namespace planet::widget {
 
         /// ### Observable state
 
-        /// #### Whether an edit is running
-        bool is_editing() const noexcept { return editing; }
-
-        /// #### The text to show
+        /// #### The editing state machine
         /**
-         * The value at rest, and the live buffer while an edit is running.
+         * The text and the buffer being typed, along with anything else that is
+         * about the text rather than about routing -- a caret, a selection.
+         * None of it is on the shell.
          */
-        std::string const &value() const noexcept { return shown; }
+        editor_type &editor() noexcept { return edits; }
+        editor_type const &editor() const noexcept { return edits; }
+
+        /// #### Whether an edit is running
+        /**
+         * The editor's, passed through because the presentation asks it every
+         * frame to decide how to draw.
+         */
+        bool is_editing() const noexcept { return edits.is_editing(); }
 
 
         /// ### Attach to a baseplate
@@ -171,16 +169,16 @@ namespace planet::widget {
         template<typename Q>
         struct commit {
             static void write(text_input *self) {
-                self->output_to = self->shown;
+                self->output_to = self->edits.value();
             }
         };
         template<typename R>
         struct commit<queue::pmc<R>> {
             static void write(text_input *self) {
                 if (self->ward) {
-                    self->output_to.push(*self->ward, self->shown);
+                    self->output_to.push(*self->ward, self->edits.value());
                 } else {
-                    self->output_to.push(self->shown);
+                    self->output_to.push(self->edits.value());
                 }
             }
         };
@@ -188,29 +186,28 @@ namespace planet::widget {
         struct commit<queue::psc<R>> {
             static void write(text_input *self) {
                 if (self->ward) {
-                    self->output_to.push(*self->ward, self->shown);
+                    self->output_to.push(*self->ward, self->edits.value());
                 } else {
-                    self->output_to.push(self->shown);
+                    self->output_to.push(self->edits.value());
                 }
             }
         };
         template<typename R>
         struct commit<felspar::coro::future<R>> {
             static void write(text_input *self) {
-                self->output_to.set_value(self->shown);
+                self->output_to.set_value(self->edits.value());
             }
         };
         template<std::invocable<std::string const &> Q>
         struct commit<Q> {
             static void write(text_input *self) {
-                self->output_to(self->shown);
+                self->output_to(self->edits.value());
             }
         };
 
 
         void begin_edit() {
-            before_edit = std::exchange(shown, {});
-            editing = true;
+            edits.begin();
             /**
              * Place the dismissal screen over everything the field covers, and
              * then the field back over the screen. Both moves are relative to
@@ -230,9 +227,11 @@ namespace planet::widget {
         }
 
         void end_edit(bool const keep) {
-            if (not keep) { shown = std::move(before_edit); }
-            before_edit.clear();
-            editing = false;
+            if (keep) {
+                edits.commit();
+            } else {
+                edits.cancel();
+            }
             static_z_layer = resting_z_layer;
             hard_focus_off();
             if (editing_changed) { editing_changed(false); }
@@ -245,12 +244,22 @@ namespace planet::widget {
             if (keep) { commit<output_type>::write(this); }
         }
 
+        /// Act on what the editor made of an event it was handed
+        void acted_on(text::outcome const o) {
+            switch (o) {
+            case text::outcome::commit: end_edit(true); break;
+            case text::outcome::cancel: end_edit(false); break;
+            case text::outcome::ignored:
+            case text::outcome::changed: break;
+            }
+        }
+
 
         felspar::coro::task<void> activation() {
             auto mouse = widget::events.mouse.values();
             while (true) {
                 auto const m = co_await mouse.next();
-                if (editing) {
+                if (is_editing()) {
                     /**
                      * The hard focus puts the field on the top of the delivery
                      * stack whatever the pointer is over, so while an edit runs
@@ -273,15 +282,15 @@ namespace planet::widget {
         felspar::coro::task<void> dismissal() {
             auto clicks = events::identify_clicks(screen.events.mouse.stream());
             while (auto const c = co_await clicks.next()) {
-                if (editing) { end_edit(true); }
+                if (is_editing()) { end_edit(true); }
             }
         }
 
         felspar::coro::task<void> typing() {
-            auto text = widget::events.text.values();
+            auto typed = widget::events.text.values();
             while (true) {
-                auto const t = co_await text.next();
-                if (editing) { shown += t.utf8; }
+                auto const t = co_await typed.next();
+                acted_on(edits.handle(t));
             }
         }
 
@@ -289,13 +298,7 @@ namespace planet::widget {
             auto keys = widget::events.key.values();
             while (true) {
                 auto const k = co_await keys.next();
-                if (editing and k.action == events::action::down) {
-                    if (k.scancode == events::scancode::return_key) {
-                        end_edit(true);
-                    } else if (k.scancode == events::scancode::escape_key) {
-                        end_edit(false);
-                    }
-                }
+                acted_on(edits.handle(k));
             }
         }
 
@@ -308,18 +311,17 @@ namespace planet::widget {
              * edit runs is what makes it dismiss during one and be invisible to
              * routing the rest of the time.
              */
-            if (editing) { screen.draw(); }
-            graphic.draw();
+            if (is_editing()) { screen.draw(); }
         }
         constrained_type do_reflow(
-                reflow_parameters const &p,
+                reflow_parameters const &,
                 constrained_type const &ex) override {
-            return graphic.reflow(p, ex);
+            return ex;
         }
         affine::rectangle2d do_move_sub_elements(
-                reflow_parameters const &p,
+                reflow_parameters const &,
                 affine::rectangle2d const &r) override {
-            return graphic.move_to(p, r);
+            return r;
         }
 
 

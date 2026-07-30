@@ -160,6 +160,8 @@ target_sources(planet PUBLIC
         ../include/planet/telemetry/table.hpp
         ../include/planet/telemetry/time.hpp
         ../include/planet/telemetry/timestamps.hpp
+        ../include/planet/text/editor.hpp
+        ../include/planet/text.hpp
         ../include/planet/time/checkpointer.hpp
         ../include/planet/time/clock.hpp
         ../include/planet/time.hpp
@@ -246,6 +248,7 @@ add_test_run(check planet TESTS
         cameras.tests.cpp
         column.layout.tests.cpp
         constrained.tests.cpp
+        editor.text.tests.cpp
         entities.tests.cpp
         event.tests.cpp
         folders.tests.cpp

@@ -11,20 +11,23 @@ namespace {
     constexpr planet::ui::reflowable::constrained_type screen{
             {40, 0, 40}, {30, 0, 30}};
 
+    constexpr planet::affine::rectangle2d field_area{
+            {15, 20}, planet::affine::extents2d{4, 3}};
 
-    using field_type =
-            planet::widget::text_input<planet::debug::fixed_element, std::string>;
+
+    using field_type = planet::widget::text_input<std::string>;
 
 
     /**
      * Lay the field out over a box away from the origin and draw it so it
      * joins the frame's live list. Only a drawn widget can be routed an event.
+     * The shell has no graphic to size it, so the rectangle it covers is
+     * whatever it is handed -- here the box a presentation would have laid its
+     * own text out over.
      */
     void lay_out(field_type &f) {
         f.reflow({.screen = screen}, screen);
-        f.move_to(
-                {.screen = screen},
-                {{15, 20}, planet::affine::extents2d{4, 3}});
+        f.move_to({.screen = screen}, field_area);
         f.draw();
     }
     /// Bind the field straight to the baseplate and lay it out.
@@ -114,35 +117,47 @@ namespace {
     });
 
 
-    auto const subscriptions =
-            suite.test("subscriptions", [](auto check, auto &log) {
-                /**
-                 * Delivery tests `consumer_count()` on the queue for the kind,
-                 * so the field has to hold all three open at rest or the kinds
-                 * it is not currently blocked on fall through to whatever it
-                 * covers.
-                 */
-                planet::ui::baseplate bp;
-                planet::ui::panel panel;
-                std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
-                field.add_to(bp, panel);
-
-                check(field.events.mouse.consumer_count()) == 1u;
-                check(field.events.key.consumer_count()) == 1u;
-                check(field.events.text.consumer_count()) == 1u;
-            });
-
-
-    auto const activation = suite.test("activation", [](auto check, auto &log) {
+    auto const subscriptions = suite.test("subscriptions", [](auto check) {
+        /**
+         * Delivery tests `consumer_count()` on the queue for the kind, so the
+         * shell has to hold all three open at rest or the kinds it is not
+         * currently blocked on fall through to whatever it covers.
+         */
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{
-                "field", planet::debug::fixed_element{log, {4, 3}}, output,
-                "Nomad"};
+        field_type field{"field", output, "Nomad"};
+        field.add_to(bp, panel);
+
+        check(field.events.mouse.consumer_count()) == 1u;
+        check(field.events.key.consumer_count()) == 1u;
+        check(field.events.text.consumer_count()) == 1u;
+    });
+
+
+    auto const layout = suite.test("layout", [](auto check) {
+        /**
+         * The shell draws nothing, so it has nothing to size itself from: the
+         * presentation lays its own graphic out and then puts the shell over
+         * the same rectangle. All the shell does is take both as given, which
+         * is what keeps the hit area and the visible field in agreement.
+         */
+        planet::ui::baseplate bp;
+        planet::ui::panel panel;
+        std::string output{"Nomad"};
+        field_type field{"field", output, "Nomad"};
+        place(field, bp, panel);
+
+        check(field.constraints().extents()) == screen.extents();
+        check(field.position()) == field_area;
+    });
+
+
+    auto const activation = suite.test("activation", [](auto check) {
+        planet::ui::baseplate bp;
+        planet::ui::panel panel;
+        std::string output{"Nomad"};
+        field_type field{"field", output, "Nomad"};
         place(field, bp, panel);
 
         check(field.is_editing()) == false;
@@ -150,100 +165,90 @@ namespace {
         click(bp);
 
         check(field.is_editing()) == true;
-        /// Phase 1 retypes rather than corrects, so the buffer is empty
-        check(field.value()) == "";
+        /// An edit retypes rather than corrects, so the buffer is empty
+        check(field.editor().value()) == "";
 
         pointer_away(bp);
         check(bp.has_focus(field)) == true;
     });
 
 
-    auto const typing = suite.test("typing", [](auto check, auto &log) {
+    auto const typing = suite.test("typing", [](auto check) {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{
-                "field", planet::debug::fixed_element{log, {4, 3}}, output,
-                "Nomad"};
+        field_type field{"field", output, "Nomad"};
         place(field, bp, panel);
 
         click(bp);
         type(bp, "Ze");
         type(bp, "ta");
 
-        check(field.value()) == "Zeta";
+        check(field.editor().value()) == "Zeta";
         /// Nothing reaches the output until the edit is committed
         check(output) == "Nomad";
     });
 
 
-    auto const committing =
-            suite.test("return commits", [](auto check, auto &log) {
-                planet::ui::baseplate bp;
-                planet::ui::panel panel;
-                std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
-                place(field, bp, panel);
+    auto const committing = suite.test("return commits", [](auto check) {
+        planet::ui::baseplate bp;
+        planet::ui::panel panel;
+        std::string output{"Nomad"};
+        field_type field{"field", output, "Nomad"};
+        place(field, bp, panel);
 
-                click(bp);
-                type(bp, "Vagrant");
-                press(bp, planet::events::scancode::return_key);
+        click(bp);
+        type(bp, "Vagrant");
+        press(bp, planet::events::scancode::return_key);
 
-                check(output) == "Vagrant";
-                check(field.value()) == "Vagrant";
-                check(field.is_editing()) == false;
+        check(output) == "Vagrant";
+        check(field.editor().value()) == "Vagrant";
+        check(field.is_editing()) == false;
 
-                /// The hard focus was given up, so normal routing is restored
-                pointer_away(bp);
-                check(bp.has_focus(field)) == false;
-            });
+        /// The hard focus was given up, so normal routing is restored
+        pointer_away(bp);
+        check(bp.has_focus(field)) == false;
+    });
 
 
-    auto const cancelling =
-            suite.test("escape cancels", [](auto check, auto &log) {
-                planet::ui::baseplate bp;
-                planet::ui::panel panel;
-                std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
-                place(field, bp, panel);
+    auto const cancelling = suite.test("escape cancels", [](auto check) {
+        planet::ui::baseplate bp;
+        planet::ui::panel panel;
+        std::string output{"Nomad"};
+        field_type field{"field", output, "Nomad"};
+        place(field, bp, panel);
 
-                click(bp);
-                type(bp, "Vagrant");
-                press(bp, planet::events::scancode::escape_key);
+        click(bp);
+        type(bp, "Vagrant");
+        press(bp, planet::events::scancode::escape_key);
 
-                check(output) == "Nomad";
-                check(field.value()) == "Nomad";
-                check(field.is_editing()) == false;
+        check(output) == "Nomad";
+        check(field.editor().value()) == "Nomad";
+        check(field.is_editing()) == false;
 
-                pointer_away(bp);
-                check(bp.has_focus(field)) == false;
-            });
+        pointer_away(bp);
+        check(bp.has_focus(field)) == false;
+    });
 
 
     auto const ignored_at_rest =
-            suite.test("text ignored at rest", [](auto check, auto &log) {
+            suite.test("text ignored at rest", [](auto check) {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
 
                 hover(bp);
                 type(bp, "x");
 
                 /**
-                 * The field is subscribed, so the text really was delivered to
-                 * it -- it is the field that discards it rather than the
-                 * routing never reaching it.
+                 * The shell is subscribed, so the text really was delivered to
+                 * it -- it is the editor that discards it rather than the
+                 * routing never reaching the field.
                  */
                 check(field.events.text.values_pushed()) == 1u;
-                check(field.value()) == "Nomad";
+                check(field.editor().value()) == "Nomad";
                 check(output) == "Nomad";
             });
 
@@ -252,17 +257,15 @@ namespace {
             "click away",
             [](auto check, auto &log) {
                 /**
-                 * The field holds the hard focus while it is editing, so it is
-                 * handed every click in the window whatever it was aimed at,
-                 * and passes each one down to its dismissal screen. The screen
-                 * ends the edit, keeping what was typed.
+                 * The shell holds the hard focus while an edit is running, so
+                 * it is handed every click in the window whatever it was aimed
+                 * at, and passes each one down to its dismissal screen. The
+                 * screen ends the edit, keeping what was typed.
                  */
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -274,7 +277,7 @@ namespace {
 
                 check(field.is_editing()) == false;
                 check(output) == "Vagrant";
-                check(field.value()) == "Vagrant";
+                check(field.editor().value()) == "Vagrant";
                 check(bp.has_focus(field)) == false;
             },
             [](auto check, auto &log) {
@@ -287,9 +290,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -314,9 +315,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -339,9 +338,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -351,7 +348,7 @@ namespace {
                 check(field.is_editing()) == false;
                 check(elsewhere.clicks) == 1u;
             },
-            [](auto check, auto &log) {
+            [](auto check) {
                 /**
                  * A field inside a modal is attached above the modal's own
                  * screen, so its dismissal screen has to be placed above that
@@ -365,9 +362,7 @@ namespace {
                 modal.draw();
 
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place_in(field, modal);
 
                 click(bp);
@@ -390,13 +385,11 @@ namespace {
 
     auto const edit_state = suite.test(
             "edit state callback",
-            [](auto check, auto &log) {
+            [](auto check) {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 /// `+` for a begin-edit, `-` for an end-edit
                 std::string transitions;
@@ -410,13 +403,11 @@ namespace {
                 press(bp, planet::events::scancode::return_key);
                 check(transitions) == "+-";
             },
-            [](auto check, auto &log) {
+            [](auto check) {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{
-                        "field", planet::debug::fixed_element{log, {4, 3}},
-                        output, "Nomad"};
+                field_type field{"field", output, "Nomad"};
                 place(field, bp, panel);
                 std::string transitions;
                 field.editing_changed = [&](bool const e) {
