@@ -73,6 +73,11 @@ namespace planet::events {
         delete_key = 76,
         end_key = 77,
         page_down_key = 78,
+
+        right_key = 79,
+        left_key = 80,
+        down_key = 81,
+        up_key = 82,
     };
 
 

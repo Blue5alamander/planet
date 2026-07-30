@@ -165,8 +165,12 @@ namespace {
         click(bp);
 
         check(field.is_editing()) == true;
-        /// An edit retypes rather than corrects, so the buffer is empty
-        check(field.editor().value()) == "";
+        /**
+         * An edit corrects rather than retypes, so the buffer starts as the
+         * value with the caret at the end of it.
+         */
+        check(field.editor().value()) == "Nomad";
+        check(field.editor().cursor()) == 5u;
 
         pointer_away(bp);
         check(bp.has_focus(field)) == true;
@@ -181,10 +185,10 @@ namespace {
         place(field, bp, panel);
 
         click(bp);
-        type(bp, "Ze");
-        type(bp, "ta");
+        type(bp, " I");
+        type(bp, "I");
 
-        check(field.editor().value()) == "Zeta";
+        check(field.editor().value()) == "Nomad II";
         /// Nothing reaches the output until the edit is committed
         check(output) == "Nomad";
     });
@@ -198,11 +202,11 @@ namespace {
         place(field, bp, panel);
 
         click(bp);
-        type(bp, "Vagrant");
+        type(bp, " II");
         press(bp, planet::events::scancode::return_key);
 
-        check(output) == "Vagrant";
-        check(field.editor().value()) == "Vagrant";
+        check(output) == "Nomad II";
+        check(field.editor().value()) == "Nomad II";
         check(field.is_editing()) == false;
 
         /// The hard focus was given up, so normal routing is restored
@@ -219,7 +223,7 @@ namespace {
         place(field, bp, panel);
 
         click(bp);
-        type(bp, "Vagrant");
+        type(bp, " II");
         press(bp, planet::events::scancode::escape_key);
 
         check(output) == "Nomad";
@@ -271,13 +275,13 @@ namespace {
                 place_away(elsewhere, bp, panel);
 
                 click(bp);
-                type(bp, "Vagrant");
+                type(bp, " II");
                 frame(bp, {&field, &elsewhere});
                 click_elsewhere(bp);
 
                 check(field.is_editing()) == false;
-                check(output) == "Vagrant";
-                check(field.editor().value()) == "Vagrant";
+                check(output) == "Nomad II";
+                check(field.editor().value()) == "Nomad II";
                 check(bp.has_focus(field)) == false;
             },
             [](auto check, auto &log) {
@@ -368,12 +372,12 @@ namespace {
                 click(bp);
                 check(field.is_editing()) == true;
 
-                type(bp, "Vagrant");
+                type(bp, " II");
                 frame(bp, {&modal, &field});
                 click_elsewhere(bp);
 
                 check(field.is_editing()) == false;
-                check(output) == "Vagrant";
+                check(output) == "Nomad II";
                 /**
                  * The modal screen is a hover boundary, so anything that got
                  * as far as it would have been pushed to its queue whether it

@@ -5,6 +5,7 @@
 #include <planet/events/text.hpp>
 #include <planet/text/boundary.hpp>
 
+#include <cstddef>
 #include <string>
 #include <utility>
 
@@ -39,29 +40,68 @@ namespace planet::text {
      *     editing --> resting: cancel() -- restore the previous value
      * ```
      *
-     * The editing happens at the end of the buffer: an edit starts empty,
-     * typing accumulates onto the end of it and backspace takes the last
-     * character back off, with no caret and so no way to correct anywhere
-     * else. Events arriving at rest are ignored, because a field stays
-     * subscribed whether
-     * or not it is being edited -- it is the editor that discards them, and it
-     * says so in what it returns.
+     * An edit corrects rather than retypes: it begins on the value that is
+     * already there with the caret at the end of it. Left, Right, Home and End
+     * move the caret, typing inserts at it, backspace takes out the character
+     * before it and Delete the one after.
+     *
+     * **The caret is a byte offset that always sits on a character boundary.**
+     * It only ever moves to somewhere `previous_boundary` or `next_boundary`
+     * handed back, or along by the bytes of whole characters inserted, so no
+     * operation can leave it inside a character -- which is what lets a
+     * presentation take the text before it as a view straight into the buffer.
+     * `set_cursor` is where an offset arriving from outside is made to obey
+     * that.
+     *
+     * Events arriving at rest are ignored, because a field stays subscribed
+     * whether or not it is being edited -- it is the editor that discards them,
+     * and it says so in what it returns.
      */
     class editor final {
         std::string current, before_edit;
+        std::size_t caret = {};
         bool editing = false;
 
 
-        /// Take the character off the end of the buffer
+        /// Move the caret, saying whether it went anywhere
+        /**
+         * A caret already where it is being sent has not changed, which is what
+         * tells whatever is driving the editor that no redraw is due.
+         */
+        outcome move_caret_to(std::size_t const to) noexcept {
+            if (to == caret) { return outcome::ignored; }
+            caret = to;
+            return outcome::changed;
+        }
+
+
+        /// Take the character before the caret out of the buffer
         /**
          * The whole character, never the last byte of one: what is left has to
-         * still be text. A buffer with nothing in it reports that nothing
-         * changed, which is what tells whatever is driving the editor that no
-         * redraw is due.
+         * still be text. The caret follows the text it removed. Nothing sits
+         * before the start of the buffer, so a caret there reports that nothing
+         * changed.
+         *
+         * `std::string::erase` takes a count rather than an end offset, so the
+         * difference between the two boundaries is spelled out.
          */
         outcome erase_backwards() {
-            if (current.empty()) { return outcome::ignored; }
-            current.erase(previous_boundary(current, current.size()));
+            auto const from = previous_boundary(current, caret);
+            if (from == caret) { return outcome::ignored; }
+            current.erase(from, caret - from);
+            caret = from;
+            return outcome::changed;
+        }
+
+        /// Take the character after the caret out of the buffer
+        /**
+         * The text moves back to the caret, so the caret itself stays put.
+         * Nothing sits after the end of the buffer.
+         */
+        outcome erase_forwards() {
+            auto const to = next_boundary(current, caret);
+            if (to == caret) { return outcome::ignored; }
+            current.erase(caret, to - caret);
             return outcome::changed;
         }
 
@@ -85,12 +125,23 @@ namespace planet::text {
          */
         value_type const &value() const noexcept { return current; }
 
+        /// #### Where the next character typed will go
+        /**
+         * A byte offset into `value()`, always on a character boundary.
+         */
+        std::size_t cursor() const noexcept { return caret; }
+
 
         /// ### The edit
 
         /// #### Begin an edit
+        /**
+         * The buffer starts as the value with the caret at the end of it, so an
+         * edit begins by correcting what is there rather than by replacing it.
+         */
         void begin() {
-            before_edit = std::exchange(current, {});
+            before_edit = current;
+            caret = current.size();
             editing = true;
         }
 
@@ -104,23 +155,55 @@ namespace planet::text {
         void cancel() {
             current = std::move(before_edit);
             before_edit.clear();
+            /**
+             * The caret was an offset into the buffer that has just been thrown
+             * away, and could be past the end of the one that replaced it.
+             */
+            caret = current.size();
             editing = false;
+        }
+
+        /// #### Put the caret at an offset from outside
+        /**
+         * What a presentation that has measured its way to an offset calls --
+         * clicking into the middle of the text. It clamps to the buffer and
+         * snaps onto a boundary, so the worst a mis-measurement can do is put
+         * the caret a character out; it can never leave it inside one.
+         *
+         * The snap is a round trip through both boundary functions, because
+         * each is exclusive of the offset it is handed and so neither on its
+         * own can answer *at* one: the largest boundary before the smallest
+         * boundary after `o` is the largest boundary at or before `o`.
+         */
+        void set_cursor(std::size_t const o) noexcept {
+            caret = o >= current.size()
+                    ? current.size()
+                    : previous_boundary(current, next_boundary(current, o));
         }
 
 
         /// ### Events
 
         /// #### Characters that have been typed
+        /**
+         * They go in at the caret, which then follows them along by however
+         * many bytes they took.
+         */
         outcome handle(events::text const &t) {
             if (not editing) { return outcome::ignored; }
-            current += t.utf8;
+            current.insert(caret, t.utf8);
+            caret += t.utf8.size();
             return outcome::changed;
         }
 
-        /// #### The keys an edit is controlled with
+        /// #### The keys an edit is controlled and navigated with
         /**
          * Only a key going down counts. A key held from before the edit began
          * releases into it, and that release must not be what ends it.
+         *
+         * Up and down are deliberately not bound: a single line has nowhere for
+         * them to go, so they report as ignored like any other key the editor
+         * has no use for.
          */
         outcome handle(events::key const &k) {
             if (not editing or k.action != events::action::down) {
@@ -130,6 +213,14 @@ namespace planet::text {
             case events::scancode::return_key: return outcome::commit;
             case events::scancode::escape_key: return outcome::cancel;
             case events::scancode::backspace_key: return erase_backwards();
+            case events::scancode::delete_key: return erase_forwards();
+            case events::scancode::left_key:
+                return move_caret_to(previous_boundary(current, caret));
+            case events::scancode::right_key:
+                return move_caret_to(next_boundary(current, caret));
+            case events::scancode::home_key: return move_caret_to(0);
+            case events::scancode::end_key:
+                return move_caret_to(current.size());
             default: return outcome::ignored;
             }
         }
