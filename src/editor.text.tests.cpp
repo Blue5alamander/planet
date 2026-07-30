@@ -106,10 +106,82 @@ namespace {
                 == planet::text::outcome::ignored;
         check(ed.handle(down(planet::events::scancode::letter_a)))
                 == planet::text::outcome::ignored;
+        check(ed.handle(down(planet::events::scancode::backspace_key)))
+                == planet::text::outcome::ignored;
 
         check(ed.is_editing()) == false;
         check(ed.value()) == "Nomad";
     });
+
+
+    auto const backspace = suite.test(
+            "backspace",
+            [](auto check) {
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed("Zeta"));
+
+                check(ed.handle(down(planet::events::scancode::backspace_key)))
+                        == planet::text::outcome::changed;
+
+                check(ed.value()) == "Zet";
+            },
+            [](auto check) {
+                /// Nothing to remove is nothing changed
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+
+                check(ed.handle(down(planet::events::scancode::backspace_key)))
+                        == planet::text::outcome::ignored;
+
+                check(ed.value()) == "";
+            },
+            [](auto check) {
+                /// Correcting a typo and carrying on
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed("Zetz"));
+                ed.handle(down(planet::events::scancode::backspace_key));
+                ed.handle(typed("a"));
+
+                ed.commit();
+
+                check(ed.value()) == "Zeta";
+            },
+            [](auto check) {
+                /**
+                 * A whole character goes, never the tail byte of one: what is
+                 * left has to still be text.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed("Zeté"));
+
+                check(ed.handle(down(planet::events::scancode::backspace_key)))
+                        == planet::text::outcome::changed;
+
+                check(ed.value()) == "Zet";
+            },
+            [](auto check) {
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed("Ze🚀"));
+
+                ed.handle(down(planet::events::scancode::backspace_key));
+
+                check(ed.value()) == "Ze";
+            },
+            [](auto check) {
+                /// A key coming back up is not a key press, backspace included
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed("Zeta"));
+
+                check(ed.handle(up(planet::events::scancode::backspace_key)))
+                        == planet::text::outcome::ignored;
+
+                check(ed.value()) == "Zeta";
+            });
 
 
     auto const ending = suite.test(

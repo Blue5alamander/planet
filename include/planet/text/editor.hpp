@@ -3,6 +3,7 @@
 
 #include <planet/events/keys.hpp>
 #include <planet/events/text.hpp>
+#include <planet/text/boundary.hpp>
 
 #include <string>
 #include <utility>
@@ -38,15 +39,31 @@ namespace planet::text {
      *     editing --> resting: cancel() -- restore the previous value
      * ```
      *
-     * The editing is append-only: an edit starts with an empty buffer and
-     * typing accumulates into it, with no caret and no correction. Events
-     * arriving at rest are ignored, because a field stays subscribed whether
+     * The editing happens at the end of the buffer: an edit starts empty,
+     * typing accumulates onto the end of it and backspace takes the last
+     * character back off, with no caret and so no way to correct anywhere
+     * else. Events arriving at rest are ignored, because a field stays
+     * subscribed whether
      * or not it is being edited -- it is the editor that discards them, and it
      * says so in what it returns.
      */
     class editor final {
         std::string current, before_edit;
         bool editing = false;
+
+
+        /// Take the character off the end of the buffer
+        /**
+         * The whole character, never the last byte of one: what is left has to
+         * still be text. A buffer with nothing in it reports that nothing
+         * changed, which is what tells whatever is driving the editor that no
+         * redraw is due.
+         */
+        outcome erase_backwards() {
+            if (current.empty()) { return outcome::ignored; }
+            current.erase(previous_boundary(current, current.size()));
+            return outcome::changed;
+        }
 
 
       public:
@@ -112,6 +129,7 @@ namespace planet::text {
             switch (k.scancode) {
             case events::scancode::return_key: return outcome::commit;
             case events::scancode::escape_key: return outcome::cancel;
+            case events::scancode::backspace_key: return erase_backwards();
             default: return outcome::ignored;
             }
         }

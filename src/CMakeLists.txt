@@ -160,6 +160,7 @@ target_sources(planet PUBLIC
         ../include/planet/telemetry/table.hpp
         ../include/planet/telemetry/time.hpp
         ../include/planet/telemetry/timestamps.hpp
+        ../include/planet/text/boundary.hpp
         ../include/planet/text/editor.hpp
         ../include/planet/text.hpp
         ../include/planet/time/checkpointer.hpp
@@ -243,6 +244,7 @@ add_test_run(check planet TESTS
         affine3d.tests.cpp
         asset_manager.tests.cpp
         baseplate.ui.tests.cpp
+        boundary.text.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
         cameras.tests.cpp
