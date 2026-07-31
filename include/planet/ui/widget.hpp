@@ -139,7 +139,13 @@ namespace planet::ui {
         virtual bool wants_focus() const noexcept { return m_enabled; }
 
         /// #### Turn hard focus on and off
-        void hard_focus_on() { baseplate->hard_focus_on(this); }
+        /**
+         * `planet::ui::focus_capture` says which event kinds the focus takes,
+         * and defaults to all of them.
+         */
+        void hard_focus_on(focus_capture const c = {}) {
+            baseplate->hard_focus_on(this, c);
+        }
         void hard_focus_off() { baseplate->hard_focus_off(this); }
 
 

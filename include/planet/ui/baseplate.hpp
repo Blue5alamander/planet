@@ -14,6 +14,20 @@
 namespace planet::ui {
 
 
+    /// ## The event kinds a hard focus captures
+    /**
+     * A captured kind is delivered to the widget holding the hard focus
+     * whatever the pointer is over, that widget going on top of the delivery
+     * stack. A kind left out is routed by position like any other, the widget
+     * taking part in the scan as though it held no focus.
+     *
+     * Every kind is captured unless a widget asks for fewer.
+     */
+    struct focus_capture final {
+        bool mouse = true, key = true, scroll = true, text = true;
+    };
+
+
     /// ## Base plate for widgets
     /**
      * The `baseplate` manages widget focus and routing of messages to the
@@ -102,7 +116,15 @@ namespace planet::ui {
 
 
         /// ### Set and remove hard focus
-        void hard_focus_on(widget_ptr const wp) { hard_focus = wp; }
+        /**
+         * The capture says which event kinds are taken out of positional
+         * routing and delivered here whatever the pointer is over. Kinds left
+         * out of it route as though this widget held no focus at all.
+         */
+        void hard_focus_on(widget_ptr const wp, focus_capture const c = {}) {
+            hard_focus = wp;
+            hard_focus_captures = c;
+        }
         void hard_focus_off(widget_ptr const w) {
             if (hard_focus == w) { hard_focus = nullptr; }
         }
@@ -213,6 +235,8 @@ namespace planet::ui {
          * widget at the top of the delivery stack.
          */
         widget_ptr soft_focus = nullptr, hard_focus = nullptr;
+        /// #### Which kinds the hard focus takes out of positional routing
+        focus_capture hard_focus_captures;
         widget_ptr find_focused_widget() const noexcept {
             return hard_focus ? hard_focus : soft_focus;
         }
@@ -240,9 +264,15 @@ namespace planet::ui {
          * not take stop there instead of reaching what the screen covers.
          * Keyboard events are not pointer events, so they fall through a
          * boundary like any other widget without a key subscriber.
+         *
+         * The stack is built for one event kind at a time, because whether
+         * the hard focus widget goes on top of it depends on whether it
+         * captured that kind (see `focus_capture`). For a kind it did not
+         * capture it takes part in the positional scan like any other
+         * widget, so the pointer still decides where those events go.
          */
         std::vector<widget_ptr> focus_stack;
-        void build_focus_stack();
+        void build_focus_stack(bool focus_capture::*);
         template<typename Ev>
         widget_ptr
                 forward(planet::queue::pmc<Ev> planet::events::queue::*,

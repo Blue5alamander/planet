@@ -32,13 +32,18 @@ namespace planet::widget {
      * field at the top of the baseplate's delivery stack so typing cannot leak
      * into whatever key controls sit beneath it.
      *
-     * Ending an edit with the mouse is the dismissal screen's job, following
-     * the pattern `b5::ui::singleselect` uses for its open drop down. While an
-     * edit runs the field draws a `planet::ui::screen` beneath itself and
-     * lifts itself above it, so the screen is the topmost widget everywhere
-     * the field is not. The hard focus means every click still arrives at the
-     * field first, so it passes each one down to the screen, which ends the
-     * edit. The screen is a hover boundary, so the click stops there: a click
+     * It captures the keyboard kinds only. A captured click would arrive here
+     * whatever it was aimed at, leaving nothing to say whether it landed on the
+     * field or somewhere else, and that is the difference between putting the
+     * caret somewhere and ending the edit. Left uncaptured the mouse routes by
+     * position: over the field it reaches the field, anywhere else it reaches
+     * the dismissal screen.
+     *
+     * Ending an edit with the mouse is that screen's job, following the pattern
+     * `b5::ui::singleselect` uses for its open drop down. While an edit runs
+     * the field draws a `planet::ui::screen` beneath itself and lifts itself
+     * above it, so the screen is the topmost widget everywhere the field is
+     * not. The screen is a hover boundary, so the click stops there: a click
      * that finishes an edit dismisses, it does not also press whatever was
      * underneath it.
      *
@@ -72,7 +77,8 @@ namespace planet::widget {
           resting_z_layer{t.resting_z_layer},
           screen{std::move(t.screen)},
           ward{t.ward},
-          editing_changed{std::move(t.editing_changed)} {
+          editing_changed{std::move(t.editing_changed)},
+          clicked{std::move(t.clicked)} {
             if (has_baseplate()) { response.post(behaviour()); }
         }
 
@@ -120,6 +126,22 @@ namespace planet::widget {
          * however it ends. This is the seam a concrete widget binds the
          * platform's text input to -- switching it on raises the on-screen
          * keyboard on mobile -- keeping this widget free of any of that.
+         */
+
+        /// #### Where a click on the field landed
+        std::function<void(affine::point2d)> clicked;
+        /**
+         * Called with the location of every left click that reaches the field,
+         * the one that begins an edit included -- clicking into the middle of
+         * the text starts editing there rather than at the end of it. The mouse
+         * is not captured, so a click that reaches the field really was over
+         * it.
+         *
+         * The shell makes nothing of the point. Turning it into a position in
+         * the text means measuring glyphs, and only the presentation has a
+         * font; it hands whatever it works out back through
+         * `editor().set_cursor`, which snaps and clamps so a mis-measurement
+         * cannot leave the caret somewhere illegal.
          */
 
 
@@ -206,7 +228,7 @@ namespace planet::widget {
         };
 
 
-        void begin_edit() {
+        void begin_edit(affine::point2d const at) {
             edits.begin();
             /**
              * Place the dismissal screen over everything the field covers, and
@@ -214,15 +236,23 @@ namespace planet::widget {
              * where the field already is, so a field in a modal lifts within
              * its modal rather than out from under it.
              *
-             * The hard focus is what actually brings the events here, but
-             * without the lift the screen would cover the field for hover as
-             * well, and a click on the field would be indistinguishable from
-             * one anywhere else the moment the hard focus is given up.
+             * The lift is what tells a click on the field from a click
+             * anywhere else: the mouse is not captured, so both are routed by
+             * position, and without the field above the screen every click
+             * would stop at the screen and end the edit.
              */
             screen.static_z_layer = z_layer() + screen_z_lift;
             resting_z_layer = std::exchange(
                     static_z_layer, static_z_layer + screen_z_lift + 1.0f);
-            hard_focus_on();
+            /// The keyboard kinds only -- see the class comment
+            hard_focus_on({.mouse = false, .scroll = false});
+            /**
+             * `begin()` leaves the caret at the end of the value; where the
+             * click landed is where it belongs. This is before the edit-state
+             * callback so that whatever that tells about the caret is already
+             * the answer, rather than one corrected on the next layout.
+             */
+            if (clicked) { clicked(at); }
             if (editing_changed) { editing_changed(true); }
         }
 
@@ -258,23 +288,22 @@ namespace planet::widget {
         felspar::coro::task<void> activation() {
             auto mouse = widget::events.mouse.values();
             while (true) {
-                auto const m = co_await mouse.next();
-                if (is_editing()) {
-                    /**
-                     * The hard focus puts the field on the top of the delivery
-                     * stack whatever the pointer is over, so while an edit runs
-                     * every mouse event arrives here first. The field wants
-                     * none of them, so it hands each straight down to the
-                     * dismissal screen, which is the next widget in the stack
-                     * and is what decides an edit is over. The field never asks
-                     * where the click was: that would mean duplicating layout
-                     * state in an event coroutine, and the layering already
-                     * answers it.
-                     */
-                    widget::forward(m);
-                } else if (auto const c = events::is_mouse_click(m);
-                           c and c->button == events::button::left) {
-                    begin_edit();
+                auto const c = events::is_mouse_click(co_await mouse.next());
+                if (not c or c->button != events::button::left) { continue; }
+                /**
+                 * The mouse is not captured, so a click that gets here is one
+                 * the routing put here: it was over the field. One that was not
+                 * went to the dismissal screen instead and ended the edit. The
+                 * field still never asks where the click was -- that would mean
+                 * duplicating layout state in an event coroutine -- the
+                 * layering answers it, and the location only travels on to the
+                 * presentation, which is measuring within a rectangle it laid
+                 * out itself rather than making a routing decision.
+                 */
+                if (not is_editing()) {
+                    begin_edit(c->location);
+                } else if (clicked) {
+                    clicked(c->location);
                 }
             }
         }

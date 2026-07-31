@@ -4,6 +4,8 @@
 #include <planet/widget/text_input.hpp>
 #include <felspar/test.hpp>
 
+#include <vector>
+
 
 namespace {
 
@@ -101,6 +103,8 @@ namespace {
     }
     /// Left click over the field.
     void click(planet::ui::baseplate &bp) { click_at(bp, {16, 21}); }
+    /// Left click over the far corner of the field.
+    void click_far_end(planet::ui::baseplate &bp) { click_at(bp, {18, 22}); }
     /// Left click over the button placed away from the field.
     void click_elsewhere(planet::ui::baseplate &bp) { click_at(bp, {2, 2}); }
     void type(planet::ui::baseplate &bp, std::string s) {
@@ -423,6 +427,106 @@ namespace {
 
                 /// Cancelling ends the edit just as committing does
                 check(transitions) == "+-";
+            });
+
+
+    auto const click_within = suite.test(
+            "click within a running edit",
+            [](auto check, auto &log) {
+                /**
+                 * The hard focus does not capture the mouse, so while an edit
+                 * runs mouse routing is still positional: a click over the
+                 * field reaches the field, and only a click somewhere else
+                 * reaches the dismissal screen that ends the edit. That
+                 * layering is the whole of how the two are told apart -- the
+                 * field never asks where the click was.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{"field", output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+
+                click(bp);
+                frame(bp, {&field, &elsewhere});
+                click_far_end(bp);
+
+                check(field.is_editing()) == true;
+                check(bp.has_focus(field)) == true;
+
+                /// And a click away from it still ends the edit
+                frame(bp, {&field, &elsewhere});
+                click_elsewhere(bp);
+
+                check(field.is_editing()) == false;
+                check(output) == "Nomad";
+            },
+            [](auto check) {
+                /**
+                 * Where the click landed goes to the presentation, which is
+                 * the only layer with a font and so the only one that can say
+                 * where in the text that is. The shell hands over the point
+                 * and makes nothing of it itself.
+                 *
+                 * The click that begins an edit is handed over like any other,
+                 * so clicking into the middle of the text starts editing there
+                 * rather than at the end of it.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{"field", output, "Nomad"};
+                place(field, bp, panel);
+                std::vector<planet::affine::point2d> landed;
+                field.clicked = [&](planet::affine::point2d const p) {
+                    landed.push_back(p);
+                };
+
+                click(bp);
+                frame(bp, {&field});
+
+                check(landed.size()) == 1u;
+                check(landed.at(0).x()) == 16.0f;
+                check(landed.at(0).y()) == 21.0f;
+
+                click_far_end(bp);
+
+                check(landed.size()) == 2u;
+                check(landed.at(1).x()) == 18.0f;
+                check(landed.at(1).y()) == 22.0f;
+            });
+
+
+    auto const typing_follows_focus = suite.test(
+            "typing follows the focus rather than the pointer",
+            [](auto check, auto &log) {
+                /**
+                 * Key and text events have no position of their own, and the
+                 * hard focus is what stands in for one. Giving up the mouse
+                 * capture must not cost the field that: with the pointer
+                 * parked over another widget entirely, what is typed still
+                 * goes into the field being edited.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{"field", output, "Nomad"};
+                place(field, bp, panel);
+                planet::debug::button<> elsewhere{log};
+                place_away(elsewhere, bp, panel);
+
+                click(bp);
+                frame(bp, {&field, &elsewhere});
+                pointer_away(bp);
+                type(bp, " II");
+                press(bp, planet::events::scancode::return_key);
+
+                check(output) == "Nomad II";
+                check(field.is_editing()) == false;
+                /// Moving the pointer over it is not clicking it
+                check(elsewhere.clicks) == 0u;
             });
 
 

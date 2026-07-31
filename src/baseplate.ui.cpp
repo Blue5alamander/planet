@@ -60,11 +60,17 @@ void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
 /// #### Event delivery
 
 
-void planet::ui::baseplate::build_focus_stack() {
+void planet::ui::baseplate::build_focus_stack(bool focus_capture::*const kind) {
     focus_stack.clear();
     auto const location = pointer_location();
+    /**
+     * A widget that captured this kind is held out of the positional scan and
+     * put on top of the stack afterwards. One that did not is scanned for like
+     * any other widget, so the pointer decides where those events land.
+     */
+    bool const captured = hard_focus and hard_focus_captures.*kind;
     for (auto w : widgets) {
-        if (w != hard_focus and w->wants_focus()
+        if ((not captured or w != hard_focus) and w->wants_focus()
             and w->contains_global_coordinate(location)) {
             focus_stack.push_back(w);
         }
@@ -74,7 +80,7 @@ void planet::ui::baseplate::build_focus_stack() {
             [](widget_ptr const l, widget_ptr const r) noexcept {
                 return l->z_layer() < r->z_layer();
             });
-    if (hard_focus) { focus_stack.push_back(hard_focus); }
+    if (captured) { focus_stack.push_back(hard_focus); }
 }
 
 
@@ -218,7 +224,7 @@ auto planet::ui::baseplate::forward_mouse() -> task_type {
              */
             soft_focus = nullptr;
             for (widget_ptr w : widgets) { update_if_better_soft_focus(w); }
-            build_focus_stack();
+            build_focus_stack(&focus_capture::mouse);
             forward(*last_mouse);
         }
     } catch (std::exception const &e) {
@@ -230,7 +236,7 @@ auto planet::ui::baseplate::forward_keys() -> task_type {
         auto key = events.key.values();
         while (true) {
             auto const k = co_await key.next();
-            build_focus_stack();
+            build_focus_stack(&focus_capture::key);
             if (auto *const send_to = forward(k); send_to) {
                 planet::log::debug(
                         "Sending key press", static_cast<int>(k.scancode),
@@ -250,7 +256,7 @@ auto planet::ui::baseplate::forward_scroll() -> task_type {
         auto scroll = events.scroll.values();
         while (true) {
             auto const s = co_await scroll.next();
-            build_focus_stack();
+            build_focus_stack(&focus_capture::scroll);
             forward(s);
         }
     } catch (std::exception const &e) {
@@ -262,7 +268,7 @@ auto planet::ui::baseplate::forward_text() -> task_type {
         auto text = events.text.values();
         while (true) {
             auto const t = co_await text.next();
-            build_focus_stack();
+            build_focus_stack(&focus_capture::text);
             /**
              * The typed characters themselves are deliberately not logged --
              * knowing how much text went where is enough to follow the
