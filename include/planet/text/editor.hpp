@@ -6,7 +6,9 @@
 #include <planet/text/boundary.hpp>
 
 #include <cstddef>
+#include <functional>
 #include <string>
+#include <string_view>
 #include <utility>
 
 
@@ -37,6 +39,7 @@ namespace planet::text {
      *     [*] --> resting
      *     resting --> editing: begin()
      *     editing --> resting: commit() -- keep what was typed
+     *     editing --> resting: commit() refused -- restore the previous value
      *     editing --> resting: cancel() -- restore the previous value
      * ```
      *
@@ -114,6 +117,28 @@ namespace planet::text {
         explicit editor(value_type v = {}) : current{std::move(v)} {}
 
 
+        /// ### What the value is allowed to be
+        std::function<bool(std::string_view)> acceptable;
+        /**
+         * Consulted with the value the buffer *would* become before anything
+         * is inserted into it, and again with what an edit is about to be
+         * committed as. A `false` means the insertion does not happen, or that
+         * the commit becomes a cancel: what an edit leaves behind is always
+         * something this said yes to.
+         *
+         * The editor has no opinion of its own about what text is allowed. How
+         * long a name may be, what characters it may contain, whether it may be
+         * blank at all -- those are rules about the thing being edited rather
+         * than about editing, so they come from the call site. Left unbound,
+         * anything goes.
+         *
+         * Deletion is deliberately not filtered. A cap that stopped the value
+         * growing must not also stop it being cut back down, and a rule that it
+         * may not be blank has to leave a way to clear it and start again --
+         * refusing the commit is what holds that line instead.
+         */
+
+
         /// ### Observable state
 
         /// #### Whether an edit is running
@@ -145,10 +170,22 @@ namespace planet::text {
             editing = true;
         }
 
-        /// #### Keep what was typed
-        void commit() {
+        /// #### Keep what was typed, if it is allowed to be kept
+        /**
+         * Reports whether it was. A value `acceptable` refuses is not something
+         * an edit may leave behind, and the only other text there is to leave
+         * is what was there before the edit, so a refused commit cancels
+         * instead -- and whatever is driving the editor must not then write the
+         * value out anywhere.
+         */
+        bool commit() {
+            if (acceptable and not acceptable(current)) {
+                cancel();
+                return false;
+            }
             before_edit.clear();
             editing = false;
+            return true;
         }
 
         /// #### Abandon the edit and restore what was there before it
@@ -188,10 +225,20 @@ namespace planet::text {
         /**
          * They go in at the caret, which then follows them along by however
          * many bytes they took.
+         *
+         * The filter sees the whole value as it would be, so it is written as a
+         * rule about the value rather than about the keystroke. What it refuses
+         * is taken straight back out again -- all of it, however many bytes it
+         * was -- leaving the buffer and the caret exactly where the keystroke
+         * found them.
          */
         outcome handle(events::text const &t) {
             if (not editing) { return outcome::ignored; }
             current.insert(caret, t.utf8);
+            if (acceptable and not acceptable(current)) {
+                current.erase(caret, t.utf8.size());
+                return outcome::ignored;
+            }
             caret += t.utf8.size();
             return outcome::changed;
         }

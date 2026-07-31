@@ -26,6 +26,8 @@ namespace planet::widget {
      *     editing --> resting: escape_key -- restore the previous value
      *     editing --> resting: a click the dismissal screen takes --
      *         write the buffer
+     *     editing --> resting: the editor refuses the value --
+     *         restore it and write nothing
      * ```
      *
      * An edit holds the hard focus for as long as it runs, which puts the
@@ -55,7 +57,27 @@ namespace planet::widget {
      */
     template<typename Output>
     class text_input final : public ui::widget {
-        Output &output_to;
+        /// How the commit output is kept
+        /**
+         * Something to write into -- a string, a queue, a future -- belongs to
+         * the call site, which has somewhere to keep it, so it is held by
+         * reference exactly as `planet::widget::button` holds its own. A
+         * callback is the other way round: a call site that wants a commit to
+         * *do* something usually has nowhere to put the callable, the builder
+         * that made the field being a temporary, so the field owns that one.
+         */
+        template<typename Q>
+        struct deduce {
+            static constexpr bool reference = true;
+            using storage = Q &;
+        };
+        template<std::invocable<text::editor::value_type const &> Q>
+        struct deduce<Q> {
+            static constexpr bool reference = false;
+            using storage = Q;
+        };
+
+        typename deduce<Output>::storage output_to;
         text::editor edits;
         float resting_z_layer = {};
 
@@ -69,10 +91,26 @@ namespace planet::widget {
 
         text_input(std::string_view const n, output_type &o, value_type v = {})
         : widget{n}, output_to{o}, edits{std::move(v)} {}
+        text_input(std::string_view const n, output_type &&o, value_type v = {})
+            requires(not deduce<output_type>::reference)
+        : widget{n}, output_to{std::move(o)}, edits{std::move(v)} {}
 
         text_input(text_input &&t)
+            requires deduce<output_type>::reference
         : widget{std::move(t)},
           output_to{t.output_to},
+          edits{std::move(t.edits)},
+          resting_z_layer{t.resting_z_layer},
+          screen{std::move(t.screen)},
+          ward{t.ward},
+          editing_changed{std::move(t.editing_changed)},
+          clicked{std::move(t.clicked)} {
+            if (has_baseplate()) { response.post(behaviour()); }
+        }
+        text_input(text_input &&t)
+            requires(not deduce<output_type>::reference)
+        : widget{std::move(t)},
+          output_to{std::move(t.output_to)},
           edits{std::move(t.edits)},
           resting_z_layer{t.resting_z_layer},
           screen{std::move(t.screen)},
@@ -257,8 +295,17 @@ namespace planet::widget {
         }
 
         void end_edit(bool const keep) {
+            /**
+             * The editor has the last word on whether what was typed may be
+             * kept: a value its filter refuses puts the previous one back
+             * instead. The edit still ends -- the focus goes back and the
+             * platform's keyboard is put away either way -- but nothing is
+             * written out, the call site already holding the value that is
+             * being restored.
+             */
+            bool kept = false;
             if (keep) {
-                edits.commit();
+                kept = edits.commit();
             } else {
                 edits.cancel();
             }
@@ -271,7 +318,7 @@ namespace planet::widget {
              * commit by destroying the field. By then everything this widget
              * needs to touch has already been settled.
              */
-            if (keep) { commit<output_type>::write(this); }
+            if (kept) { commit<output_type>::write(this); }
         }
 
         /// Act on what the editor made of an event it was handed

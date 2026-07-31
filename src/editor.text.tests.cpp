@@ -438,4 +438,104 @@ namespace {
             });
 
 
+    auto const filtering = suite.test(
+            "what the value is allowed to be",
+            [](auto check) {
+                /**
+                 * A cap on how long the value may grow. The filter is handed
+                 * the value as it *would* be, so a rule about the whole of it
+                 * is written as a rule about the whole of it.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.acceptable = [](std::string_view const v) {
+                    return v.size() <= 7;
+                };
+                ed.begin();
+
+                check(ed.handle(typed(" I"))) == planet::text::outcome::changed;
+                check(ed.value()) == "Nomad I";
+                /**
+                 * The insertion that would take it past the cap does not happen
+                 * at all: the buffer and the caret are exactly as they were,
+                 * and the editor reports that nothing changed so no redraw is
+                 * charged for a keystroke that did nothing.
+                 */
+                check(ed.handle(typed("I"))) == planet::text::outcome::ignored;
+                check(ed.value()) == "Nomad I";
+                check(ed.cursor()) == 7u;
+            },
+            [](auto check) {
+                /**
+                 * A refused insertion at the caret leaves what is on either
+                 * side of it alone, not just what is on the end.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.acceptable = [](std::string_view const v) {
+                    return v.find('x') == std::string_view::npos;
+                };
+                ed.begin();
+                ed.handle(down(planet::events::scancode::home_key));
+
+                check(ed.handle(typed("x"))) == planet::text::outcome::ignored;
+
+                check(ed.value()) == "Nomad";
+                check(ed.cursor()) == 0u;
+            },
+            [](auto check) {
+                /**
+                 * The whole of what was typed goes back, however many bytes it
+                 * took: what a refused insertion leaves behind has to still be
+                 * the text that was there before it.
+                 */
+                planet::text::editor ed{"a"};
+                ed.acceptable = [](std::string_view const v) {
+                    return v.size() < 4;
+                };
+                ed.begin();
+
+                check(ed.handle(typed("→"))) == planet::text::outcome::ignored;
+
+                check(ed.value()) == "a";
+                check(ed.cursor()) == 1u;
+            },
+            [](auto check) {
+                /**
+                 * Deletion is not filtered. A value can always be cut down to
+                 * nothing -- a cap that stopped it being cut back would be no
+                 * use, and a rule that it may not be blank has to leave a way
+                 * to clear it and start again.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.acceptable = [](std::string_view const v) {
+                    return not v.empty();
+                };
+                ed.begin();
+                while (not ed.value().empty()) {
+                    ed.handle(down(planet::events::scancode::backspace_key));
+                }
+                check(ed.value()) == "";
+
+                /// What it will not do is let the edit *end* on one
+                check(ed.commit()) == false;
+
+                check(ed.value()) == "Nomad";
+                check(ed.is_editing()) == false;
+                check(ed.cursor()) == 5u;
+            },
+            [](auto check) {
+                /// A value the filter is happy with commits as it always did
+                planet::text::editor ed{"Nomad"};
+                ed.acceptable = [](std::string_view const v) {
+                    return not v.empty();
+                };
+                ed.begin();
+                ed.handle(typed(" II"));
+
+                check(ed.commit()) == true;
+
+                check(ed.value()) == "Nomad II";
+                check(ed.is_editing()) == false;
+            });
+
+
 }

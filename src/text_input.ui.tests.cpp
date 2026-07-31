@@ -27,16 +27,15 @@ namespace {
      * whatever it is handed -- here the box a presentation would have laid its
      * own text out over.
      */
-    void lay_out(field_type &f) {
+    template<typename F>
+    void lay_out(F &f) {
         f.reflow({.screen = screen}, screen);
         f.move_to({.screen = screen}, field_area);
         f.draw();
     }
     /// Bind the field straight to the baseplate and lay it out.
-    void
-            place(field_type &f,
-                  planet::ui::baseplate &bp,
-                  planet::ui::panel &panel) {
+    template<typename F>
+    void place(F &f, planet::ui::baseplate &bp, planet::ui::panel &panel) {
         f.add_to(bp, panel);
         lay_out(f);
     }
@@ -527,6 +526,105 @@ namespace {
                 check(field.is_editing()) == false;
                 /// Moving the pointer over it is not clicking it
                 check(elsewhere.clicks) == 0u;
+            });
+
+
+    auto const refused_commit =
+            suite.test("a commit the editor refuses", [](auto check) {
+                /**
+                 * What the value is allowed to be is the editor's to say, and
+                 * it says so by refusing the commit. The shell's part is to end
+                 * the edit anyway -- the focus goes back, the keyboard is put
+                 * away -- while writing nothing out, because what is being held
+                 * is the value from before the edit and the call site already
+                 * has that.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string output{"Nomad"};
+                field_type field{"field", output, "Nomad"};
+                field.editor().acceptable = [](std::string_view const v) {
+                    return not v.empty();
+                };
+                std::vector<bool> edit_states;
+                field.editing_changed = [&edit_states](bool const editing) {
+                    edit_states.push_back(editing);
+                };
+                place(field, bp, panel);
+
+                click(bp);
+                type(bp, " II");
+                while (not field.editor().value().empty()) {
+                    press(bp, planet::events::scancode::backspace_key);
+                }
+                press(bp, planet::events::scancode::return_key);
+
+                check(field.editor().value()) == "Nomad";
+                check(output) == "Nomad";
+                check(field.is_editing()) == false;
+                /// The hard focus went back whether the value was kept or not
+                pointer_away(bp);
+                check(bp.has_focus(field)) == false;
+                /// and so did the platform's keyboard
+                check(edit_states.size()) == 2u;
+                check(edit_states.at(1)) == false;
+            });
+
+
+    auto const owned_callback = suite.test(
+            "a commit callback the field owns",
+            [](auto check) {
+                /**
+                 * A commit that *does* something rather than lands somewhere is
+                 * a callback, and the call site that hands one over usually has
+                 * nowhere to keep it -- the builder that made the field is a
+                 * temporary. So a callable output is owned by the field, the
+                 * way `planet::widget::button` owns one, while a string or a
+                 * queue to write into still belongs to the call site and is
+                 * held by reference.
+                 */
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string committed;
+                using callback_field = planet::widget::text_input<
+                        std::function<void(std::string const &)>>;
+                /**
+                 * Built and then moved, because that is what a builder handing
+                 * a field back by value does to it, and the output has to come
+                 * along.
+                 */
+                callback_field built{
+                        "field",
+                        [&committed](std::string const &v) { committed = v; },
+                        "Nomad"};
+                callback_field field{std::move(built)};
+                place(field, bp, panel);
+
+                click(bp);
+                type(bp, " II");
+                press(bp, planet::events::scancode::return_key);
+
+                check(committed) == "Nomad II";
+            },
+            [](auto check) {
+                /// Nothing is called for an edit that was abandoned
+                planet::ui::baseplate bp;
+                planet::ui::panel panel;
+                std::string committed;
+                planet::widget::text_input<
+                        std::function<void(std::string const &)>>
+                        field{"field",
+                              [&committed](std::string const &v) {
+                                  committed = v;
+                              },
+                              "Nomad"};
+                place(field, bp, panel);
+
+                click(bp);
+                type(bp, " II");
+                press(bp, planet::events::scancode::escape_key);
+
+                check(committed) == "";
             });
 
 
