@@ -26,6 +26,38 @@ namespace {
     });
 
 
+    auto const resting_value = suite.test(
+            "resting value",
+            [](auto check) {
+                /**
+                 * A resting value handed in from outside takes the place of
+                 * what was there — the seam a field mirroring a number some
+                 * other control is changing keeps its text current through.
+                 */
+                planet::text::editor ed{"Nomad"};
+
+                ed.value("Zeta");
+
+                check(ed.value()) == "Zeta";
+                check(ed.is_editing()) == false;
+            },
+            [](auto check) {
+                /**
+                 * An edit in flight is left untouched: the buffer being typed
+                 * is never overwritten by what the field is told it now reads,
+                 * so the mirror only moves the value while the field is at rest.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+                ed.handle(typed(" II"));
+
+                ed.value("Zeta");
+
+                check(ed.value()) == "Nomad II";
+                check(ed.is_editing()) == true;
+            });
+
+
     auto const beginning = suite.test("begin", [](auto check) {
         planet::text::editor ed{"Nomad"};
 

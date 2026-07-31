@@ -150,6 +150,17 @@ namespace planet::text {
          */
         value_type const &value() const noexcept { return current; }
 
+        /// #### Replace the value shown at rest
+        /**
+         * A resting value handed in from outside, so a field mirroring a
+         * number some other control is changing keeps its text current.
+         * Ignored while an edit is running: the live buffer being typed is
+         * never overwritten by what the field is told it now reads.
+         */
+        void value(value_type v) noexcept {
+            if (not editing) { current = std::move(v); }
+        }
+
         /// #### Where the next character typed will go
         /**
          * A byte offset into `value()`, always on a character boundary.
