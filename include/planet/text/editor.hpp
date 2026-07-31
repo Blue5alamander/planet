@@ -93,6 +93,8 @@ namespace planet::text {
             if (from == caret) { return outcome::ignored; }
             current.erase(from, caret - from);
             caret = from;
+            /// Consulted on the change; a removal is never blocked
+            if (acceptable) { acceptable(current); }
             return outcome::changed;
         }
 
@@ -105,6 +107,8 @@ namespace planet::text {
             auto const to = next_boundary(current, caret);
             if (to == caret) { return outcome::ignored; }
             current.erase(caret, to - caret);
+            /// Consulted on the change; a removal is never blocked
+            if (acceptable) { acceptable(current); }
             return outcome::changed;
         }
 
@@ -132,10 +136,15 @@ namespace planet::text {
          * than about editing, so they come from the call site. Left unbound,
          * anything goes.
          *
-         * Deletion is deliberately not filtered. A cap that stopped the value
-         * growing must not also stop it being cut back down, and a rule that it
-         * may not be blank has to leave a way to clear it and start again --
-         * refusing the commit is what holds that line instead.
+         * A removal is consulted the same way, with the value the buffer has
+         * become, but its answer is not obeyed there: a deletion is never
+         * blocked, so a cap on how long the value grows cannot also stop it
+         * being cut back down, and a rule that it may not be blank still leaves
+         * a way to clear it and start again -- refusing the commit holds that
+         * line instead. The consultation is for the reaction, not the veto: a
+         * call site keeping something on the value as it is edited -- a slider
+         * on the number it spells -- hears a character come out as much as go
+         * in.
          */
 
 

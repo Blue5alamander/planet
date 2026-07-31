@@ -532,10 +532,10 @@ namespace {
             },
             [](auto check) {
                 /**
-                 * Deletion is not filtered. A value can always be cut down to
-                 * nothing -- a cap that stopped it being cut back would be no
-                 * use, and a rule that it may not be blank has to leave a way
-                 * to clear it and start again.
+                 * A removal is consulted but never obeyed, so a value can
+                 * always be cut down to nothing -- a cap that stopped it being
+                 * cut back would be no use, and a rule that it may not be blank
+                 * has to leave a way to clear it and start again.
                  */
                 planet::text::editor ed{"Nomad"};
                 ed.acceptable = [](std::string_view const v) {
@@ -567,6 +567,29 @@ namespace {
 
                 check(ed.value()) == "Nomad II";
                 check(ed.is_editing()) == false;
+            },
+            [](auto check) {
+                /**
+                 * A removal is a change like any other, so a call site that
+                 * reacts to the value as it is edited is told of it: the filter
+                 * is consulted after a deletion -- backwards and forwards --
+                 * with the value the buffer has become, though the deletion
+                 * itself is never blocked.
+                 */
+                planet::text::editor ed{"Zeta"};
+                std::string consulted;
+                ed.acceptable = [&consulted](std::string_view const v) {
+                    consulted += v;
+                    consulted += ';';
+                    return true;
+                };
+                ed.begin();
+
+                ed.handle(down(planet::events::scancode::backspace_key));
+                ed.handle(down(planet::events::scancode::home_key));
+                ed.handle(down(planet::events::scancode::delete_key));
+
+                check(consulted) == "Zet;et;";
             });
 
 
