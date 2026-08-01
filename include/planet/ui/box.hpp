@@ -26,7 +26,7 @@ namespace planet::ui {
         box(content_type c, float const hp, float const vp)
         : reflowable{"planet::ui::box"},
           content{std::move(c)},
-          padding{hp, vp} {}
+          padding{.top = vp, .right = hp} {}
         box(content_type c, ui::gravity const g, float const p = {})
         : reflowable{"planet::ui::box"},
           content{std::move(c)},

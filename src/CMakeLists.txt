@@ -261,6 +261,7 @@ add_test_run(check planet TESTS
         map.hex.tests.cpp
         map.square.tests.cpp
         maths.tests.cpp
+        padding.ui.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
         platform.tests.cpp

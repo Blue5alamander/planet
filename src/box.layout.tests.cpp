@@ -87,4 +87,20 @@ namespace {
             });
 
 
+    auto const pd = suite.test("padding", [](auto check, auto &log) {
+        constexpr planet::affine::extents2d size{4, 3};
+
+        auto b = planet::ui::box{planet::debug::fixed_element{log, size}, 2, 5};
+        b.reflow({.screen = screen}, screen);
+
+        check(b.padding.left) == 2;
+        check(b.padding.right) == 2;
+        check(b.padding.top) == 5;
+        check(b.padding.bottom) == 5;
+
+        check(b.constraints().min_extents())
+                == planet::affine::extents2d{8, 13};
+    });
+
+
 }

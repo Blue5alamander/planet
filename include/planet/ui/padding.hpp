@@ -19,11 +19,24 @@ namespace planet::ui {
         using constrained_type = constrained2d<float>;
 
 
+        /// ### The padding on each side
+        float top = {}, right = top, bottom = top, left = right;
         /**
-         * TODO Probably best to follow the padding order that CSS makes use of
-         * <https://developer.mozilla.org/en-US/docs/Web/CSS/padding>
+         * The sides are declared in the order used by the [CSS `padding`
+         * shorthand](https://developer.mozilla.org/en-US/docs/Web/CSS/padding),
+         * and each side defaults to the one it mirrors, so brace
+         * initialisation follows the same rules that CSS does:
+         *
+         * * `{a}` -- every side
+         * * `{a, b}` -- vertical, horizontal
+         * * `{a, b, c}` -- top, horizontal, bottom
+         * * `{a, b, c, d}` -- top, right, bottom, left
+         *
+         * The mirroring applies to designated initialisers as well, so
+         * `{.top = v, .right = h}` is the two value shorthand with its sides
+         * named. Naming `.left` instead of `.right` would not be: `right`
+         * mirrors `top` and would take the vertical padding.
          */
-        float left = {}, top = left, right = left, bottom = top;
 
 
         /// ### Remove padding
