@@ -54,4 +54,105 @@ namespace {
             });
 
 
+    auto const at = felspar::testsuite(
+            "padding.ui/add_to",
+            [](auto check) {
+                constexpr planet::ui::padding p{2, 3, 4, 5};
+                check(p.add_to(planet::affine::extents2d{92, 54}))
+                        == planet::affine::extents2d{100, 60};
+            },
+            [](auto check) {
+                /// Adding back what was removed gives the rectangle again
+                constexpr planet::ui::padding p{2, 3, 4, 5};
+                constexpr planet::affine::rectangle2d r{
+                        {10, 20}, planet::affine::extents2d{100, 60}};
+                check(p.add_to(p.remove_from(r)).top_left) == r.top_left;
+                check(p.add_to(p.remove_from(r)).extents) == r.extents;
+            });
+
+
+    constexpr planet::ui::padding::constrained_type space{
+            {100, 20, 200}, {60, 10, 120}};
+
+    auto const rl = felspar::testsuite(
+            "padding.ui/reflow",
+            [](auto check) {
+                /// The lambda lays out in the space left by the padding
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                p.reflow(
+                        {.screen = space}, space,
+                        [&](auto const &, auto const &inner) {
+                            check(inner.width.value()) == 94;
+                            check(inner.width.min()) == 14;
+                            check(inner.width.max()) == 194;
+                            check(inner.height.value()) == 56;
+                            check(inner.height.min()) == 6;
+                            check(inner.height.max()) == 116;
+                            return inner;
+                        });
+            },
+            [](auto check) {
+                /// A lambda that fills what it is offered is given back `ex`
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                auto const outer = p.reflow(
+                        {.screen = space}, space,
+                        [](auto const &, auto const &inner) { return inner; });
+                check(outer.width.value()) == space.width.value();
+                check(outer.width.min()) == space.width.min();
+                check(outer.width.max()) == space.width.max();
+                check(outer.height.value()) == space.height.value();
+                check(outer.height.min()) == space.height.min();
+                check(outer.height.max()) == space.height.max();
+            },
+            [](auto check) {
+                /// The content's own minimum comes back out padded
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                auto const outer = p.reflow(
+                        {.screen = space}, space,
+                        [](auto const &, auto const &) {
+                            return planet::ui::padding::constrained_type{
+                                    {40, 30, 194}, {25, 20, 116}};
+                        });
+                check(outer.width.value()) == 46;
+                check(outer.width.min()) == 36;
+                check(outer.height.value()) == 29;
+                check(outer.height.min()) == 24;
+            });
+
+
+    auto const mv = felspar::testsuite(
+            "padding.ui/move_to",
+            [](auto check) {
+                /// A lambda that fills what it is offered is given back `r`
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                constexpr planet::affine::rectangle2d outer{
+                        {10, 20}, planet::affine::extents2d{100, 60}};
+                auto const used = p.move_to(
+                        {.screen = space}, outer,
+                        [&](auto const &, auto const &inner) {
+                            check(inner.top_left)
+                                    == planet::affine::point2d{13, 22};
+                            check(inner.extents)
+                                    == planet::affine::extents2d{94, 56};
+                            return inner;
+                        });
+                check(used.top_left) == outer.top_left;
+                check(used.extents) == outer.extents;
+            },
+            [](auto check) {
+                /// Content that uses less gets the padding around what it used
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                auto const used = p.move_to(
+                        {.screen = space},
+                        {{10, 20}, planet::affine::extents2d{100, 60}},
+                        [](auto const &, auto const &inner) {
+                            return planet::affine::rectangle2d{
+                                    inner.top_left,
+                                    planet::affine::extents2d{10, 10}};
+                        });
+                check(used.top_left) == planet::affine::point2d{10, 20};
+                check(used.extents) == planet::affine::extents2d{16, 14};
+            });
+
+
 }

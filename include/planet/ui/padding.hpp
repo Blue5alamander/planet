@@ -3,6 +3,7 @@
 
 #include <planet/affine/rectangle2d.hpp>
 #include <planet/ui/constrained.hpp>
+#include <planet/ui/reflowable.hpp>
 
 
 namespace planet::ui {
@@ -17,6 +18,7 @@ namespace planet::ui {
      */
     struct padding {
         using constrained_type = constrained2d<float>;
+        using reflow_parameters = reflowable::reflow_parameters;
 
 
         /// ### The padding on each side
@@ -37,6 +39,44 @@ namespace planet::ui {
          * named. Naming `.left` instead of `.right` would not be: `right`
          * mirrors `top` and would take the vertical padding.
          */
+
+
+        /// ### Layout helpers
+        /**
+         * A UI element takes on padding by lifting the body of its `do_reflow`
+         * or `move_sub_elements` into the lambda. The lambda is handed the
+         * reflow parameters unchanged together with the space that is left once
+         * the padding has been taken off, so it lays out as though the padding
+         * were not there, and what it returns has the padding added back on to
+         * give the element's own answer.
+         *
+         * A lambda that uses everything it is offered -- returning the inner
+         * constraints or rectangle it was passed -- gets back exactly the outer
+         * `ex` or `r`, so wrapping a layout that fills its space changes
+         * nothing but the space the content sees.
+         */
+        template<typename Lambda>
+        constrained_type
+                reflow(reflow_parameters const &p,
+                       constrained_type const &ex,
+                       Lambda &&l) const {
+            auto const inner = l(p, remove_from(ex));
+            auto const wpad = left + right, hpad = top + bottom;
+            return {{inner.width.value() + wpad,
+                     std::max(inner.width.min() + wpad, ex.width.min()),
+                     ex.width.max()},
+                    {inner.height.value() + hpad,
+                     std::max(inner.height.min() + hpad, ex.height.min()),
+                     ex.height.max()}};
+        }
+
+        template<typename Lambda>
+        affine::rectangle2d
+                move_to(reflow_parameters const &p,
+                        affine::rectangle2d const &r,
+                        Lambda &&l) const {
+            return add_to(l(p, remove_from(r)));
+        }
 
 
         /// ### Remove padding
@@ -69,6 +109,19 @@ namespace planet::ui {
                 remove_from(affine::rectangle2d const &r) const noexcept {
             return {r.top_left + affine::point2d{left, top},
                     remove_from(r.extents)};
+        }
+
+
+        /// ### Add padding
+        /**
+         * The inverse of `remove_from`, taking an inner size or position back
+         * out to the outer one that surrounds it.
+         */
+        affine::extents2d add_to(affine::extents2d const ex) const noexcept {
+            return {ex.width + left + right, ex.height + top + bottom};
+        }
+        affine::rectangle2d add_to(affine::rectangle2d const &r) const noexcept {
+            return {r.top_left - affine::point2d{left, top}, add_to(r.extents)};
         }
     };
 
