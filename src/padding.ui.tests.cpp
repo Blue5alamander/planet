@@ -120,15 +120,19 @@ namespace {
             });
 
 
-    auto const mv = felspar::testsuite(
-            "padding.ui/move_to",
+    constexpr planet::affine::rectangle2d area{
+            {10, 20}, planet::affine::extents2d{100, 60}};
+
+    auto const op = felspar::testsuite(
+            "padding.ui/move_to_with_outer_padding",
             [](auto check) {
-                /// A lambda that fills what it is offered is given back `r`
+                /**
+                 * The lambda lays out inside the padding, and what it lays out
+                 * in is all that is claimed -- the ring is nobody's
+                 */
                 constexpr planet::ui::padding p{.top = 2, .right = 3};
-                constexpr planet::affine::rectangle2d outer{
-                        {10, 20}, planet::affine::extents2d{100, 60}};
-                auto const used = p.move_to(
-                        {.screen = space}, outer,
+                auto const used = p.move_to_with_outer_padding(
+                        {.screen = space}, area,
                         [&](auto const &, auto const &inner) {
                             check(inner.top_left)
                                     == planet::affine::point2d{13, 22};
@@ -136,15 +140,43 @@ namespace {
                                     == planet::affine::extents2d{94, 56};
                             return inner;
                         });
-                check(used.top_left) == outer.top_left;
-                check(used.extents) == outer.extents;
+                check(used.top_left) == planet::affine::point2d{13, 22};
+                check(used.extents) == planet::affine::extents2d{94, 56};
             },
             [](auto check) {
-                /// Content that uses less gets the padding around what it used
+                /// Content that uses less keeps only what it used
                 constexpr planet::ui::padding p{.top = 2, .right = 3};
-                auto const used = p.move_to(
-                        {.screen = space},
-                        {{10, 20}, planet::affine::extents2d{100, 60}},
+                auto const used = p.move_to_with_outer_padding(
+                        {.screen = space}, area,
+                        [](auto const &, auto const &inner) {
+                            return planet::affine::rectangle2d{
+                                    inner.top_left,
+                                    planet::affine::extents2d{10, 10}};
+                        });
+                check(used.top_left) == planet::affine::point2d{13, 22};
+                check(used.extents) == planet::affine::extents2d{10, 10};
+            });
+
+
+    auto const im = felspar::testsuite(
+            "padding.ui/move_to_with_inner_margin",
+            [](auto check) {
+                /**
+                 * A lambda that fills what it is offered gets back `r`, the
+                 * margin being part of what the element covers
+                 */
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                auto const used = p.move_to_with_inner_margin(
+                        {.screen = space}, area,
+                        [](auto const &, auto const &inner) { return inner; });
+                check(used.top_left) == area.top_left;
+                check(used.extents) == area.extents;
+            },
+            [](auto check) {
+                /// Content that uses less still covers its margin around it
+                constexpr planet::ui::padding p{.top = 2, .right = 3};
+                auto const used = p.move_to_with_inner_margin(
+                        {.screen = space}, area,
                         [](auto const &, auto const &inner) {
                             return planet::affine::rectangle2d{
                                     inner.top_left,

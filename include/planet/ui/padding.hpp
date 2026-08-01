@@ -46,14 +46,21 @@ namespace planet::ui {
          * A UI element takes on padding by lifting the body of its `do_reflow`
          * or `move_sub_elements` into the lambda. The lambda is handed the
          * reflow parameters unchanged together with the space that is left once
-         * the padding has been taken off, so it lays out as though the padding
-         * were not there, and what it returns has the padding added back on to
-         * give the element's own answer.
+         * the padding has been taken off, so whichever helper is used it lays
+         * out as though the padding were not there.
          *
-         * A lambda that uses everything it is offered -- returning the inner
-         * constraints or rectangle it was passed -- gets back exactly the outer
-         * `ex` or `r`, so wrapping a layout that fills its space changes
-         * nothing but the space the content sees.
+         * `reflow` serves both: the element asks for the space it needs plus
+         * the padding, so its container sets the room aside. What differs is
+         * the area the element goes on to claim, and the name of the `move_to`
+         * used says which is meant:
+         *
+         * * `move_to_with_outer_padding` reports back the rectangle the lambda
+         *   laid out in, so the padded ring is owned by nobody. For a widget it
+         *   is dead space -- pointer events over it fall through to whatever is
+         *   underneath rather than reaching the widget.
+         * * `move_to_with_inner_margin` reports that rectangle with the padding
+         *   put back around it, so the element covers its own margin. A widget
+         *   stays sensitive right across it.
          */
         template<typename Lambda>
         constrained_type
@@ -71,10 +78,18 @@ namespace planet::ui {
         }
 
         template<typename Lambda>
-        affine::rectangle2d
-                move_to(reflow_parameters const &p,
-                        affine::rectangle2d const &r,
-                        Lambda &&l) const {
+        affine::rectangle2d move_to_with_outer_padding(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r,
+                Lambda &&l) const {
+            return l(p, remove_from(r));
+        }
+
+        template<typename Lambda>
+        affine::rectangle2d move_to_with_inner_margin(
+                reflow_parameters const &p,
+                affine::rectangle2d const &r,
+                Lambda &&l) const {
             return add_to(l(p, remove_from(r)));
         }
 
