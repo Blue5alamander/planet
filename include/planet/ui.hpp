@@ -13,6 +13,7 @@
 #include <planet/ui/layout.breakable_row.hpp>
 #include <planet/ui/layout.column.hpp>
 #include <planet/ui/layout.corners.hpp>
+#include <planet/ui/layout.expandable_row.hpp>
 #include <planet/ui/layout.grid.hpp>
 #include <planet/ui/layout.row.hpp>
 #include <planet/ui/layoutable.hpp>

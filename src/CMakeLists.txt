@@ -183,6 +183,7 @@ target_sources(planet PUBLIC
         ../include/planet/ui/layout.breakable_row.hpp
         ../include/planet/ui/layout.column.hpp
         ../include/planet/ui/layout.corners.hpp
+        ../include/planet/ui/layout.expandable_row.hpp
         ../include/planet/ui/layout.grid.hpp
         ../include/planet/ui/layout.hpp
         ../include/planet/ui/layout.row.hpp
@@ -253,6 +254,7 @@ add_test_run(check planet TESTS
         editor.text.tests.cpp
         entities.tests.cpp
         event.tests.cpp
+        expandable_row.layout.tests.cpp
         folders.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
