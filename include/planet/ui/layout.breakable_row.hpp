@@ -63,7 +63,7 @@ namespace planet::ui {
                 auto const ex = items[index].constraints();
                 if (x + hpadding + ex.width.value() > border.width.value()) {
                     x = {};
-                    if (y) { y += vpadding; }
+                    if (row_height) { y += vpadding; }
                     y += row_height;
                     row_height = {};
                 }
@@ -140,7 +140,7 @@ namespace planet::ui {
                  auto &ex : superclass::items_constraints()) {
                 if (x + ex.width.value() > border.width.value()) {
                     x = {};
-                    if (y) { y += vpadding; }
+                    if (row_height) { y += vpadding; }
                     y += row_height;
                     row_height = {};
                 }
