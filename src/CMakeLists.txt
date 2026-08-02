@@ -187,6 +187,7 @@ target_sources(planet PUBLIC
         ../include/planet/ui/layout.grid.hpp
         ../include/planet/ui/layout.hpp
         ../include/planet/ui/layout.row.hpp
+        ../include/planet/ui/max_width.hpp
         ../include/planet/ui/pack.reflowable.hpp
         ../include/planet/ui/padding.hpp
         ../include/planet/ui/panel.hpp
@@ -264,6 +265,7 @@ add_test_run(check planet TESTS
         map.hex.tests.cpp
         map.square.tests.cpp
         maths.tests.cpp
+        max_width.layout.tests.cpp
         padding.ui.tests.cpp
         panel.tests.cpp
         performance.tests.cpp
