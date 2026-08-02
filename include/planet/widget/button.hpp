@@ -251,6 +251,33 @@ namespace planet::widget {
         }
     };
 
+
+    /// ### Specialisations for different deliveries of button clicks
+    /**
+     * `behaviour` turns the button's mouse events into a stream of clicks and
+     * hands it to the `handle` for whatever the button was given to press
+     * into, so what a press does is settled by the type of that output alone
+     * and the button itself knows nothing about how the press is delivered.
+     *
+     * The constraints the specialisations are chosen by do not order against
+     * each other, so an output must satisfy exactly one of them: a callable
+     * taking `auto` is invocable both with the button and with the click, and
+     * an output matching two is an ambiguity rather than a choice. A callback
+     * therefore says what it wants by naming its parameter's type.
+     *
+     * A queue and a future are held by reference — that is what `deduce`
+     * settles — so they must outlive the button, while a callback is owned by
+     * it and moves with it.
+     */
+
+    /// #### A queue told that the button was pressed
+    /**
+     * The item type carries nothing, the press itself being the whole
+     * message, so every press pushes an empty value. When a `ward` is set the
+     * push goes through it, so a press that destroys the button — one
+     * dismissing the screen the button lives on — resumes the consumer after
+     * this coroutine has let go of it.
+     */
     template<ui::drawable Texture, typename Output>
     template<queue::push_void_queue Q>
     struct button<void, Texture, Output>::handle<Q> {
@@ -265,14 +292,29 @@ namespace planet::widget {
             }
         }
     };
+    /// #### A future satisfied by the first press
+    /**
+     * A future can only be set once, so this is the one delivery that is not
+     * a loop: the first click sets the value and the behaviour ends, leaving
+     * later clicks on the button unanswered. It suits a button whose press is
+     * awaited once — the answer to a question the coroutine that built the
+     * button is sitting on — rather than one pressed over and over.
+     */
     template<ui::drawable Texture, typename Output>
-    template<typename R>
-    struct button<void, Texture, Output>::handle<felspar::coro::future<R>> {
+    template<std::same_as<felspar::coro::future<void>> Q>
+    struct button<void, Texture, Output>::handle<Q> {
         static felspar::coro::task<void> press(button *self, auto clicks) {
             co_await clicks.next();
             self->output_to.set_value();
         }
     };
+    /// #### A callback that only needs to know a press happened
+    /**
+     * The plainest delivery, and what most buttons are built with: the
+     * callback is called with nothing on every press, and the click that
+     * caused it is read and dropped. A callback wanting anything the event
+     * carries takes the click instead — see below.
+     */
     template<ui::drawable Texture, typename Output>
     template<std::invocable<> Q>
     struct button<void, Texture, Output>::handle<Q> {
@@ -283,6 +325,14 @@ namespace planet::widget {
             }
         }
     };
+    /// #### A callback taking the button it was pressed on
+    /**
+     * Called with the button itself on every press, so a callback can act on
+     * the widget it belongs to — reading or changing what it draws, or
+     * disabling it — rather than having to be handed an address that the
+     * moves into a layout may since have invalidated. What it is given is
+     * where the button has ended up, not where it was built.
+     */
     template<ui::drawable Texture, typename Output>
     template<std::invocable<button<void, Texture, Output> &> Q>
     struct button<void, Texture, Output>::handle<Q> {
@@ -290,6 +340,23 @@ namespace planet::widget {
             while (true) {
                 auto click = co_await clicks.next();
                 self->output_to(*self);
+            }
+        }
+    };
+    /// #### A callback taking the click that pressed the button
+    /**
+     * The press is handed the whole `events::click`, so a callback can tell a
+     * shift-click from the plain kind — the modifiers held at the time are
+     * already carried on the event, and the callbacks above simply drop them.
+     * Match a combination by comparing against a constructed
+     * `events::modifiers` value, the way key presses are matched.
+     */
+    template<ui::drawable Texture, typename Output>
+    template<std::invocable<events::click> Q>
+    struct button<void, Texture, Output>::handle<Q> {
+        static felspar::coro::task<void> press(button *self, auto clicks) {
+            while (auto click = co_await clicks.next()) {
+                self->output_to(*click);
             }
         }
     };

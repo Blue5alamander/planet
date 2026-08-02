@@ -248,6 +248,7 @@ add_test_run(check planet TESTS
         boundary.text.tests.cpp
         box.layout.tests.cpp
         breakable_row.layout.tests.cpp
+        button.ui.tests.cpp
         cameras.tests.cpp
         column.layout.tests.cpp
         constrained.tests.cpp
