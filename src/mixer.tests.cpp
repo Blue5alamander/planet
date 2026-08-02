@@ -490,9 +490,17 @@ namespace {
 
                 /// 1024 samples of latency is two 512-sample blocks.
                 check(m.buffer_depth()) == std::size_t{2};
-                /// An unbounded producer would render hundreds of blocks here;
-                /// the ring must cap it at exactly `depth`.
-                std::this_thread::sleep_for(50ms);
+                /**
+                 * Wait for the producer to reach its bounded lead, then give
+                 * it time an unbounded producer would use to render hundreds
+                 * more blocks; the ring must cap it at exactly `depth`.
+                 */
+                auto const deadline = std::chrono::steady_clock::now() + 5s;
+                while (m.buffered_blocks() < m.buffer_depth()
+                       and std::chrono::steady_clock::now() < deadline) {
+                    std::this_thread::sleep_for(1ms);
+                }
+                std::this_thread::sleep_for(20ms);
                 check(m.buffered_blocks()) == m.buffer_depth();
                 check(m.underrun_count()) == std::uint64_t{};
             });
@@ -519,10 +527,16 @@ namespace {
         /// Drain the `bind_driver` pre-rolled silence lead-in first.
         planet::by_index(depth * block_size, [&]() { m.next_frame(); });
         /**
-         * Give the producer thread time to render ramp blocks ahead of the
-         * drain so the tight read loop below cannot outrun it.
+         * Wait until the producer has refilled the ring. The loop below reads
+         * exactly `depth` blocks, so a full ring guarantees it cannot outrun
+         * the producer however the threads are scheduled.
          */
-        std::this_thread::sleep_for(20ms);
+        auto const deadline = std::chrono::steady_clock::now() + 5s;
+        while (m.buffered_blocks() < depth
+               and std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(1ms);
+        }
+        check(m.buffered_blocks()) == depth;
 
         planet::by_index(depth * block_size, [&](auto const i) {
             auto const f = m.next_frame();
