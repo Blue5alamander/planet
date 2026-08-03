@@ -272,6 +272,7 @@ add_test_run(check planet TESTS
         platform.tests.cpp
         range.ui.tests.cpp
         row.layout.tests.cpp
+        serialise.chrono.tests.cpp
         serialise.tests.cpp
         serialise.variant.tests.cpp
         scaling.tests.cpp
