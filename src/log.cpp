@@ -29,7 +29,17 @@ namespace {
         static auto st = std::chrono::steady_clock::now();
         return st;
     }
+    auto g_started_at() {
+        static auto st = std::chrono::system_clock::now();
+        return st;
+    }
     [[maybe_unused]] auto const g_started = g_start_time();
+    [[maybe_unused]] auto const g_started_wall = g_started_at();
+    /**
+     * Both are read as the run starts, so the wall clock instant written into a
+     * log file's header is where the offsets in the rest of it are counted
+     * from, rather than being whenever the header happened to be written.
+     */
 
 
     auto &printers_mutex() {
@@ -210,11 +220,10 @@ namespace {
         }
 
         void print_lgc(
-                std::chrono::steady_clock::time_point const &logged,
+                std::chrono::nanoseconds const since_start,
                 std::span<std::byte const> const payload) {
             std::cout << "\33[0;32m" << std::fixed
-                      << static_cast<double>(
-                                 (logged - g_start_time()).count() / 1e9)
+                      << std::chrono::duration<double>(since_start).count()
                       << std::defaultfloat
                       << " Performance counters\33[0;39m\n  ";
             planet::serialise::load_buffer lb{payload};
@@ -227,7 +236,10 @@ namespace {
             auto const bytes = planet::log::detail::ab.complete();
             planet::log::logged_performance_counters lgc{.counters = bytes};
             if (planet::log::display_performance_messages.load()) {
-                print_lgc(lgc.logged, lgc.counters.cmemory());
+                print_lgc(
+                        std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                lgc.logged - g_start_time()),
+                        lgc.counters.cmemory());
             }
             if (auto *out = planet::log::log_output.load(); out) {
                 save(planet::log::detail::ab, lgc);
@@ -254,12 +266,12 @@ namespace {
                     planet::serialise::load_buffer lb{bytes};
                     try {
                         auto box = planet::serialise::expect_box(lb);
-                        std::chrono::steady_clock::time_point logged;
+                        planet::log::steady_clock::elapsed logged;
                         std::span<std::byte const> counters;
                         box.named(
                                 planet::log::logged_performance_counters::box,
                                 logged, counters);
-                        print_lgc(logged, counters);
+                        print_lgc(logged.since_start, counters);
                     } catch (std::exception const &err) {
                         planet::log::error(
                                 "Showing logged performance counters error:",
@@ -367,19 +379,29 @@ void planet::log::steady_clock::save(
     // Resolve the offset from the start here, on the machine that captured the
     // time, and store it as a fixed-unit duration so the value remains correct
     // wherever the log is later read.
-    ab.save_box(
-            time_point::box,
-            std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    tp.time - start_time()));
+    save(ab,
+         elapsed{std::chrono::duration_cast<std::chrono::nanoseconds>(
+                 tp.time - start_time())});
+}
+void planet::log::steady_clock::save(
+        serialise::save_buffer &ab, elapsed const e) {
+    ab.save_box(elapsed::box, e.since_start);
+}
+void planet::log::steady_clock::load(serialise::box &b, elapsed &e) {
+    b.named(elapsed::box, e.since_start);
+}
+void planet::log::detail::log(
+        serialise::save_buffer &ab,
+        std::chrono::steady_clock::time_point const tp) {
+    save(ab, planet::log::steady_clock::time_point{tp});
 }
 namespace {
     auto const steady_clock_time_point = planet::log::format(
-            planet::log::steady_clock::time_point::box,
-            [](auto &os, auto &box) {
-                std::chrono::nanoseconds elapsed;
-                box.named(planet::log::steady_clock::time_point::box, elapsed);
+            planet::log::steady_clock::elapsed::box, [](auto &os, auto &box) {
+                std::chrono::nanoseconds since_start;
+                box.named(planet::log::steady_clock::elapsed::box, since_start);
                 os << std::fixed
-                   << std::chrono::duration<double>(elapsed).count()
+                   << std::chrono::duration<double>(since_start).count()
                    << std::defaultfloat;
             });
 }
@@ -519,11 +541,46 @@ void planet::log::write_file_headers() {
     }
 }
 void planet::log::write_file_headers(serialise::save_buffer &sb) {
-    sb.save_box(file_header::box, g_start_time(), log_root_directory);
+    sb.save_box(2, file_header::box, g_started_at(), log_root_directory);
 }
 void planet::log::load_fields(serialise::box &b, file_header &f) {
-    b.fields(f.base_time, f.file_prefix);
+    if (b.version == 2) {
+        b.fields(f.started, f.file_prefix);
+    } else if (b.version == 1) {
+        /**
+         * The time stamps in a version 1 file are the bare steady clock
+         * readings the run took, and this is the reading they are all measured
+         * against, so it has to come back as it was written rather than as
+         * anything this run's clock would recognise.
+         */
+        auto base = serialise::expect_box(b.content);
+        serialise::detail::load_since_epoch(base, f.base_time);
+        b.fields(f.file_prefix);
+    } else {
+        b.throw_unsupported_version(2);
+    }
     b.check_empty_or_throw();
+}
+
+
+std::chrono::nanoseconds planet::log::load_time_stamp(
+        serialise::load_buffer &lb, file_header const &header) {
+    auto stamp = serialise::expect_box(lb);
+    if (stamp.name == steady_clock::elapsed::box) {
+        steady_clock::elapsed since_start;
+        load(stamp, since_start);
+        return since_start.since_start;
+    } else {
+        /**
+         * A version 1 time stamp is the bare steady clock reading the run took,
+         * which only means anything against the reading the same file's header
+         * carries.
+         */
+        std::chrono::steady_clock::time_point when;
+        serialise::detail::load_since_epoch(stamp, when);
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+                when - header.base_time);
+    }
 }
 
 
@@ -532,7 +589,7 @@ void planet::log::load_fields(serialise::box &b, file_header &f) {
 
 void planet::log::save(
         serialise::save_buffer &ab, logged_performance_counters const &l) {
-    ab.save_box(l.box, l.logged, l.counters);
+    ab.save_box(2, l.box, steady_clock::time_point{l.logged}, l.counters);
 }
 
 
@@ -546,5 +603,7 @@ void planet::log::logged_performance_counters::print(
 
 
 void planet::log::save(serialise::save_buffer &ab, message const m) {
-    ab.save_box(m.box, m.level, m.location, m.logged, m.payload);
+    ab.save_box(
+            2, m.box, m.level, m.location, steady_clock::time_point{m.logged},
+            m.payload);
 }

@@ -13,10 +13,7 @@ namespace {
     void fetch_and_print_timestamp(
             planet::log::file_header const &header,
             planet::serialise::box &box) {
-        std::chrono::steady_clock::time_point when;
-        load(box.content, when);
-        auto const ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                when - header.base_time);
+        auto const ns = planet::log::load_time_stamp(box.content, header);
         if (ns < 1us) {
             std::cout << ns.count() << "ns ";
         } else if (ns < 1ms) {
@@ -50,6 +47,14 @@ int main(int argc, char const *argv[]) {
                 auto box = planet::serialise::expect_box(lb);
                 if (box.name == "_p:log:h") {
                     planet::log::load_fields(box, header);
+                    if (auto const started =
+                                std::chrono::duration_cast<std::chrono::seconds>(
+                                        header.started.time_since_epoch());
+                        started.count()) {
+                        std::cout << "The run started at " << started.count()
+                                  << " (POSIX time), and every time stamp below"
+                                  << " is counted from there\n";
+                    }
                 } else if (box.name == "_p:log:m") {
                     planet::log::level level{};
                     load(box.content, level);

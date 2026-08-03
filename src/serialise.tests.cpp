@@ -681,23 +681,26 @@ namespace {
 
 
     auto const ct = suite.test("chrono time_point", [](auto check) {
-        auto const tp1 = std::chrono::steady_clock::now();
+        /**
+         * The wall clock and the game clock both count from a moment that stays
+         * where it is, so their readings mean the same thing at the far end. A
+         * `std::chrono::steady_clock` reading does not, and saving one is
+         * refused -- see `planet::log`, which resolves them to an offset from
+         * the start of the run instead.
+         */
         auto const tp2 = std::chrono::system_clock::now();
         planet::time::clock clock;
         auto const tp3 = clock.now() + 50ms;
 
         planet::serialise::save_buffer ab;
-        save(ab, tp1, tp2, tp3);
+        save(ab, tp2, tp3);
         auto bytes{ab.complete()};
 
         auto lb = planet::serialise::load_buffer{bytes.cmemory()};
-        std::chrono::steady_clock::time_point tp1_loaded;
         std::chrono::system_clock::time_point tp2_loaded;
         planet::time::clock::time_point tp3_loaded;
-        load(lb, tp1_loaded);
         load(lb, tp2_loaded);
         load(lb, tp3_loaded);
-        check(tp1_loaded) == tp1;
         check(tp2_loaded) == tp2;
         check(tp3_loaded) == tp3;
     });

@@ -23,8 +23,9 @@ namespace planet::log {
      */
 
 
-    /// ## A `std::chrono::steady_clock` time point that can be logged
+    /// ## `std::chrono::steady_clock` times in a log file
     namespace steady_clock {
+        /// ### On the way in
         struct time_point final {
             static constexpr std::string_view box{"_p:log:sc"};
 
@@ -34,18 +35,33 @@ namespace planet::log {
             : time{tp} {}
         };
         void save(serialise::save_buffer &, time_point);
+
+        /// ### On the way out
+        struct elapsed final {
+            static constexpr std::string_view box{"_p:log:sc"};
+
+            std::chrono::nanoseconds since_start = {};
+        };
+        void save(serialise::save_buffer &, elapsed);
+        void load(serialise::box &, elapsed &);
     }
     /**
-     * Wrap a captured `std::chrono::steady_clock::time_point` in this before
-     * passing it to a log call, e.g.
-     * `planet::log::info("hit", planet::log::steady_clock::time_point{when})`.
-     * On save the time is turned into the offset from `start_time()` and stored
-     * as a `std::chrono` duration (carrying its own unit, just like any other
-     * logged duration). Resolving the offset on the machine that captured it --
-     * where the clock's epoch is meaningful -- means the log file stays correct
-     * even if it is read back on another machine. The registered formatter
-     * renders it as seconds since the start, the same basis as the time stamp
-     * at the front of each log line.
+     * A steady clock reading is a distance from a moment only the run that took
+     * it knows, so it is turned into the offset from `start_time()` before it
+     * reaches the file and stored as a `std::chrono` duration (carrying its own
+     * unit, just like any other logged duration). Resolving the offset on the
+     * machine that captured it -- where the clock's epoch is still meaningful
+     * -- is what lets the log be read back anywhere at all.
+     *
+     * That is why the two types are not one: a `time_point` can go in, but only
+     * the `elapsed` it was resolved to can come back out. Everything that reads
+     * a log file works in those offsets, on the same basis as the time stamp at
+     * the front of each printed log line, which is what the registered
+     * formatter renders.
+     *
+     * Passing a bare `std::chrono::steady_clock::time_point` to a log call does
+     * all of this, so the wrapper is only needed where a save buffer is being
+     * filled in directly.
      */
 
 
@@ -148,6 +164,14 @@ namespace planet::log {
         void log(serialise::save_buffer &sb, T const &v) {
             v.log(sb);
         }
+        void
+                log(serialise::save_buffer &,
+                    std::chrono::steady_clock::time_point);
+        /**
+         * A steady clock reading cannot be saved, but it can be logged: this is
+         * where it is resolved to its offset from `start_time()`, on the
+         * machine and in the run that captured it.
+         */
     }
 
 
@@ -355,12 +379,40 @@ namespace planet::log {
     struct file_header {
         static constexpr std::string_view box{"_p:log:h"};
 
-        /// ### Time stamp the game started
+        /// ### Wall clock instant the run started
+        std::chrono::system_clock::time_point started = {};
+        /**
+         * Every time stamp in the file is an offset from the start of the run,
+         * so this is what turns them into instants that can be lined up against
+         * anything else that happened.
+         */
+
+        /// ### Steady clock reading the run started at
         std::chrono::steady_clock::time_point base_time = {};
+        /**
+         * Version 1 files only, where the time stamps were the bare steady
+         * clock readings the run took and this was the one they were all
+         * measured against. Nothing writes it any more; it is filled in when
+         * such a file is read so that those files still print.
+         */
+
         /// ### Common file prefix for source location
         std::string file_prefix = {};
     };
     void load_fields(serialise::box &, file_header &);
+
+
+    /// ### Read a time stamp out of a log file
+    std::chrono::nanoseconds
+            load_time_stamp(serialise::load_buffer &, file_header const &);
+    /**
+     * Log messages and performance counter dumps both carry the time they
+     * happened at, and what comes back is how long the run had been going by
+     * then -- the same basis as the time stamp at the front of each printed log
+     * line. A version 1 file carries the bare steady clock reading the run
+     * took, so there the `file_header` it is measured against has to be the one
+     * the same file gave.
+     */
 
 
     /// ### Write log file header

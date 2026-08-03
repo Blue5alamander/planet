@@ -184,4 +184,83 @@ namespace {
             });
 
 
+    auto const steady_clock_formatter =
+            suite.test("std::chrono::steady_clock::time_point", [](auto check) {
+                /**
+                 * A steady reading is resolved to its offset from the start of
+                 * the run as it is saved, which is the only form of it that
+                 * survives into the file.
+                 */
+                planet::serialise::save_buffer ab;
+                save(ab,
+                     planet::log::steady_clock::time_point{
+                             planet::log::start_time() + 250ms});
+                auto const bytes = ab.complete();
+
+                std::ostringstream oss;
+                planet::serialise::load_buffer lb{bytes};
+                planet::log::pretty_print(oss, lb);
+
+                check(oss.str()) == "0.250000";
+            });
+
+
+    auto const version_2_time_stamp =
+            suite.test("file/version 2 time stamp", [](auto check) {
+                /**
+                 * The header of a version 2 file says when the run started on
+                 * the wall clock, and the time stamps in it are counted from
+                 * the start of the run, so nothing in the file has to be
+                 * measured against anything else in it.
+                 */
+                planet::serialise::save_buffer ab;
+                planet::log::write_file_headers(ab);
+                save(ab,
+                     planet::log::steady_clock::time_point{
+                             planet::log::start_time() + 250ms});
+                auto const bytes = ab.complete();
+
+                planet::serialise::load_buffer lb{bytes};
+                auto header_box = planet::serialise::expect_box(lb);
+                check(header_box.version) == 2u;
+                planet::log::file_header header;
+                planet::log::load_fields(header_box, header);
+                check(header.started.time_since_epoch().count() > 0) == true;
+                check(planet::log::load_time_stamp(lb, header) == 250ms)
+                        == true;
+            });
+
+
+    auto const version_1_time_stamp =
+            suite.test("file/version 1 time stamp", [](auto check) {
+                /**
+                 * A version 1 file instead carries the bare steady clock
+                 * readings the run took, and the one in its header is what the
+                 * rest are measured against. Read that way they still come out
+                 * the lengths of time they were.
+                 */
+                std::chrono::steady_clock::time_point const base{1000s};
+
+                planet::serialise::save_buffer ab;
+                ab.save_box_lambda(1, planet::log::file_header::box, [&]() {
+                    ab.save_box(2, "_sc::time_point", base.time_since_epoch());
+                    save(ab, std::string_view{"/home/someone/game"});
+                });
+                ab.save_box(
+                        2, "_sc::time_point",
+                        (base + 250ms).time_since_epoch());
+                auto const bytes = ab.complete();
+
+                planet::serialise::load_buffer lb{bytes};
+                auto header_box = planet::serialise::expect_box(lb);
+                planet::log::file_header header;
+                planet::log::load_fields(header_box, header);
+                check(header.base_time == base) == true;
+                check(header.file_prefix) == "/home/someone/game";
+                check(header.started.time_since_epoch().count()) == 0;
+                check(planet::log::load_time_stamp(lb, header) == 250ms)
+                        == true;
+            });
+
+
 }

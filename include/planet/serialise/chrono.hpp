@@ -38,18 +38,37 @@ namespace planet::serialise {
      * since its clock's epoch, so it is carried by the same machinery and lands
      * at the instant it was saved at whatever either end counts in.
      *
+     * The epoch a time point counts from is the other half of the same
+     * problem, and it cannot be written into the file at all — an epoch is a
+     * moment, not a number, and the only thing a clock can say about its own is
+     * where it happens to be now. So the count goes in as it stands, and
+     * whether it still means anything at the far end is settled by the clock
+     * the field was declared with:
+     *
+     * * `std::chrono::system_clock` counts from a fixed moment in history, so
+     *   its reading is a wall clock instant and keeps its meaning wherever it
+     *   is read.
+     * * A game clock such as `planet::time::clock` counts from the start of
+     *   play, which stays put in the same way for the game it belongs to — play
+     *   time doesn't run on while the game is paused or while a save sits
+     *   unopened — so its reading comes back the game time it went in as.
+     * * `std::chrono::steady_clock` counts from an arbitrary moment in the run
+     *   that read it, usually when the machine booted, so its reading means
+     *   nothing in any other run. Saving one is refused: the `save` and `load`
+     *   for a steady time point are deleted, and `planet::log` is where steady
+     *   times belong. It resolves them against the start of the run at the
+     *   point of capture — where the epoch is still known — and only the offset
+     *   reaches the file.
+     *
      * What that leaves a reader able to say about a loaded value:
      *
      * * The length of time is exact, in the units loaded into, truncated
      *   towards zero. Loading into coarser units than were saved drops the tail
      *   of the value, never its magnitude.
-     * * The epoch is **not** in the file. The clock comes from the type at the
-     *   loading end and nothing checks it against the one that saved: a
-     *   `steady_clock` reading is a distance from an arbitrary point in the
-     *   run that wrote it and means nothing in any other run, where a
-     *   `system_clock` reading is a wall clock instant that keeps its meaning.
-     *   Which of those a value is has to be settled where the field is
-     *   declared, because the file cannot settle it later.
+     * * A time point is at the instant it was saved at, as told by the clock it
+     *   is declared with. Nothing checks that clock against the one that saved
+     *   the value, because the file cannot settle it later — which is why it
+     *   has to be settled where the field is declared.
      * * A box from before the ratio was saved has only its count, so it can
      *   only be taken to already be in the units being loaded into.
      */
@@ -143,32 +162,76 @@ namespace planet::serialise {
     template<typename Clock, typename Duration>
     void
             save(save_buffer &ab,
-                 std::chrono::time_point<Clock, Duration> const &tp) {
+                 std::chrono::time_point<Clock, Duration> const tp) {
         ab.save_box(2, "_sc::time_point", tp.time_since_epoch());
     }
+    namespace detail {
+        /// #### The count as it stands, whatever its clock counts from
+        template<typename Clock, typename Duration>
+        void load_since_epoch(
+                box &b, std::chrono::time_point<Clock, Duration> &tp) {
+            b.lambda("_sc::time_point", [&]() {
+                if (b.version == 2) {
+                    /**
+                     * The time since the clock's epoch is saved as a duration,
+                     * so the units it was counted in ride along with the count
+                     * and the time point comes back at the same instant (modulo
+                     * some possible rounding depending on the units the
+                     * standard libraries use) no matter what the clock counts
+                     * in at either end.
+                     */
+                    Duration since_epoch;
+                    b.fields(since_epoch);
+                    tp = std::chrono::time_point<Clock, Duration>{since_epoch};
+                } else if (b.version == 1) {
+                    typename Duration::rep c;
+                    b.fields(c);
+                    tp = std::chrono::time_point<Clock, Duration>{Duration{c}};
+                } else {
+                    b.throw_unsupported_version(2);
+                }
+            });
+        }
+        /**
+         * Paying no attention to the epoch is also what makes this the way in
+         * for the readings `load` refuses. A `std::chrono::steady_clock` count
+         * is only of use against another count the same run wrote, so reaching
+         * in here for one is saying that the file carries whatever else is
+         * needed to make sense of it — as the header of a `planet::log` file
+         * written before the log kept its times as offsets does. Nothing writes
+         * such a file any more, so there is no saving counterpart to reach for.
+         */
+    }
+
     template<typename Clock, typename Duration>
     void load(box &b, std::chrono::time_point<Clock, Duration> &tp) {
-        b.lambda("_sc::time_point", [&]() {
-            if (b.version == 2) {
-                /**
-                 * The time since the clock's epoch is saved as a duration, so
-                 * the units it was counted in ride along with the count and the
-                 * time point comes back at the same instant (modulo some possible
-                 * rounding depending on the units the standard libraries use)
-                 * no matter what the clock counts in at either end.
-                 */
-                Duration since_epoch;
-                b.fields(since_epoch);
-                tp = std::chrono::time_point<Clock, Duration>{since_epoch};
-            } else if (b.version == 1) {
-                typename Duration::rep c;
-                b.fields(c);
-                tp = std::chrono::time_point<Clock, Duration>{Duration{c}};
-            } else {
-                b.throw_unsupported_version(2);
-            }
-        });
+        detail::load_since_epoch(b, tp);
     }
+
+    /// #### `std::chrono::steady_clock`
+    template<typename Duration>
+    void
+            save(save_buffer &,
+                 std::chrono::time_point<std::chrono::steady_clock, Duration>) =
+                    delete;
+    template<typename Duration>
+    void load(
+            box &,
+            std::chrono::time_point<std::chrono::steady_clock, Duration> &) =
+            delete;
+    /**
+     * A `std::chrono::steady_clock` reading is a distance from a moment only
+     * the run that took it knows, so written into a file it says nothing that
+     * can be read back. Log it instead —
+     * `planet::log::info("arrived", when)` — and the log resolves it to an
+     * offset from the start of the run while the epoch is still there to
+     * resolve it against.
+     *
+     * A file of your own that has to hold steady times needs the same shape:
+     * pick one reading for the rest of the file to be measured against, write
+     * the wall clock instant it was taken at, and save every other time as a
+     * `std::chrono::duration` from it.
+     */
 
 
 }

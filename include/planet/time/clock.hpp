@@ -110,6 +110,8 @@ namespace planet::time {
     /**
      * Proportions may be more than one if the duration is longer than expected.
      */
+
+
     /**
      * ### Between two durations
      *

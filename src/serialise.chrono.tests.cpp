@@ -1,4 +1,5 @@
 #include <planet/serialise.hpp>
+#include <planet/time.hpp>
 
 #include <felspar/test.hpp>
 
@@ -168,6 +169,66 @@ namespace {
                 std::chrono::sys_seconds when;
                 load(lb, when);
                 check(when.time_since_epoch().count()) == 1'700'000'000;
+            });
+
+
+    auto const bare_steady_count =
+            suite.test("steady/reading-back-bare-counts", [](auto check) {
+                /**
+                 * A file carrying its own reading for the rest of it to be
+                 * measured against can still be read, by name. That is what a
+                 * log file written before the log kept its times as offsets is,
+                 * and reading the counts back as they were written is what
+                 * makes the distances between them come out the lengths of time
+                 * they were. Only the reading survives -- nothing writes such a
+                 * file any more, so the bytes here are spelled out.
+                 */
+                planet::serialise::save_buffer sb;
+                std::chrono::steady_clock::time_point const base{
+                        std::chrono::seconds{1'000}};
+                sb.save_box(2, "_sc::time_point", base.time_since_epoch());
+                sb.save_box(
+                        2, "_sc::time_point",
+                        (base + std::chrono::milliseconds{250})
+                                .time_since_epoch());
+                auto const bytes = sb.complete();
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                std::chrono::steady_clock::time_point loaded_base, logged;
+                auto base_box = planet::serialise::expect_box(lb);
+                planet::serialise::detail::load_since_epoch(
+                        base_box, loaded_base);
+                auto logged_box = planet::serialise::expect_box(lb);
+                planet::serialise::detail::load_since_epoch(logged_box, logged);
+                check(loaded_base == base) == true;
+                check(logged - loaded_base == std::chrono::milliseconds{250})
+                        == true;
+            });
+
+
+    auto const game_time = suite.test("game-clock/round-trip", [](auto check) {
+        /**
+         * Play time is counted from the start of the game, which stays where it
+         * is however long the save sits unopened, so the game time comes back
+         * the game time it went in as.
+         */
+        planet::time::clock clock;
+        clock.advance_by(std::chrono::seconds{90});
+        check(round_trip<planet::time::clock::time_point>(clock.now())
+              == clock.now())
+                == true;
+    });
+
+
+    auto const old_game_time =
+            suite.test("game-clock/before-units-were-saved", [](auto check) {
+                planet::serialise::save_buffer sb;
+                sb.save_box("_sc::time_point", std::uint64_t{90'000'000'000});
+                auto const bytes = sb.complete();
+                auto lb = planet::serialise::load_buffer{bytes.cmemory()};
+                planet::time::clock::time_point when;
+                load(lb, when);
+                check(when.time_since_epoch() == std::chrono::seconds{90})
+                        == true;
             });
 
 
