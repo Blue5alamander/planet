@@ -130,6 +130,7 @@ target_sources(planet PUBLIC
         ../include/planet/random/pick.hpp
         ../include/planet/serialise/affine.hpp
         ../include/planet/serialise/base_types.hpp
+        ../include/planet/serialise/chrono.detail.hpp
         ../include/planet/serialise/chrono.hpp
         ../include/planet/serialise/collections.hpp
         ../include/planet/serialise/events.hpp
