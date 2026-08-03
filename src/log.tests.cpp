@@ -6,6 +6,7 @@
 #include <felspar/test.hpp>
 
 #include <chrono>
+#include <optional>
 #include <sstream>
 
 
@@ -195,6 +196,54 @@ namespace {
                 save(ab,
                      planet::log::steady_clock::time_point{
                              planet::log::start_time() + 250ms});
+                auto const bytes = ab.complete();
+
+                std::ostringstream oss;
+                planet::serialise::load_buffer lb{bytes};
+                planet::log::pretty_print(oss, lb);
+
+                check(oss.str()) == "0.250000";
+            });
+
+
+    auto const optional_logging = suite.test(
+            "std::optional",
+            [](auto check) {
+                /// A held value is logged as itself, with nothing around it
+                planet::serialise::save_buffer ab;
+                planet::log::detail::log(ab, std::optional<int>{42});
+                auto const bytes = ab.complete();
+
+                std::ostringstream oss;
+                planet::serialise::load_buffer lb{bytes};
+                planet::log::pretty_print(oss, lb);
+
+                check(oss.str()) == "42";
+            },
+            [](auto check) {
+                /// An empty optional is the empty marker
+                planet::serialise::save_buffer ab;
+                planet::log::detail::log(ab, std::optional<int>{});
+                auto const bytes = ab.complete();
+
+                std::ostringstream oss;
+                planet::serialise::load_buffer lb{bytes};
+                planet::log::pretty_print(oss, lb);
+
+                check(oss.str()) == "empty";
+            },
+            [](auto check) {
+                /**
+                 * Because the contents go back through the log overloads, a
+                 * steady reading inside an optional is resolved to its offset
+                 * from the start of the run, exactly as a bare one is. It could
+                 * not be saved at all.
+                 */
+                planet::serialise::save_buffer ab;
+                planet::log::detail::log(
+                        ab,
+                        std::optional<std::chrono::steady_clock::time_point>{
+                                planet::log::start_time() + 250ms});
                 auto const bytes = ab.complete();
 
                 std::ostringstream oss;

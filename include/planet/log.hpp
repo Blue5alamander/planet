@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <optional>
 
 
 namespace planet::log {
@@ -60,8 +61,8 @@ namespace planet::log {
      * formatter renders.
      *
      * Passing a bare `std::chrono::steady_clock::time_point` to a log call does
-     * all of this, so the wrapper is only needed where a save buffer is being
-     * filled in directly.
+     * all of this, as does passing one inside a `std::optional`, so the wrapper
+     * is only needed where a save buffer is being filled in directly.
      */
 
 
@@ -171,6 +172,30 @@ namespace planet::log {
          * A steady clock reading cannot be saved, but it can be logged: this is
          * where it is resolved to its offset from `start_time()`, on the
          * machine and in the run that captured it.
+         */
+        template<typename T>
+        void log(serialise::save_buffer &sb, std::optional<T> const &v) {
+            if (v) {
+                log(sb, *v);
+            } else {
+                sb.append(serialise::marker::empty);
+            }
+        }
+        /**
+         * An optional in a log message is the thing it holds, or the empty
+         * marker where it holds nothing.
+         *
+         * Sending the contents back through these overloads is what lets a
+         * `std::chrono::steady_clock::time_point` inside an optional be
+         * resolved the same way a bare one is: `save` on the optional would
+         * reach for `save` on the contents, which for a steady reading is
+         * deleted. The `std::optional` box is dropped because a log line has no
+         * use for it, not because anything here needs it gone.
+         *
+         * This has to be declared after the overloads it reaches for, because
+         * the call it makes is resolved from what is in scope here together
+         * with whatever argument dependent lookup finds, and for a type from
+         * the standard library that search never reaches this namespace.
          */
     }
 
