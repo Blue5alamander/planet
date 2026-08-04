@@ -89,11 +89,46 @@ namespace planet::widget {
         using value_type = editor_type::value_type;
 
 
-        text_input(std::string_view const n, output_type &o, value_type v = {})
-        : widget{n}, output_to{o}, edits{std::move(v)} {}
-        text_input(std::string_view const n, output_type &&o, value_type v = {})
+        /// ### Construction
+        /**
+         * The bindings and the filter are the editor's, and are only passed
+         * through: the shell has no opinion about either, and what they mean
+         * is `planet::text::editor`'s to say -- including that a field with no
+         * rule about what may be typed into it is made without one rather than
+         * with an empty one.
+         */
+        text_input(
+                std::string_view const n,
+                output_type &o,
+                text::configuration const &keys,
+                value_type v = {})
+        : widget{n}, output_to{o}, edits{keys, std::move(v)} {}
+        text_input(
+                std::string_view const n,
+                output_type &o,
+                text::configuration const &keys,
+                std::function<bool(std::string_view)> acceptable,
+                value_type v = {})
+        : widget{n},
+          output_to{o},
+          edits{keys, std::move(acceptable), std::move(v)} {}
+        text_input(
+                std::string_view const n,
+                output_type &&o,
+                text::configuration const &keys,
+                value_type v = {})
             requires(not deduce<output_type>::reference)
-        : widget{n}, output_to{std::move(o)}, edits{std::move(v)} {}
+        : widget{n}, output_to{std::move(o)}, edits{keys, std::move(v)} {}
+        text_input(
+                std::string_view const n,
+                output_type &&o,
+                text::configuration const &keys,
+                std::function<bool(std::string_view)> acceptable,
+                value_type v = {})
+            requires(not deduce<output_type>::reference)
+        : widget{n},
+          output_to{std::move(o)},
+          edits{keys, std::move(acceptable), std::move(v)} {}
 
         text_input(text_input &&t)
             requires deduce<output_type>::reference

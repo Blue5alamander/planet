@@ -68,4 +68,14 @@ namespace planet::text {
     void load(serialise::box &, configuration &);
 
 
+    /// ## The bindings for a call site that has none of its own
+    inline constexpr configuration default_bindings{};
+    /**
+     * A `planet::text::editor` is given its configuration by reference, so
+     * there has to be something with a lifetime to give it. A game that lets
+     * the player rebind a key has one of its own to hand over; this is for
+     * everything that doesn't and wants what a text field does everywhere.
+     */
+
+
 }

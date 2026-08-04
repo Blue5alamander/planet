@@ -22,11 +22,15 @@ namespace {
     }
 
 
+    /// The usual keys, which is what everything but the rebinding tests uses
+    auto const &keys = planet::text::default_bindings;
+
+
     auto const suite = felspar::testsuite("text.editor");
 
 
     auto const at_rest = suite.test("at rest", [](auto check) {
-        planet::text::editor ed{"Nomad"};
+        planet::text::editor ed{keys, "Nomad"};
 
         check(ed.is_editing()) == false;
         check(ed.value()) == "Nomad";
@@ -41,7 +45,7 @@ namespace {
                  * what was there — the seam a field mirroring a number some
                  * other control is changing keeps its text current through.
                  */
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
 
                 ed.value("Zeta");
 
@@ -54,7 +58,7 @@ namespace {
                  * is never overwritten by what the field is told it now reads,
                  * so the mirror only moves the value while the field is at rest.
                  */
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
                 ed.handle(typed(" II"));
 
@@ -66,7 +70,7 @@ namespace {
 
 
     auto const beginning = suite.test("begin", [](auto check) {
-        planet::text::editor ed{"Nomad"};
+        planet::text::editor ed{keys, "Nomad"};
 
         ed.begin();
 
@@ -83,7 +87,7 @@ namespace {
     auto const typing = suite.test(
             "typing",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(typed(" Ze")))
@@ -99,7 +103,7 @@ namespace {
                  * all of the time, so an editor at rest has to say that it
                  * wanted none of it.
                  */
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
 
                 check(ed.handle(typed("x"))) == planet::text::outcome::ignored;
 
@@ -110,7 +114,7 @@ namespace {
     auto const control_keys = suite.test(
             "control keys",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::return_key)))
@@ -137,7 +141,7 @@ namespace {
                  * before the edit began releases into it, and that release must
                  * not be what finishes it.
                  */
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(up(planet::events::scancode::return_key)))
@@ -148,7 +152,7 @@ namespace {
 
 
     auto const keys_at_rest = suite.test("keys at rest", [](auto check) {
-        planet::text::editor ed{"Nomad"};
+        planet::text::editor ed{keys, "Nomad"};
 
         check(ed.handle(down(planet::events::scancode::return_key)))
                 == planet::text::outcome::ignored;
@@ -184,7 +188,7 @@ namespace {
     auto const backspace = suite.test(
             "backspace",
             [](auto check) {
-                planet::text::editor ed{"Zeta"};
+                planet::text::editor ed{keys, "Zeta"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::backspace_key)))
@@ -196,7 +200,7 @@ namespace {
             },
             [](auto check) {
                 /// Nothing to remove is nothing changed
-                planet::text::editor ed{};
+                planet::text::editor ed{keys};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::backspace_key)))
@@ -206,7 +210,7 @@ namespace {
             },
             [](auto check) {
                 /// Nor is there anything before a caret at the start of the text
-                planet::text::editor ed{"Zeta"};
+                planet::text::editor ed{keys, "Zeta"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::home_key));
 
@@ -218,7 +222,7 @@ namespace {
             },
             [](auto check) {
                 /// Correcting a typo and carrying on
-                planet::text::editor ed{"Zetz"};
+                planet::text::editor ed{keys, "Zetz"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::backspace_key));
                 ed.handle(typed("a"));
@@ -232,7 +236,7 @@ namespace {
                  * A whole character goes, never the tail byte of one: what is
                  * left has to still be text.
                  */
-                planet::text::editor ed{"Zeté"};
+                planet::text::editor ed{keys, "Zeté"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::backspace_key)))
@@ -242,7 +246,7 @@ namespace {
                 check(ed.cursor()) == 3u;
             },
             [](auto check) {
-                planet::text::editor ed{"Ze🚀"};
+                planet::text::editor ed{keys, "Ze🚀"};
                 ed.begin();
 
                 ed.handle(down(planet::events::scancode::backspace_key));
@@ -252,7 +256,7 @@ namespace {
             },
             [](auto check) {
                 /// Backspace acts at the caret, not at the end of the text
-                planet::text::editor ed{"Zeta"};
+                planet::text::editor ed{keys, "Zeta"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::left_key));
 
@@ -263,7 +267,7 @@ namespace {
             },
             [](auto check) {
                 /// A key coming back up is not a key press, backspace included
-                planet::text::editor ed{"Zeta"};
+                planet::text::editor ed{keys, "Zeta"};
                 ed.begin();
 
                 check(ed.handle(up(planet::events::scancode::backspace_key)))
@@ -276,7 +280,7 @@ namespace {
     auto const navigation = suite.test(
             "navigation",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::left_key)))
@@ -294,7 +298,7 @@ namespace {
                 check(ed.value()) == "Nomad";
             },
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::home_key)))
@@ -316,7 +320,7 @@ namespace {
                  * The caret steps over whole characters, so it can never land
                  * inside one: `→` is three bytes, between two of one.
                  */
-                planet::text::editor ed{"a→b"};
+                planet::text::editor ed{keys, "a→b"};
                 ed.begin();
 
                 check(ed.cursor()) == 5u;
@@ -338,7 +342,7 @@ namespace {
             "insertion",
             [](auto check) {
                 /// Typing goes in at the caret and the caret follows it along
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::home_key));
 
@@ -355,7 +359,7 @@ namespace {
             },
             [](auto check) {
                 /// The caret advances by the bytes inserted, not by characters
-                planet::text::editor ed{"Zet"};
+                planet::text::editor ed{keys, "Zet"};
                 ed.begin();
 
                 ed.handle(typed("é"));
@@ -368,7 +372,7 @@ namespace {
     auto const forward_delete = suite.test(
             "delete",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::home_key));
 
@@ -381,7 +385,7 @@ namespace {
             },
             [](auto check) {
                 /// Nothing follows a caret at the end of the text
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::delete_key)))
@@ -391,7 +395,7 @@ namespace {
             },
             [](auto check) {
                 /// A whole character goes here too
-                planet::text::editor ed{"→b"};
+                planet::text::editor ed{keys, "→b"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::home_key));
 
@@ -405,7 +409,7 @@ namespace {
     auto const cursor_from_outside = suite.test(
             "set_cursor",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 ed.set_cursor(2);
@@ -425,7 +429,7 @@ namespace {
                  * inside a character. What it gets is the boundary at or before
                  * where it asked, never somewhere illegal.
                  */
-                planet::text::editor ed{"a→b"};
+                planet::text::editor ed{keys, "a→b"};
                 ed.begin();
 
                 ed.set_cursor(2);
@@ -437,7 +441,7 @@ namespace {
             },
             [](auto check) {
                 /// So what is typed after one is still valid text
-                planet::text::editor ed{"a→b"};
+                planet::text::editor ed{keys, "a→b"};
                 ed.begin();
                 ed.set_cursor(3);
 
@@ -450,7 +454,7 @@ namespace {
     auto const ending = suite.test(
             "ending an edit",
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
                 ed.handle(typed(" II"));
 
@@ -460,7 +464,7 @@ namespace {
                 check(ed.is_editing()) == false;
             },
             [](auto check) {
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
                 ed.handle(typed(" II"));
 
@@ -485,10 +489,10 @@ namespace {
                  * the value as it *would* be, so a rule about the whole of it
                  * is written as a rule about the whole of it.
                  */
-                planet::text::editor ed{"Nomad"};
-                ed.acceptable = [](std::string_view const v) {
-                    return v.size() <= 7;
-                };
+                planet::text::editor ed{
+                        keys,
+                        [](std::string_view const v) { return v.size() <= 7; },
+                        "Nomad"};
                 ed.begin();
 
                 check(ed.handle(typed(" I"))) == planet::text::outcome::changed;
@@ -508,10 +512,12 @@ namespace {
                  * A refused insertion at the caret leaves what is on either
                  * side of it alone, not just what is on the end.
                  */
-                planet::text::editor ed{"Nomad"};
-                ed.acceptable = [](std::string_view const v) {
-                    return v.find('x') == std::string_view::npos;
-                };
+                planet::text::editor ed{
+                        keys,
+                        [](std::string_view const v) {
+                            return v.find('x') == std::string_view::npos;
+                        },
+                        "Nomad"};
                 ed.begin();
                 ed.handle(down(planet::events::scancode::home_key));
 
@@ -526,10 +532,10 @@ namespace {
                  * took: what a refused insertion leaves behind has to still be
                  * the text that was there before it.
                  */
-                planet::text::editor ed{"a"};
-                ed.acceptable = [](std::string_view const v) {
-                    return v.size() < 4;
-                };
+                planet::text::editor ed{
+                        keys,
+                        [](std::string_view const v) { return v.size() < 4; },
+                        "a"};
                 ed.begin();
 
                 check(ed.handle(typed("→"))) == planet::text::outcome::ignored;
@@ -544,10 +550,10 @@ namespace {
                  * cut back would be no use, and a rule that it may not be blank
                  * has to leave a way to clear it and start again.
                  */
-                planet::text::editor ed{"Nomad"};
-                ed.acceptable = [](std::string_view const v) {
-                    return not v.empty();
-                };
+                planet::text::editor ed{
+                        keys,
+                        [](std::string_view const v) { return not v.empty(); },
+                        "Nomad"};
                 ed.begin();
                 while (not ed.value().empty()) {
                     ed.handle(down(planet::events::scancode::backspace_key));
@@ -563,10 +569,10 @@ namespace {
             },
             [](auto check) {
                 /// A value the filter is happy with commits as it always did
-                planet::text::editor ed{"Nomad"};
-                ed.acceptable = [](std::string_view const v) {
-                    return not v.empty();
-                };
+                planet::text::editor ed{
+                        keys,
+                        [](std::string_view const v) { return not v.empty(); },
+                        "Nomad"};
                 ed.begin();
                 ed.handle(typed(" II"));
 
@@ -583,13 +589,15 @@ namespace {
                  * with the value the buffer has become, though the deletion
                  * itself is never blocked.
                  */
-                planet::text::editor ed{"Zeta"};
                 std::string consulted;
-                ed.acceptable = [&consulted](std::string_view const v) {
-                    consulted += v;
-                    consulted += ';';
-                    return true;
-                };
+                planet::text::editor ed{
+                        keys,
+                        [&consulted](std::string_view const v) {
+                            consulted += v;
+                            consulted += ';';
+                            return true;
+                        },
+                        "Zeta"};
                 ed.begin();
 
                 ed.handle(down(planet::events::scancode::backspace_key));
@@ -609,8 +617,9 @@ namespace {
                  * to. A default stops meaning anything the moment something
                  * else is bound in its place.
                  */
-                planet::text::editor ed{"Nomad"};
-                ed.keys.commit = {planet::events::scancode::tab_key, {}};
+                planet::text::configuration const bound{
+                        .commit = {planet::events::scancode::tab_key, {}}};
+                planet::text::editor ed{bound, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::tab_key)))
@@ -620,9 +629,11 @@ namespace {
             },
             [](auto check) {
                 /// A binding that asks for a modifier needs it held
-                planet::text::editor ed{"Nomad"};
-                ed.keys.caret_to_start = {
-                        planet::events::scancode::letter_a, {.ctrl = true}};
+                planet::text::configuration const bound{
+                        .caret_to_start = {
+                                planet::events::scancode::letter_a,
+                                {.ctrl = true}}};
+                planet::text::editor ed{bound, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(
@@ -651,12 +662,31 @@ namespace {
                  * `text::configuration` declares them, so the first of the two
                  * is what happens.
                  */
-                planet::text::editor ed{"Nomad"};
-                ed.keys.cancel = ed.keys.commit;
+                planet::text::configuration bound;
+                bound.cancel = bound.commit;
+                planet::text::editor ed{bound, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(planet::events::scancode::return_key)))
                         == planet::text::outcome::commit;
+            },
+            [](auto check) {
+                /**
+                 * The configuration is held by reference, so a key the player
+                 * rebinds is at once the key every editor reading that
+                 * configuration answers to -- an edit already running
+                 * included. Nothing has to be reached into and told.
+                 */
+                planet::text::configuration bound;
+                planet::text::editor ed{bound, "Nomad"};
+                ed.begin();
+
+                bound.commit = {planet::events::scancode::tab_key, {}};
+
+                check(ed.handle(down(planet::events::scancode::tab_key)))
+                        == planet::text::outcome::commit;
+                check(ed.handle(down(planet::events::scancode::return_key)))
+                        == planet::text::outcome::ignored;
             });
 
 
@@ -667,7 +697,7 @@ namespace {
                  * leaves the edit alone: shift-Left belongs to whatever the
                  * game means by it rather than moving the caret.
                  */
-                planet::text::editor ed{"Nomad"};
+                planet::text::editor ed{keys, "Nomad"};
                 ed.begin();
 
                 check(ed.handle(down(

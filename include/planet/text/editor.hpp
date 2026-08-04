@@ -60,8 +60,16 @@ namespace planet::text {
      * Events arriving at rest are ignored, because a field stays subscribed
      * whether or not it is being edited -- it is the editor that discards them,
      * and it says so in what it returns.
+     *
+     * The two things that decide what an edit may do -- which key does what,
+     * and what the value is allowed to be -- both come from outside, and are
+     * given when the editor is made rather than set on it afterwards, so there
+     * is no moment in which one can be typed into while it still answers to
+     * the wrong keys or lets through a value the call site would have refused.
      */
     class editor final {
+        configuration const &keys;
+        std::function<bool(std::string_view)> acceptable;
         std::string current, before_edit;
         std::size_t caret = {};
         bool editing = false;
@@ -119,23 +127,37 @@ namespace planet::text {
 
 
         /// ### Construction
-        explicit editor(value_type v = {}) : current{std::move(v)} {}
 
-
-        /// ### What the value is allowed to be
-        std::function<bool(std::string_view)> acceptable;
+        /// #### Which key does what, and what is being edited
         /**
-         * Consulted with the value the buffer *would* become before anything
-         * is inserted into it, and again with what an edit is about to be
-         * committed as. A `false` means the insertion does not happen, or that
-         * the commit becomes a cancel: what an edit leaves behind is always
-         * something this said yes to.
+         * `k` says which key does what. It is held **by reference**: a game
+         * keeps one configuration alongside the rest of its settings, and
+         * every field built from it answers to that one, so a key the player
+         * rebinds takes effect in each of them without any of them being
+         * reached back into. It has to outlive the editor --
+         * `planet::text::default_bindings` is there for a call site with
+         * nothing of its own to say.
+         *
+         * Anything may be typed into an editor made this way. Most values
+         * being edited have some rule about what they may be, and one that
+         * does is made with the constructor below rather than by this one and
+         * a rule handed over afterwards.
+         */
+        explicit editor(configuration const &k, value_type v = {})
+        : keys{k}, current{std::move(v)} {}
+
+        /// #### With a rule about what the value is allowed to be
+        /**
+         * `a` is consulted with the value the buffer *would* become before
+         * anything is inserted into it, and again with what an edit is about
+         * to be committed as. A `false` means the insertion does not happen,
+         * or that the commit becomes a cancel: what an edit leaves behind is
+         * always something this said yes to.
          *
          * The editor has no opinion of its own about what text is allowed. How
          * long a name may be, what characters it may contain, whether it may be
          * blank at all -- those are rules about the thing being edited rather
-         * than about editing, so they come from the call site. Left unbound,
-         * anything goes.
+         * than about editing, so they come from the call site.
          *
          * A removal is consulted the same way, with the value the buffer has
          * become, but its answer is not obeyed there: a deletion is never
@@ -147,17 +169,11 @@ namespace planet::text {
          * on the number it spells -- hears a character come out as much as go
          * in.
          */
-
-
-        /// ### Which key does what
-        text::configuration keys;
-        /**
-         * Held by value, so a field carries the bindings it was given
-         * wherever it is moved to and a game that lets the player rebind a
-         * key hands the new configuration out rather than being reached back
-         * into. The defaults are the usual ones, so an editor nobody
-         * configures behaves as a text field is expected to.
-         */
+        explicit editor(
+                configuration const &k,
+                std::function<bool(std::string_view)> a,
+                value_type v = {})
+        : keys{k}, acceptable{std::move(a)}, current{std::move(v)} {}
 
 
         /// ### Observable state

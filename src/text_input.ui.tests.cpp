@@ -19,6 +19,9 @@ namespace {
 
     using field_type = planet::widget::text_input<std::string>;
 
+    /// The usual keys, which is what every field here is driven by
+    auto const &keys = planet::text::default_bindings;
+
 
     /**
      * Lay the field out over a box away from the origin and draw it so it
@@ -129,7 +132,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         field.add_to(bp, panel);
 
         check(field.events.mouse.consumer_count()) == 1u;
@@ -148,7 +151,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         place(field, bp, panel);
 
         check(field.constraints().extents()) == screen.extents();
@@ -160,7 +163,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         place(field, bp, panel);
 
         check(field.is_editing()) == false;
@@ -184,7 +187,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         place(field, bp, panel);
 
         click(bp);
@@ -201,7 +204,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         place(field, bp, panel);
 
         click(bp);
@@ -222,7 +225,7 @@ namespace {
         planet::ui::baseplate bp;
         planet::ui::panel panel;
         std::string output{"Nomad"};
-        field_type field{"field", output, "Nomad"};
+        field_type field{"field", output, keys, "Nomad"};
         place(field, bp, panel);
 
         click(bp);
@@ -243,7 +246,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
 
                 hover(bp);
@@ -272,7 +275,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -297,7 +300,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -322,7 +325,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -345,7 +348,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -369,7 +372,7 @@ namespace {
                 modal.draw();
 
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place_in(field, modal);
 
                 click(bp);
@@ -396,7 +399,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 /// `+` for a begin-edit, `-` for an end-edit
                 std::string transitions;
@@ -414,7 +417,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 std::string transitions;
                 field.editing_changed = [&](bool const e) {
@@ -443,7 +446,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -476,7 +479,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 std::vector<planet::affine::point2d> landed;
                 field.clicked = [&](planet::affine::point2d const p) {
@@ -511,7 +514,7 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
+                field_type field{"field", output, keys, "Nomad"};
                 place(field, bp, panel);
                 planet::debug::button<> elsewhere{log};
                 place_away(elsewhere, bp, panel);
@@ -542,10 +545,10 @@ namespace {
                 planet::ui::baseplate bp;
                 planet::ui::panel panel;
                 std::string output{"Nomad"};
-                field_type field{"field", output, "Nomad"};
-                field.editor().acceptable = [](std::string_view const v) {
-                    return not v.empty();
-                };
+                field_type field{
+                        "field", output, keys,
+                        [](std::string_view const v) { return not v.empty(); },
+                        "Nomad"};
                 std::vector<bool> edit_states;
                 field.editing_changed = [&edit_states](bool const editing) {
                     edit_states.push_back(editing);
@@ -596,7 +599,7 @@ namespace {
                 callback_field built{
                         "field",
                         [&committed](std::string const &v) { committed = v; },
-                        "Nomad"};
+                        keys, "Nomad"};
                 callback_field field{std::move(built)};
                 place(field, bp, panel);
 
@@ -617,7 +620,7 @@ namespace {
                               [&committed](std::string const &v) {
                                   committed = v;
                               },
-                              "Nomad"};
+                              keys, "Nomad"};
                 place(field, bp, panel);
 
                 click(bp);
