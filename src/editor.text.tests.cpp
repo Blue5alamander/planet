@@ -10,6 +10,13 @@ namespace {
     planet::events::key down(planet::events::scancode const sc) {
         return {.scancode = sc, .action = planet::events::action::down};
     }
+    planet::events::key
+            down(planet::events::scancode const sc,
+                 planet::events::modifiers const m) {
+        return {.scancode = sc,
+                .action = planet::events::action::down,
+                .modifiers = m};
+    }
     planet::events::key up(planet::events::scancode const sc) {
         return {.scancode = sc, .action = planet::events::action::up};
     }
@@ -590,6 +597,89 @@ namespace {
                 ed.handle(down(planet::events::scancode::delete_key));
 
                 check(consulted) == "Zet;et;";
+            });
+
+
+    auto const rebinding = suite.test(
+            "rebinding",
+            [](auto check) {
+                /**
+                 * A game that has loaded the player's own choices hands them
+                 * over, and from then on those are the keys the edit answers
+                 * to. A default stops meaning anything the moment something
+                 * else is bound in its place.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.keys.commit = {planet::events::scancode::tab_key, {}};
+                ed.begin();
+
+                check(ed.handle(down(planet::events::scancode::tab_key)))
+                        == planet::text::outcome::commit;
+                check(ed.handle(down(planet::events::scancode::return_key)))
+                        == planet::text::outcome::ignored;
+            },
+            [](auto check) {
+                /// A binding that asks for a modifier needs it held
+                planet::text::editor ed{"Nomad"};
+                ed.keys.caret_to_start = {
+                        planet::events::scancode::letter_a, {.ctrl = true}};
+                ed.begin();
+
+                check(ed.handle(down(
+                        planet::events::scancode::letter_a, {.ctrl = true})))
+                        == planet::text::outcome::changed;
+                check(ed.cursor()) == 0u;
+                /**
+                 * Unmodified the same key is a letter to type rather than a
+                 * control, and a key event carrying a letter is not what puts
+                 * one in the buffer -- the character arrives as text.
+                 */
+                check(ed.handle(down(planet::events::scancode::letter_a)))
+                        == planet::text::outcome::ignored;
+                check(ed.cursor()) == 0u;
+
+                /// Home has nothing bound to it any more
+                ed.handle(down(planet::events::scancode::end_key));
+                check(ed.handle(down(planet::events::scancode::home_key)))
+                        == planet::text::outcome::ignored;
+                check(ed.cursor()) == 5u;
+            },
+            [](auto check) {
+                /**
+                 * One key bound to two things is answered rather than
+                 * refused: the bindings are tried in the order
+                 * `text::configuration` declares them, so the first of the two
+                 * is what happens.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.keys.cancel = ed.keys.commit;
+                ed.begin();
+
+                check(ed.handle(down(planet::events::scancode::return_key)))
+                        == planet::text::outcome::commit;
+            });
+
+
+    auto const exact_modifiers =
+            suite.test("modifiers are exact", [](auto check) {
+                /**
+                 * The defaults are the bare keys, so a modifier held with one
+                 * leaves the edit alone: shift-Left belongs to whatever the
+                 * game means by it rather than moving the caret.
+                 */
+                planet::text::editor ed{"Nomad"};
+                ed.begin();
+
+                check(ed.handle(down(
+                        planet::events::scancode::left_key, {.shift = true})))
+                        == planet::text::outcome::ignored;
+                check(ed.cursor()) == 5u;
+
+                check(ed.handle(
+                        down(planet::events::scancode::backspace_key,
+                             {.ctrl = true})))
+                        == planet::text::outcome::ignored;
+                check(ed.value()) == "Nomad";
             });
 
 

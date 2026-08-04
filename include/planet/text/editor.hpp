@@ -4,6 +4,7 @@
 #include <planet/events/keys.hpp>
 #include <planet/events/text.hpp>
 #include <planet/text/boundary.hpp>
+#include <planet/text/configuration.hpp>
 
 #include <cstddef>
 #include <functional>
@@ -44,9 +45,9 @@ namespace planet::text {
      * ```
      *
      * An edit corrects rather than retypes: it begins on the value that is
-     * already there with the caret at the end of it. Left, Right, Home and End
-     * move the caret, typing inserts at it, backspace takes out the character
-     * before it and Delete the one after.
+     * already there with the caret at the end of it. Typing inserts at the
+     * caret; everything else an edit can be told to do arrives as a key, and
+     * which key does which is `keys` rather than anything fixed here.
      *
      * **The caret is a byte offset that always sits on a character boundary.**
      * It only ever moves to somewhere `previous_boundary` or `next_boundary`
@@ -145,6 +146,17 @@ namespace planet::text {
          * call site keeping something on the value as it is edited -- a slider
          * on the number it spells -- hears a character come out as much as go
          * in.
+         */
+
+
+        /// ### Which key does what
+        text::configuration keys;
+        /**
+         * Held by value, so a field carries the bindings it was given
+         * wherever it is moved to and a game that lets the player rebind a
+         * key hands the new configuration out rather than being reached back
+         * into. The defaults are the usual ones, so an editor nobody
+         * configures behaves as a text field is expected to.
          */
 
 
@@ -268,27 +280,34 @@ namespace planet::text {
          * Only a key going down counts. A key held from before the edit began
          * releases into it, and that release must not be what ends it.
          *
-         * Up and down are deliberately not bound: a single line has nowhere for
-         * them to go, so they report as ignored like any other key the editor
-         * has no use for.
+         * The bindings are tried in the order `text::configuration` declares
+         * them, so a key bound to two things does the first of them. A key
+         * bound to nothing reports as ignored, which is how the arrow keys
+         * stay available to whatever else is listening for them when no edit
+         * is running.
          */
         outcome handle(events::key const &k) {
             if (not editing or k.action != events::action::down) {
                 return outcome::ignored;
             }
-            switch (k.scancode) {
-            case events::scancode::return_key: return outcome::commit;
-            case events::scancode::escape_key: return outcome::cancel;
-            case events::scancode::backspace_key: return erase_backwards();
-            case events::scancode::delete_key: return erase_forwards();
-            case events::scancode::left_key:
+            if (keys.commit.matches(k)) {
+                return outcome::commit;
+            } else if (keys.cancel.matches(k)) {
+                return outcome::cancel;
+            } else if (keys.erase_backwards.matches(k)) {
+                return erase_backwards();
+            } else if (keys.erase_forwards.matches(k)) {
+                return erase_forwards();
+            } else if (keys.caret_left.matches(k)) {
                 return move_caret_to(previous_boundary(current, caret));
-            case events::scancode::right_key:
+            } else if (keys.caret_right.matches(k)) {
                 return move_caret_to(next_boundary(current, caret));
-            case events::scancode::home_key: return move_caret_to(0);
-            case events::scancode::end_key:
+            } else if (keys.caret_to_start.matches(k)) {
+                return move_caret_to(0);
+            } else if (keys.caret_to_end.matches(k)) {
                 return move_caret_to(current.size());
-            default: return outcome::ignored;
+            } else {
+                return outcome::ignored;
             }
         }
     };

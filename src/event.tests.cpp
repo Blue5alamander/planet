@@ -57,8 +57,7 @@ namespace {
     auto const binding_matches =
             suite.test("key binding matches", [](auto check) {
                 planet::events::key_binding const bound{
-                        planet::events::scancode::letter_w,
-                        {.ctrl = true}};
+                        planet::events::scancode::letter_w, {.ctrl = true}};
 
                 check(bound.matches(
                         {.scancode = planet::events::scancode::letter_w,
@@ -93,23 +92,21 @@ namespace {
             });
 
 
-    auto const binding_capture =
-            suite.test("key binding capture", [](auto check) {
-                /// What a re-binding screen does with the key it was given
-                planet::events::key const pressed{
-                        .scancode = planet::events::scancode::letter_q,
-                        .action = planet::events::action::down,
-                        .modifiers = {.shift = true}};
+    auto const binding_capture = suite.test("key binding capture", [](auto check) {
+        /// What a re-binding screen does with the key it was given
+        planet::events::key const pressed{
+                .scancode = planet::events::scancode::letter_q,
+                .action = planet::events::action::down,
+                .modifiers = {.shift = true}};
 
-                auto const captured = planet::events::binding_for(pressed);
+        auto const captured = planet::events::binding_for(pressed);
 
-                check(captured
-                      == planet::events::key_binding{
-                              planet::events::scancode::letter_q,
-                              {.shift = true}})
-                        == true;
-                check(captured.matches(pressed)) == true;
-            });
+        check(captured
+              == planet::events::
+                      key_binding{planet::events::scancode::letter_q, {.shift = true}})
+                == true;
+        check(captured.matches(pressed)) == true;
+    });
 
 
     auto const binding_serialise =
@@ -121,8 +118,8 @@ namespace {
                 planet::serialise::save_buffer ab;
                 save(ab, bound);
 
-                check(planet::serialise::load_type<
-                              planet::events::key_binding>(ab.complete())
+                check(planet::serialise::load_type<planet::events::key_binding>(
+                              ab.complete())
                       == bound)
                         == true;
             });
@@ -142,8 +139,8 @@ namespace {
                 planet::serialise::save_buffer ab;
                 save(ab, bound);
 
-                check(planet::serialise::load_type<
-                              planet::events::key_binding>(ab.complete())
+                check(planet::serialise::load_type<planet::events::key_binding>(
+                              ab.complete())
                       == bound)
                         == true;
             });
