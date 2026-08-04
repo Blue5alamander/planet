@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <string_view>
+
+
 namespace planet::events {
 
 
@@ -22,10 +25,14 @@ namespace planet::events {
      * Meta-Ctrl where Ctrl was intended) triggers too.
      */
     struct modifiers final {
+        static constexpr std::string_view box{"_p:e:modifiers"};
+
+
         bool shift = false;
         bool ctrl = false;
         bool alt = false;
-        bool gui = false;
+        bool gui = false; // Meta (Linux), Windows, Command (macOS)
+
 
         constexpr bool operator==(modifiers const &) const noexcept = default;
     };

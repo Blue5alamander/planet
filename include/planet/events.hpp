@@ -3,6 +3,7 @@
 
 #include <planet/events/back.hpp>
 #include <planet/events/focus.hpp>
+#include <planet/events/key_binding.hpp>
 #include <planet/events/keys.hpp>
 #include <planet/events/mouse.hpp>
 #include <planet/events/queue.hpp>
