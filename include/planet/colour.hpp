@@ -35,6 +35,11 @@ namespace planet {
                 operator*(colour const &c, float const m) noexcept {
             return {c.r * m, c.g * m, c.b * m, c.a};
         }
+        friend constexpr colour
+                operator*(colour const &c, colour const &m) noexcept {
+            return {c.r * m.r, c.g * m.g, c.b * m.b, c.a * m.a};
+        }
+
         friend constexpr colour &operator*=(colour &c, float const m) noexcept {
             c.r *= m;
             c.g *= m;
