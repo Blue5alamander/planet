@@ -1,18 +1,11 @@
 #include <planet/audio/channel.hpp>
-#include <planet/audio/clocks.hpp>
-#include <planet/audio/driver.hpp>
-#include <planet/audio/gain.hpp>
 #include <planet/audio/mixer.hpp>
 #include <planet/audio/tap.hpp>
 
-#include <felspar/memory/shared_buffer.hpp>
 #include <felspar/test.hpp>
 
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <thread>
-#include <vector>
+
+using namespace std::literals;
 
 
 namespace {
@@ -75,6 +68,25 @@ namespace {
     }
 
 
+    /**
+     * Wait until the producer thread has filled the ring, and report whether it
+     * managed it before the deadline. Every test that wants to read rendered
+     * audio has to wait for the producer first, and it must wait on the
+     * observable block count rather than sleeping a fixed time: on a loaded
+     * machine the producer can take far longer to be scheduled than any sleep
+     * a test would be willing to spend, and the consumer then reads underrun
+     * silence instead of the track.
+     */
+    bool wait_for_full_ring(planet::audio::mixer &m) {
+        auto const deadline = std::chrono::steady_clock::now() + 5s;
+        while (m.buffered_blocks() < m.buffer_depth()
+               and std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(1ms);
+        }
+        return m.buffered_blocks() == m.buffer_depth();
+    }
+
+
     auto const correctness = felspar::testsuite("mixer", [](auto check) {
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
@@ -134,7 +146,6 @@ namespace {
      * design is built on.
      */
     auto const threaded = felspar::testsuite("mixer.threaded", [](auto check) {
-        using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
         planet::audio::driver drv{planet::audio::buffer_samples(), 2};
@@ -159,9 +170,11 @@ namespace {
         /**
          * Let the producer fill the ring with track audio before draining it in
          * a tight loop — otherwise the consumer can outrun the per-wrap render
-         * and surface spurious underruns.
+         * and surface spurious underruns. The loop below reads exactly `depth`
+         * blocks, so a full ring makes it immune to how the threads are
+         * scheduled from here on.
          */
-        std::this_thread::sleep_for(20ms);
+        check(wait_for_full_ring(m)) == true;
 
         bool track_clean = true;
         for (std::size_t i{}; i < depth * block; ++i) {
@@ -184,7 +197,6 @@ namespace {
      * same stream the audio callback consumes.
      */
     auto const tapping = felspar::testsuite("mixer.tap", [](auto check) {
-        using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
         /// Declared before the mixer so it outlives the producer thread the
         /// mixer destructor joins.
@@ -201,14 +213,17 @@ namespace {
         std::size_t const depth = m.buffer_depth();
 
         /**
-         * Free slots by consuming, letting the bounded producer publish several
-         * blocks; the sleeps give it time to render between drains.
+         * The producer is gated on the consumer freeing ring slots, so it
+         * cannot publish anything at all until the pre-rolled silence has been
+         * drained. Drain it, then wait for the ring to refill; do it twice, so
+         * the tap has to carry more than a single ring's worth of blocks. Each
+         * of those `depth` renders is published to the tap before the block is
+         * counted as ready, so a full ring means the tap has them all.
          */
-        std::this_thread::sleep_for(20ms);
-        for (std::size_t i{}; i < depth * block * 3; ++i) {
-            (void)m.next_frame();
-        }
-        std::this_thread::sleep_for(20ms);
+        planet::by_index(depth * block, [&]() { (void)m.next_frame(); });
+        check(wait_for_full_ring(m)) == true;
+        planet::by_index(depth * block, [&]() { (void)m.next_frame(); });
+        check(wait_for_full_ring(m)) == true;
 
         std::size_t received{};
         bool clean = true;
@@ -221,7 +236,12 @@ namespace {
                 if (s != 0.25f) { clean = false; }
             }
         }
-        check(received) > std::size_t{};
+        /**
+         * The producer is bounded by the ring, so the two drain-and-refill
+         * rounds let it publish exactly `depth` blocks each — every one of
+         * which the tap must have.
+         */
+        check(received) == depth * 2;
         check(clean) == true;
         /**
          * The mixer destructor must stop and join the producer thread here
@@ -267,7 +287,6 @@ namespace {
      */
     auto const rebind =
             felspar::testsuite("mixer.rebind", [](auto check, auto &log) {
-                using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
                 planet::audio::driver drv1{planet::audio::buffer_samples(), 2};
@@ -283,13 +302,9 @@ namespace {
                  */
                 std::size_t const block1 = drv1.block_size;
                 std::size_t const depth1 = m.buffer_depth();
-                for (std::size_t i{}; i < depth1 * block1; ++i) {
-                    (void)m.next_frame();
-                }
-                std::this_thread::sleep_for(20ms);
-                for (std::size_t i{}; i < depth1 * block1; ++i) {
-                    (void)m.next_frame();
-                }
+                planet::by_index(depth1 * block1, [&]() { m.next_frame(); });
+                check(wait_for_full_ring(m)) == true;
+                planet::by_index(depth1 * block1, [&]() { m.next_frame(); });
                 log << "after phase 1 underruns=" << m.underrun_count() << "\n";
 
                 /**
@@ -391,7 +406,6 @@ namespace {
      */
     auto const schedule_delayed =
             felspar::testsuite("mixer.schedule.delayed", [](auto check) {
-                using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
                 planet::audio::driver drv{planet::audio::buffer_samples(), 2};
@@ -438,7 +452,6 @@ namespace {
      */
     auto const schedule_late =
             felspar::testsuite("mixer.schedule.late", [](auto check) {
-                using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
                 planet::audio::driver drv{planet::audio::buffer_samples(), 2};
@@ -460,7 +473,6 @@ namespace {
      */
     auto const schedule_unbound =
             felspar::testsuite("mixer.schedule.unbound", [](auto check) {
-                using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
                 m.add_track(
@@ -480,7 +492,6 @@ namespace {
      */
     auto const lead_bound =
             felspar::testsuite("mixer.lead_bound", [](auto check) {
-                using namespace std::chrono_literals;
                 planet::audio::channel master{planet::audio::dB_gain{0}};
                 planet::audio::mixer m{master};
                 planet::audio::driver drv{planet::audio::buffer_samples(), 2};
@@ -495,11 +506,7 @@ namespace {
                  * it time an unbounded producer would use to render hundreds
                  * more blocks; the ring must cap it at exactly `depth`.
                  */
-                auto const deadline = std::chrono::steady_clock::now() + 5s;
-                while (m.buffered_blocks() < m.buffer_depth()
-                       and std::chrono::steady_clock::now() < deadline) {
-                    std::this_thread::sleep_for(1ms);
-                }
+                check(wait_for_full_ring(m)) == true;
                 std::this_thread::sleep_for(20ms);
                 check(m.buffered_blocks()) == m.buffer_depth();
                 check(m.underrun_count()) == std::uint64_t{};
@@ -515,7 +522,6 @@ namespace {
      * as `0.0f`, failing the per-sample assert against the expected ramp value.
      */
     void assert_ramp_emitted_clean(auto &check, std::size_t const block_size) {
-        using namespace std::chrono_literals;
         planet::audio::channel master{planet::audio::dB_gain{0}};
         planet::audio::mixer m{master};
         planet::audio::driver drv{block_size, 2};
@@ -531,12 +537,7 @@ namespace {
          * exactly `depth` blocks, so a full ring guarantees it cannot outrun
          * the producer however the threads are scheduled.
          */
-        auto const deadline = std::chrono::steady_clock::now() + 5s;
-        while (m.buffered_blocks() < depth
-               and std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(1ms);
-        }
-        check(m.buffered_blocks()) == depth;
+        check(wait_for_full_ring(m)) == true;
 
         planet::by_index(depth * block_size, [&](auto const i) {
             auto const f = m.next_frame();
