@@ -39,9 +39,7 @@ namespace planet::ui {
         /// ### What is inside the box
         content_type content;
         /// #### The size of the box in its container's coordinate system
-        ui::gravity gravity = {
-                ui::gravity::left | ui::gravity::right | ui::gravity::top
-                | ui::gravity::bottom};
+        ui::gravity gravity = {};
         /// #### The amount of padding to be added around the content.
         ui::padding padding = {};
 

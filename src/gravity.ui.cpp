@@ -1,25 +1,23 @@
 #include <planet/ui/gravity.hpp>
 
+#include <utility>
+
 
 namespace {
     std::pair<float, float>
-            spacing(float left,
-                    float right,
-                    float const width,
-                    bool const at_left,
-                    bool const at_right) {
-        if (at_left) {
-            if (at_right) {
-                auto const padding = (right - left - width) / 2;
-                left += padding;
-                right -= padding;
-            } else {
-                right = left + width;
-            }
-        } else if (at_right) {
-            left = right - width;
+            spacing(float const low,
+                    float const high,
+                    float const size,
+                    bool const at_low,
+                    bool const at_high) noexcept {
+        if (at_low) {
+            return {low, low + size};
+        } else if (at_high) {
+            return {high - size, high};
+        } else {
+            auto const padding = (high - low - size) / 2;
+            return {low + padding, high - padding};
         }
-        return {left, right};
     }
 }
 
@@ -27,12 +25,12 @@ namespace {
 planet::affine::rectangle2d planet::ui::within(
         gravity const g,
         affine::rectangle2d const &o,
-        affine::extents2d const &i) {
-    auto [left, right] =
-            spacing(o.top_left.x(), o.top_left.x() + o.extents.width, i.width,
-                    g bitand gravity::left, g bitand gravity::right);
-    auto [top, bottom] =
-            spacing(o.top_left.y(), o.top_left.y() + o.extents.height, i.height,
-                    g bitand gravity::top, g bitand gravity::bottom);
+        affine::extents2d const &i) noexcept {
+    auto const [left, right] = spacing(
+            o.top_left.x(), o.top_left.x() + o.extents.width, i.width,
+            g.horizontally == gravity::left, g.horizontally == gravity::right);
+    auto const [top, bottom] = spacing(
+            o.top_left.y(), o.top_left.y() + o.extents.height, i.height,
+            g.vertically == gravity::top, g.vertically == gravity::bottom);
     return {{left, top}, affine::point2d{right, bottom}};
 }

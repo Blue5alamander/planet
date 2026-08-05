@@ -9,25 +9,53 @@ namespace planet::ui {
 
     /// ## Gravity direction
     /**
-     * Combine these flags to determine how an element fits inside the given
-     * space
+     * Describes where an element sits inside the space it has been given. The
+     * two axes are independent of each other, and each is either pulled to one
+     * side or left alone to centre.
      *
-     * When none are specified then the content is stretched to fill the space.
-     * Individual flags represent a pull in that direction and will turn
-     * stretching off. Two opposing flags will causing centring along that axis.
+     * Because an axis carries a single direction, opposing pulls cannot be
+     * written down -- `left | right` and `top | bottom` have no overload and so
+     * fail to compile.
+     *
+     * ```cpp
+     * gravity::top | gravity::left // the top left corner
+     * gravity::top                 // the top edge, centred horizontally
+     * gravity{}                    // centred on both axes
+     * ```
      */
-    enum gravity : unsigned char {
-        fill = 0,
-        left = 1,
-        right = 2,
-        top = 4,
-        bottom = 8
+    struct gravity final {
+        /// ### The pull along each axis
+        enum class horizontal : unsigned char { centre, left, right };
+        enum class vertical : unsigned char { centre, top, bottom };
+
+        static constexpr horizontal left = horizontal::left;
+        static constexpr horizontal right = horizontal::right;
+        static constexpr vertical top = vertical::top;
+        static constexpr vertical bottom = vertical::bottom;
+
+
+        constexpr gravity() noexcept = default;
+        constexpr gravity(horizontal const h) noexcept : horizontally{h} {}
+        constexpr gravity(vertical const v) noexcept : vertically{v} {}
+        constexpr gravity(horizontal const h, vertical const v) noexcept
+        : horizontally{h}, vertically{v} {}
+
+
+        horizontal horizontally = horizontal::centre;
+        vertical vertically = vertical::centre;
     };
-    inline gravity operator|(gravity l, gravity r) {
-        return static_cast<gravity>(
-                static_cast<unsigned char>(l)
-                bitor static_cast<unsigned char>(r));
+
+
+    /// ## Combining the axes
+    constexpr gravity operator|(
+            gravity::horizontal const h, gravity::vertical const v) noexcept {
+        return {h, v};
     }
+    constexpr gravity operator|(
+            gravity::vertical const v, gravity::horizontal const h) noexcept {
+        return {h, v};
+    }
+
 
     /// ## Rectangle positioning
     /**
@@ -37,7 +65,7 @@ namespace planet::ui {
     affine::rectangle2d
             within(gravity,
                    affine::rectangle2d const &outer,
-                   affine::extents2d const &inner);
+                   affine::extents2d const &inner) noexcept;
 
 
 }
