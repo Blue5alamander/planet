@@ -14,6 +14,9 @@ namespace planet::affine {
         matrix2d in, out;
 
       public:
+        static std::string_view constexpr box{"_p:a:t2"};
+
+
         /// ### Transformation
 
         /// #### Reflect the y-axis, so up is down

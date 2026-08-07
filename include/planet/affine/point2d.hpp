@@ -12,6 +12,9 @@ namespace planet::affine {
 
     /// ## 2D point suitable for affine transformations
     struct point2d final {
+        static std::string_view constexpr box{"_p:a:p2"};
+
+
         float xh = {}, yh = {}, h = {1.0f};
 
 

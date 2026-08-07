@@ -11,7 +11,6 @@ Serialisation allows game state to be sent over the network or saved to a file. 
 * [`planet/serialise/felspar.hpp`](./felspar.hpp) -- Serialisation for containers in various [Felspar libraries](https://felspar.com/).
 * [`planet/serialise/forward.hpp`](./forward.hpp) -- Forward declarations.
 * [`planet/serialise/load_buffer.hpp`](./load_buffer.hpp) -- A view into underlying memory that contains the binary serialisation data.
-* [`planet/serialise/map.hpp`](./map.hpp) -- Serialisation implementations for the types in the `planet::map` and `planet::hexmap` name spaces.
 * [`planet/serialise/marker.hpp`](./marker.hpp) -- The `marker` enumeration which controls the low-level type of a data member.
 * [`planet/serialise/muxing.hpp`](./muxing.hpp) -- Sending binary data over a connection.
 * [`planet/serialise/save_buffer.hpp`](./save_buffer.hpp) -- A buffer that will receive the serialisation bytes.

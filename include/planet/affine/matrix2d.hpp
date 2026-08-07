@@ -27,6 +27,9 @@ namespace planet::affine {
         : m{a, b, c, d, e, f, g, h, i} {}
 
       public:
+        static std::string_view constexpr box{"_p:a:m2"};
+
+
         constexpr matrix2d() {}
 
         friend constexpr matrix2d

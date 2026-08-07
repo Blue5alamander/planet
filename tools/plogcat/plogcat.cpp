@@ -45,7 +45,7 @@ int main(int argc, char const *argv[]) {
 
             while (lb.size()) {
                 auto box = planet::serialise::expect_box(lb);
-                if (box.name == "_p:log:h") {
+                if (box.name == planet::log::file_header::box) {
                     planet::log::load_fields(box, header);
                     if (auto const started =
                                 std::chrono::duration_cast<std::chrono::seconds>(
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[]) {
                                   << " (POSIX time), and every time stamp below"
                                   << " is counted from there\n";
                     }
-                } else if (box.name == "_p:log:m") {
+                } else if (box.name == planet::log::message::box) {
                     planet::log::level level{};
                     load(box.content, level);
                     switch (level) {
@@ -92,7 +92,9 @@ int main(int argc, char const *argv[]) {
                     }
 
                     std::cout << "\n\n";
-                } else if (box.name == "_p:log:c") {
+                } else if (
+                        box.name
+                        == planet::log::logged_performance_counters::box) {
                     std::cout << "\33[0;32mPERF\33[0;39m ";
 
                     fetch_and_print_timestamp(header, box);

@@ -13,15 +13,17 @@
 
 
 void planet::affine::save(serialise::save_buffer &ab, extents2d const &t) {
-    ab.save_box("_p:a:e2", t.width, t.height);
+    ab.save_box(extents2d::box, t.width, t.height);
 }
 void planet::affine::load(serialise::box &box, extents2d &t) {
-    box.named("_p:a:e2", t.width, t.height);
+    box.named(extents2d::box, t.width, t.height);
 }
 namespace {
-    auto const e2 = planet::log::format("_p:a:e2", [](auto &os, auto &box) {
-        os << planet::serialise::load_from_box<planet::affine::extents2d>(box);
-    });
+    auto const e2 = planet::log::format(
+            planet::affine::extents2d::box, [](auto &os, auto &box) {
+                os << planet::serialise::load_from_box<planet::affine::extents2d>(
+                        box);
+            });
 }
 
 
@@ -29,10 +31,10 @@ namespace {
 
 
 void planet::affine::save(serialise::save_buffer &ab, matrix2d const &m) {
-    ab.save_box("_p:a:m2", m.cmemory());
+    ab.save_box(matrix2d::box, m.cmemory());
 }
 void planet::affine::load(serialise::box &box, matrix2d &m) {
-    box.named("_p:a:m2", m.memory());
+    box.named(matrix2d::box, m.memory());
 }
 
 
@@ -40,17 +42,19 @@ void planet::affine::load(serialise::box &box, matrix2d &m) {
 
 
 void planet::affine::save(serialise::save_buffer &ab, point2d const &p) {
-    ab.save_box("_p:a:p2", p.x(), p.y());
+    ab.save_box(point2d::box, p.x(), p.y());
 }
 void planet::affine::load(serialise::box &box, point2d &p) {
     float x, y;
-    box.named("_p:a:p2", x, y);
+    box.named(point2d::box, x, y);
     p = {x, y};
 }
 namespace {
-    auto const p2 = planet::log::format("_p:a:p2", [](auto &os, auto &box) {
-        os << planet::serialise::load_from_box<planet::affine::point2d>(box);
-    });
+    auto const p2 = planet::log::format(
+            planet::affine::point2d::box, [](auto &os, auto &box) {
+                os << planet::serialise::load_from_box<planet::affine::point2d>(
+                        box);
+            });
 }
 
 
@@ -58,17 +62,19 @@ namespace {
 
 
 void planet::affine::save(serialise::save_buffer &ab, point3d const &p) {
-    ab.save_box("_p:a:p3", p.x(), p.y(), p.z());
+    ab.save_box(point3d::box, p.x(), p.y(), p.z());
 }
 void planet::affine::load(serialise::box &box, point3d &p) {
     float x, y, z;
-    box.named("_p:a:p3", x, y, z);
+    box.named(point3d::box, x, y, z);
     p = {x, y, z};
 }
 namespace {
-    auto const p3 = planet::log::format("_p:a:p3", [](auto &os, auto &box) {
-        os << planet::serialise::load_from_box<planet::affine::point3d>(box);
-    });
+    auto const p3 = planet::log::format(
+            planet::affine::point3d::box, [](auto &os, auto &box) {
+                os << planet::serialise::load_from_box<planet::affine::point3d>(
+                        box);
+            });
 }
 
 
@@ -76,16 +82,17 @@ namespace {
 
 
 void planet::affine::save(serialise::save_buffer &ab, rectangle2d const &t) {
-    ab.save_box("_p:a:r2", t.top_left, t.extents);
+    ab.save_box(rectangle2d::box, t.top_left, t.extents);
 }
 void planet::affine::load(serialise::box &box, rectangle2d &t) {
-    box.named("_p:a:r2", t.top_left, t.extents);
+    box.named(rectangle2d::box, t.top_left, t.extents);
 }
 namespace {
-    auto const r2 = planet::log::format("_p:a:r2", [](auto &os, auto &box) {
-        os << planet::serialise::load_from_box<planet::affine::rectangle2d>(
-                box);
-    });
+    auto const r2 = planet::log::format(
+            planet::affine::rectangle2d::box, [](auto &os, auto &box) {
+                os << planet::serialise::load_from_box<
+                        planet::affine::rectangle2d>(box);
+            });
 }
 
 
@@ -100,10 +107,10 @@ auto planet::affine::transform2d::aspect_correction(extents2d const &e) noexcept
 
 
 void planet::affine::save(serialise::save_buffer &ab, transform2d const &t) {
-    ab.save_box("_p:a:t2", t.in, t.out);
+    ab.save_box(transform2d::box, t.in, t.out);
 }
 void planet::affine::load(serialise::box &box, transform2d &t) {
-    box.named("_p:a:t2", t.in, t.out);
+    box.named(transform2d::box, t.in, t.out);
 }
 
 

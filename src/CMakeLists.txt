@@ -141,7 +141,6 @@ target_sources(planet PUBLIC
         ../include/planet/serialise/forward.hpp
         ../include/planet/serialise.hpp
         ../include/planet/serialise/load_buffer.hpp
-        ../include/planet/serialise/map.hpp
         ../include/planet/serialise/marker.hpp
         ../include/planet/serialise/muxing.hpp
         ../include/planet/serialise/save_buffer.hpp

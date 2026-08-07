@@ -9,6 +9,9 @@ namespace planet::affine {
 
     /// ## Extents of a rectangular area
     struct extents2d {
+        static std::string_view constexpr box{"_p:a:e2"};
+
+
         float width, height;
 
         /// ### Construction

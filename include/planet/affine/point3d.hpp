@@ -9,6 +9,9 @@ namespace planet::affine {
 
     /// ## 3D point for affine transforms
     struct point3d final {
+        static std::string_view constexpr box{"_p:a:p3"};
+
+
         float xh = {}, yh = {}, zh = {}, h = {1.0f};
 
 

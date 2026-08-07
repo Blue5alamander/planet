@@ -1,5 +1,5 @@
 #include <planet/log.hpp>
-#include <planet/map/square.hpp>
+#include <planet/map.hpp>
 #include <planet/serialise.hpp>
 
 
@@ -7,17 +7,18 @@
 
 
 void planet::map::square::save(serialise::save_buffer &ab, coordinates const c) {
-    ab.save_box("_p:m:coord", c.x, c.y);
+    ab.save_box(coordinates::box, c.x, c.y);
 }
 void planet::map::square::load(serialise::load_buffer &lb, coordinates &c) {
-    lb.load_box("_p:m:coord", c.x, c.y);
+    lb.load_box(coordinates::box, c.x, c.y);
 }
 namespace {
-    auto const sc = planet::log::format("_p:m:coord", [](auto &os, auto &box) {
-        std::int32_t c, r;
-        box.named("_p:m:coord", c, r);
-        os << "square@(" << c << ", " << r << ')';
-    });
+    auto const sc = planet::log::format(
+            planet::map::square::coordinates::box, [](auto &os, auto &box) {
+                std::int32_t c, r;
+                box.named(planet::map::square::coordinates::box, c, r);
+                os << "square@(" << c << ", " << r << ')';
+            });
 }
 
 
@@ -155,17 +156,18 @@ felspar::coro::generator<planet::map::hex::coordinates>
 
 
 void planet::map::hex::save(serialise::save_buffer &ab, coordinates const c) {
-    ab.save_box("_p:h:coord", c.column(), c.row());
+    ab.save_box(coordinates::box, c.column(), c.row());
 }
 void planet::map::hex::load(serialise::load_buffer &lb, coordinates &c) {
     square::coordinates::value_type col{}, row{};
-    lb.load_box("_p:h:coord", col, row);
+    lb.load_box(coordinates::box, col, row);
     c = {col, row};
 }
 namespace {
-    auto const hc = planet::log::format("_p:h:coord", [](auto &os, auto &box) {
-        std::int32_t c, r;
-        box.named("_p:h:coord", c, r);
-        os << "hex@(" << c << ", " << r << ')';
-    });
+    auto const hc = planet::log::format(
+            planet::map::hex::coordinates::box, [](auto &os, auto &box) {
+                std::int32_t c, r;
+                box.named(planet::map::hex::coordinates::box, c, r);
+                os << "hex@(" << c << ", " << r << ')';
+            });
 }

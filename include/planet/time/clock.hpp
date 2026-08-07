@@ -25,6 +25,9 @@ namespace planet::time {
      */
     class clock {
       public:
+        static std::string_view constexpr box{"_p:clock"};
+
+
         using rep = std::uint64_t;
         using period = std::nano;
         using duration = std::chrono::duration<rep, period>;

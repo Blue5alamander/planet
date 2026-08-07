@@ -9,6 +9,9 @@ namespace planet::affine {
 
     /// ## Axis aligned 2D rectangle
     struct rectangle2d {
+        static std::string_view constexpr box{"_p:a:r2"};
+
+
         point2d top_left{};
         extents2d extents{};
 

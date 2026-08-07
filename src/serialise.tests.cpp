@@ -1,3 +1,4 @@
+#include <planet/map.hpp>
 #include <planet/serialise.hpp>
 #include <planet/time.hpp>
 #include <felspar/test.hpp>

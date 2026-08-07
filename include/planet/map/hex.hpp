@@ -85,6 +85,9 @@ namespace planet::map::hex {
         constexpr coordinates(square::coordinates p) : pos{p} {}
 
       public:
+        static std::string_view constexpr box{"_p:h:coord"};
+
+
         using value_type = square::coordinates::value_type;
 
         /// ### Construction
@@ -294,6 +297,9 @@ namespace planet::map::hex {
         square::world<Chunk, Pointer> grid{};
 
       public:
+        static std::string_view constexpr box{"_p:h:world"};
+
+
         using chunk_type = Chunk;
         using chunk_position = std::pair<coordinates, chunk_type *>;
         using const_chunk_position = std::pair<coordinates, chunk_type const *>;
@@ -406,6 +412,19 @@ namespace planet::map::hex {
             template<typename...> typename Pointer = std::shared_ptr>
     using world_pds_type = world<square::chunk<C, X, Y>, Pointer>;
     /// Permanent data structure
+
+
+    /// ## Serialisation
+
+    /// ### World
+    template<typename Chunk, template<typename...> typename Pointer>
+    void save(serialise::save_buffer &ab, world<Chunk, Pointer> const &w) {
+        ab.save_box(world<Chunk, Pointer>::box, w.grid);
+    }
+    template<typename Chunk, template<typename...> typename Pointer>
+    void load(serialise::load_buffer &lb, world<Chunk, Pointer> &w) {
+        lb.load_box(world<Chunk, Pointer>::box, w.grid);
+    }
 
 
 }

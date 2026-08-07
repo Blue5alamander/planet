@@ -153,7 +153,11 @@ planet::telemetry::id::id(std::string n, suffix const s)
 
 namespace {
     auto const map_print = planet::log::format(
-            "_p:t:map"sv,
+            /**
+             * The box name is the same for every instantiation, so any
+             * template arguments will do to get at it.
+             */
+            planet::telemetry::map<bool, bool>::box,
             [](std::ostream &os,
                planet::serialise::box &box,
                std::size_t const depth) {

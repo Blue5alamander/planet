@@ -2,7 +2,8 @@
 
 
 #include <planet/map/forward.hpp>
-#include <planet/serialise/forward.hpp>
+#include <planet/serialise/load_buffer.hpp>
+#include <planet/serialise/save_buffer.hpp>
 #include <planet/to_string.hpp>
 
 #include <felspar/coro/bus.hpp>
@@ -36,6 +37,9 @@ namespace planet::map::square {
         friend class hex::coordinates;
 
       public:
+        static std::string_view constexpr box{"_p:m:coord"};
+
+
         using value_type = std::int32_t;
 
         constexpr coordinates() noexcept {}
@@ -137,6 +141,9 @@ namespace planet::map::square {
 
 
       public:
+        static std::string_view constexpr box{"_p:m:world"};
+
+
         using chunk_type = Chunk;
         using chunk_position = std::pair<coordinates, chunk_type *>;
         using const_chunk_position = std::pair<coordinates, chunk_type const *>;
@@ -434,6 +441,9 @@ namespace planet::map::square {
         std::array<Cell, DimX * DimY> storage;
 
       public:
+        static std::string_view constexpr box{"_p:m:chunk"};
+
+
         using cell_type = Cell;
         static constexpr std::size_t width = DimX, height = DimY;
 
@@ -486,6 +496,71 @@ namespace planet::map::square {
             template<typename...> typename Pointer = std::shared_ptr>
     using world_pds_type = world<chunk<C, X, Y>, Pointer>;
     /// Permanent data structure
+
+
+    /// ## Serialisation
+
+    /// ### Chunk
+    template<typename Cell, std::size_t DimX, std::size_t DimY>
+    void save(serialise::save_buffer &ab, chunk<Cell, DimX, DimY> const &c) {
+        ab.save_box(chunk<Cell, DimX, DimY>::box, c.storage);
+    }
+    template<typename Cell, std::size_t DimX, std::size_t DimY>
+    void load(serialise::load_buffer &lb, chunk<Cell, DimX, DimY> &c) {
+        lb.load_box(chunk<Cell, DimX, DimY>::box, c.storage);
+    }
+
+
+    /// ### World
+    template<typename Pointer>
+        requires requires { typename Pointer::element_type; }
+    void
+            save(serialise::save_buffer &ab,
+                 std::vector<std::pair<coordinates, Pointer>> const &v) {
+        /**
+         * The default saver for this vector will produce output that will be
+         * harder for the specialised loader we need to load the items back in.
+         * So just keep things simple.
+         */
+        ab.append(serialise::marker::poly_list);
+        ab.append_size_t(v.size() * 2);
+        for (auto const &p : v) {
+            save(ab, p.first);
+            save(ab, *p.second);
+        }
+    }
+    template<typename Chunk, template<typename...> typename Pointer>
+    void save(serialise::save_buffer &ab, world<Chunk, Pointer> const &w) {
+        ab.save_box(world<Chunk, Pointer>::box, w.storage);
+    }
+    template<typename Chunk, template<typename...> typename Pointer>
+    void load(serialise::load_buffer &lb, world<Chunk, Pointer> &w) {
+        /**
+         * Because we don't have a default constructor for the chunk, and the
+         * internal bookkeeping that we need in the world is a bit complicated
+         * we have to load in a different way.
+         *
+         * The save file contains the position of the corner of each chunk, so
+         * we can iterate through these and fetch the chunks at those positions
+         * to load in -- this will overwrite the saved fields in the chunk's
+         * data type and leave the others as if it was a fresh world.
+         *
+         * The cell data is loaded directly into the chunks the world already
+         * holds, so a world with shared chunks must not share them with any
+         * other world when it is loaded into -- load into a freshly
+         * constructed world.
+         */
+        auto box = serialise::expect_box(lb);
+        box.check_name_or_throw(world<Chunk, Pointer>::box);
+        box.content.check_marker(serialise::marker::poly_list);
+        auto const items = box.content.extract_size_t();
+        for (std::size_t index{}; index * 2 < items; ++index) {
+            auto const pos = serialise::load_type<coordinates>(box.content);
+            Chunk &chunk = *w.storage[w.chunk_index(pos).first].second;
+            load(box.content, chunk);
+        }
+        box.check_empty_or_throw();
+    }
 
 
 }

@@ -12,10 +12,10 @@
 
 
 void planet::time::save(serialise::save_buffer &ab, clock const &c) {
-    ab.save_box("_p:clock", c.time);
+    ab.save_box(clock::box, c.time);
 }
 void planet::time::load(serialise::box &box, clock &c) {
-    box.named("_p:clock", c.time);
+    box.named(clock::box, c.time);
 }
 
 
@@ -153,7 +153,8 @@ namespace {
             });
 
     auto const game_clock_print = planet::log::format(
-            "_p:clock", [](std::ostream &os, planet::serialise::box &box) {
+            planet::time::clock::box,
+            [](std::ostream &os, planet::serialise::box &box) {
                 planet::time::clock c;
                 load(box, c);
                 os << "[game time +";
