@@ -60,7 +60,7 @@ void planet::ui::baseplate::update_if_better_soft_focus(widget_ptr w) {
 /// #### Event delivery
 
 
-void planet::ui::baseplate::build_focus_stack(bool focus_capture::*const kind) {
+void planet::ui::baseplate::build_focus_stack(bool events::kinds::*const kind) {
     focus_stack.clear();
     auto const location = pointer_location();
     /**
@@ -84,37 +84,20 @@ void planet::ui::baseplate::build_focus_stack(bool focus_capture::*const kind) {
 }
 
 
-namespace {
-    /**
-     * A hover boundary is a pointer barrier, so it consumes the
-     * pointer-positioned event kinds whether or not anything subscribes, but
-     * keyboard events pass through it to any subscriber beneath.
-     */
-    template<typename Ev>
-    constexpr bool blocked_by_boundary = true;
-    template<>
-    constexpr bool blocked_by_boundary<planet::events::key> = false;
-    template<>
-    constexpr bool blocked_by_boundary<planet::events::text> = false;
-}
 template<typename Ev>
 auto planet::ui::baseplate::forward(
         planet::queue::pmc<Ev> planet::events::queue::*const kind, Ev const &ev)
         -> widget_ptr {
+    /**
+     * The push resumes consumers synchronously, and a consumer may destroy
+     * widgets -- which mutates `focus_stack` through `remove` -- so the walk
+     * must end at the push.
+     */
     while (not focus_stack.empty()) {
         auto *const w = focus_stack.back();
         focus_stack.pop_back();
-        bool const boundary =
-                blocked_by_boundary<Ev> and w->is_hover_boundary();
-        /**
-         * A boundary is the last widget a pointer event can reach, so the
-         * rest of the stack is dropped before the push -- the widget can
-         * call `forward` while handling the event, and it must not be able
-         * to send it past the boundary.
-         */
-        if (boundary) { focus_stack.clear(); }
         auto &queue = w->events.*kind;
-        if (queue.consumer_count() or boundary) {
+        if (queue.consumer_count()) {
             queue.push(ev);
             return w;
         }
@@ -224,7 +207,7 @@ auto planet::ui::baseplate::forward_mouse() -> task_type {
              */
             soft_focus = nullptr;
             for (widget_ptr w : widgets) { update_if_better_soft_focus(w); }
-            build_focus_stack(&focus_capture::mouse);
+            build_focus_stack(&events::kinds::mouse);
             forward(*last_mouse);
         }
     } catch (std::exception const &e) {
@@ -236,7 +219,7 @@ auto planet::ui::baseplate::forward_keys() -> task_type {
         auto key = events.key.values();
         while (true) {
             auto const k = co_await key.next();
-            build_focus_stack(&focus_capture::key);
+            build_focus_stack(&events::kinds::key);
             if (auto *const send_to = forward(k); send_to) {
                 planet::log::debug(
                         "Sending key press", static_cast<int>(k.scancode),
@@ -256,7 +239,7 @@ auto planet::ui::baseplate::forward_scroll() -> task_type {
         auto scroll = events.scroll.values();
         while (true) {
             auto const s = co_await scroll.next();
-            build_focus_stack(&focus_capture::scroll);
+            build_focus_stack(&events::kinds::scroll);
             forward(s);
         }
     } catch (std::exception const &e) {
@@ -268,7 +251,7 @@ auto planet::ui::baseplate::forward_text() -> task_type {
         auto text = events.text.values();
         while (true) {
             auto const t = co_await text.next();
-            build_focus_stack(&focus_capture::text);
+            build_focus_stack(&events::kinds::text);
             /**
              * The typed characters themselves are deliberately not logged --
              * knowing how much text went where is enough to follow the

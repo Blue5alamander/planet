@@ -101,6 +101,9 @@ namespace planet::ui {
          * under the pointer -- they receive a hover-clear as though the
          * pointer had left them. Defaults to false so hover passes through to
          * everything under the pointer as before.
+         *
+         * Hover only. Which events reach the widgets below is a separate
+         * question that this does not answer.
          */
         void hover_boundary(bool const v = true) noexcept {
             m_hover_boundary = v;
@@ -140,10 +143,10 @@ namespace planet::ui {
 
         /// #### Turn hard focus on and off
         /**
-         * `planet::ui::focus_capture` says which event kinds the focus takes,
-         * and defaults to all of them.
+         * `planet::events::kinds` says which event kinds the focus takes, and
+         * defaults to all of them.
          */
-        void hard_focus_on(focus_capture const c = {}) {
+        void hard_focus_on(events::kinds const c = events::kinds::all()) {
             baseplate->hard_focus_on(this, c);
         }
         void hard_focus_off() { baseplate->hard_focus_off(this); }
@@ -167,6 +170,19 @@ namespace planet::ui {
 
 
       protected:
+        /// ### Throw away the events of these kinds
+        /**
+         * Subscribes to each named queue and discards what arrives. Since an
+         * event goes to the first widget subscribing to its kind, this stops
+         * those kinds reaching the widgets below.
+         *
+         * Await it from `behaviour`. A widget with work of its own can post
+         * both into a starter and wait on that. The queues are multi-consumer,
+         * so swallowing a kind and acting on it are compatible.
+         */
+        felspar::coro::task<void> swallow(events::kinds);
+
+
         /// ### Hover duration
         /**
          * How long the widget has had the mouse hovered over it. The time

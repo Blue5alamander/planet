@@ -318,7 +318,7 @@ namespace planet::widget {
             resting_z_layer = std::exchange(
                     static_z_layer, static_z_layer + screen_z_lift + 1.0f);
             /// The keyboard kinds only -- see the class comment
-            hard_focus_on({.mouse = false, .scroll = false});
+            hard_focus_on(planet::events::kinds::keyboard());
             /**
              * `begin()` leaves the caret at the end of the value; where the
              * click landed is where it belongs. This is before the edit-state

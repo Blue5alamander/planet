@@ -30,14 +30,29 @@ namespace planet::ui {
      * A screen is also a hover boundary, so when screens are stacked only the
      * topmost one receives hover -- those beneath it are cleared as though the
      * pointer had left them.
+     *
+     * Which events stop at the screen is set by the kinds it swallows. The
+     * default is the pointer kinds, so clicks that miss every other widget
+     * stop here rather than entering the play area, and key presses carry on
+     * down to whatever subscribes below. A modal screen swallows
+     * `events::kinds::all()`, leaving the interface it covers inert to the
+     * keyboard too.
      */
     class screen final : public widget {
       public:
-        screen(float const z = -1) : widget{"planet::ui::screen", z} {
+        screen(float const z = -1,
+               events::kinds const s = events::kinds::pointer())
+        : widget{"planet::ui::screen", z}, swallowed{s} {
             hover_boundary();
         }
-        screen(std::string_view const n, float const z = -1) : widget{n, z} {
+        screen(std::string_view const n,
+               float const z = -1,
+               events::kinds const s = events::kinds::pointer())
+        : widget{n, z}, swallowed{s} {
             hover_boundary();
+        }
+        screen(screen &&s) : widget{std::move(s)}, swallowed{s.swallowed} {
+            if (has_baseplate()) { response.post(behaviour()); }
         }
 
 
@@ -46,6 +61,8 @@ namespace planet::ui {
 
 
       private:
+        events::kinds const swallowed;
+
         constrained_type do_reflow(
                 reflow_parameters const &, constrained_type const &c) override {
             return c;
@@ -68,7 +85,9 @@ namespace planet::ui {
             return true;
         }
         bool wants_focus() const noexcept override { return true; }
-        felspar::coro::task<void> behaviour() override { co_return; }
+        felspar::coro::task<void> behaviour() override {
+            co_await swallow(swallowed);
+        }
     };
 
 
