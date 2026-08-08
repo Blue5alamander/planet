@@ -11,6 +11,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string_view>
 
 
@@ -111,18 +112,33 @@ namespace planet::serialise {
     };
 
 
+    /// ### Save a value into a file
+    /**
+     * The size of the file the save left behind, or nothing at all if the file
+     * did not come out of the save holding the value — the stream took the
+     * bytes and the file is the size they were is what makes the difference. An
+     * empty return leaves the file however the failed write left it, so a
+     * caller with something to lose should save beside the file it is replacing
+     * and only put the new one in place once this reports a size.
+     *
+     * TODO Save into a temporary file first and then atomically rename over
+     * the requested filename, so the file is never seen part written.
+     */
     template<typename T>
-    inline auto save(std::filesystem::path const &fn, T const &t) {
+    [[nodiscard]] inline std::optional<std::size_t>
+            save(std::filesystem::path const &fn, T const &t) {
         save_buffer sb;
         save(sb, t);
         auto const bytes = sb.complete();
-        std::ofstream{fn, std::ios::binary}.write(
-                reinterpret_cast<char const *>(bytes.data()), bytes.size());
-        /**
-         * TODO Save into a temporary file first and then atomically rename over
-         * the requested filename after checking that the file size is the
-         * expected size.
-         */
+        std::ofstream out{fn, std::ios::binary};
+        out.write(reinterpret_cast<char const *>(bytes.data()), bytes.size());
+        out.close();
+        std::error_code error;
+        if (out and std::filesystem::file_size(fn, error) == bytes.size()) {
+            return bytes.size();
+        } else {
+            return {};
+        }
     }
 
     template<typename V1, typename V2, typename... Vs>
