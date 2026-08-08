@@ -1,6 +1,7 @@
 #include <planet/log.hpp>
 #include <planet/telemetry/duration.hpp>
 #include <planet/time/clock.hpp>
+#include <planet/time/format.hpp>
 #include <planet/time/rate-limiter.hpp>
 
 #include <planet/serialise/chrono.hpp>
@@ -9,6 +10,72 @@
 
 
 /// ## `planet::time`
+
+
+std::string planet::time::display_string(std::chrono::nanoseconds const d) {
+    auto const ns = d.count();
+    auto const abs_ns = ns < 0 ? -ns : ns;
+    auto const sign = ns < 0 ? std::string{"-"} : std::string{};
+
+    if (abs_ns <= 999) {
+        /// Below a microsecond the nanosecond count is shown verbatim
+        return std::to_string(ns) + "ns";
+    } else if (abs_ns < 100'000'000'000) {
+        /// Up to 100s: the value rounded to three significant figures
+        /**
+         * Reduce the magnitude to a three digit mantissa in `[100, 999]`,
+         * tracking the power of ten dropped (`scale`) and the total digit
+         * count so the decimal point and unit can be placed afterwards.
+         */
+        std::int64_t scale = 1, mantissa = abs_ns;
+        int digits = 3;
+        while (mantissa >= 1'000) {
+            mantissa /= 10;
+            scale *= 10;
+            ++digits;
+        }
+        mantissa = (abs_ns + scale / 2) / scale;
+        if (mantissa >= 1'000) {
+            /// Rounding carried into a fourth digit, so step up a decade
+            mantissa = 100;
+            ++digits;
+        }
+
+        int unit_exponent;
+        char const *unit;
+        if (digits <= 6) {
+            unit_exponent = 3;
+            unit = "µs";
+        } else if (digits <= 9) {
+            unit_exponent = 6;
+            unit = "ms";
+        } else {
+            unit_exponent = 9;
+            unit = "s";
+        }
+
+        int const integer_digits = digits - unit_exponent;
+        auto const mstr = std::to_string(mantissa);
+        auto value = mstr.substr(0, integer_digits);
+        if (integer_digits < 3) { value += "." + mstr.substr(integer_digits); }
+        return sign + value + unit;
+    } else {
+        /// From 100s on: `1d2h3m45s`, with days unbounded
+        auto const total_s = (abs_ns + 500'000'000) / 1'000'000'000;
+        auto const days = total_s / 86'400;
+        auto rest = total_s % 86'400;
+        auto const hours = rest / 3'600;
+        rest %= 3'600;
+        auto const minutes = rest / 60;
+        auto const seconds = rest % 60;
+
+        auto out = sign;
+        if (days) { out += std::to_string(days) + "d"; }
+        if (days or hours) { out += std::to_string(hours) + "h"; }
+        if (days or hours or minutes) { out += std::to_string(minutes) + "m"; }
+        return out + std::to_string(seconds) + "s";
+    }
+}
 
 
 void planet::time::save(serialise::save_buffer &ab, clock const &c) {
@@ -109,18 +176,9 @@ namespace {
             std::int64_t const num,
             std::int64_t const den,
             auto const count) {
-        // Convert to nanoseconds for the smart formatter
         auto const ns = count * (1000'000'000 * num / den);
-        auto const abs_ns = ns < 0 ? -ns : ns;
-        if (abs_ns < 1'000) {
-            os << ns << "ns";
-        } else if (abs_ns < 1'000'000) {
-            os << (ns / 1'000) << "µs";
-        } else if (abs_ns < 1'000'000'000) {
-            os << (ns / 1'000'000) << "ms";
-        } else {
-            os << (ns / 1'000'000'000) << "s";
-        }
+        os << planet::time::display_string(
+                std::chrono::nanoseconds{static_cast<std::int64_t>(ns)});
     }
 
     auto const duration_print = planet::log::format(

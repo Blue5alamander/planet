@@ -104,7 +104,7 @@ namespace {
                 planet::serialise::load_buffer lb{bytes};
                 planet::log::pretty_print(oss, lb);
 
-                check(oss.str()) == "50ms";
+                check(oss.str()) == "50.0ms";
             },
             [](auto check) {
                 std::chrono::system_clock::duration s{2s};
@@ -117,7 +117,7 @@ namespace {
                 planet::serialise::load_buffer lb{bytes};
                 planet::log::pretty_print(oss, lb);
 
-                check(oss.str()) == "2s";
+                check(oss.str()) == "2.00s";
             },
             [](auto check) {
                 std::chrono::steady_clock::duration ns_neg{-100ns};
@@ -143,7 +143,7 @@ namespace {
                 planet::serialise::load_buffer lb{bytes};
                 planet::log::pretty_print(oss, lb);
 
-                check(oss.str()) == "-50ms";
+                check(oss.str()) == "-50.0ms";
             });
 
     /**
@@ -181,7 +181,7 @@ namespace {
                 planet::serialise::load_buffer lb{bytes};
                 planet::log::pretty_print(oss, lb);
 
-                check(oss.str()) == "[game time +50ms]";
+                check(oss.str()) == "[game time +50.0ms]";
             });
 
 

@@ -169,6 +169,7 @@ target_sources(planet PUBLIC
         ../include/planet/text.hpp
         ../include/planet/time/checkpointer.hpp
         ../include/planet/time/clock.hpp
+        ../include/planet/time/format.hpp
         ../include/planet/time.hpp
         ../include/planet/time/rate-limiter.hpp
         ../include/planet/to_string.hpp
@@ -263,6 +264,7 @@ add_test_run(check planet TESTS
         event.tests.cpp
         expandable_row.layout.tests.cpp
         folders.tests.cpp
+        format.tests.cpp
         gravity.tests.cpp
         grid.layout.tests.cpp
         headers.cpp
