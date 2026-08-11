@@ -69,6 +69,12 @@ void planet::comms::signal::send(std::byte const b) {
     if (felspar::io::write_some(
                 pipe.write.native_handle(), sig.data(), sig.size())
         != 1u) {
+        /**
+         * This can't really happen. The pipe will either not write (already
+         * dealt with in `write_some`) or it will write one byte. We could
+         * probably just ignore the return value and see the same value as this
+         * code.
+         */
         std::terminate();
     }
 }
