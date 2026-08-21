@@ -23,6 +23,7 @@ add_library(planet
         scale.ui.cpp
         stdin.cpp
         telemetry.cpp
+        threading.cpp
         time.cpp
         ui.cpp
         version.cpp
@@ -167,6 +168,7 @@ target_sources(planet PUBLIC
         ../include/planet/text/configuration.hpp
         ../include/planet/text/editor.hpp
         ../include/planet/text.hpp
+        ../include/planet/threading.hpp
         ../include/planet/time/checkpointer.hpp
         ../include/planet/time/clock.hpp
         ../include/planet/time/format.hpp
@@ -287,6 +289,7 @@ add_test_run(check planet TESTS
         target_size.layout.tests.cpp
         telemetry.tests.cpp
         text_input.ui.tests.cpp
+        threading.tests.cpp
         time.tests.cpp
         version.tests.cpp
     )

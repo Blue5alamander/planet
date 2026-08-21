@@ -10,6 +10,7 @@
 #include <planet/serialise.hpp>
 #include <planet/numbers.hpp>
 #include <planet/telemetry/counter.hpp>
+#include <planet/threading.hpp>
 
 #include <felspar/memory/accumulation_buffer.hpp>
 
@@ -357,6 +358,7 @@ void planet::audio::mixer::begin() {
 
 
 void planet::audio::mixer::run() noexcept {
+    planet::threading::flush_denormals_to_zero();
     try {
         auto gen = output();
         /**

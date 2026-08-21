@@ -6,6 +6,7 @@
 #include <planet/serialise/load_buffer.hpp>
 #include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/rate.hpp>
+#include <planet/threading.hpp>
 #include <planet/time/checkpointer.hpp>
 
 #include <felspar/io/warden.poll.hpp>
@@ -199,6 +200,7 @@ namespace {
             thread.join();
         }
         std::thread thread{[this]() {
+            planet::threading::flush_denormals_to_zero();
             try {
                 warden.run(
                         +[](felspar::io::warden &, log_thread *ltp)
