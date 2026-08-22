@@ -339,6 +339,57 @@ namespace {
             });
 
 
+    auto const suite_min = felspar::testsuite(
+            "min",
+            [](auto check) {
+                planet::telemetry::smin parent{"mn_parent"};
+                planet::telemetry::smin child{"mn_child", parent};
+
+                child.value(5);
+                check(child.value()) == 5;
+                check(parent.value()) == 5;
+
+                /// Setting directly on parent does not propagate to child
+                parent.value(1);
+                check(parent.value()) == 1;
+                check(child.value()) == 5;
+
+                /// A larger value does not replace the recorded min
+                child.value(8);
+                check(child.value()) == 5;
+                check(parent.value()) == 1;
+
+                /// A smaller value updates both child and parent, and may be
+                /// negative
+                child.value(-3);
+                check(child.value()) == -3;
+                check(parent.value()) == -3;
+            },
+            [](auto check, auto &log) {
+                auto [bytes, cv, pv] = []() {
+                    planet::telemetry::smin parent{"mn_save_parent"};
+                    planet::telemetry::smin child{"mn_save_child", parent};
+
+                    child.value(5);
+                    parent.value(-10);
+
+                    planet::serialise::save_buffer sb;
+                    planet::telemetry::save_performance(sb, parent, child);
+                    return std::tuple{
+                            sb.complete(), child.value(), parent.value()};
+                }();
+                log << felspar::memory::hexdump(bytes.cmemory());
+
+                planet::telemetry::smin p{"mn_save_parent"};
+                planet::telemetry::smin c{"mn_save_child", p};
+                planet::serialise::load_buffer lb{bytes};
+                planet::telemetry::load_performance(lb, p, c);
+
+                check(c.value()) == cv;
+                check(p.value()) == pv;
+            });
+
+
     auto const suite = felspar::testsuite(
             "timestamps",
             [](auto check, auto &log) {

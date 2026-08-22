@@ -236,6 +236,55 @@ namespace {
 }
 
 
+/// ## `planet::telemetry::min`
+
+
+void planet::telemetry::smin::value(value_type const v) noexcept {
+    if (parent) { parent->value(v); }
+    while (true) {
+        auto const old = m_value.load();
+        auto const m = std::min(old, v);
+        if (m == old) {
+            return;
+        } else if (m_value.exchange(v) == old) {
+            return;
+        }
+    }
+}
+
+
+bool planet::telemetry::smin::save(serialise::save_buffer &sb) const {
+    auto const c = m_value.load();
+    if (c != maximum) {
+        sb.save_box(box, name(), c);
+        return true;
+    } else {
+        return false;
+    }
+}
+bool planet::telemetry::smin::load(measurements &pd) {
+    value_type c;
+    if (load_performance_measurement(pd, name(), box, c)) {
+        value(c);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+namespace {
+    auto const min_print = planet::log::format(
+            planet::telemetry::smin::box,
+            [](std::ostream &os, planet::serialise::box &box) {
+                std::string name;
+                std::int64_t value;
+                box.named(planet::telemetry::smin::box, name, value);
+                os << name << " = " << value;
+            });
+}
+
+
 /// ## `planet::telemetry::performance`
 
 
