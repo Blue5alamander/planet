@@ -396,6 +396,8 @@ namespace {
                 check(left[expected_silence]) == 0.25f;
                 /// On time (ahead of the write head), so not counted as ASAP.
                 check(m.asap_scheduled_count()) == 0;
+                /// The margin is exactly the fixed latency headroom.
+                check(m.schedule_margin_min_samples()) == drv.latency.count();
             });
 
 
@@ -443,6 +445,9 @@ namespace {
                 check(left[expected_silence]) == 0.25f;
                 /// On time (ahead of the write head), so not counted as ASAP.
                 check(m.asap_scheduled_count()) == 0;
+                /// The margin is the 20ms delay plus the fixed latency headroom.
+                check(m.schedule_margin_min_samples())
+                        == 960 + drv.latency.count();
             });
 
 
@@ -464,6 +469,13 @@ namespace {
                 check(left.back()) == 0.25f;
                 /// Its target slipped behind the write head: counted as ASAP.
                 check(m.asap_scheduled_count()) == 1;
+                /**
+                 * A whole second behind (48'000 samples at 48kHz), minus the
+                 * latency headroom that was not enough to absorb it: a negative
+                 * margin, which is the whole point of tracking the minimum.
+                 */
+                check(m.schedule_margin_min_samples())
+                        == drv.latency.count() - 48'000;
             });
 
 

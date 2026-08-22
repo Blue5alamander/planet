@@ -10,6 +10,7 @@
 #include <planet/serialise.hpp>
 #include <planet/numbers.hpp>
 #include <planet/telemetry/counter.hpp>
+#include <planet/telemetry/minmax.hpp>
 #include <planet/threading.hpp>
 
 #include <felspar/memory/accumulation_buffer.hpp>
@@ -153,6 +154,12 @@ namespace {
      */
     planet::telemetry::counter p_asap_scheduled{
             "planet_audio__mixer__asap_scheduled"};
+    /**
+     * Global parent for every mixer's `schedule_margin_min`, so the smallest
+     * margin seen across all mixers is available alongside the per-mixer one.
+     */
+    planet::telemetry::smin p_schedule_margin_min{
+            "planet_audio__mixer__schedule_margin_min"};
 }
 
 
@@ -161,9 +168,16 @@ planet::audio::mixer::mixer(
 : id{std::string{n}},
   master{c},
   asap_scheduled{name() + "__asap_scheduled", p_asap_scheduled},
+  schedule_margin_min{name() + "__schedule_margin_min", p_schedule_margin_min},
   slots_free{0},
   taps{t} {
     incoming.reserve(generators.capacity());
+}
+
+
+auto planet::audio::mixer::worst_schedule_margin_min_samples() noexcept
+        -> telemetry::smin::value_type {
+    return p_schedule_margin_min.value();
 }
 
 
@@ -276,21 +290,33 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
                 sample_clock const now_pos{
                         static_cast<sample_clock::rep>(producer_position)};
                 std::size_t delay = {};
-                if (waiting.target_position > now_pos) {
-                    delay = static_cast<std::size_t>(
-                            (waiting.target_position - now_pos).count());
-                } else if (waiting.target_position != sample_clock::min()) {
+                if (waiting.target_position != sample_clock::min()) {
                     /**
-                     * A track with an explicit `play_at` whose target has
-                     * already slipped behind the write head: the fixed latency
-                     * headroom did not cover the capture-to-queue delay, so it
-                     * plays as soon as possible rather than on time. Count it
-                     * so a producer that only ever schedules valid future times
-                     * can reveal when the latency is too short. The `min()`
-                     * sentinel (the immediate `add_track`) is ASAP by design
-                     * and excluded.
+                     * The signed distance from the write head to this track's
+                     * scheduled start: the time, in samples, between being told
+                     * when to play the track and getting to it. Recorded as a
+                     * running minimum so the worst case — the furthest a
+                     * scheduled start had already slipped behind the head — is
+                     * visible alongside `asap_scheduled`, which only counts how
+                     * often that happened. The `min()` sentinel (the immediate
+                     * `add_track`) has no scheduled time and is excluded.
                      */
-                    ++asap_scheduled;
+                    sample_clock const margin =
+                            waiting.target_position - now_pos;
+                    schedule_margin_min.value(margin.count());
+                    if (margin > sample_clock::zero()) {
+                        delay = static_cast<std::size_t>(margin.count());
+                    } else {
+                        /**
+                         * The target has already slipped behind the write head:
+                         * the fixed latency headroom did not cover the
+                         * capture-to-queue delay, so the track plays as soon as
+                         * possible rather than on time. Count it so a producer
+                         * that only ever schedules valid future times can
+                         * reveal when the latency is too short.
+                         */
+                        ++asap_scheduled;
+                    }
                 }
                 generators.push_back({std::move(waiting.audio), {}, delay});
             }

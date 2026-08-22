@@ -9,6 +9,7 @@
 #include <planet/queue/tspsc.hpp>
 #include <planet/telemetry/counter.hpp>
 #include <planet/telemetry/id.hpp>
+#include <planet/telemetry/minmax.hpp>
 
 #include <felspar/memory/small_vector.hpp>
 
@@ -37,6 +38,7 @@ namespace planet::audio {
     class mixer final : private telemetry::id {
       public:
         /// ### Maximum pre-render ring depth
+        static constexpr std::size_t max_ring_depth = 16;
         /**
          * Compile-time cap on the number of blocks buffered between the
          * producer thread and the consuming audio callback. The depth actually
@@ -44,7 +46,6 @@ namespace planet::audio {
          * output passes to `bind_driver`; this only bounds the backing storage
          * and the semaphore.
          */
-        static constexpr std::size_t max_ring_depth = 16;
 
 
         /// ### Construction
@@ -81,8 +82,9 @@ namespace planet::audio {
 
 
         /// ### Add a track to the mix
-        /// Safe to call from any thread; drained on the producer thread.
         /**
+         * Safe to call from any thread; drained on the producer thread.
+         *
          * The track starts as soon as the producer next drains the queue —
          * audible `driver::latency` later, the fixed-latency promise the mixer
          * is built on. Pushes a `sample_clock::min()` sentinel so the producer
@@ -95,6 +97,7 @@ namespace planet::audio {
         void add_track(stereo_generator track, dB_gain g) {
             add_track(gain(g, std::move(track)));
         }
+
 
         /// ### Add a track scheduled to start at a real-world wall-clock time
         /**
@@ -125,6 +128,7 @@ namespace planet::audio {
                 std::chrono::steady_clock::time_point const play_at) {
             add_track(gain(g, std::move(track)), play_at);
         }
+
 
         /// ### Mixed output generator
         stereo_generator output();
@@ -189,6 +193,7 @@ namespace planet::audio {
 
 
         /// ### Scheduled tracks that had to start "as soon as possible"
+        telemetry::counter::value_type asap_scheduled_count() const noexcept
         /**
          * Count of tracks given an explicit `play_at` whose target had already
          * fallen behind the producer's write head by the time it was drained —
@@ -199,12 +204,41 @@ namespace planet::audio {
          * Does not count the immediate `add_track` overload (which is ASAP by
          * design).
          */
-        telemetry::counter::value_type asap_scheduled_count() const noexcept {
+        {
             return asap_scheduled.value();
         }
 
 
+        /// ### Smallest scheduling margin seen, in samples (telemetry)
+        telemetry::smin::value_type schedule_margin_min_samples() const noexcept
+        /**
+         * The minimum, over every explicitly scheduled track, of the signed
+         * distance in `sample_clock` samples between the track's target start
+         * position and the producer's write head at the moment the producer
+         * drained it — how much time there was, in the mixer thread, between
+         * being told when to play a track and getting to it. Positive means
+         * the track arrived with that much headroom before its scheduled
+         * start, negative means its target had already slipped that far behind
+         * the write head, so it started as soon as possible (the case
+         * `asap_scheduled_count` counts).
+         *
+         * Immediate `add_track` tracks carry no scheduled time and are
+         * excluded. Reads the sentinel `numeric_limits<value_type>::max()`
+         * until the first scheduled track is drained.
+         */
+        {
+            return schedule_margin_min.value();
+        }
+
+        static telemetry::smin::value_type
+                worst_schedule_margin_min_samples() noexcept;
+        /**
+         * Returns the worst shedule margin across all of the mixers. This
+         * allows this value to be monitored at run-time.
+         */
+
         /// ### Bind the audio driver and configure the ring
+        void bind_driver(driver const &) noexcept;
         /**
          * Called by `planet::sdl::audio_output::attach` before the producer
          * thread starts, and again by `audio_output::reconnect` whenever a
@@ -231,17 +265,17 @@ namespace planet::audio {
          * around the call so the consumer side does not observe the reset
          * mid-flight. Call `begin()` afterwards to restart the producer.
          */
-        void bind_driver(driver const &) noexcept;
 
 
         /// ### SDL playback-head clock, or `nullptr` if not yet bound
+        std::atomic<sample_clock> const *playback_clock() const noexcept
         /**
          * Returns a pointer to the atomic published by `audio_output`'s
          * callback (end-time of the next block SDL will play). Pointer
          * rather than reference so an unattached mixer (e.g. in tests) is
          * representable.
          */
-        std::atomic<sample_clock> const *playback_clock() const noexcept {
+        {
             return drv ? &drv->playback_head : nullptr;
         }
 
@@ -259,11 +293,23 @@ namespace planet::audio {
 
       private:
         channel &master;
+
+
+        /// ### Telemetry
+        telemetry::counter asap_scheduled;
         /**
          * Incremented (and propagated to a global parent) whenever a scheduled
          * track is clamped to "as soon as possible"; see `asap_scheduled_count`.
          */
-        telemetry::counter asap_scheduled;
+        telemetry::smin schedule_margin_min;
+        /**
+         * The running minimum (propagated to a global parent) of the signed
+         * sample margin between a scheduled track's target and the write head
+         * when it was drained; see `schedule_margin_min_samples`.
+         */
+
+
+        /// ### Playing tracks
         struct track {
             stereo_generator audio;
             /// The number of samples that have been placed in the output so far
