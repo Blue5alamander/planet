@@ -251,10 +251,12 @@ void planet::audio::mixer::add_track(
      * With no driver bound the wall-clock cannot be resolved, so fall back to
      * the "as soon as possible" sentinel.
      */
-    sample_clock const target = drv ? std::chrono::duration_cast<sample_clock>(
-                                              play_at - drv->wall_clock_epoch)
+    sample_clock const target = drv
+            ? std::chrono::duration_cast<sample_clock>(
+                      play_at
+                      - drv->wall_clock_epoch.load(std::memory_order_acquire))
                     + drv->latency
-                                    : sample_clock::min();
+            : sample_clock::min();
     incoming.push({std::move(track), target});
 }
 
@@ -268,6 +270,12 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
     felspar::memory::accumulation_buffer<float> output{buffer_samples() * 50};
     /// Absolute count of samples this generator has produced so far.
     std::uint64_t producer_position{};
+    /**
+     * Gates the one-time epoch re-anchor below, half a second in, once the
+     * device is consuming at real time and `producer_position` tracks
+     * wall-clock. See `driver::wall_clock_epoch`.
+     */
+    bool epoch_anchored = false;
     /**
      * The slice this generator yields is the driver's runtime block size, the
      * same `block_size` member `bind_driver` caches and `run` clamps each
@@ -360,6 +368,18 @@ auto planet::audio::mixer::raw_mix() -> stereo_generator {
         output.ensure_length(block * stereo_buffer::channels);
         co_yield output.first(block * stereo_buffer::channels);
         producer_position += block;
+        if (not epoch_anchored and drv
+            and producer_position
+                    >= static_cast<std::uint64_t>(samples_per_second / 2)) {
+            drv->wall_clock_epoch.store(
+                    std::chrono::steady_clock::now()
+                            - std::chrono::duration_cast<
+                                    std::chrono::steady_clock::duration>(
+                                    sample_clock{static_cast<sample_clock::rep>(
+                                            producer_position)}),
+                    std::memory_order_release);
+            epoch_anchored = true;
+        }
     }
 }
 

@@ -372,7 +372,8 @@ namespace {
                 planet::audio::mixer m{master};
                 planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
-                m.add_track(constant_forever(0.25f), drv.wall_clock_epoch);
+                m.add_track(
+                        constant_forever(0.25f), drv.wall_clock_epoch.load());
 
                 auto const expected_silence =
                         static_cast<std::size_t>(drv.latency.count());
@@ -422,7 +423,8 @@ namespace {
                 std::size_t const expected_silence =
                         960 + static_cast<std::size_t>(drv.latency.count());
                 m.add_track(
-                        constant_forever(0.25f), drv.wall_clock_epoch + 20ms);
+                        constant_forever(0.25f),
+                        drv.wall_clock_epoch.load() + 20ms);
 
                 /**
                  * Cover the silent lead-in (the 20ms delay plus the latency
@@ -461,7 +463,9 @@ namespace {
                 planet::audio::mixer m{master};
                 planet::audio::driver drv{planet::audio::buffer_samples(), 2};
                 m.bind_driver(drv);
-                m.add_track(constant_forever(0.25f), drv.wall_clock_epoch - 1s);
+                m.add_track(
+                        constant_forever(0.25f),
+                        drv.wall_clock_epoch.load() - 1s);
 
                 auto const left =
                         pull_left(m, planet::audio::buffer_duration());

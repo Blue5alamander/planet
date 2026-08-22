@@ -46,21 +46,17 @@ namespace planet::audio {
 
         /// ### Wall-clock anchor for sample-position zero
         /**
-         * The real-world (`steady_clock`) instant that corresponds to the
-         * mixer producer's first output sample. Captured **once** when the
-         * driver is constructed — i.e. once per `reconnect`, because the
-         * backend re-emplaces the driver each time it renegotiates a device —
-         * and never written again. Holding the audio↔wall offset fixed for the
-         * whole session means a given wall-clock `play_at` always maps to the
-         * same audio sample: no per-callback rounding can make successive calls
-         * disagree about which sample a time represents.
-         *
-         * `mixer::add_track(track, play_at)` reads this to convert a scheduled
-         * wall-clock time into an absolute producer-sample position. It is a
-         * plain `const` member (not atomic): written before the driver pointer
-         * is published to any mixer, then only ever read.
+         * The `steady_clock` instant of the producer's output sample zero, read
+         * by `mixer::add_track(track, play_at)` to place a scheduled time on
+         * the producer timeline. Seeded at construction, then re-anchored once
+         * by `mixer::raw_mix` when the device has settled: construction runs
+         * before the device wakes, so the seed alone would fold the warm-up gap
+         * into every scheduled position. `mutable`/atomic because that
+         * re-anchor runs on the producer thread while `add_track` reads from
+         * any thread.
          */
-        std::chrono::steady_clock::time_point const wall_clock_epoch;
+        mutable std::atomic<std::chrono::steady_clock::time_point>
+                wall_clock_epoch;
     };
 
 
