@@ -44,8 +44,8 @@ if(PLANET_NO_AUDIO)
 else()
     target_sources(planet PRIVATE
             audio.cpp
+            audio.layout.cpp
             files.audio.cpp
-            layout.cpp
             mixing_core.cpp
         )
     target_link_libraries(planet
@@ -301,7 +301,7 @@ add_test_run(check planet TESTS
 if(NOT PLANET_NO_AUDIO)
     add_test_run(check planet TESTS
             audio.tests.cpp
-            audio_layout.tests.cpp
+            audio.layout.tests.cpp
             mixer.tests.cpp
             mixing_core.tests.cpp
         )
