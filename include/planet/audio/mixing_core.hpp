@@ -29,7 +29,8 @@ namespace planet::audio {
         /**
          * Fixes the capacity of the mixer vector before the first `attach`, so
          * `attach`'s `push_back` never reallocates the buffer the real-time
-         * callback reads lock-free.
+         * callback reads lock-free, and sizes the per-mixer underrun snapshot
+         * `render` reads to match.
          */
 
         /// ### Attach a mixer
@@ -54,6 +55,19 @@ namespace planet::audio {
          */
 
 
+        /// ### Render one block of mixed output
+        void render(float *, std::size_t) noexcept;
+        /**
+         * The shared body of every backend's real-time callback: sums the
+         * ready frames from each attached mixer, applies the `std::lerp`-ramped
+         * master gain, records clip and underrun telemetry, and advances the
+         * published playback head by the number of frames written. Flushes
+         * denormals to zero on entry, so each backend's consumer thread is
+         * covered by this one call and must not repeat it. Only ever called
+         * from a backend's real-time consumer thread, one call at a time.
+         */
+
+
         /// ### Playback head
         std::atomic<sample_clock> const &playback_clock() const noexcept {
             return drv->playback_head;
@@ -62,6 +76,25 @@ namespace planet::audio {
 
       private:
         std::function<float()> master_gain;
+
+        /// ### Master-gain ramp state
+        float last_master_mul = 1.0f;
+        /**
+         * The master multiplier at the end of the previous `render`, seeded
+         * from the accessor at construction and render-thread-only thereafter.
+         * `render` ramps from it to the current gain across the block so a
+         * volume change does not step (zipper) at a block boundary.
+         */
+
+        /// ### Per-mixer underrun snapshot
+        std::vector<std::uint64_t> last_underruns;
+        /**
+         * Each attached mixer's underrun total as of the previous `render`.
+         * Sized to the reserved mixer count by `reserve_mixers` and
+         * render-thread-only thereafter, so `render` can add each mixer's
+         * increase to the shared output underrun counter without
+         * double-counting.
+         */
 
         /// ### Backend driver, engaged by the first `rebuild_driver`
         std::optional<driver> drv;
