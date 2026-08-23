@@ -45,6 +45,7 @@ else()
     target_sources(planet PRIVATE
             audio.cpp
             files.audio.cpp
+            mixing_core.cpp
         )
     target_link_libraries(planet
             FLAC
@@ -227,6 +228,7 @@ if(NOT PLANET_NO_AUDIO)
       FILE_SET HEADERS
       BASE_DIRS ../include/
       FILES
+            ../include/planet/audio/backend.hpp
             ../include/planet/audio/buffer.hpp
             ../include/planet/audio/channel.hpp
             ../include/planet/audio/clocks.hpp
@@ -236,6 +238,7 @@ if(NOT PLANET_NO_AUDIO)
             ../include/planet/audio/gain.hpp
             ../include/planet/audio.hpp
             ../include/planet/audio/mixer.hpp
+            ../include/planet/audio/mixing_core.hpp
             ../include/planet/audio/music.hpp
             ../include/planet/audio/oscillator.hpp
             ../include/planet/audio/stereo.hpp
@@ -297,5 +300,6 @@ if(NOT PLANET_NO_AUDIO)
     add_test_run(check planet TESTS
             audio.tests.cpp
             mixer.tests.cpp
+            mixing_core.tests.cpp
         )
 endif()

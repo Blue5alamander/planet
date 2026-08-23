@@ -27,22 +27,27 @@ namespace planet::audio {
         driver &operator=(driver const &) = delete;
         driver &operator=(driver &&) = delete;
 
+
         /// ### Playback head
+        std::atomic<sample_clock> playback_head{};
         /**
          * Audio-clock position the backend will have written through by the
          * end of the next block it produces. Written by the backend's
          * real-time callback; read lock-free by anything holding a `driver`.
          */
-        std::atomic<sample_clock> playback_head{};
+
 
         /// ### Samples per buffer block
         std::size_t const block_size;
 
+
         /// ### Blocks of buffered latency (== mixer ring depth)
         std::size_t const block_count;
 
+
         /// ### Latency in samples (== block_size * block_count)
         sample_clock const latency;
+
 
         /// ### Wall-clock anchor for sample-position zero
         /**
