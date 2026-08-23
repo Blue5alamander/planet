@@ -181,6 +181,16 @@ auto planet::audio::mixer::worst_schedule_margin_min_samples() noexcept
 }
 
 
+void planet::audio::mixer::reset_schedule_margin_min() noexcept {
+    schedule_margin_min.reset();
+}
+
+
+void planet::audio::mixer::reset_worst_schedule_margin_min() noexcept {
+    p_schedule_margin_min.reset();
+}
+
+
 void planet::audio::mixer::bind_driver(driver const &d) noexcept {
     /**
      * Safe to call again on an already-running mixer: the audio device must

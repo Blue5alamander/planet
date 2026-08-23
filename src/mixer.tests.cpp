@@ -484,6 +484,52 @@ namespace {
 
 
     /**
+     * Rebinding to a new driver on a config change should not carry a margin
+     * measured against the old timing forward. `reset_schedule_margin_min`
+     * clears the per-mixer reading and `reset_worst_schedule_margin_min` the
+     * global aggregate the per-mixer values feed, each back to its sentinel.
+     */
+    auto const schedule_reset = felspar::testsuite(
+            "mixer.schedule.reset",
+            [](auto check) {
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
+                m.bind_driver(drv);
+                m.add_track(
+                        constant_forever(0.25f), drv.wall_clock_epoch.load());
+                pull_left(m, drv.latency + planet::audio::buffer_duration());
+                /// Draining a scheduled track records a margin
+                check(m.schedule_margin_min_samples()) == drv.latency.count();
+
+                m.reset_schedule_margin_min();
+                /// Reset returns the per-mixer reading to its sentinel
+                check(m.schedule_margin_min_samples())
+                        == std::numeric_limits<
+                                planet::telemetry::smin::value_type>::max();
+            },
+            [](auto check) {
+                planet::audio::channel master{planet::audio::dB_gain{0}};
+                planet::audio::mixer m{master};
+                planet::audio::driver drv{planet::audio::buffer_samples(), 2};
+                m.bind_driver(drv);
+                m.add_track(
+                        constant_forever(0.25f), drv.wall_clock_epoch.load());
+                pull_left(m, drv.latency + planet::audio::buffer_duration());
+                /// The drained track feeds the global aggregate too
+                check(planet::audio::mixer::worst_schedule_margin_min_samples())
+                        < std::numeric_limits<
+                                planet::telemetry::smin::value_type>::max();
+
+                planet::audio::mixer::reset_worst_schedule_margin_min();
+                /// Reset returns the aggregate to its sentinel
+                check(planet::audio::mixer::worst_schedule_margin_min_samples())
+                        == std::numeric_limits<
+                                planet::telemetry::smin::value_type>::max();
+            });
+
+
+    /**
      * On a mixer with no driver bound the wall-clock cannot be resolved, so a
      * scheduled track falls back to playing as soon as possible.
      */

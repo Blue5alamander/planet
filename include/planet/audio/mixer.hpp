@@ -237,6 +237,20 @@ namespace planet::audio {
          * allows this value to be monitored at run-time.
          */
 
+
+        /// ### Clear this mixer's schedule-margin telemetry
+        void reset_schedule_margin_min() noexcept;
+        /**
+         * Clears this mixer's running minimum back to maximum, so the next
+         * scheduled track it drains starts a fresh measurement.
+         */
+        static void reset_worst_schedule_margin_min() noexcept;
+        /**
+         * Clears the worst schedule margin across all mixers back to its
+         * maximum.
+         */
+
+
         /// ### Bind the audio driver and configure the ring
         void bind_driver(driver const &) noexcept;
         /**
