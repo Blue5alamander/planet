@@ -253,6 +253,9 @@ void planet::telemetry::smin::value(value_type const v) noexcept {
 }
 
 
+void planet::telemetry::smin::reset() noexcept { m_value.store(maximum); }
+
+
 bool planet::telemetry::smin::save(serialise::save_buffer &sb) const {
     auto const c = m_value.load();
     if (c != maximum) {

@@ -85,6 +85,14 @@ namespace planet::telemetry {
         void value(value_type const v) noexcept;
 
 
+        /// ### Clear back to the "nothing recorded yet" sentinel
+        void reset() noexcept;
+        /**
+         * Restores the value to `maximum` so that the next recorded value
+         * replaces it. The parent is left untouched.
+         */
+
+
       private:
         bool save(serialise::save_buffer &) const override;
         bool load(measurements &) override;

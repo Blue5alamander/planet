@@ -387,6 +387,26 @@ namespace {
 
                 check(c.value()) == cv;
                 check(p.value()) == pv;
+            },
+            [](auto check) {
+                planet::telemetry::smin parent{"mn_reset_parent"};
+                planet::telemetry::smin child{"mn_reset_child", parent};
+
+                child.value(5);
+                check(child.value()) == 5;
+                check(parent.value()) == 5;
+
+                /// Reset clears this instance back to its sentinel
+                child.reset();
+                check(child.value())
+                        == std::numeric_limits<
+                                planet::telemetry::smin::value_type>::max();
+                /// The parent it forwarded the value to is left untouched
+                check(parent.value()) == 5;
+
+                /// A later value is recorded from the sentinel afresh
+                child.value(9);
+                check(child.value()) == 9;
             });
 
 
