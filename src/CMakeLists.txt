@@ -45,6 +45,7 @@ else()
     target_sources(planet PRIVATE
             audio.cpp
             files.audio.cpp
+            layout.cpp
             mixing_core.cpp
         )
     target_link_libraries(planet
@@ -237,6 +238,7 @@ if(NOT PLANET_NO_AUDIO)
             ../include/planet/audio/forward.hpp
             ../include/planet/audio/gain.hpp
             ../include/planet/audio.hpp
+            ../include/planet/audio/layout.hpp
             ../include/planet/audio/mixer.hpp
             ../include/planet/audio/mixing_core.hpp
             ../include/planet/audio/music.hpp
@@ -299,6 +301,7 @@ add_test_run(check planet TESTS
 if(NOT PLANET_NO_AUDIO)
     add_test_run(check planet TESTS
             audio.tests.cpp
+            audio_layout.tests.cpp
             mixer.tests.cpp
             mixing_core.tests.cpp
         )
