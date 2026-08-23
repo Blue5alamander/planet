@@ -1,6 +1,6 @@
 #include <planet/audio/backend.hpp>
 #include <planet/audio/mixer.hpp>
-#include <planet/audio/mixing_core.hpp>
+#include <planet/audio/output.hpp>
 #include <planet/functional.hpp>
 #include <planet/threading.hpp>
 
@@ -13,27 +13,26 @@
 planet::audio::backend::~backend() = default;
 
 
-/// ## `planet::audio::mixing_core`
+/// ## `planet::audio::output`
 
 
-planet::audio::mixing_core::mixing_core(
-        std::function<float()> master_gain) noexcept
+planet::audio::output::output(std::function<float()> master_gain) noexcept
 : master_gain{std::move(master_gain)} {
     last_master_mul = this->master_gain();
 }
 
 
-void planet::audio::mixing_core::reserve_mixers(std::size_t const count) {
+void planet::audio::output::reserve_mixers(std::size_t const count) {
     mixers.reserve(count);
     last_underruns.resize(count, 0);
 }
 
 
-void planet::audio::mixing_core::attach(mixer &m) {
+void planet::audio::output::attach(mixer &m) {
     std::scoped_lock lock{attach_mtx};
     if (mixers.size() == mixers.capacity()) {
         throw felspar::stdexcept::logic_error{
-                "mixing_core::attach would grow the mixer vector past its reserved capacity while the audio callback may be reading it"};
+                "output::attach would grow the mixer vector past its reserved capacity while the audio callback may be reading it"};
     }
     m.bind_driver(*drv);
     m.begin();
@@ -42,7 +41,7 @@ void planet::audio::mixing_core::attach(mixer &m) {
 }
 
 
-void planet::audio::mixing_core::rebuild_driver(
+void planet::audio::output::rebuild_driver(
         std::size_t const block_size, std::size_t const block_count) {
     drv.emplace(block_size, block_count);
     /**
@@ -79,7 +78,7 @@ namespace {
 }
 
 
-void planet::audio::mixing_core::render(
+void planet::audio::output::render(
         float *const output, std::size_t const wanted) noexcept {
     planet::threading::flush_denormals_to_zero();
 

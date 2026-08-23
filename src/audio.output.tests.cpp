@@ -1,7 +1,7 @@
 #include <planet/audio/backend.hpp>
 #include <planet/audio/channel.hpp>
 #include <planet/audio/mixer.hpp>
-#include <planet/audio/mixing_core.hpp>
+#include <planet/audio/output.hpp>
 #include <planet/log.hpp>
 #include <planet/serialise.hpp>
 #include <planet/telemetry/counter.hpp>
@@ -38,7 +38,7 @@ namespace {
     };
 
 
-    auto const suite = felspar::testsuite("mixing_core", []() {
+    auto const suite = felspar::testsuite("output", []() {
         planet::log::active = planet::log::level::error;
     });
 
@@ -107,7 +107,7 @@ namespace {
              */
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
 
                 core.rebuild_driver(512, 2);
                 check(core.playback_clock().load())
@@ -127,7 +127,7 @@ namespace {
              */
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
 
                 core.rebuild_driver(1024, 2);
                 check(planet::audio::buffer_samples()) == std::size_t{1024};
@@ -147,7 +147,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 core.reserve_mixers(1);
 
@@ -175,7 +175,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 core.reserve_mixers(1);
 
@@ -197,7 +197,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 core.reserve_mixers(1);
 
@@ -225,7 +225,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 std::size_t const block = 512;
                 core.reserve_mixers(2);
@@ -262,7 +262,7 @@ namespace {
             /// `render` advances the playback head by exactly the frame count.
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
 
                 auto const before = core.playback_clock().load();
@@ -281,7 +281,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 std::size_t const block = 512;
                 core.reserve_mixers(1);
@@ -311,7 +311,7 @@ namespace {
             [](auto check) {
                 auto const saved = planet::audio::buffer_duration();
                 planet::audio::channel master{planet::audio::dB_gain{0}};
-                planet::audio::mixing_core core{[] { return 1.0f; }};
+                planet::audio::output core{[] { return 1.0f; }};
                 core.rebuild_driver(512, 2);
                 std::size_t const block = 512;
                 core.reserve_mixers(1);
@@ -346,7 +346,7 @@ namespace {
         auto const saved = planet::audio::buffer_duration();
         planet::audio::channel master{planet::audio::dB_gain{0}};
         float gain = 0.5f;
-        planet::audio::mixing_core core{[&] { return gain; }};
+        planet::audio::output core{[&] { return gain; }};
         core.rebuild_driver(512, 2);
         std::size_t const block = 512;
         std::size_t const channels = planet::audio::stereo_buffer::channels;

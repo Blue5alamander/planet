@@ -18,10 +18,10 @@ namespace planet::audio {
      * Takes the mixers and the master gain and mixes into the blocks for
      * delivery to the backend.
      */
-    class mixing_core final {
+    class output final {
       public:
         /// ### Construction
-        explicit mixing_core(std::function<float()> master_gain) noexcept;
+        explicit output(std::function<float()> master_gain) noexcept;
 
 
         /// ### Reserve storage for the mixers attached at construction

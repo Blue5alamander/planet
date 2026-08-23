@@ -11,7 +11,7 @@ namespace planet::audio {
     struct driver;
     class linear_gain;
     class mixer;
-    class mixing_core;
+    class output;
     class tap;
 
 
