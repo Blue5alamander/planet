@@ -2,6 +2,7 @@
 
 
 #include <planet/events/back.hpp>
+#include <planet/events/control.hpp>
 #include <planet/events/focus.hpp>
 #include <planet/events/key_binding.hpp>
 #include <planet/events/keys.hpp>

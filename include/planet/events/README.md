@@ -2,6 +2,7 @@
 
 * [`planet/events/action.hpp`](./action.hpp) -- The `action` enumeration describing the state transitions of a mouse or keyboard key (`released`, `down`, `held`, `up`).
 * [`planet/events/back.hpp`](./back.hpp) -- The `back` message, sent when the user wants to go back.
+* [`planet/events/control.hpp`](./control.hpp) -- The `control` helper, giving the `modifiers` a platform reserves for driving the program rather than for typing: the Control key on Windows and Linux, and the Command (`gui`) key on macOS and iOS.
 * [`planet/events/focus.hpp`](./focus.hpp) -- The `window_focus` enumeration (`lost`, `gained`) describing a change to the window's keyboard focus.
 * [`planet/events/key_binding.hpp`](./key_binding.hpp) -- The `key_binding`, a `scancode` and the `modifiers` that must be held with it. This is the part of a `key` event that says which combination was pressed, without the `action` and `timestamp` that belong to one particular press, so it is what a configurable control is stored as. Serialisation for it is in [`planet/serialise/events.hpp`](../serialise/events.hpp).
 * [`planet/events/keys.hpp`](./keys.hpp) -- The `scancode` enumeration of locale independent keyboard scan codes (following the USB HID specification), together with the `key` press/release event and the `modifiers` (shift, ctrl, alt, gui) it carries.

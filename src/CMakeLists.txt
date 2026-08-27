@@ -101,6 +101,7 @@ target_sources(planet PUBLIC
         ../include/planet/ecs/weak_entity_id.hpp
         ../include/planet/events/action.hpp
         ../include/planet/events/back.hpp
+        ../include/planet/events/control.hpp
         ../include/planet/events/focus.hpp
         ../include/planet/events.hpp
         ../include/planet/events/key_binding.hpp
