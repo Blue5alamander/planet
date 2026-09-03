@@ -28,9 +28,10 @@ namespace planet::serialise {
      * Because there is no outer box, the alternatives must have pairwise
      * distinct discriminators: a unique marker for each primitive alternative,
      * and a unique box name for each boxed alternative. Two alternatives that
-     * serialise the same way (e.g. `std::optional<A>` and `std::optional<B>`,
-     * which both box as `"_s:opt"`, or `std::vector<A>` and `std::vector<B>`,
-     * which both use the `poly_list` marker) cannot be disambiguated.
+     * serialise the same way cannot be disambiguated — for example
+     * `std::vector<A>` and `std::vector<B>`, which both use the `poly_list`
+     * marker. `std::optional` is unsuited to being an alternative at all: an
+     * empty one is `marker::empty`, so it clashes with `std::monostate`.
      *
      * See the [variant tests](../../../src/serialise.variant.tests.cpp) for
      * worked examples covering both boxed and primitive alternatives.

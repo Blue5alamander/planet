@@ -234,6 +234,83 @@ namespace {
     });
 
 
+    auto const opt = suite.test(
+            "std::optional",
+            [](auto check, auto &log) {
+                /// A held value is saved as the bare value, with no wrapper
+                planet::serialise::save_buffer ab;
+                save(ab, std::optional<std::int32_t>{42});
+                auto const bytes = ab.complete();
+                felspar::memory::hexdump(log, bytes.cmemory());
+
+                planet::serialise::save_buffer bare;
+                save(bare, std::int32_t{42});
+                check(bytes.size()) == bare.complete().size();
+
+                auto const back =
+                        planet::serialise::load_type<std::optional<std::int32_t>>(
+                                bytes);
+                check(back.has_value()) == true;
+                check(*back) == 42;
+            },
+            [](auto check) {
+                /// An empty optional is a single `empty` marker byte
+                planet::serialise::save_buffer ab;
+                save(ab, std::optional<std::int32_t>{});
+                auto const bytes = ab.complete();
+                check(bytes.size()) == 1u;
+                auto span = bytes.cmemory();
+                check(felspar::parse::binary::native::extract<std::uint8_t>(
+                        span))
+                        == static_cast<std::uint8_t>(
+                                planet::serialise::marker::empty);
+
+                auto const back =
+                        planet::serialise::load_type<std::optional<std::int32_t>>(
+                                bytes);
+                check(back.has_value()) == false;
+            },
+            [](auto check) {
+                /// A held boxed value round-trips through its own box
+                planet::serialise::save_buffer ab;
+                save(ab, std::optional<small>{small{1234}});
+                auto const bytes = ab.complete();
+
+                auto const back =
+                        planet::serialise::load_type<std::optional<small>>(
+                                bytes);
+                check(back.has_value()) == true;
+                check(back->field1) == 1234u;
+            },
+            [](auto check) {
+                /**
+                 * A save file written before the change wrapped the value in a
+                 * `"_s:opt"` box carrying a boolean flag, so the loader still
+                 * reads that older form.
+                 */
+                planet::serialise::save_buffer ab;
+                ab.save_box("_s:opt", true, std::int32_t{7});
+                auto const bytes = ab.complete();
+
+                auto const back =
+                        planet::serialise::load_type<std::optional<std::int32_t>>(
+                                bytes);
+                check(back.has_value()) == true;
+                check(*back) == 7;
+            },
+            [](auto check) {
+                /// The older empty form is a `"_s:opt"` box holding just `false`
+                planet::serialise::save_buffer ab;
+                ab.save_box("_s:opt", false);
+                auto const bytes = ab.complete();
+
+                auto const back =
+                        planet::serialise::load_type<std::optional<std::int32_t>>(
+                                bytes);
+                check(back.has_value()) == false;
+            });
+
+
     auto const m = suite.test(
             "square map",
             [](auto check, auto &log) {

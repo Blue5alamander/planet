@@ -143,30 +143,69 @@ namespace planet::serialise {
     }
 
 
+    /// ### `std::optional` serialisation
+    /**
+     * A held value is serialised as the contained value directly, and an empty
+     * optional as a single `marker::empty` byte. There is no enclosing box, so
+     * a held value is byte-identical to the bare value and loads through that
+     * value's own path. This mirrors `std::variant`, whose active alternative
+     * is likewise saved with no wrapper of its own.
+     *
+     * Save files written before this change wrapped the optional in a
+     * `"_s:opt"` box carrying a boolean flag, so the loader still recognises
+     * that box and unwraps it.
+     *
+     * An empty optional and a held `std::monostate` both reduce to
+     * `marker::empty`, so a directly nested `std::optional<std::optional<T>>`
+     * cannot tell an empty outer from a held-but-empty inner. This is the same
+     * limitation `std::variant` has for alternatives that serialise alike.
+     */
     template<typename T>
     inline void save(save_buffer &ab, std::optional<T> const &v) {
         if (v) {
-            ab.save_box("_s:opt", true, *v);
+            save(ab, *v);
         } else {
-            ab.save_box("_s:opt", false);
+            ab.append(marker::empty);
+        }
+    }
+    /// #### Does the buffer start with the pre-change `"_s:opt"` box?
+    /**
+     * Newer save files store the held value directly, so a box that is not
+     * `"_s:opt"` is the value itself, not the old wrapper. The name is read on
+     * a copy so the buffer is left untouched when the answer is no.
+     */
+    namespace detail {
+        inline bool is_legacy_optional_box(load_buffer const &lb) {
+            if (not is_box_marker(lb.peek_marker())) { return false; }
+            auto probe = lb;
+            return expect_box(probe).name == "_s:opt";
         }
     }
     template<typename T>
-    inline void load(box &b, std::optional<T> &v) {
-        try {
-            b.check_name_or_throw("_s:opt");
-            bool has_value = {};
-            load(b.content, has_value);
-            if (has_value) {
-                if (not v) { v.emplace(); }
-                load(b.content, *v);
-            } else {
-                v.reset();
+    inline void load(load_buffer &lb, std::optional<T> &v) {
+        if (lb.peek_marker() == marker::empty) {
+            lb.check_marker(marker::empty);
+            v.reset();
+        } else if (detail::is_legacy_optional_box(lb)) {
+            auto b = expect_box(lb);
+            try {
+                bool has_value = {};
+                load(b.content, has_value);
+                if (has_value) {
+                    if (not v) { v.emplace(); }
+                    load(b.content, *v);
+                } else {
+                    v.reset();
+                }
+                b.check_empty_or_throw();
+            } catch (serialisation_error &e) {
+                e.inside_box("_s:opt");
+                throw;
             }
-            b.check_empty_or_throw();
-        } catch (serialisation_error &e) {
-            e.inside_box("_s:opt");
-            throw;
+        } else {
+            // A held value is stored as the bare value, so load it in place.
+            if (not v) { v.emplace(); }
+            load(lb, *v);
         }
     }
 
