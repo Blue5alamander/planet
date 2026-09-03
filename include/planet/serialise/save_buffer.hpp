@@ -82,6 +82,15 @@ namespace planet::serialise {
 
 
         /// ### Saving raw data
+        /**
+         * In general saving should **never use** these raw data APIs. Always
+         * write against the higher level API reserving these for the internal
+         * implementation of the serialisation mechanism.
+         *
+         * Using them in application code will lead to hard to deal with
+         * migrations and the inability to generically decode the serialised
+         * format.
+         */
         void append(marker const m) { append(static_cast<std::uint8_t>(m)); }
         void append_size_t(std::size_t);
         void append(std::string_view);
