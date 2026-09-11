@@ -155,15 +155,21 @@ namespace planet::ui {
             /// ##### Ensure that `r` is within the `screen`
             affine::rectangle2d within(affine::rectangle2d r) const noexcept {
                 /**
-                 * The calculations here assume that the rectangle `r` isn't too
-                 * large to fit inside the `screen` size.
+                 * A rectangle too large to fit is anchored to the screen's
+                 * top edge so its start stays visible and the overflow falls
+                 * off the far bottom.
                  */
-                if (r.top_left.x() + r.extents.width > screen.width.max()) {
+                if (r.extents.width > screen.width.max() - screen.width.min()) {
+                    r.top_left.x(screen.width.min());
+                } else if (r.top_left.x() + r.extents.width > screen.width.max()) {
                     r.top_left.x(screen.width.max() - r.extents.width);
                 } else if (r.top_left.x() < screen.width.min()) {
                     r.top_left.x(screen.width.min());
                 }
-                if (r.top_left.y() + r.extents.height > screen.height.max()) {
+                if (r.extents.height
+                    > screen.height.max() - screen.height.min()) {
+                    r.top_left.y(screen.height.min());
+                } else if (r.top_left.y() + r.extents.height > screen.height.max()) {
                     r.top_left.y(screen.height.max() - r.extents.height);
                 } else if (r.top_left.y() < screen.height.min()) {
                     r.top_left.y(screen.height.min());
